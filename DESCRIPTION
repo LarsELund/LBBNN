@@ -14,3 +14,10 @@ Config/testthat/edition: 3
 Depends: 
     R (>= 3.5)
 LazyData: true
+Imports: 
+    ggcorrplot,
+    ggplot2,
+    readxl,
+    reshape2,
+    tidyr,
+    torch
