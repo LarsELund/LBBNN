@@ -3,7 +3,7 @@ ProjectId: 920270cd-8eb3-4496-8fe6-5ec2d1c34ae5
 
 RestoreWorkspace: Default
 SaveWorkspace: Default
-AlwaysSaveHistory: Default
+AlwaysSaveHistory: No
 
 EnableCodeIndexing: Yes
 UseSpacesForTab: Yes
@@ -12,3 +12,8 @@ Encoding: UTF-8
 
 RnwWeave: Sweave
 LaTeX: pdfLaTeX
+
+BuildType: Package
+PackageUseDevtools: Yes
+PackageInstallArgs: --no-multiarch --with-keep.source
+PackageRoxygenize: rd,collate,namespace
