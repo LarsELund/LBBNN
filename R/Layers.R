@@ -12,7 +12,7 @@ library(torch)
 #' @examples
 #' alpha_prior(0.25, 10,5)
 alpha_prior <- function(x,out_shape,in_shape,device) {
-  alpha_out <- torch_zeros(out_shape,in_shape,device=device)
+  alpha_out <- torch::torch_zeros(out_shape,in_shape,device=device)
   if (!is.numeric(x) )
     stop("invalid_class:", " alpha must be numeric")
   if (any(x <=0) | any(x>=1))
