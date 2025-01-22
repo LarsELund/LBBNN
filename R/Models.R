@@ -20,11 +20,11 @@ library(torch)
 #' net$kl_div()$item() #get KL-divergence
 #' net$density() #get the density of the network
 #' @export
-LBBNN_Net <- nn_module(
+LBBNN_Net <- torch::nn_module(
   "LBBNN_Net",
   
   initialize = function(problem_type,sizes,prior,device) {
-    self$layers <- nn_module_list()
+    self$layers <- torch::nn_module_list()
     self$problem_type = problem_type
     if(length(prior) != length(sizes) - 1)(stop('Must have one prior inclusion probability per weight matrix'))
     for(i in 1:(length(sizes)-2)){
@@ -34,16 +34,16 @@ LBBNN_Net <- nn_module(
     
     
     if(problem_type == 'binary classification'){
-      self$out <- nn_sigmoid()
-      self$loss_fn <- nn_bce_loss(reduction='sum')
+      self$out <- torch::nn_sigmoid()
+      self$loss_fn <- torch::nn_bce_loss(reduction='sum')
     }
     else if(problem_type == 'multiclass classification' | problem_type == 'MNIST'){
-      self$out <- nn_log_softmax(dim = 2)
-      self$loss_fn <- nn_nll_loss(reduction='sum')
+      self$out <- torch::nn_log_softmax(dim = 2)
+      self$loss_fn <- torch::nn_nll_loss(reduction='sum')
     }
     else if(problem_type == 'regression'){
-      self$out <- nn_identity()
-      self$loss_fn <- nn_mse_loss(reduction='sum')
+      self$out <- torch::nn_identity()
+      self$loss_fn <- torch::nn_mse_loss(reduction='sum')
     }
     else(stop('the type of problem must either be: \'binary classification\', \'multiclass classification\' or \'regression\''))
   },
@@ -51,7 +51,7 @@ LBBNN_Net <- nn_module(
     if(self$problem_type == 'MNIST')(x <- x$view(c(-1,28*28)))
     for(l in self$layers$children){
       
-      x <- nnf_leaky_relu(l(x,MPM)) #iterate over hidden layers
+      x <- torch::nnf_leaky_relu(l(x,MPM)) #iterate over hidden layers
       
     }
     x <- self$out(self$out_layer(x,MPM))

@@ -41,24 +41,24 @@ alpha_prior <- function(x,out_shape,in_shape,device) {
 #' output <- l1(x,MPM = FALSE) #the forward pass, output has shape (20,5)
 #' print(l1$kl_div()$item()) #compute KL-divergence after the forward pass
 #' @export
-LBBNN_Linear <- nn_module(
+LBBNN_Linear <- torch::nn_module(
   "LBBNN_Linear",
   initialize = function(in_features, out_features,prior_inclusion,device) {
     self$in_features  <- in_features
     self$out_features <- out_features
     
     #weight variational parameters
-    self$weight_mean <- nn_parameter(torch_empty(out_features, in_features))
-    self$weight_rho <- nn_parameter(torch_empty(out_features, in_features))
+    self$weight_mean <- torch::nn_parameter(torch_empty(out_features, in_features))
+    self$weight_rho <- torch::nn_parameter(torch_empty(out_features, in_features))
     self$weight_sigma <- torch_empty(out_features, in_features)
     
     #bias variational parameters 
-    self$bias_mean <- nn_parameter(torch_empty(out_features))
-    self$bias_rho <- nn_parameter(torch_empty(out_features))
+    self$bias_mean <- torch::nn_parameter(torch_empty(out_features))
+    self$bias_rho <- torch::nn_parameter(torch_empty(out_features))
     self$bias_sigma <- torch_empty(out_features)
     
     #inclusion variational parameters
-    self$lambda_l <- nn_parameter(torch_empty(out_features, in_features))
+    self$lambda_l <- torch::nn_parameter(torch_empty(out_features, in_features))
     self$alpha <- torch_empty(out_features, in_features)
     
     #define priors. For now, the user is only allowed to define the inclusion prior themselves
@@ -75,11 +75,11 @@ LBBNN_Linear <- nn_module(
     self$reset_parameters()
   },
   reset_parameters = function() {
-    nn_init_normal_(self$weight_mean,mean = 0,std = 1)
-    nn_init_normal_(self$weight_rho,mean = -9, std = 0.1)
-    nn_init_uniform_(self$bias_mean,-0.2,0.2)
-    nn_init_normal_(self$bias_rho,mean = -9, std = 0.1)
-    nn_init_uniform_(self$lambda_l,-10,10)
+    torch::nn_init_normal_(self$weight_mean,mean = 0,std = 1)
+    torch::nn_init_normal_(self$weight_rho,mean = -9, std = 0.1)
+    torch::nn_init_uniform_(self$bias_mean,-0.2,0.2)
+    torch::nn_init_normal_(self$bias_rho,mean = -9, std = 0.1)
+    torch::nn_init_uniform_(self$lambda_l,-10,10)
     
     
   },

@@ -25,7 +25,7 @@ library(torch)
 #'output <- train_LBBNN(epochs = 10,LBBNN = model, lr = 0.01,train_dl = train_loader)
 #'@export
 train_LBBNN <- function(epochs,LBBNN,lr,train_dl,device){
-  opt <- optim_adam(LBBNN$parameters,lr = lr)
+  opt <- torch::optim_adam(LBBNN$parameters,lr = lr)
   accs <- c()
   losses <-c()
   density <- c()
@@ -159,8 +159,8 @@ validate_LBBNN <- function(LBBNN,num_samples,test_dl,device){
         out_full <- out_full$squeeze()
         out_mpm <-out_mpm$squeeze()
         
-        loss <- torch_sqrt(nnf_mse_loss(out_full, target))
-        loss_mpm <- torch_sqrt(nnf_mse_loss(out_mpm, target))
+        loss <- torch_sqrt(torch::nnf_mse_loss(out_full, target))
+        loss_mpm <- torch_sqrt(torch::nnf_mse_loss(out_mpm, target))
         val_loss <- c(val_loss,loss$item())
         val_loss_mpm <- c(val_loss_mpm,loss_mpm$item())
       }
