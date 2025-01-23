@@ -6,7 +6,8 @@
 <!-- badges: start -->
 <!-- badges: end -->
 
-The goal of LBBNN is to …
+The goal of LBBNN is to implement Latent Bayesian Binary Neural Networks
+in R, using the torch for R package.
 
 ## Installation
 
