@@ -4,12 +4,12 @@
 \name{LBBNN-package}
 \alias{LBBNN}
 \alias{LBBNN-package}
-\title{LBBNN: What the Package Does (One Line, Title Case)}
+\title{LBBNN: Implementation of Latent Binary Bayesian Neural Networks using torch for R}
 \description{
-What the package does (one paragraph).
+
 }
 \author{
-\strong{Maintainer}: First Last \email{first.last@example.com}
+\strong{Maintainer}: Lars Skaaret-Lund \email{lars.skaaret-lund@nmbu.no}
 
 }
 \keyword{internal}
