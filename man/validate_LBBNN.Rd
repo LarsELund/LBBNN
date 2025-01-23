@@ -4,7 +4,7 @@
 \alias{validate_LBBNN}
 \title{Function to validate a trained LBBNN model}
 \usage{
-validate_LBBNN(LBBNN, num_samples, test_dl, device)
+validate_LBBNN(LBBNN, num_samples, test_dl, device = "cpu")
 }
 \arguments{
 \item{LBBNN}{An instance of a trained LBBNN_net to be validated}
@@ -13,7 +13,7 @@ validate_LBBNN(LBBNN, num_samples, test_dl, device)
 
 \item{test_dl}{An instance of torch dataloader, containing the validation data}
 
-\item{device}{The device to to validate on}
+\item{device}{The device to to validate on. Default is cpu}
 }
 \value{
 A list containing accuracy if classification, or loss if regression. In both cases

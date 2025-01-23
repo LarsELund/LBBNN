@@ -4,7 +4,7 @@
 \alias{train_LBBNN}
 \title{Function to train an instance of LBBNN_Net}
 \usage{
-train_LBBNN(epochs, LBBNN, lr, train_dl, device)
+train_LBBNN(epochs, LBBNN, lr, train_dl, device = "cpu")
 }
 \arguments{
 \item{epochs}{Total number of epochs to train for, where one epoch is a pass through the entire training dataset (all minibatches).}
@@ -15,7 +15,7 @@ train_LBBNN(epochs, LBBNN, lr, train_dl, device)
 
 \item{train_dl}{An instance of torch dataloader, containing the data to be trained.}
 
-\item{device}{the device to be trained on}
+\item{device}{the device to be trained on. Default is cpu.}
 }
 \value{
 a list containing the losses and accuracies (if classification) and density for each epoch during training.

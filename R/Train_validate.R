@@ -7,7 +7,7 @@ library(torch)
 #' @param LBBNN An instance of the LBBNN_Net class, to be trained.
 #' @param lr The learning rate to be used in the Adam optimizer.
 #' @param train_dl An instance of torch dataloader, containing the data to be trained.
-#' @param device the device to be trained on
+#' @param device the device to be trained on. Default is cpu.
 #' @return a list containing the losses and accuracies (if classification) and density for each epoch during training.
 #' @examples 
 #' x<-torch_randn(1000,10) #generate some data
@@ -24,7 +24,7 @@ library(torch)
 #'model <- LBBNN_Net(problem,sizes,inclusion_priors)
 #'output <- train_LBBNN(epochs = 10,LBBNN = model, lr = 0.01,train_dl = train_loader)
 #'@export
-train_LBBNN <- function(epochs,LBBNN,lr,train_dl,device){
+train_LBBNN <- function(epochs,LBBNN,lr,train_dl,device = 'cpu'){
   opt <- torch::optim_adam(LBBNN$parameters,lr = lr)
   accs <- c()
   losses <-c()
@@ -108,12 +108,12 @@ train_LBBNN <- function(epochs,LBBNN,lr,train_dl,device){
 #'@param LBBNN An instance of a trained LBBNN_net to be validated
 #'@param num_samples The number of samples from the variational posterior to be used for model averaging
 #'@param test_dl An instance of torch dataloader, containing the validation data
-#'@param device The device to to validate on
+#'@param device The device to to validate on. Default is cpu
 #'@return A list containing accuracy if classification, or loss if regression. In both cases
 #'results are returned for both the full model, and the sparse model, only using weights with
 #'a posterior inclusion probability larger than 0.5. The density is also returned.
 #'@export
-validate_LBBNN <- function(LBBNN,num_samples,test_dl,device){
+validate_LBBNN <- function(LBBNN,num_samples,test_dl,device = 'cpu'){
   LBBNN$eval
   corrects <- 0
   corrects_sparse <-0

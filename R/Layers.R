@@ -46,7 +46,7 @@ LBBNN_Linear <- torch::nn_module(
   initialize = function(in_features, out_features,prior_inclusion,device) {
     self$in_features  <- in_features
     self$out_features <- out_features
-    
+    self$device = device
     #weight variational parameters
     self$weight_mean <- torch::nn_parameter(torch_empty(out_features, in_features))
     self$weight_rho <- torch::nn_parameter(torch_empty(out_features, in_features))
@@ -62,13 +62,13 @@ LBBNN_Linear <- torch::nn_module(
     self$alpha <- torch::torch_empty(out_features, in_features)
     
     #define priors. For now, the user is only allowed to define the inclusion prior themselves
-    self$alpha_prior <- alpha_prior(prior_inclusion,out_features,in_features,device)
+    self$alpha_prior <- alpha_prior(prior_inclusion,out_features,in_features,self$device)
     
     #standard normal prior on the weights and biases
-    self$weight_mean_prior <- torch::torch_zeros(out_features, in_features, device=device)
-    self$weight_sigma_prior <- torch::torch_zeros(out_features, in_features, device=device) + 1 
-    self$bias_mean_prior <- torch::torch_zeros(out_features, device=device)
-    self$bias_sigma_prior <- torch::torch_zeros(out_features, device=device) + 1
+    self$weight_mean_prior <- torch::torch_zeros(out_features, in_features, device=self$device)
+    self$weight_sigma_prior <- torch::torch_zeros(out_features, in_features, device=self$device) + 1 
+    self$bias_mean_prior <- torch::torch_zeros(out_features, device=self$device)
+    self$bias_sigma_prior <- torch::torch_zeros(out_features, device=self$device) + 1
     
     
     
@@ -95,7 +95,7 @@ LBBNN_Linear <- torch::nn_module(
       
       e_b <- torch::torch_matmul(input, torch_t(e_w)) + self$bias_mean
       var_b <- torch::torch_matmul(input^2, torch_t(var_w)) + self$bias_sigma^2
-      eps <- torch::torch_randn(size=(dim(var_b)), device=device)
+      eps <- torch::torch_randn(size=(dim(var_b)), device=self$device)
       activations <- e_b + torch::torch_sqrt(var_b) * eps
       
     }else {#only sample from weights with inclusion prob > 0.5 aka the median probability model 
