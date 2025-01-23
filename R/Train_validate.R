@@ -41,7 +41,7 @@ train_LBBNN <- function(epochs,LBBNN,lr,train_dl,device){
       output <- LBBNN(b[[1]],MPM=FALSE)$to(device=device)
       target <- b[[2]]$to(device=device)
       if(LBBNN$problem_type == 'multiclass classification'){ #nll loss needs float tensors but bce loss needs long tensors 
-        target <- torch_tensor(target,dtype = torch_long())
+        target <- torch::torch_tensor(target,dtype = torch::torch_long())
       }
       else(output <- output$squeeze()) #remove last dimension from binary classifiction or regression
       loss <- LBBNN$loss_fn(output, target) + LBBNN$kl_div() / length(train_dl)
@@ -125,7 +125,7 @@ validate_LBBNN <- function(LBBNN,num_samples,test_dl,device){
     coro::loop(for (b in test_dl){
       target <- b[[2]]$to(device=device)
       if(LBBNN$problem_type == 'multiclass classification'| LBBNN$problem_type == 'MNIST'){ #nll loss needs float tensors but bce loss needs long tensors 
-        target <- torch_tensor(target,dtype = torch_long())
+        target <- torch::torch_tensor(target,dtype = torch_long())
         out_shape <- max(target)$item()
       }
       outputs <- torch_zeros(num_samples,dim(b[[1]])[1],out_shape)$to(device=device)
@@ -159,8 +159,8 @@ validate_LBBNN <- function(LBBNN,num_samples,test_dl,device){
         out_full <- out_full$squeeze()
         out_mpm <-out_mpm$squeeze()
         
-        loss <- torch_sqrt(torch::nnf_mse_loss(out_full, target))
-        loss_mpm <- torch_sqrt(torch::nnf_mse_loss(out_mpm, target))
+        loss <- torch::torch_sqrt(torch::nnf_mse_loss(out_full, target))
+        loss_mpm <- torch::torch_sqrt(torch::nnf_mse_loss(out_mpm, target))
         val_loss <- c(val_loss,loss$item())
         val_loss_mpm <- c(val_loss_mpm,loss_mpm$item())
       }
