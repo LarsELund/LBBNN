@@ -50,25 +50,25 @@ LBBNN_Linear <- torch::nn_module(
     #weight variational parameters
     self$weight_mean <- torch::nn_parameter(torch_empty(out_features, in_features))
     self$weight_rho <- torch::nn_parameter(torch_empty(out_features, in_features))
-    self$weight_sigma <- torch_empty(out_features, in_features)
+    self$weight_sigma <- torch::torch_empty(out_features, in_features)
     
     #bias variational parameters 
     self$bias_mean <- torch::nn_parameter(torch_empty(out_features))
     self$bias_rho <- torch::nn_parameter(torch_empty(out_features))
-    self$bias_sigma <- torch_empty(out_features)
+    self$bias_sigma <- torch::torch_empty(out_features)
     
     #inclusion variational parameters
     self$lambda_l <- torch::nn_parameter(torch_empty(out_features, in_features))
-    self$alpha <- torch_empty(out_features, in_features)
+    self$alpha <- torch::torch_empty(out_features, in_features)
     
     #define priors. For now, the user is only allowed to define the inclusion prior themselves
     self$alpha_prior <- alpha_prior(prior_inclusion,out_features,in_features,device)
     
     #standard normal prior on the weights and biases
-    self$weight_mean_prior <- torch_zeros(out_features, in_features, device=device)
-    self$weight_sigma_prior <- torch_zeros(out_features, in_features, device=device) + 1 
-    self$bias_mean_prior <- torch_zeros(out_features, device=device)
-    self$bias_sigma_prior <- torch_zeros(out_features, device=device) + 1
+    self$weight_mean_prior <- torch::torch_zeros(out_features, in_features, device=device)
+    self$weight_sigma_prior <- torch::torch_zeros(out_features, in_features, device=device) + 1 
+    self$bias_mean_prior <- torch::torch_zeros(out_features, device=device)
+    self$bias_sigma_prior <- torch::torch_zeros(out_features, device=device) + 1
     
     
     
@@ -84,40 +84,40 @@ LBBNN_Linear <- torch::nn_module(
     
   },
   forward = function(input,MPM=FALSE) {
-    self$alpha <- 1 / (1 + torch_exp(-self$lambda_l))
-    self$weight_sigma <- torch_log1p(torch_exp(self$weight_rho))
-    self$bias_sigma <- torch_log1p(torch_exp(self$bias_rho))
+    self$alpha <- 1 / (1 + torch::torch_exp(-self$lambda_l))
+    self$weight_sigma <- torch::torch_log1p(torch_exp(self$weight_rho))
+    self$bias_sigma <- torch::torch_log1p(torch_exp(self$bias_rho))
     
     
     if (! MPM) {#compute the mean and the variance of the activations using the LRT
       e_w <- self$weight_mean * self$alpha
       var_w <- self$alpha * (self$weight_sigma^2 + (1 - self$alpha) * self$weight_mean^2)
       
-      e_b <- torch_matmul(input, torch_t(e_w)) + self$bias_mean
-      var_b <- torch_matmul(input^2, torch_t(var_w)) + self$bias_sigma^2
-      eps <- torch_randn(size=(dim(var_b)), device=device)
-      activations <- e_b + torch_sqrt(var_b) * eps
+      e_b <- torch::torch_matmul(input, torch_t(e_w)) + self$bias_mean
+      var_b <- torch::torch_matmul(input^2, torch_t(var_w)) + self$bias_sigma^2
+      eps <- torch::torch_randn(size=(dim(var_b)), device=device)
+      activations <- e_b + torch::torch_sqrt(var_b) * eps
       
     }else {#only sample from weights with inclusion prob > 0.5 aka the median probability model 
-      gamma <-(torch_clone(self$alpha)> 0.5) * 1.
-      w <- torch_normal(self$weight_mean, self$weight_sigma)
-      bias <- torch_normal(self$bias_mean, self$bias_sigma)
+      gamma <-(torch::torch_clone(self$alpha)> 0.5) * 1.
+      w <- torch::torch_normal(self$weight_mean, self$weight_sigma)
+      bias <- torch::torch_normal(self$bias_mean, self$bias_sigma)
       weight <- w * gamma
-      activations <- torch_matmul(input, torch_t(weight)) + bias
+      activations <- torch::torch_matmul(input, torch_t(weight)) + bias
     }
     
     
     
     return(activations)},
   kl_div = function() {
-    kl_bias <- torch_sum(torch_log(self$bias_sigma_prior / self$bias_sigma) - 0.5 + (self$bias_sigma^2
-                                                                                     + (self$bias_mean - self$bias_mean_prior)^2) / (2 * self$bias_sigma_prior^2))
+    kl_bias <- torch::torch_sum(torch::torch_log(self$bias_sigma_prior / self$bias_sigma) - 0.5 + (self$bias_sigma^2
+                    + (self$bias_mean - self$bias_mean_prior)^2) / (2 * self$bias_sigma_prior^2))
     
-    kl_weight <- torch_sum(self$alpha * (torch_log(self$weight_sigma_prior / self$weight_sigma)
-                                         - 0.5 + torch_log(self$alpha / self$alpha_prior)
+    kl_weight <- torch::torch_sum(self$alpha * (torch::torch_log(self$weight_sigma_prior / self$weight_sigma)
+                                         - 0.5 + torch::torch_log(self$alpha / self$alpha_prior)
                                          + (self$weight_sigma^2 + (self$weight_mean - self$weight_mean_prior)^2) / (
                                            2 * self$weight_sigma_prior^2))
-                           + (1 - self$alpha) * torch_log((1 - self$alpha) / (1 - self$alpha_prior)))
+                           + (1 - self$alpha) * torch::torch_log((1 - self$alpha) / (1 - self$alpha_prior)))
     
     
     return(kl_bias + kl_weight)}
