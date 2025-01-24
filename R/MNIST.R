@@ -1,5 +1,3 @@
-library(torchvision)
-
 dir <- "./mnist"
 
 train_ds <- mnist_dataset(
