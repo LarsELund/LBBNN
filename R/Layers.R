@@ -79,7 +79,7 @@ LBBNN_Linear <- torch::nn_module(
     torch::nn_init_normal_(self$weight_rho,mean = -9, std = 0.1)
     torch::nn_init_uniform_(self$bias_mean,-0.2,0.2)
     torch::nn_init_normal_(self$bias_rho,mean = -9, std = 0.1)
-    torch::nn_init_uniform_(self$lambda_l,0,1)
+    torch::nn_init_uniform_(self$lambda_l,-10,10)
     
     
   },
@@ -93,8 +93,8 @@ LBBNN_Linear <- torch::nn_module(
       e_w <- self$weight_mean * self$alpha
       var_w <- self$alpha * (self$weight_sigma^2 + (1 - self$alpha) * self$weight_mean^2)
       
-      e_b <- torch::torch_matmul(input, torch_t(e_w)) + self$bias_mean
-      var_b <- torch::torch_matmul(input^2, torch_t(var_w)) + self$bias_sigma^2
+      e_b <- torch::torch_matmul(input, torch::torch_t(e_w)) + self$bias_mean
+      var_b <- torch::torch_matmul(input^2, torch::torch_t(var_w)) + self$bias_sigma^2
       eps <- torch::torch_randn(size=(dim(var_b)), device=self$device)
       activations <- e_b + torch::torch_sqrt(var_b) * eps
       
