@@ -32,18 +32,19 @@ alpha_prior <- function(x,out_shape,in_shape,device) {
 #' @param in_features number of input neurons.
 #' @param out_features number of output neurons.
 #' @param prior_inclusion Prior inclusion probability for each weight in the layer.
+#' @param device The device to be used. Default is CPU.
 #' @description Includes function for forward pass, where one can
 #' either use the full model, or the medium probability model (MPM).
 #' Also contains method to initialize parameters and compute KL-divergence.
 #' @examples
-#' l1 <- LBBNN_Linear(in_features = 10,out_features = 5,prior_inclusion = 0.25)
+#' l1 <- LBBNN_Linear(in_features = 10,out_features = 5,prior_inclusion = 0.25,device = 'cpu')
 #' x <- torch_rand(20,10,requires_grad = FALSE)
 #' output <- l1(x,MPM = FALSE) #the forward pass, output has shape (20,5)
 #' print(l1$kl_div()$item()) #compute KL-divergence after the forward pass
 #' @export
 LBBNN_Linear <- torch::nn_module(
   "LBBNN_Linear",
-  initialize = function(in_features, out_features,prior_inclusion,device) {
+  initialize = function(in_features, out_features,prior_inclusion,device = 'cpu') {
     self$in_features  <- in_features
     self$out_features <- out_features
     self$device = device
