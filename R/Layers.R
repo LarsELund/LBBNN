@@ -79,7 +79,7 @@ LBBNN_Linear <- torch::nn_module(
     torch::nn_init_normal_(self$weight_rho,mean = -9, std = 0.1)
     torch::nn_init_uniform_(self$bias_mean,-0.2,0.2)
     torch::nn_init_normal_(self$bias_rho,mean = -9, std = 0.1)
-    torch::nn_init_uniform_(self$lambda_l,-10,10)
+    torch::nn_init_uniform_(self$lambda_l,0,1)
     
     
   },
