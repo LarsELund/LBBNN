@@ -37,10 +37,13 @@ train_LBBNN <- function(epochs,LBBNN,lr,train_dl,device = 'cpu'){
     train_loss <- c()
     # use coro::loop() for stability and performance
     coro::loop(for (b in train_dl) {
+
       opt$zero_grad()
-      output <- LBBNN(b[[1]],MPM=FALSE)$to(device=device)
+      data <- b[[1]]$to(device = device)
+      output <- LBBNN(data,MPM=FALSE)
       target <- b[[2]]$to(device=device)
-      if(LBBNN$problem_type == 'multiclass classification'){ #nll loss needs float tensors but bce loss needs long tensors 
+  
+      if(LBBNN$problem_type == 'multiclass classification'| LBBNN$problem_type == 'MNIST'){ #nll loss needs float tensors but bce loss needs long tensors 
         target <- torch::torch_tensor(target,dtype = torch::torch_long())
       }
       else(output <- output$squeeze()) #remove last dimension from binary classifiction or regression
@@ -70,8 +73,8 @@ train_LBBNN <- function(epochs,LBBNN,lr,train_dl,device = 'cpu'){
     train_acc <- corrects / totals
     if(LBBNN$problem_type != 'regression'){
       cat(sprintf(
-        "\nEpoch %d, training: loss = %3.5f, acc = %3.5f \n",
-        epoch, mean(train_loss), train_acc
+        "\nEpoch %d, training: loss = %3.5f, acc = %3.5f,, density = %3.5f \n",
+        epoch, mean(train_loss), train_acc,LBBNN$density()
       ))
       
       
@@ -87,13 +90,10 @@ train_LBBNN <- function(epochs,LBBNN,lr,train_dl,device = 'cpu'){
       losses <- c(losses,mean(train_loss))
     }
     density <- c(density,LBBNN$density())
-    out_alpha <- as.numeric(LBBNN$out_layer$alpha$detach())
-    
-    out_layer_density<-c(out_layer_density,mean(out_alpha > 0.5))
     
     
   }
-  l = list('accs' = accs,'loss' = losses,'density' = density,'out_layer_density'= out_layer_density)
+  l = list('accs' = accs,'loss' = losses,'density' = density)
   return(l)
 }
 
