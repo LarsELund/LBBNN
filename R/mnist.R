@@ -67,12 +67,12 @@ LBBNN_ConvNet <- nn_module(
 )
 
 torch_manual_seed(0)
-model <- LBBNN_Net(problem_type = problem,sizes = sizes,prior = inclusion_priors,device = device)
-results <- train_LBBNN(epochs = 250,LBBNN = model, lr = 0.001,train_dl = train_loader,device = device)
+#model <- LBBNN_Net(problem_type = problem,sizes = sizes,prior = inclusion_priors,device = device)
+#results <- train_LBBNN(epochs = 250,LBBNN = model, lr = 0.001,train_dl = train_loader,device = device)
 
 
 
-model <- LBBNN_ConvNet(problem_type = 'MNIST',device = device)
-model$to(device=device)
-results <- train_LBBNN(epochs = 250,LBBNN = model, lr = 0.0001,train_dl = train_loader,device = device)
+#model <- LBBNN_ConvNet(problem_type = 'MNIST',device = device)
+#model$to(device=device)
+#results <- train_LBBNN(epochs = 250,LBBNN = model, lr = 0.0001,train_dl = train_loader,device = device)
 
