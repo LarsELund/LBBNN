@@ -6,7 +6,7 @@
 \alias{LBBNN-package}
 \title{LBBNN: Implementation of Latent Binary Bayesian Neural Networks using torch for R}
 \description{
-
+Package that implements LBBNNs in R. The goal is to implement both the mean-field version, using the local reparametrization trick, in addition to the version taking into account dependencies between weights, using normalizing flows. In addition, the package will implement input-skip LBBNNs.
 }
 \author{
 \strong{Maintainer}: Lars Skaaret-Lund \email{lars.skaaret-lund@nmbu.no}

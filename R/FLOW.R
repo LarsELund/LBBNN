@@ -1,7 +1,6 @@
 #' Class to generate a multi-layer perceptron, used in RNVP transforms. 
 #' @param hidden_sizes A vector of ints. The first is the dimensionality of the vector,
 #' to be transformed by RNVP. The subsequent are hidden dimensions in the MLP.
-#' @param device The device to be used. Default is CPU.
 #' @description As of now, each hidden layer (except the last) is followed
 #' by a non-linear transformation. 
 #' @examples
@@ -13,7 +12,7 @@
 MLP <- torch::nn_module(
   "MLP",
   
-  initialize = function(hidden_sizes,device = 'cpu') {
+  initialize = function(hidden_sizes) {
     self$lay <- torch::nn_module_list() 
     
     for(i in 1:(length(hidden_sizes)-1)){
@@ -37,7 +36,6 @@ MLP <- torch::nn_module(
 #' Class to generate one RNVP transform layer. 
 #' @param hidden_sizes A vector of ints. The first is the dimensionality of the vector,
 #' to be transformed by RNVP. The subsequent are hidden dimensions in the MLP.
-#' @param device The device to be used. Default is CPU.
 #' @description Affine half flow aka Real Non-Volume Preserving (x = z * exp(s) + t),
 #' where a randomly selected half z1 of the dimensions in z are transformed as an
 #'affine function of the other half z2, i.e. scaled by s(z2) and shifted by t(z2).
@@ -55,8 +53,8 @@ MLP <- torch::nn_module(
 RNVP_layer <- torch::nn_module(
   "RNVP_layer",
   
-  initialize = function(hidden_sizes,device = 'cpu') {
-    self$net <- MLP(hidden_sizes,device)
+  initialize = function(hidden_sizes) {
+    self$net <- MLP(hidden_sizes)
     self$t <- torch::nn_linear(hidden_sizes[length(hidden_sizes)],hidden_sizes[1])
     self$s <- torch::nn_linear(hidden_sizes[length(hidden_sizes)],hidden_sizes[1])
   },
@@ -75,5 +73,50 @@ RNVP_layer <- torch::nn_module(
     return(torch::torch_sum((1 -self$m) * torch::torch_log(self$gate + 1e-10)))
   }
 )
+
+
+
+
+#' Class to generate a FLOW 
+#' @param input_dim The dimensionality of each layer. First item is the input vector size.
+#' @param transform_type The type of transformation. Currently only RNVP is implemented.
+#' @param num_transforms How many layers of transformations to include in the flow
+#' @description Contains an nn_module where the initial vector gets transformed through 
+#' all the layers in the module. Also computed the log determinant for the entire 
+#' transformation, which is just the sum of the independent layers.
+#' @examples
+#'flow <- FLOW(c(200,100,100),transform_type = 'RNVP',num_transforms = 3)
+#'flow$to(device = 'cpu')
+#'x <- torch_rand(200,device = 'cpu')
+#'output <- flow(x)
+#'z_out <- output$z
+#'print(dim(z_out))
+#'log_det <- output$logdet
+#'print(log_det)
+#' @export
+FLOW <- torch::nn_module(
+  "FLOW",
+  
+  initialize = function(input_dim,transform_type,num_transforms) {
+    self$layers <- torch::nn_module_list() 
+    if(transform_type == 'RNVP'){
+      for(l in 1:num_transforms){
+        self$layers$append(RNVP_layer(input_dim))
+      }
+    }
+    else(stop(cat('transform type',transform_type,'not implemented, try \'RNVP\' instead')))
+  },
+  forward = function(z){
+    logdet <- 0
+    
+    for(l in self$layers$children){
+      z <- l(z)
+      logdet <- logdet + l$log_det()
+    }
+    l = list('z' = z,'logdet' = logdet)
+    return(l)
+  }
+)
+
 
 

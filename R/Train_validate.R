@@ -125,11 +125,11 @@ validate_LBBNN <- function(LBBNN,num_samples,test_dl,device = 'cpu'){
     coro::loop(for (b in test_dl){
       target <- b[[2]]$to(device=device)
       if(LBBNN$problem_type == 'multiclass classification'| LBBNN$problem_type == 'MNIST'){ #nll loss needs float tensors but bce loss needs long tensors 
-        target <- torch::torch_tensor(target,dtype = torch_long())
+        target <- torch::torch_tensor(target,dtype = torch::torch_long())
         out_shape <- max(target)$item()
       }
-      outputs <- torch_zeros(num_samples,dim(b[[1]])[1],out_shape)$to(device=device)
-      output_mpm <- torch_zeros_like(outputs)
+      outputs <- torch::torch_zeros(num_samples,dim(b[[1]])[1],out_shape)$to(device=device)
+      output_mpm <- torch::torch_zeros_like(outputs)
       for(i in 1:num_samples){
         outputs[i]<- LBBNN(b[[1]],MPM=FALSE)$to(device=device)
         output_mpm[i]<- LBBNN(b[[1]],MPM=TRUE)$to(device=device)
