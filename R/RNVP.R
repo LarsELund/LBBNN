@@ -6,7 +6,7 @@
 #' by a non-linear transformation. 
 #' @examples
 #'net <- MLP(c(50,100,200,400))
-#'x <- torch_rand(50)
+#'x <- torch::torch_rand(50)
 #'out <- net(x)
 #'print(dim(out))
 #' @export
@@ -46,7 +46,7 @@ MLP <- torch::nn_module(
 #'This implementation uses the numerically stable updates introduced by IAF:
 # 'https://arxiv.org/abs/1606.04934
 #' @examples
-#'z <- torch_rand(200)
+#'z <- torch::torch_rand(200)
 #'layer <- RNVP_layer(c(200,50,100))
 #'out <- layer(z)
 #'print(dim(out))

@@ -6,7 +6,7 @@
 \alias{LBBNN-package}
 \title{LBBNN: Implementation of Latent Binary Bayesian Neural Networks using torch for R}
 \description{
-
+LBBNN package in R
 }
 \author{
 \strong{Maintainer}: Lars Skaaret-Lund \email{lars.skaaret-lund@nmbu.no}

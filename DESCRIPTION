@@ -3,7 +3,7 @@ Title: Implementation of Latent Binary Bayesian Neural Networks using torch for 
 Version: 0.0.0.9000
 Authors@R: 
     person("Lars", "Skaaret-Lund", , "lars.skaaret-lund@nmbu.no", role = c("aut", "cre"))
-Description: 
+Description: LBBNN package in R
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
@@ -21,3 +21,4 @@ Imports:
     reshape2,
     tidyr,
     torch
+ 

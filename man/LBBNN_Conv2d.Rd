@@ -30,7 +30,7 @@ Also contains method to initialize parameters and compute KL-divergence.
 }
 \examples{
 layer <-  LBBNN_Conv2d(in_channels = 1,out_channels = 32,kernel_size = c(3,3),prior_inclusion = 0.2,device = 'cpu')
-x <- torch_randn(100,1,28,28)
+x <- torch::torch_randn(100,1,28,28)
 out <- layer(x)
 print(dim(out))
 }

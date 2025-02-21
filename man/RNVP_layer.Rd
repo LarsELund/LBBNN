@@ -21,7 +21,7 @@ https://arxiv.org/abs/1605.08803
 This implementation uses the numerically stable updates introduced by IAF:
 }
 \examples{
-z <- torch_rand(200)
+z <- torch::torch_rand(200)
 layer <- RNVP_layer(c(200,50,100))
 out <- layer(z)
 print(dim(out))
