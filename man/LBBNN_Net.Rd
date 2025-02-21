@@ -4,7 +4,7 @@
 \alias{LBBNN_Net}
 \title{Class to generate a LBBNN network}
 \usage{
-LBBNN_Net(problem_type, sizes, prior, device = "cpu")
+LBBNN_Net(problem_type, sizes, prior, device = "cpu", link = NULL, nll = NULL)
 }
 \arguments{
 \item{problem_type}{'binary classification', 'multiclass classification' or 'regression'.}
