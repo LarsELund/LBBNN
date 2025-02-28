@@ -62,6 +62,10 @@ train_LBBNN <- function(epochs,LBBNN,lr,train_dl,device = 'cpu'){
         train_loss <- c(train_loss,loss$item())
         
       }
+      else if(LBBNN$problem_type == 'custom')
+      {
+        train_loss <- c(train_loss,loss$item())
+      }
       else{#for regression
         train_loss <- c(train_loss,loss$item())
         
