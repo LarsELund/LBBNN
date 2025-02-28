@@ -49,8 +49,8 @@ LBBNN_Net <- torch::nn_module(
     {
       if(length(link) == 0 | length(nll) == 0)
         stop("Under custom problem, link function and the negative log likelihood must be provided as torch functions")
-      self$out <- link
-      self$loss_fn <- nll
+      self$out <- link()
+      self$loss_fn <- nll(reduction='sum')
     }
     else(stop('the type of problem must either be: \'binary classification\', \'multiclass classification\', \'regression\' or \'custom\''))
   },
