@@ -11,7 +11,8 @@ library(torch)
 #' @return a torch tensor with shape (out_shape,in_shape) with prior probabilities.
 #' @examples
 #' alpha_prior(0.25, 10,5)
-alpha_prior <- function(x,out_shape,in_shape,device) {
+#' @export
+alpha_prior <- function(x,out_shape,in_shape,device = 'cpu') {
   alpha_out <- torch::torch_zeros(out_shape,in_shape,device=device)
   if (!is.numeric(x) )
     stop("invalid_class:", " alpha must be numeric")
@@ -38,7 +39,7 @@ alpha_prior <- function(x,out_shape,in_shape,device) {
 #' Also contains method to initialize parameters and compute KL-divergence.
 #' @examples
 #' l1 <- LBBNN_Linear(in_features = 10,out_features = 5,prior_inclusion = 0.25,device = 'cpu')
-#' x <- torch_rand(20,10,requires_grad = FALSE)
+#' x <- torch::torch_rand(20,10,requires_grad = FALSE)
 #' output <- l1(x,MPM = FALSE) #the forward pass, output has shape (20,5)
 #' print(l1$kl_div()$item()) #compute KL-divergence after the forward pass
 #' @export
@@ -115,10 +116,10 @@ LBBNN_Linear <- torch::nn_module(
                     + (self$bias_mean - self$bias_mean_prior)^2) / (2 * self$bias_sigma_prior^2))
     
     kl_weight <- torch::torch_sum(self$alpha * (torch::torch_log(self$weight_sigma_prior / self$weight_sigma)
-                                         - 0.5 + torch::torch_log(self$alpha / self$alpha_prior)
+                                         - 0.5 + torch::torch_log(self$alpha / self$alpha_prior+1e-20)
                                          + (self$weight_sigma^2 + (self$weight_mean - self$weight_mean_prior)^2) / (
                                            2 * self$weight_sigma_prior^2))
-                           + (1 - self$alpha) * torch::torch_log((1 - self$alpha) / (1 - self$alpha_prior)))
+                           + (1 - self$alpha) * torch::torch_log((1 - self$alpha) / (1 - self$alpha_prior)+1e-20))
     
     
     return(kl_bias + kl_weight)}
@@ -137,9 +138,10 @@ LBBNN_Linear <- torch::nn_module(
 #' Also contains method to initialize parameters and compute KL-divergence.
 #' @examples
 #'layer <-  LBBNN_Conv2d(in_channels = 1,out_channels = 32,kernel_size = c(3,3),prior_inclusion = 0.2,device = 'cpu')
-#'x <- torch_randn(100,1,28,28)
+#'x <- torch::torch_randn(100,1,28,28)
 #'out <- layer(x)
 #'print(dim(out))
+#' @importFrom torch torch_empty torch_long torch_zeros torch_zeros_like with_no_grad torch_rand torch_randn torch_exp
 #' @export
 LBBNN_Conv2d <- torch::nn_module(
   "LBBNN_Conv2d",

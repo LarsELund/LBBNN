@@ -1,3 +1,5 @@
+library(torch)
+
 #' Class to generate a multi-layer perceptron, used in RNVP transforms. 
 #' @param hidden_sizes A vector of ints. The first is the dimensionality of the vector,
 #' to be transformed by RNVP. The subsequent are hidden dimensions in the MLP.
@@ -5,7 +7,7 @@
 #' by a non-linear transformation. 
 #' @examples
 #'net <- MLP(c(50,100,200,400))
-#'x <- torch_rand(50)
+#'x <- torch::torch_rand(50)
 #'out <- net(x)
 #'print(dim(out))
 #' @export
@@ -44,7 +46,7 @@ MLP <- torch::nn_module(
 #'This implementation uses the numerically stable updates introduced by IAF:
 # 'https://arxiv.org/abs/1606.04934
 #' @examples
-#'z <- torch_rand(200)
+#'z <- torch::torch_rand(200)
 #'layer <- RNVP_layer(c(200,50,100))
 #'out <- layer(z)
 #'print(dim(out))
@@ -70,7 +72,7 @@ RNVP_layer <- torch::nn_module(
     return(x)
   },
   log_det = function(){
-    return(torch::torch_sum((1 -self$m) * torch::torch_log(self$gate + 1e-10)))
+    return(torch::torch_sum((1 -self$m) * torch::torch_log(self$gate + 1e-20)))
   }
 )
 
@@ -87,7 +89,7 @@ RNVP_layer <- torch::nn_module(
 #' @examples
 #'flow <- FLOW(c(200,100,100),transform_type = 'RNVP',num_transforms = 3)
 #'flow$to(device = 'cpu')
-#'x <- torch_rand(200,device = 'cpu')
+#'x <- torch::torch_rand(200,device = 'cpu')
 #'output <- flow(x)
 #'z_out <- output$z
 #'print(dim(z_out))
