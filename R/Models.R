@@ -7,13 +7,15 @@ library(torch)
 #' LBBNN_net also contains functions to compute kl-divergence and the density of the entire network.
 #' @param problem_type 'binary classification', 'multiclass classification' or 'regression'. 
 #' @param sizes a vector containing the sizes of layers of the network, where the first element is the input size, and the last the output size.
-#' @param prior a vector containing the inclusion probabilities for each layer in the network. Length must be ONE less than sizes.
+#' @param prior a vector containing the prior inclusion probabilities for each layer in the network. Length must be ONE less than sizes.
+#' @param std  a vector containing the prior standard deviation for each layer in the network. Length must be ONE less than sizes.
 #' @param device the device to be trained on. Can be 'cpu', 'gpu' or 'mps'. Default is cpu.
 #' @examples
 #' layers <- c(20,200,200,5) #Two hidden layers 
 #' alpha <- c(0.3,0.5,0.9)  # One prior inclusion probability for each weight matrix 
+#' stds <- c(1.0,1.0,1.0)  # One prior inclusion probability for each weight matrix 
 #' prob <- 'multiclass classification'
-#' net <- LBBNN_Net(problem_type = prob, sizes = layers, prior = alpha,device = 'cpu')
+#' net <- LBBNN_Net(problem_type = prob, sizes = layers, prior = alpha,std = stds,device = 'cpu')
 #' print(net)
 #'
 #' x <- torch::torch_rand(100,20,requires_grad = FALSE) #generate some dummy data
@@ -24,14 +26,14 @@ library(torch)
 LBBNN_Net <- torch::nn_module(
   "LBBNN_Net",
   
-  initialize = function(problem_type,sizes,prior,device = 'cpu',link = NULL, nll = NULL) {
+  initialize = function(problem_type,sizes,prior,std,device = 'cpu',link = NULL, nll = NULL) {
     self$layers <- torch::nn_module_list()
     self$problem_type = problem_type
     if(length(prior) != length(sizes) - 1)(stop('Must have one prior inclusion probability per weight matrix'))
     for(i in 1:(length(sizes)-2)){
-      self$layers$append(LBBNN_Linear(sizes[i],sizes[i+1],prior_inclusion = prior[i],device))
+      self$layers$append(LBBNN_Linear(sizes[i],sizes[i+1],prior_inclusion = prior[i],standard_prior = std[i],device))
     }
-    self$out_layer <- (LBBNN_Linear(sizes[length(sizes)-1],sizes[length(sizes)],prior_inclusion = prior[length(prior)],device))
+    self$out_layer <- (LBBNN_Linear(sizes[length(sizes)-1],sizes[length(sizes)],prior_inclusion = prior[length(prior)],standard_prior = std[length(std)],device))
     
     
     if(problem_type == 'binary classification'){

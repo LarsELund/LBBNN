@@ -36,6 +36,7 @@ train_loader <- torch::dataloader(train_data,batch_size = 100,shuffle=TRUE)
 problem<-'binary classification'
 sizes <- c(10,50,1) #10 input variables, one hidden layer of 50 neurons, 1 output
 inclusion_priors <-c(0.3,0.9) #one prior probability per weight matrix
-model <- LBBNN_Net(problem,sizes,inclusion_priors)
+stds <- c(1.0,1.0)
+model <- LBBNN_Net(problem,sizes,inclusion_priors,stds)
 output <- train_LBBNN(epochs = 10,LBBNN = model, lr = 0.01,train_dl = train_loader)
 }

@@ -4,17 +4,16 @@
 \alias{alpha_prior}
 \title{Generate prior inclusion probabilities for a LBBNN layer}
 \usage{
-alpha_prior(x, out_shape, in_shape, device = "cpu")
+alpha_prior(x, device = "cpu")
 }
 \arguments{
 \item{x}{A number between 0 and 1.}
 
-\item{out_shape}{number of output neurons.}
-
-\item{in_shape}{number of input neurons.}
+\item{device}{The devive to be trained on}
 }
 \value{
-a torch tensor with shape (out_shape,in_shape) with prior probabilities.
+a numeric to be added to either (out_shape,in_shape) in case of linear layers
+or (out_channels,in_channels,kernel0,kernel1) in case of conv layers
 }
 \description{
 A function to generate prior probability values for
@@ -22,5 +21,5 @@ each weight in an LBBNN layer. Currently only the same probability for each
 weight in a layer is allowed.
 }
 \examples{
-alpha_prior(0.25, 10,5)
+alpha_prior(0.25)
 }

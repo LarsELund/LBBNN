@@ -9,6 +9,7 @@ LBBNN_Conv2d(
   out_channels,
   kernel_size,
   prior_inclusion,
+  standard_prior,
   device = "cpu"
 )
 }
@@ -21,6 +22,8 @@ LBBNN_Conv2d(
 
 \item{prior_inclusion}{Prior inclusion probability for each weight.}
 
+\item{standard_prior}{Prior standard deviation for each weight and bias.}
+
 \item{device}{The device to be used. Default is CPU.}
 }
 \description{
@@ -29,7 +32,7 @@ either use the full model, or the medium probability model (MPM).
 Also contains method to initialize parameters and compute KL-divergence.
 }
 \examples{
-layer <-  LBBNN_Conv2d(in_channels = 1,out_channels = 32,kernel_size = c(3,3),prior_inclusion = 0.2,device = 'cpu')
+layer <-  LBBNN_Conv2d(in_channels = 1,out_channels = 32,kernel_size = c(3,3),prior_inclusion = 0.2,standard_prior = 1,device = 'cpu')
 x <- torch::torch_randn(100,1,28,28)
 out <- layer(x)
 print(dim(out))

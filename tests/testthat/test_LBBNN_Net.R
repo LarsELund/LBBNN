@@ -3,9 +3,10 @@ test_that("Simple network created", {
   library(torch)
   layers <- c(20,200,200,5) #Two hidden layers 
   alpha <- c(0.3,0.5,0.9)  # One prior inclusion probability for each weight matrix 
+  std <- c(1,1,1)
   prob <- 'multiclass classification'
   net <- LBBNN_Net(problem_type = prob, sizes = layers,
-                   prior = alpha,device = 'cpu')
+                   prior = alpha,std = std,device = 'cpu')
   print(net)
   
   x <- torch_rand(100,20,requires_grad = FALSE) #generate some dummy data

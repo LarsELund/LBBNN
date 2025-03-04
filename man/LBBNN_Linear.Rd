@@ -4,7 +4,13 @@
 \alias{LBBNN_Linear}
 \title{Class to generate an LBBNN feed forward layer}
 \usage{
-LBBNN_Linear(in_features, out_features, prior_inclusion, device = "cpu")
+LBBNN_Linear(
+  in_features,
+  out_features,
+  prior_inclusion,
+  standard_prior,
+  device = "cpu"
+)
 }
 \arguments{
 \item{in_features}{number of input neurons.}
@@ -12,6 +18,8 @@ LBBNN_Linear(in_features, out_features, prior_inclusion, device = "cpu")
 \item{out_features}{number of output neurons.}
 
 \item{prior_inclusion}{Prior inclusion probability for each weight in the layer.}
+
+\item{standard_prior}{prior standard deviation for weights and biases.}
 
 \item{device}{The device to be used. Default is CPU.}
 }
@@ -21,7 +29,7 @@ either use the full model, or the medium probability model (MPM).
 Also contains method to initialize parameters and compute KL-divergence.
 }
 \examples{
-l1 <- LBBNN_Linear(in_features = 10,out_features = 5,prior_inclusion = 0.25,device = 'cpu')
+l1 <- LBBNN_Linear(in_features = 10,out_features = 5,prior_inclusion = 0.25,standard_prior = 1,device = 'cpu')
 x <- torch::torch_rand(20,10,requires_grad = FALSE)
 output <- l1(x,MPM = FALSE) #the forward pass, output has shape (20,5)
 print(l1$kl_div()$item()) #compute KL-divergence after the forward pass

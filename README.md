@@ -63,15 +63,18 @@ output). In addition the user defines a size vector, where the first
 element is the number of variables in the dataset (7 in this case), the
 last element is the number of output neurons (1 in our case), and the
 elements in between define the number of neurons in the hidden layer(s).
-Finally, the user must define the prior inclusion probability for each
-weight matrix (where each weight will have the same prior probability).
-This is an important parameter, as it controls what prior knowledge the
-user may have about how dense they believe the network should be.
+The user must define the prior inclusion probability for each weight
+matrix (where each weight will have the same prior probability). This is
+an important parameter, as it controls what prior knowledge the user may
+have about how dense they believe the network should be. In addition to
+this, the user defines the prior standard deviation for the weight and
+bias parameters.
 
 ``` r
 problem <- 'binary classification'
 sizes <- c(7,100,1) #7 input variables, one hidden layer of 100 neurons, 1 output neuron.
 inclusion_priors <-c(0.50,0.50) #one prior probability per weight matrix.
+stds <- c(1.0,1.0) #prior standard deviation for each layer.
 device <- 'cpu' #can also be mps or gpu.
 ```
 
@@ -79,7 +82,7 @@ We are now ready to define the model:
 
 ``` r
 torch_manual_seed(0)
-model <- LBBNN_Net(problem_type = problem,sizes = sizes,prior = inclusion_priors,device = device)
+model <- LBBNN_Net(problem_type = problem,sizes = sizes,prior = inclusion_priors,std = stds,device = device)
 ```
 
 To train the model, we have a function called train_LBBNN, which takes

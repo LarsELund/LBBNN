@@ -21,6 +21,7 @@ test_loader <- dataloader(test_ds, batch_size = 1000)
 problem <- 'MNIST'
 sizes <- c(28*28,400,400,10) #7 input variables, one hidden layer of 100 neurons, 1 output neuron.
 inclusion_priors <-c(0.1,0.1,0.10) #one prior probability per weight matrix.
+std_priors <-c(0.1,0.1,0.10) #one prior probability per weight matrix.
 device <- 'mps'
 
 
@@ -33,10 +34,10 @@ LBBNN_ConvNet <- nn_module(
   
   initialize = function(problem_type,device) {
     self$problem_type = problem_type
-    self$conv1 <- LBBNN_Conv2d(in_channels = 1, out_channels =32, kernel_size = 5,prior_inclusion = 0.25,device = device)
-    self$conv2 <- LBBNN_Conv2d(in_channels = 32, out_channels = 64, kernel_size = 5,prior_inclusion = 0.25,device = device)
-    self$fc1 <- LBBNN_Linear(in_features = 1024, out_features = 300,prior_inclusion = 0.25,device = device)
-    self$fc2 <- LBBNN_Linear(in_features = 300,out_features = 10,prior_inclusion = 0.25,device = device)
+    self$conv1 <- LBBNN_Conv2d(in_channels = 1, out_channels =32, kernel_size = 5,prior_inclusion = 0.25,standard_prior = 1,device = device)
+    self$conv2 <- LBBNN_Conv2d(in_channels = 32, out_channels = 64, kernel_size = 5,prior_inclusion = 0.25,standard_prior = 1,device = device)
+    self$fc1 <- LBBNN_Linear(in_features = 1024, out_features = 300,prior_inclusion = 0.25,standard_prior = 1,device = device)
+    self$fc2 <- LBBNN_Linear(in_features = 300,out_features = 10,prior_inclusion = 0.25,standard_prior = 1,device = device)
     self$pool <- torch::nn_max_pool2d(2)
     self$out <- torch::nn_log_softmax(dim = 2)
     self$loss_fn <- torch::nn_nll_loss(reduction='sum')
