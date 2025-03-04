@@ -21,7 +21,7 @@ transformation, which is just the sum of the independent layers.
 \examples{
 flow <- FLOW(c(200,100,100),transform_type = 'RNVP',num_transforms = 3)
 flow$to(device = 'cpu')
-x <- torch_rand(200,device = 'cpu')
+x <- torch::torch_rand(200,device = 'cpu')
 output <- flow(x)
 z_out <- output$z
 print(dim(z_out))

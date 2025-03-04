@@ -16,7 +16,7 @@ by a non-linear transformation.
 }
 \examples{
 net <- MLP(c(50,100,200,400))
-x <- torch_rand(50)
+x <- torch::torch_rand(50)
 out <- net(x)
 print(dim(out))
 }

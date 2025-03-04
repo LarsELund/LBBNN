@@ -4,7 +4,7 @@
 \alias{alpha_prior}
 \title{Generate prior inclusion probabilities for a LBBNN layer}
 \usage{
-alpha_prior(x, out_shape, in_shape, device)
+alpha_prior(x, out_shape, in_shape, device = "cpu")
 }
 \arguments{
 \item{x}{A number between 0 and 1.}

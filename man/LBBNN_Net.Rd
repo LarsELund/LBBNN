@@ -4,7 +4,7 @@
 \alias{LBBNN_Net}
 \title{Class to generate a LBBNN network}
 \usage{
-LBBNN_Net(problem_type, sizes, prior, device = "cpu")
+LBBNN_Net(problem_type, sizes, prior, device = "cpu", link = NULL, nll = NULL)
 }
 \arguments{
 \item{problem_type}{'binary classification', 'multiclass classification' or 'regression'.}
@@ -28,7 +28,7 @@ prob <- 'multiclass classification'
 net <- LBBNN_Net(problem_type = prob, sizes = layers, prior = alpha,device = 'cpu')
 print(net)
 
-x <- torch_rand(100,20,requires_grad = FALSE) #generate some dummy data
+x <- torch::torch_rand(100,20,requires_grad = FALSE) #generate some dummy data
 output <- net(x) #forward pass
 net$kl_div()$item() #get KL-divergence
 net$density() #get the density of the network

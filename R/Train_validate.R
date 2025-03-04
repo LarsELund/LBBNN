@@ -10,14 +10,14 @@ library(torch)
 #' @param device the device to be trained on. Default is cpu.
 #' @return a list containing the losses and accuracies (if classification) and density for each epoch during training.
 #' @examples 
-#' x<-torch_randn(1000,10) #generate some data
-#'b <- torch_rand(10)
-#'y <- torch_matmul(x,b)
-#'med <- torch_median(y)
+#' x<-torch::torch_randn(1000,10) #generate some data
+#'b <- torch::torch_rand(10)
+#'y <- torch::torch_matmul(x,b)
+#'med <- torch::torch_median(y)
 #'y[y > med] = 1 #change it into binary classification
 #'y[y <= med] = 0
-#'train_data <- tensor_dataset(x,y)
-#'train_loader <- dataloader(train_data,batch_size = 100,shuffle=TRUE)
+#'train_data <- torch::tensor_dataset(x,y)
+#'train_loader <- torch::dataloader(train_data,batch_size = 100,shuffle=TRUE)
 #'problem<-'binary classification'
 #'sizes <- c(10,50,1) #10 input variables, one hidden layer of 50 neurons, 1 output
 #'inclusion_priors <-c(0.3,0.9) #one prior probability per weight matrix
@@ -61,6 +61,10 @@ train_LBBNN <- function(epochs,LBBNN,lr,train_dl,device = 'cpu'){
         totals <- totals + length(target)
         train_loss <- c(train_loss,loss$item())
         
+      }
+      else if(LBBNN$problem_type == 'custom')
+      {
+        train_loss <- c(train_loss,loss$item())
       }
       else{#for regression
         train_loss <- c(train_loss,loss$item())
