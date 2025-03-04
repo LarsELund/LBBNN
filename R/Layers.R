@@ -6,26 +6,81 @@ library(torch)
 #' each weight in an LBBNN layer. Currently only the same probability for each
 #' weight in a layer is allowed. 
 #' @param x A number between 0 and 1.
-#' @param out_shape number of output neurons.
-#' @param in_shape number of input neurons.
-#' @return a torch tensor with shape (out_shape,in_shape) with prior probabilities.
+#' @param device The devive to be trained on
+#' @return a numeric to be added to either (out_shape,in_shape) in case of linear layers
+#' or (out_channels,in_channels,kernel0,kernel1) in case of conv layers
 #' @examples
-#' alpha_prior(0.25, 10,5)
+#' alpha_prior(0.25)
 #' @export
-alpha_prior <- function(x,out_shape,in_shape,device = 'cpu') {
-  alpha_out <- torch::torch_zeros(out_shape,in_shape,device=device)
+alpha_prior <- function(x,device = 'cpu') {
   if (!is.numeric(x) )
     stop("invalid_class:", " alpha must be numeric")
-  if (any(x <=0) | any(x>=1))
+  if (x <=0 | x>=1)
     stop("invalid_value:", " alpha must be between 0 and 1")
   
   
   if (length(x) != 1)
     stop("only one value of alpha allowed per layer")
   
-  return(alpha_out + x)
+  return(x)
   
 }
+
+#' Generate prior standard deviation probabilities
+#' @description A function to generate prior standard deviations for 
+#' each weight and bias in an LBBNN layer. Currently only the same value for
+#' each weight and bias is allowed. 
+#' @param x A number greater than 0.
+#' @param device device to train on
+#' @return a numeric to be added to either (out_shape,in_shape) in case of linear layers
+#' or (out_channels,in_channels,kernel0,kernel1) in case of conv layers
+#' @examples
+#' std_prior(0.3)
+#' @export
+std_prior <- function(x,device = 'cpu') {
+  if (!is.numeric(x) )
+    stop("invalid_class:", " alpha must be numeric")
+  if (x<=0)
+    stop("invalid_value:", " standard deviation must be > 0")
+  
+  
+  if (length(x) != 1)
+    stop("only one value allowed per layer")
+  
+  return(x)
+  
+}
+
+#' Function to get initialization values for the inclusion parameters
+#' @description Generate initialization for the inclusion parameters.
+#' This will control the initial density of the network, and thus an important tuning
+#' parameter. The intialization parameters are sampled from 1/(1+exp(-U)),
+#' with U ~ Uniform(lower,upper) 
+#' @param lower a number
+#' @param upper a number, greater than lower
+#' @param device device to train on
+#' @return A vector of size two c(lower,upper)
+#' @examples
+#' density_initialization(0,1)
+#' @export
+density_initialization <- function(lower,upper,device = 'cpu') {
+  if (!is.numeric(lower) )
+    stop("invalid_class:", " lower must be numeric")
+  if (!is.numeric(upper) )
+    stop("invalid_class:", " upper must be numeric")
+  
+  if (length(lower) != 1)
+    stop("lower bound can only have one value")
+  if (length(upper) != 1)
+    stop("upper bound can only have one value")
+  if (lower >= upper)
+    stop("the lower bound must be smaller than the upper bound")
+  
+  return(c(lower,upper))
+  
+}
+
+
 
 
 
@@ -33,22 +88,25 @@ alpha_prior <- function(x,out_shape,in_shape,device = 'cpu') {
 #' @param in_features number of input neurons.
 #' @param out_features number of output neurons.
 #' @param prior_inclusion Prior inclusion probability for each weight in the layer.
+#' @param standard_prior prior standard deviation for weights and biases.
+#' @param density_init A vector of size two c(lower,upper) used to initialize the inclusion parameters.
 #' @param device The device to be used. Default is CPU.
 #' @description Includes function for forward pass, where one can
 #' either use the full model, or the medium probability model (MPM).
 #' Also contains method to initialize parameters and compute KL-divergence.
 #' @examples
-#' l1 <- LBBNN_Linear(in_features = 10,out_features = 5,prior_inclusion = 0.25,device = 'cpu')
+#' l1 <- LBBNN_Linear(in_features = 10,out_features = 5,prior_inclusion = 0.25,standard_prior = 1,density_init = c(-10,10),device = 'cpu')
 #' x <- torch::torch_rand(20,10,requires_grad = FALSE)
 #' output <- l1(x,MPM = FALSE) #the forward pass, output has shape (20,5)
 #' print(l1$kl_div()$item()) #compute KL-divergence after the forward pass
 #' @export
 LBBNN_Linear <- torch::nn_module(
   "LBBNN_Linear",
-  initialize = function(in_features, out_features,prior_inclusion,device = 'cpu') {
+  initialize = function(in_features, out_features,prior_inclusion,standard_prior,density_init,device = 'cpu') {
     self$in_features  <- in_features
     self$out_features <- out_features
     self$device = device
+    self$density_init = density_initialization(density_init[1],density_init[2])
     #weight variational parameters
     self$weight_mean <- torch::nn_parameter(torch_empty(out_features, in_features,device = device))
     self$weight_rho <- torch::nn_parameter(torch_empty(out_features, in_features,device = device))
@@ -64,13 +122,13 @@ LBBNN_Linear <- torch::nn_module(
     self$alpha <- torch::torch_empty(out_features, in_features,device = device)
     
     #define priors. For now, the user is only allowed to define the inclusion prior themselves
-    self$alpha_prior <- alpha_prior(prior_inclusion,out_features,in_features,self$device)
+    self$alpha_prior <- torch::torch_zeros(out_features, in_features, device=device) + alpha_prior(prior_inclusion,device = device)
     
     #standard normal prior on the weights and biases
     self$weight_mean_prior <- torch::torch_zeros(out_features, in_features, device=device)
-    self$weight_sigma_prior <- torch::torch_zeros(out_features, in_features, device=device) + 1 
+    self$weight_sigma_prior <- torch::torch_zeros(out_features, in_features, device=device) + std_prior(standard_prior,device = device)
     self$bias_mean_prior <- torch::torch_zeros(out_features, device=device)
-    self$bias_sigma_prior <- torch::torch_zeros(out_features, device=device) + 1
+    self$bias_sigma_prior <- torch::torch_zeros(out_features, device=device) + std_prior(standard_prior,device = device)
     
     
     
@@ -81,7 +139,7 @@ LBBNN_Linear <- torch::nn_module(
     torch::nn_init_normal_(self$weight_rho,mean = -9, std = 0.1)
     torch::nn_init_uniform_(self$bias_mean,-0.2,0.2)
     torch::nn_init_normal_(self$bias_rho,mean = -9, std = 0.1)
-    torch::nn_init_uniform_(self$lambda_l,-10,10)
+    torch::nn_init_uniform_(self$lambda_l,self$density_init[1],self$density_init[2])
     
     
   },
@@ -131,13 +189,15 @@ LBBNN_Linear <- torch::nn_module(
 #' @param in_channels number of input channels.
 #' @param out_channels number of output channels.
 #' @param prior_inclusion Prior inclusion probability for each weight.
+#' @param standard_prior Prior standard deviation for each weight and bias. 
 #' @param kernel_size Size of the convolving kernel.
+#' @param density_init A vector of size two c(lower,upper) used to initialize the inclusion parameters.
 #' @param device The device to be used. Default is CPU.
 #' @description Includes function for forward pass, where one can
 #' either use the full model, or the medium probability model (MPM).
 #' Also contains method to initialize parameters and compute KL-divergence.
 #' @examples
-#'layer <-  LBBNN_Conv2d(in_channels = 1,out_channels = 32,kernel_size = c(3,3),prior_inclusion = 0.2,device = 'cpu')
+#'layer <-  LBBNN_Conv2d(in_channels = 1,out_channels = 32,kernel_size = c(3,3),prior_inclusion = 0.2,standard_prior = 1,density_init = c(-10,10),device = 'cpu')
 #'x <- torch::torch_randn(100,1,28,28)
 #'out <- layer(x)
 #'print(dim(out))
@@ -145,7 +205,7 @@ LBBNN_Linear <- torch::nn_module(
 #' @export
 LBBNN_Conv2d <- torch::nn_module(
   "LBBNN_Conv2d",
-  initialize = function(in_channels, out_channels,kernel_size,prior_inclusion,device = 'cpu') {
+  initialize = function(in_channels, out_channels,kernel_size,prior_inclusion,standard_prior,density_init,device = 'cpu') {
     
     if(length(kernel_size) == 1){
       kernel <- c(kernel_size,kernel_size)
@@ -159,6 +219,7 @@ LBBNN_Conv2d <- torch::nn_module(
     self$in_channels  <- in_channels
     self$out_channels <- out_channels
     self$device = device
+    self$density_init = density_initialization(density_init[1],density_init[2])
     
     #weight variational parameters
     self$weight_mean <- torch::nn_parameter(torch_empty(out_channels, in_channels,kernel[1],kernel[2],device = device))
@@ -175,13 +236,13 @@ LBBNN_Conv2d <- torch::nn_module(
     self$alpha <- torch::torch_empty(out_channels, in_channels,kernel[1],kernel[2],device = device)
     
     #define priors. For now, the user is only allowed to define the inclusion prior themselves
-    self$alpha_prior <- torch::torch_zeros_like(self$alpha,device = self$device) + prior_inclusion
+    self$alpha_prior <- torch::torch_zeros_like(self$alpha,device = self$device) + alpha_prior(prior_inclusion,device = device)
     
     #standard normal prior on the weights and biases
     self$weight_mean_prior <- torch::torch_zeros_like(self$weight_mean, device=self$device)
-    self$weight_sigma_prior <- torch::torch_zeros_like(self$weight_sigma,device = self$device) + 1 
+    self$weight_sigma_prior <- torch::torch_zeros_like(self$weight_sigma,device = self$device) + std_prior(standard_prior,device =device)
     self$bias_mean_prior <- torch::torch_zeros_like(self$bias_mean,device = self$device)
-    self$bias_sigma_prior <- torch::torch_zeros_like(self$bias_sigma,device = self$device) + 1
+    self$bias_sigma_prior <- torch::torch_zeros_like(self$bias_sigma,device = self$device) + std_prior(standard_prior,device =device)
     
     
     
@@ -192,7 +253,7 @@ LBBNN_Conv2d <- torch::nn_module(
     torch::nn_init_normal_(self$weight_rho,mean = -9, std = 0.1)
     torch::nn_init_uniform_(self$bias_mean,-0.2,0.2)
     torch::nn_init_normal_(self$bias_rho,mean = -9, std = 0.1)
-    torch::nn_init_uniform_(self$lambda_l,-10,10)
+    torch::nn_init_uniform_(self$lambda_l,self$density_init[1],self$density_init[2])
     
     
   },

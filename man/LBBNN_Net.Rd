@@ -4,14 +4,27 @@
 \alias{LBBNN_Net}
 \title{Class to generate a LBBNN network}
 \usage{
-LBBNN_Net(problem_type, sizes, prior, device = "cpu", link = NULL, nll = NULL)
+LBBNN_Net(
+  problem_type,
+  sizes,
+  prior,
+  std,
+  inclusion_inits,
+  device = "cpu",
+  link = NULL,
+  nll = NULL
+)
 }
 \arguments{
 \item{problem_type}{'binary classification', 'multiclass classification' or 'regression'.}
 
 \item{sizes}{a vector containing the sizes of layers of the network, where the first element is the input size, and the last the output size.}
 
-\item{prior}{a vector containing the inclusion probabilities for each layer in the network. Length must be ONE less than sizes.}
+\item{prior}{a vector containing the prior inclusion probabilities for each layer in the network. Length must be ONE less than sizes.}
+
+\item{std}{a vector containing the prior standard deviation for each layer in the network. Length must be ONE less than sizes.}
+
+\item{inclusion_inits}{a matrix of size (2,number of weight matrices). One upper and one lower bound for each layer.}
 
 \item{device}{the device to be trained on. Can be 'cpu', 'gpu' or 'mps'. Default is cpu.}
 }
@@ -24,8 +37,10 @@ LBBNN_net also contains functions to compute kl-divergence and the density of th
 \examples{
 layers <- c(20,200,200,5) #Two hidden layers 
 alpha <- c(0.3,0.5,0.9)  # One prior inclusion probability for each weight matrix 
+stds <- c(1.0,1.0,1.0)  # One prior inclusion probability for each weight matrix 
+inclusion_inits <- matrix(rep(c(-10,10),3),nrow = 2,ncol = 3)
 prob <- 'multiclass classification'
-net <- LBBNN_Net(problem_type = prob, sizes = layers, prior = alpha,device = 'cpu')
+net <- LBBNN_Net(problem_type = prob, sizes = layers, prior = alpha,std = stds,inclusion_inits = inclusion_inits,device = 'cpu')
 print(net)
 
 x <- torch::torch_rand(100,20,requires_grad = FALSE) #generate some dummy data

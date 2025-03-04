@@ -19,8 +19,9 @@ train_loader <- dataloader(train_ds, batch_size = 100, shuffle = TRUE)
 test_loader <- dataloader(test_ds, batch_size = 1000)
 
 problem <- 'MNIST'
-sizes <- c(28*28,400,400,10) #7 input variables, one hidden layer of 100 neurons, 1 output neuron.
+sizes <- c(28*28,40,40,10) #7 input variables, one hidden layer of 100 neurons, 1 output neuron.
 inclusion_priors <-c(0.1,0.1,0.10) #one prior probability per weight matrix.
+std_priors <-c(0.1,0.1,0.10) #one prior probability per weight matrix.
 device <- 'mps'
 
 
@@ -33,10 +34,14 @@ LBBNN_ConvNet <- nn_module(
   
   initialize = function(problem_type,device) {
     self$problem_type = problem_type
-    self$conv1 <- LBBNN_Conv2d(in_channels = 1, out_channels =32, kernel_size = 5,prior_inclusion = 0.25,device = device)
-    self$conv2 <- LBBNN_Conv2d(in_channels = 32, out_channels = 64, kernel_size = 5,prior_inclusion = 0.25,device = device)
-    self$fc1 <- LBBNN_Linear(in_features = 1024, out_features = 300,prior_inclusion = 0.25,device = device)
-    self$fc2 <- LBBNN_Linear(in_features = 300,out_features = 10,prior_inclusion = 0.25,device = device)
+    self$conv1 <- LBBNN_Conv2d(in_channels = 1, out_channels =32, kernel_size = 5,
+                               prior_inclusion = 0.25,standard_prior = 1,density_init = c(0,1),device = device)
+    self$conv2 <- LBBNN_Conv2d(in_channels = 32, out_channels = 64, kernel_size = 5,
+                               prior_inclusion = 0.25,standard_prior = 1,density_init = c(0,2),device = device)
+    self$fc1 <- LBBNN_Linear(in_features = 1024, out_features = 300,
+                             prior_inclusion = 0.25,standard_prior = 1,density_init = c(-10,10),device = device)
+    self$fc2 <- LBBNN_Linear(in_features = 300,out_features = 10,
+                             prior_inclusion = 0.25,standard_prior = 1,density_init = c(-5,15),device = device)
     self$pool <- torch::nn_max_pool2d(2)
     self$out <- torch::nn_log_softmax(dim = 2)
     self$loss_fn <- torch::nn_nll_loss(reduction='sum')
@@ -66,13 +71,24 @@ LBBNN_ConvNet <- nn_module(
   }
 )
 
-torch_manual_seed(0)
-#model <- LBBNN_Net(problem_type = problem,sizes = sizes,prior = inclusion_priors,device = device)
+
+
+
+
+
+
+
+#torch_manual_seed(0)
+#inclusion_inits <- matrix(rep(c(-10,10),3),nrow = 2,ncol = 3)
+#inclusion_inits[1,2] = -5
+#inclusion_inits[1,3] = -2
+#model <- LBBNN_Net(problem_type = problem,sizes = sizes,prior = inclusion_priors,std = c(1,1,1),
+ #                  inclusion_inits = inclusion_inits,device = device)
 #results <- train_LBBNN(epochs = 250,LBBNN = model, lr = 0.001,train_dl = train_loader,device = device)
 
 
 
 #model <- LBBNN_ConvNet(problem_type = 'MNIST',device = device)
 #model$to(device=device)
-#results <- train_LBBNN(epochs = 250,LBBNN = model, lr = 0.0001,train_dl = train_loader,device = device)
+#results <- train_LBBNN(epochs = 250,LBBNN = model, lr = 0.001,train_dl = train_loader,device = device)
 
