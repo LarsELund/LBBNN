@@ -226,10 +226,10 @@ LBBNN_Conv2d <- torch::nn_module(
                  + (self$bias_mean - self$bias_mean_prior)^2) / (2 * self$bias_sigma_prior^2))
     
     kl_weight <- torch::torch_sum(self$alpha * (torch::torch_log(self$weight_sigma_prior / self$weight_sigma)
-                                                - 0.5 + torch::torch_log(self$alpha / self$alpha_prior)
+                                                - 0.5 + torch::torch_log(self$alpha / self$alpha_prior + 1e-20)
                                                 + (self$weight_sigma^2 + (self$weight_mean - self$weight_mean_prior)^2) / (
                                                   2 * self$weight_sigma_prior^2))
-                                  + (1 - self$alpha) * torch::torch_log((1 - self$alpha) / (1 - self$alpha_prior)))
+                                  + (1 - self$alpha) * torch::torch_log((1 - self$alpha) / (1 - self$alpha_prior)+1e-20))
     
 
 
