@@ -19,7 +19,6 @@ library(torch)
 #' prob <- 'multiclass classification'
 #' net <- LBBNN_Net(problem_type = prob, sizes = layers, prior = alpha,std = stds,inclusion_inits = inclusion_inits,device = 'cpu')
 #' print(net)
-#'
 #' x <- torch::torch_rand(100,20,requires_grad = FALSE) #generate some dummy data
 #' output <- net(x) #forward pass
 #' net$kl_div()$item() #get KL-divergence
@@ -28,19 +27,21 @@ library(torch)
 LBBNN_Net <- torch::nn_module(
   "LBBNN_Net",
   
+
   initialize = function(problem_type,sizes,prior,std,inclusion_inits,device = 'cpu',link = NULL, nll = NULL) {
+
     self$layers <- torch::nn_module_list()
     self$problem_type = problem_type
     if(length(prior) != length(sizes) - 1)(stop('Must have one prior inclusion probability per weight matrix'))
     for(i in 1:(length(sizes)-2)){
+
       self$layers$append(LBBNN_Linear(sizes[i],sizes[i+1],prior_inclusion = prior[i],
                         standard_prior = std[i],density_init = inclusion_inits[,i],device))
     }
     self$out_layer <- (LBBNN_Linear(sizes[length(sizes)-1],sizes[length(sizes)]
                       ,prior_inclusion = prior[length(prior)],standard_prior = std[length(std)],
                       density_init = inclusion_inits[,ncol(inclusion_inits)],device))
-    
-    
+
     if(problem_type == 'binary classification'){
       self$out <- torch::nn_sigmoid()
       self$loss_fn <- torch::nn_bce_loss(reduction='sum')

@@ -8,6 +8,8 @@ test_that("Simple network created", {
   prob <- 'multiclass classification'
   net <- LBBNN_Net(problem_type = prob, sizes = layers,
                    prior = alpha,std = std,inclusion_inits = inclusions,device = 'cpu')
+  
+  print(net)
   x <- torch_rand(100,20,requires_grad = FALSE) #generate some dummy data
   output <- net(x) #forward pass
  

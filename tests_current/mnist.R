@@ -42,6 +42,7 @@ LBBNN_ConvNet <- nn_module(
                              prior_inclusion = 0.25,standard_prior = 1,density_init = c(-10,10),device = device)
     self$fc2 <- LBBNN_Linear(in_features = 300,out_features = 10,
                              prior_inclusion = 0.25,standard_prior = 1,density_init = c(-5,15),device = device)
+
     self$pool <- torch::nn_max_pool2d(2)
     self$out <- torch::nn_log_softmax(dim = 2)
     self$loss_fn <- torch::nn_nll_loss(reduction='sum')
@@ -88,7 +89,7 @@ LBBNN_ConvNet <- nn_module(
 
 
 
-#model <- LBBNN_ConvNet(problem_type = 'MNIST',device = device)
-#model$to(device=device)
-#results <- train_LBBNN(epochs = 250,LBBNN = model, lr = 0.001,train_dl = train_loader,device = device)
+model <- LBBNN_ConvNet(problem_type = 'MNIST',device = device)
+model$to(device=device)
+results <- train_LBBNN(epochs = 250,LBBNN = model, lr = 0.001,train_dl = train_loader,device = device)
 

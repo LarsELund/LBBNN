@@ -206,7 +206,7 @@ LBBNN_Linear <- torch::nn_module(
 LBBNN_Conv2d <- torch::nn_module(
   "LBBNN_Conv2d",
   initialize = function(in_channels, out_channels,kernel_size,prior_inclusion,standard_prior,density_init,device = 'cpu') {
-    
+
     if(length(kernel_size) == 1){
       kernel <- c(kernel_size,kernel_size)
     }

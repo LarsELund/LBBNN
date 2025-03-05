@@ -42,7 +42,6 @@ inclusion_inits <- matrix(rep(c(-10,10),3),nrow = 2,ncol = 3)
 prob <- 'multiclass classification'
 net <- LBBNN_Net(problem_type = prob, sizes = layers, prior = alpha,std = stds,inclusion_inits = inclusion_inits,device = 'cpu')
 print(net)
-
 x <- torch::torch_rand(100,20,requires_grad = FALSE) #generate some dummy data
 output <- net(x) #forward pass
 net$kl_div()$item() #get KL-divergence
