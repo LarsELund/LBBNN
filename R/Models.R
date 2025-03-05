@@ -10,6 +10,9 @@ library(torch)
 #' @param prior a vector containing the prior inclusion probabilities for each layer in the network. Length must be ONE less than sizes.
 #' @param std  a vector containing the prior standard deviation for each layer in the network. Length must be ONE less than sizes.
 #' @param inclusion_inits a matrix of size (2,number of weight matrices). One upper and one lower bound for each layer.
+#' @param flow whether to use normalizing flows. TRUE or FALSE.
+#' @param num_transforms how many transformations to use in the flow.
+#' @param dims hidden dimension for the neural network in the RNVP transform.
 #' @param device the device to be trained on. Can be 'cpu', 'gpu' or 'mps'. Default is cpu.
 #' @examples
 #' layers <- c(20,200,200,5) #Two hidden layers 
@@ -17,9 +20,9 @@ library(torch)
 #' stds <- c(1.0,1.0,1.0)  # One prior inclusion probability for each weight matrix 
 #' inclusion_inits <- matrix(rep(c(-10,10),3),nrow = 2,ncol = 3)
 #' prob <- 'multiclass classification'
-#' net <- LBBNN_Net(problem_type = prob, sizes = layers, prior = alpha,std = stds,inclusion_inits = inclusion_inits,device = 'cpu')
+#' net <- LBBNN_Net(problem_type = prob, sizes = layers, prior = alpha,std = stds,
+#' inclusion_inits = inclusion_inits,flow = TRUE,num_transforms = 2,dims = c(50,50),device = 'cpu')
 #' print(net)
-#'
 #' x <- torch::torch_rand(100,20,requires_grad = FALSE) #generate some dummy data
 #' output <- net(x) #forward pass
 #' net$kl_div()$item() #get KL-divergence
@@ -28,19 +31,29 @@ library(torch)
 LBBNN_Net <- torch::nn_module(
   "LBBNN_Net",
   
-  initialize = function(problem_type,sizes,prior,std,inclusion_inits,device = 'cpu',link = NULL, nll = NULL) {
+
+  initialize = function(problem_type,sizes,prior,std,inclusion_inits,flow = FALSE,
+                        num_transforms = 2, dims = c(200,200),
+                        device = 'cpu',link = NULL, nll = NULL) {
+    self$device = device
     self$layers <- torch::nn_module_list()
     self$problem_type = problem_type
+    self$flow = flow
+    self$num_transforms = num_transforms
+    self$dims = dims
     if(length(prior) != length(sizes) - 1)(stop('Must have one prior inclusion probability per weight matrix'))
     for(i in 1:(length(sizes)-2)){
+
       self$layers$append(LBBNN_Linear(sizes[i],sizes[i+1],prior_inclusion = prior[i],
-                        standard_prior = std[i],density_init = inclusion_inits[,i],device))
+                        standard_prior = std[i],density_init = inclusion_inits[,i],
+                        flow = self$flow,num_transforms = self$num_transforms, hidden_dims = self$dims,
+                        device=self$device))
     }
     self$out_layer <- (LBBNN_Linear(sizes[length(sizes)-1],sizes[length(sizes)]
                       ,prior_inclusion = prior[length(prior)],standard_prior = std[length(std)],
-                      density_init = inclusion_inits[,ncol(inclusion_inits)],device))
-    
-    
+                      density_init = inclusion_inits[,ncol(inclusion_inits)],flow = self$flow,
+                      num_transforms = self$num_transforms,hidden_dims = self$dims,device=self$device))
+
     if(problem_type == 'binary classification'){
       self$out <- torch::nn_sigmoid()
       self$loss_fn <- torch::nn_bce_loss(reduction='sum')

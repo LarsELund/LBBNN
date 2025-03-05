@@ -23,7 +23,7 @@ library(torch)
 #'inclusion_priors <-c(0.3,0.9) #one prior probability per weight matrix
 #'inclusion_inits <- matrix(rep(c(-10,10),2),nrow = 2,ncol = 2)
 #'stds <- c(1.0,1.0)
-#'model <- LBBNN_Net(problem,sizes,inclusion_priors,stds,inclusion_inits)
+#'model <- LBBNN_Net(problem,sizes,inclusion_priors,stds,inclusion_inits,flow = FALSE)
 #'output <- train_LBBNN(epochs = 10,LBBNN = model, lr = 0.01,train_dl = train_loader)
 #'@export
 train_LBBNN <- function(epochs,LBBNN,lr,train_dl,device = 'cpu'){
@@ -137,8 +137,9 @@ validate_LBBNN <- function(LBBNN,num_samples,test_dl,device = 'cpu'){
       outputs <- torch::torch_zeros(num_samples,dim(b[[1]])[1],out_shape)$to(device=device)
       output_mpm <- torch::torch_zeros_like(outputs)
       for(i in 1:num_samples){
-        outputs[i]<- LBBNN(b[[1]],MPM=FALSE)$to(device=device)
-        output_mpm[i]<- LBBNN(b[[1]],MPM=TRUE)$to(device=device)
+        data <- b[[1]]$to(device = device)
+        outputs[i]<- LBBNN(data,MPM=FALSE)
+        output_mpm[i]<- LBBNN(data,MPM=TRUE)
         
       }
       out_full <-outputs$mean(1) #average over num_samples dimension

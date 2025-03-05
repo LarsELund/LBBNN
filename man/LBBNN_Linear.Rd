@@ -10,6 +10,9 @@ LBBNN_Linear(
   prior_inclusion,
   standard_prior,
   density_init,
+  flow = FALSE,
+  num_transforms = 2,
+  hidden_dims = c(200, 200),
   device = "cpu"
 )
 }
@@ -24,6 +27,12 @@ LBBNN_Linear(
 
 \item{density_init}{A vector of size two c(lower,upper) used to initialize the inclusion parameters.}
 
+\item{flow}{determines whether normalizing flow should be used. TRUE or FALSE}
+
+\item{num_transforms}{Number of transformations for the flow. Default is 2.}
+
+\item{hidden_dims}{Dimension of the hidden layer(s) in the neural networks of the RNVP transform.}
+
 \item{device}{The device to be used. Default is CPU.}
 }
 \description{
@@ -32,7 +41,8 @@ either use the full model, or the medium probability model (MPM).
 Also contains method to initialize parameters and compute KL-divergence.
 }
 \examples{
-l1 <- LBBNN_Linear(in_features = 10,out_features = 5,prior_inclusion = 0.25,standard_prior = 1,density_init = c(-10,10),device = 'cpu')
+l1 <- LBBNN_Linear(in_features = 10,out_features = 5,prior_inclusion = 0.25,
+standard_prior = 1,density_init = c(-10,10),flow = FALSE,device = 'cpu')
 x <- torch::torch_rand(20,10,requires_grad = FALSE)
 output <- l1(x,MPM = FALSE) #the forward pass, output has shape (20,5)
 print(l1$kl_div()$item()) #compute KL-divergence after the forward pass

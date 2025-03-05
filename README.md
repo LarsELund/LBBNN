@@ -72,19 +72,23 @@ bias parameters.
 
 ``` r
 problem <- 'binary classification'
-sizes <- c(7,100,1) #7 input variables, one hidden layer of 100 neurons, 1 output neuron.
-inclusion_priors <-c(0.50,0.50) #one prior probability per weight matrix.
+sizes <- c(7,200,1) #7 input variables, one hidden layer of 100 neurons, 1 output neuron.
+inclusion_priors <-c(0.5,0.5) #one prior probability per weight matrix.
 stds <- c(1.0,1.0) #prior standard deviation for each layer.
-inclusion_inits <- matrix(rep(c(-10,10),2),nrow = 2,ncol = 2) #one low and high for each layer
+inclusion_inits <- matrix(rep(c(0,2),2),nrow = 2,ncol = 2) #one low and high for each layer
 device <- 'cpu' #can also be mps or gpu.
 ```
 
-We are now ready to define the model:
+We are now ready to define the models:
 
 ``` r
 torch_manual_seed(0)
 model <- LBBNN_Net(problem_type = problem,sizes = sizes,prior = inclusion_priors,
-                   inclusion_inits = inclusion_inits,std = stds,device = device)
+                   inclusion_inits = inclusion_inits,std = stds,
+                   flow = FALSE,device = device)
+model2 <- LBBNN_Net(problem_type = problem,sizes = sizes,prior = inclusion_priors,
+                   inclusion_inits = inclusion_inits,std = stds,
+                   flow = TRUE,device = device)
 ```
 
 To train the model, we have a function called train_LBBNN, which takes
@@ -92,19 +96,28 @@ as arguments the number of epochs to train for, the model to train, the
 learning rate, and the data to train on:
 
 ``` r
-results <- train_LBBNN(epochs = 250,LBBNN = model, lr = 0.01,train_dl = train_loader,device = device)
+results <- train_LBBNN(epochs = 500,LBBNN = model, lr = 0.01,train_dl = train_loader,device = device)
+results2 <- train_LBBNN(epochs = 500,LBBNN = model2, lr = 0.01,train_dl = train_loader,device = device)
 ```
 
 Visualize the results:
 
 ``` r
-plot(results$loss,type = 'l',main = 'Loss durning training',xlab='Epoch',ylab='Loss',col='blue')
+plot(results$loss,type = 'l',main = 'Loss durning training',xlab='Epoch',ylab='Loss',col='purple')
+lines(results2$loss)
+legend(x = "center",  
+       legend=c("Mean-Field", "Flows"),  
+       fill = c("purple","black")) 
 ```
 
 <img src="man/figures/README-unnamed-chunk-5-1.png" width="100%" />
 
 ``` r
-plot(results$accs,type = 'l',main = 'Accuracy durning training',xlab='Epoch',ylab='Accuracy',yaxt="n",col='green')
+plot(results$accs,type = 'l',main = 'Accuracy durning training',xlab='Epoch',ylab='Accuracy',yaxt="n",col='purple')
+lines(results2$accs)
+legend(x = "center",  
+       legend=c("Mean-Field", "Flows"),  
+       fill = c("purple","black"))
 axis(2, at = c(0.60,0.65,0.70,0.75,0.80,0.85), las=2)
 ```
 
@@ -112,6 +125,10 @@ axis(2, at = c(0.60,0.65,0.70,0.75,0.80,0.85), las=2)
 
 ``` r
 plot(results$density,type = 'l',main = 'Density during training',xlab='Epoch',ylab='Density',col='purple')
+lines(results2$density)
+legend(x = "center",  
+       legend=c("Mean-Field", "Flows"),  
+       fill = c("purple","black"))
 ```
 
 <img src="man/figures/README-unnamed-chunk-5-3.png" width="100%" />
@@ -123,11 +140,20 @@ samples for model averaging, and the validation data.
 ``` r
 validate_LBBNN(LBBNN = model,num_samples = 100,test_dl = test_loader,device)
 #> $accuracy_full_model
-#> [1] 0.8611111
-#> 
-#> $accuracy_sparse
 #> [1] 0.8722222
 #> 
+#> $accuracy_sparse
+#> [1] 0.8666667
+#> 
 #> $density
-#> [1] 0.06125
+#> [1] 0.01
+validate_LBBNN(LBBNN = model2,num_samples = 100,test_dl = test_loader,device)
+#> $accuracy_full_model
+#> [1] 0.8833333
+#> 
+#> $accuracy_sparse
+#> [1] 0.8833333
+#> 
+#> $density
+#> [1] 0.005
 ```
