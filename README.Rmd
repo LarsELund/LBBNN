@@ -70,7 +70,7 @@ is the number of variables in the dataset (7 in this case), the last element is 
 
 ```{r}
 problem <- 'binary classification'
-sizes <- c(7,200,1) #7 input variables, one hidden layer of 100 neurons, 1 output neuron.
+sizes <- c(7,200,1) #7 input variables, one hidden layer of 200 neurons, 1 output neuron.
 inclusion_priors <-c(0.5,0.5) #one prior probability per weight matrix.
 stds <- c(1.0,1.0) #prior standard deviation for each layer.
 inclusion_inits <- matrix(rep(c(0,2),2),nrow = 2,ncol = 2) #one low and high for each layer
@@ -82,11 +82,12 @@ and one with normalizing flows:
 ```{r}
 torch_manual_seed(0)
 model_mf <- LBBNN_Net(problem_type = problem,sizes = sizes,prior = inclusion_priors,
-                   inclusion_inits = inclusion_inits,std = stds,
+                      inclusion_inits = inclusion_inits,std = stds,
                    flow = FALSE,device = device)
 model_flows <- LBBNN_Net(problem_type = problem,sizes = sizes,prior = inclusion_priors,
-                   inclusion_inits = inclusion_inits,std = stds,
-                   flow = TRUE,device = device) 
+                   inclusion_inits = inclusion_inits,std = stds,  
+                   flow = TRUE,device = device)
+
 ```
 
 To train the models, we have a function called train_LBBNN, which takes as arguments the number of epochs to train for,
