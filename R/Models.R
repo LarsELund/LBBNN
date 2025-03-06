@@ -20,8 +20,8 @@ library(torch)
 #' stds <- c(1.0,1.0,1.0)  # One prior inclusion probability for each weight matrix 
 #' inclusion_inits <- matrix(rep(c(-10,10),3),nrow = 2,ncol = 3)
 #' prob <- 'multiclass classification'
-#' net <- LBBNN_Net(problem_type = prob, sizes = layers, prior = alpha,std = stds,
-#' inclusion_inits = inclusion_inits,flow = TRUE,num_transforms = 2,dims = c(50,50),device = 'cpu')
+#' net <- LBBNN_Net(problem_type = prob, sizes = layers, prior = alpha,std = stds
+#' ,inclusion_inits = inclusion_inits,flow = FALSE,device = 'cpu')
 #' print(net)
 #' x <- torch::torch_rand(100,20,requires_grad = FALSE) #generate some dummy data
 #' output <- net(x) #forward pass
@@ -31,7 +31,6 @@ library(torch)
 LBBNN_Net <- torch::nn_module(
   "LBBNN_Net",
   
-
   initialize = function(problem_type,sizes,prior,std,inclusion_inits,flow = FALSE,
                         num_transforms = 2, dims = c(200,200),
                         device = 'cpu',link = NULL, nll = NULL) {
@@ -51,8 +50,10 @@ LBBNN_Net <- torch::nn_module(
     }
     self$out_layer <- (LBBNN_Linear(sizes[length(sizes)-1],sizes[length(sizes)]
                       ,prior_inclusion = prior[length(prior)],standard_prior = std[length(std)],
+
                       density_init = inclusion_inits[,ncol(inclusion_inits)],flow = self$flow,
                       num_transforms = self$num_transforms,hidden_dims = self$dims,device=self$device))
+
 
     if(problem_type == 'binary classification'){
       self$out <- torch::nn_sigmoid()
