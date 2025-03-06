@@ -80,16 +80,13 @@ torch_manual_seed(0)
 inclusion_inits <- matrix(rep(c(-10,10),3),nrow = 2,ncol = 3)
 inclusion_inits[1,2] = -5
 inclusion_inits[1,3] = -2
-model <- LBBNN_Net(problem_type = problem,sizes = sizes,prior = inclusion_priors,std = c(1,1,1),
-                   inclusion_inits = inclusion_inits,flow = TRUE,num_transforms = 2,dims = c(200,200),device = device)
-model$to(device = device)
-results <- train_LBBNN(epochs = 250,LBBNN = model, lr = 0.001,train_dl = train_loader,device = device)
-
-
-#device = 'cpu'
-#model <- LBBNN_ConvNet(problem_type = 'MNIST',device = device)
-#model$to(device=device)
+#model <- LBBNN_Net(problem_type = problem,sizes = sizes,prior = inclusion_priors,std = c(1,1,1),
+ #                  inclusion_inits = inclusion_inits,flow = TRUE,num_transforms = 2,dims = c(200,200),device = device)
+#model$to(device = device)
 #results <- train_LBBNN(epochs = 250,LBBNN = model, lr = 0.001,train_dl = train_loader,device = device)
+
+
+
 
 
 

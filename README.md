@@ -23,7 +23,8 @@ pak::pak("LarsELund/LBBNN")
 ## Example
 
 This is a basic example which shows you how to implement a simple feed
-forward LBBNN on the raisin dataset. First we import the neccessary
+forward LBBNN on the raisin dataset, both using the mean-field
+posterior, and normalizing flows. First we import the neccessary
 libraries, then pre-process the data:
 
 ``` r
@@ -68,7 +69,8 @@ matrix (where each weight will have the same prior probability). This is
 an important parameter, as it controls what prior knowledge the user may
 have about how dense they believe the network should be. In addition to
 this, the user defines the prior standard deviation for the weight and
-bias parameters.
+bias parameters. The user also defines the initialization of the
+inclusion parameters.
 
 ``` r
 problem <- 'binary classification'
@@ -79,32 +81,33 @@ inclusion_inits <- matrix(rep(c(0,2),2),nrow = 2,ncol = 2) #one low and high for
 device <- 'cpu' #can also be mps or gpu.
 ```
 
-We are now ready to define the models:
+We are now ready to define the models, here we show one with the
+mean-field posterior, and one with normalizing flows:
 
 ``` r
 torch_manual_seed(0)
-model <- LBBNN_Net(problem_type = problem,sizes = sizes,prior = inclusion_priors,
+model_mf <- LBBNN_Net(problem_type = problem,sizes = sizes,prior = inclusion_priors,
                    inclusion_inits = inclusion_inits,std = stds,
                    flow = FALSE,device = device)
-model2 <- LBBNN_Net(problem_type = problem,sizes = sizes,prior = inclusion_priors,
+model_flows <- LBBNN_Net(problem_type = problem,sizes = sizes,prior = inclusion_priors,
                    inclusion_inits = inclusion_inits,std = stds,
-                   flow = TRUE,device = device)
+                   flow = TRUE,device = device) 
 ```
 
-To train the model, we have a function called train_LBBNN, which takes
+To train the models, we have a function called train_LBBNN, which takes
 as arguments the number of epochs to train for, the model to train, the
 learning rate, and the data to train on:
 
 ``` r
-results <- train_LBBNN(epochs = 500,LBBNN = model, lr = 0.01,train_dl = train_loader,device = device)
-results2 <- train_LBBNN(epochs = 500,LBBNN = model2, lr = 0.01,train_dl = train_loader,device = device)
+results_mf <- train_LBBNN(epochs = 500,LBBNN = model_mf, lr = 0.01,train_dl = train_loader,device = device)
+results_flow <- train_LBBNN(epochs = 500,LBBNN = model_flows, lr = 0.01,train_dl = train_loader,device = device)
 ```
 
 Visualize the results:
 
 ``` r
-plot(results$loss,type = 'l',main = 'Loss durning training',xlab='Epoch',ylab='Loss',col='purple')
-lines(results2$loss)
+plot(results_mf$loss,type = 'l',main = 'Loss durning training',xlab='Epoch',ylab='Loss',col='purple')
+lines(results_flow$loss)
 legend(x = "center",  
        legend=c("Mean-Field", "Flows"),  
        fill = c("purple","black")) 
@@ -113,8 +116,8 @@ legend(x = "center",
 <img src="man/figures/README-unnamed-chunk-5-1.png" width="100%" />
 
 ``` r
-plot(results$accs,type = 'l',main = 'Accuracy durning training',xlab='Epoch',ylab='Accuracy',yaxt="n",col='purple')
-lines(results2$accs)
+plot(results_mf$accs,type = 'l',main = 'Accuracy durning training',xlab='Epoch',ylab='Accuracy',yaxt="n",col='purple')
+lines(results_flow$accs)
 legend(x = "center",  
        legend=c("Mean-Field", "Flows"),  
        fill = c("purple","black"))
@@ -124,8 +127,8 @@ axis(2, at = c(0.60,0.65,0.70,0.75,0.80,0.85), las=2)
 <img src="man/figures/README-unnamed-chunk-5-2.png" width="100%" />
 
 ``` r
-plot(results$density,type = 'l',main = 'Density during training',xlab='Epoch',ylab='Density',col='purple')
-lines(results2$density)
+plot(results_mf$density,type = 'l',main = 'Density during training',xlab='Epoch',ylab='Density',col='purple')
+lines(results_flow$density)
 legend(x = "center",  
        legend=c("Mean-Field", "Flows"),  
        fill = c("purple","black"))
@@ -138,18 +141,18 @@ function Validate_LBBNN, which takes as input a model, the number of
 samples for model averaging, and the validation data.
 
 ``` r
-validate_LBBNN(LBBNN = model,num_samples = 100,test_dl = test_loader,device)
+validate_LBBNN(LBBNN = model_mf,num_samples = 1000,test_dl = test_loader,device)
 #> $accuracy_full_model
-#> [1] 0.8722222
+#> [1] 0.8666667
 #> 
 #> $accuracy_sparse
 #> [1] 0.8666667
 #> 
 #> $density
 #> [1] 0.01
-validate_LBBNN(LBBNN = model2,num_samples = 100,test_dl = test_loader,device)
+validate_LBBNN(LBBNN = model_flows,num_samples = 1000,test_dl = test_loader,device)
 #> $accuracy_full_model
-#> [1] 0.8833333
+#> [1] 0.8777778
 #> 
 #> $accuracy_sparse
 #> [1] 0.8833333

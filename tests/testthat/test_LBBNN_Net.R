@@ -7,12 +7,14 @@ test_that("Simple network created", {
   std <- c(1,1,1)
   prob <- 'multiclass classification'
   device = 'cpu' #can try 'mps' to check if all tensors and paramters can be moved to a different device
-  net <- LBBNN_Net(problem_type = prob, sizes = layers,
-                   prior = alpha,std = std,inclusion_inits = inclusions,
-                   flow = FALSE,device = device)
+  net <- LBBNN_Net(problem_type = prob,sizes =layers,prior = alpha,std = std,
+                   inclusion_inits = inclusions,flow = FALSE,
+                   num_transforms = 2, dims = c(200,200),
+                   device = 'cpu')
   net$to(device = device)
   print(net)
   x <- torch_rand(100,20,requires_grad = FALSE,device = device) #generate some dummy data
+  print(net)
   output <- net(x) #forward pass
  
   expect_equal(dim(output)[2],5)
