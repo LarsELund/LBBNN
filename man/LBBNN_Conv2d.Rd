@@ -11,6 +11,9 @@ LBBNN_Conv2d(
   prior_inclusion,
   standard_prior,
   density_init,
+  flow = FALSE,
+  num_transforms = 2,
+  hidden_dims = c(200, 200),
   device = "cpu"
 )
 }
@@ -26,6 +29,12 @@ LBBNN_Conv2d(
 \item{standard_prior}{Prior standard deviation for each weight and bias.}
 
 \item{density_init}{A vector of size two c(lower,upper) used to initialize the inclusion parameters.}
+
+\item{flow}{determines whether normalizing flow should be used. TRUE or FALSE}
+
+\item{num_transforms}{Number of transformations for the flow. Default is 2.}
+
+\item{hidden_dims}{Dimension of the hidden layer(s) in the neural networks of the RNVP transform.}
 
 \item{device}{The device to be used. Default is CPU.}
 }

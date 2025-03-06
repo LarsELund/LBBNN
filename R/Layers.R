@@ -263,6 +263,9 @@ LBBNN_Linear <- torch::nn_module(
 #' @param standard_prior Prior standard deviation for each weight and bias. 
 #' @param kernel_size Size of the convolving kernel.
 #' @param density_init A vector of size two c(lower,upper) used to initialize the inclusion parameters.
+#' @param flow determines whether normalizing flow should be used. TRUE or FALSE
+#' @param num_transforms Number of transformations for the flow. Default is 2.
+#' @param hidden_dims Dimension of the hidden layer(s) in the neural networks of the RNVP transform.
 #' @param device The device to be used. Default is CPU.
 #' @description Includes function for forward pass, where one can
 #' either use the full model, or the medium probability model (MPM).
@@ -276,7 +279,9 @@ LBBNN_Linear <- torch::nn_module(
 #' @export
 LBBNN_Conv2d <- torch::nn_module(
   "LBBNN_Conv2d",
-  initialize = function(in_channels, out_channels,kernel_size,prior_inclusion,standard_prior,density_init,device = 'cpu') {
+  initialize = function(in_channels, out_channels,kernel_size,prior_inclusion,
+                        standard_prior,density_init,
+                        flow = FALSE,num_transforms = 2, hidden_dims = c(200,200),device = 'cpu') {
 
     if(length(kernel_size) == 1){
       kernel <- c(kernel_size,kernel_size)
@@ -289,6 +294,10 @@ LBBNN_Conv2d <- torch::nn_module(
     
     self$in_channels  <- in_channels
     self$out_channels <- out_channels
+    self$flow <- flow #true or false
+    self$num_transforms <- num_transforms
+    self$hidden_dims <- hidden_dims
+    
     self$device = device
     self$density_init = density_initialization(density_init[1],density_init[2])
     
@@ -315,6 +324,19 @@ LBBNN_Conv2d <- torch::nn_module(
     self$bias_mean_prior <- torch::torch_zeros_like(self$bias_mean,device = self$device)
     self$bias_sigma_prior <- torch::torch_zeros_like(self$bias_sigma,device = self$device) + std_prior(standard_prior,device =device)
     
+    #flow parameters
+    if(self$flow){
+      self$q0_mean <- torch::nn_parameter(torch::torch_empty(out_channels,device = device))
+      self$q0_logvar <- torch::nn_parameter(torch::torch_empty(out_channels,device = device))
+      self$c1 <- torch::nn_parameter(torch::torch_empty(out_channels,device = device))
+      self$b1 <- torch::nn_parameter(torch::torch_empty(out_channels,device = device))
+      self$b2 <- torch::nn_parameter(torch::torch_empty(out_channels,device = device))
+      
+      
+      self$RNVP_flow <- FLOW(c(out_channels,hidden_dims),'RNVP',self$num_transforms)
+      self$RNVP_flow$to(device = device)
+    }
+    
     
     
     self$reset_parameters()
@@ -325,6 +347,13 @@ LBBNN_Conv2d <- torch::nn_module(
     torch::nn_init_uniform_(self$bias_mean,-0.2,0.2)
     torch::nn_init_normal_(self$bias_rho,mean = -9, std = 0.1)
     torch::nn_init_uniform_(self$lambda_l,self$density_init[1],self$density_init[2])
+    if(self$flow){
+      torch::nn_init_normal_(self$q0_mean,mean = 0,std = 1)
+      torch::nn_init_normal_(self$q0_logvar,mean = -9, std = 1)
+      torch::nn_init_normal_(self$c1,mean = 0,std = 1)
+      torch::nn_init_normal_(self$b1,mean = 0,std = 1)
+      torch::nn_init_normal_(self$b2,mean = 0,std = 1)
+    }
     
     
   },
@@ -333,10 +362,15 @@ LBBNN_Conv2d <- torch::nn_module(
     self$weight_sigma <- torch::torch_log1p(torch_exp(self$weight_rho))
     self$bias_sigma <- torch::torch_log1p(torch_exp(self$bias_rho))
     
+    z_k <- torch::torch_ones(self$out_channels,device = self$device) #if mean field
+    if(self$flow){
+      out <- self$sample_z()
+      z_k <- out$z
+    }
     
     if (! MPM) {#compute the mean and the variance of the activations using the LRT
-      e_w <- self$weight_mean * self$alpha
-      var_w <- self$alpha * (self$weight_sigma^2 + (1 - self$alpha) * self$weight_mean^2)
+      e_w <- self$weight_mean * self$alpha * z_k$view(c(-1,1,1,1))
+      var_w <- self$alpha * (self$weight_sigma^2 + (1 - self$alpha) * self$weight_mean^2 * z_k$view(c(-1,1,1,1))^2)
       psi <- torch::nnf_conv2d(input = input,weight = e_w,bias = self$bias_mu)
       delta <- torch::nnf_conv2d(input = input^2,weight = var_w,bias = self$bias_sigma^2)
       #delta[delta<= 0] = 0 +1e-20 
@@ -344,7 +378,7 @@ LBBNN_Conv2d <- torch::nn_module(
       activations <- psi + torch::torch_sqrt(delta) * eps
     }else {#only sample from weights with inclusion prob > 0.5 aka the mediaan probability model 
       gamma <-(torch::torch_clone(self$alpha)> 0.5) * 1.
-      w <- torch::torch_normal(self$weight_mean, self$weight_sigma)
+      w <- torch::torch_normal(self$weight_mean*z_k$view(c(-1,1,1,1)), self$weight_sigma)
       bias <- torch::torch_normal(self$bias_mean, self$bias_sigma)
       weight <- w * gamma
       activations <- torch::nnf_conv2d(input = input,weight = weight,bias = bias)
@@ -353,19 +387,62 @@ LBBNN_Conv2d <- torch::nn_module(
     
     
     return(activations)},
+  
+  sample_z = function(){
+    q0_std <- torch::torch_sqrt(torch::torch_exp(self$q0_logvar))
+    epsilon_z <- torch::torch_rand_like(q0_std)
+    self$z <- self$q0_mean + q0_std * epsilon_z #the initial random normal variable to be send through the flow
+    out <- self$RNVP_flow(self$z) #returns z_k and the log determinant of the transformation
+    return(out)
+  },
+  
   kl_div = function() {
+    z2 <- torch::torch_ones(self$out_channels,device = self$device) #if not flow
+    log_q <- 0 #these are 0 if no flow is used
+    log_r <- 0
+    if(self$flow){
+      out <- self$sample_z()
+      z2 <- out$z
+      log_det_q <- out$logdet
+      log_q0 = torch::torch_sum(-0.5 * torch::torch_log(pi)$to(device = self$device) - 0.5 * self$q0_logvar
+                                - 0.5 * ((self$z - self$q0_mean) ** 2 / torch::torch_exp(self$q0_logvar)))
+      log_q =  log_q0 -log_det_q
+      
+      ######get log r
+      W_mean <- self$weight_mean * self$alpha * z2$view(c(-1,1,1,1))
+      W_var <-  self$alpha * (self$weight_sigma^2 + (1 - self$alpha) * self$weight_mean^2 * z2$view(c(-1,1,1,1))^2)
+      act_mu = torch::torch_matmul(W_mean$view(-1, length(self$c1)),self$c1) # eq. (11)
+      act_var = torch::torch_matmul(W_mean$view(-1, length(self$c1)),self$c1^2)
+      
+      # For convolutional layers, linear mappings empirically work better than
+      # tanh. Hence no need for act = tanh(act). Christos Louizos
+      # confirmed this in https://github.com/AMLab-Amsterdam/MNF_VBNN/issues/4
+      # even though the paper states the use of tanh in conv layers.
+      act <- act_mu + torch::torch_sqrt(act_var) * torch::torch_randn_like(act_var)
+      mean_r = self$b1$outer(act)$mean(-1)  # eq (9) from MNF paper
+      log_var_r = self$b2$outer(act)$mean(-1)  # eq (10) from MNF paper
+      out2 <- self$sample_z()
+      z_b <- out2$z
+      log_det_r <- out2$logdet
+      log_rb <- torch::torch_sum(-0.5 * torch::torch_log(pi)$to(device = self$device) - 0.5 * log_var_r
+                                 - 0.5 * ((z_b - mean_r) ** 2 / torch::torch_exp(log_var_r)))
+      
+      log_r <- log_det_r + log_rb
+      
+      
+    }
     kl_bias <- torch::torch_sum(torch::torch_log(self$bias_sigma_prior / self$bias_sigma) - 0.5 + (self$bias_sigma^2
                  + (self$bias_mean - self$bias_mean_prior)^2) / (2 * self$bias_sigma_prior^2))
     
     kl_weight <- torch::torch_sum(self$alpha * (torch::torch_log(self$weight_sigma_prior / self$weight_sigma)
                                                 - 0.5 + torch::torch_log(self$alpha / self$alpha_prior + 1e-20)
-                                                + (self$weight_sigma^2 + (self$weight_mean - self$weight_mean_prior)^2) / (
+                                                + (self$weight_sigma^2 + (self$weight_mean*z2$view(c(-1,1,1,1)) - self$weight_mean_prior)^2) / (
                                                   2 * self$weight_sigma_prior^2))
                                   + (1 - self$alpha) * torch::torch_log((1 - self$alpha) / (1 - self$alpha_prior)+1e-20))
     
 
 
-    return(kl_bias + kl_weight)}
+    return(kl_bias + kl_weight + log_q - log_r)}
   
   
 )
