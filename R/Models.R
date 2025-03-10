@@ -93,6 +93,37 @@ LBBNN_Net <- torch::nn_module(
     kl <- kl + self$out_layer$kl_div()
     return(kl)
   },
+  compute_paths = function(){
+    #sending a random input through the network of alpha matrices (0 and 1)
+    #and then backpropagating to find active paths
+    x0 <-torch::torch_randn(self$layers$children$`0`$alpha$shape[2],device =self$device) #input shape
+    alpha_mats <- list() #initialize empty list to append clean alphas
+    for(l in self$layers$children){
+      alpha <-(torch::torch_clone(l$alpha)> 0.5) * 1.
+      alpha$requires_grad = TRUE
+      alpha_mats<- append(alpha_mats,alpha)
+      x0 = torch::torch_matmul(x0, torch::torch_t(alpha))
+    }
+    #output layer
+    alpha_out = (torch::torch_clone(self$out_layer$alpha)> 0.5) * 1.
+    alpha_mats <-append(alpha_mats,alpha_out)
+    alpha_out$requires_grad = True
+    x0 = torch::torch_matmul(x0, torch::torch_t(alpha_out))
+    x0$backward() #compute derivatives to get active paths
+                  #any alpha preceding an alpha with value 0 will also become
+                  #zero when gradients are passed backwards, and thus we will
+                  #be left with the active paths
+    i = 1
+    for(b in alpha_mats){
+      alpha_mats[i] = b*b$grad
+      i <- i +1
+      
+    } 
+   
+    
+    return(alpha_mats)
+    
+  },
   density = function(){
     alphas <- NULL
     for(l in self$layers$children)(alphas <- c(alphas,as.numeric(l$alpha$detach()))) #as.numeric flattens the matrix

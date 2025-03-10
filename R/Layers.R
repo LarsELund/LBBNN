@@ -198,7 +198,7 @@ LBBNN_Linear <- torch::nn_module(
       activations <- e_b + torch::torch_sqrt(var_b) * eps
       
     }else {#only sample from weights with inclusion prob > 0.5 aka the median probability model 
-      gamma <-(torch::torch_clone(self$alpha)> 0.5) * 1.
+      gamma <-(self$alpha$clone()$detach()> 0.5) * 1.
       w <- torch::torch_normal(self$weight_mean * z_k, self$weight_sigma)
       bias <- torch::torch_normal(self$bias_mean, self$bias_sigma)
       weight <- w * gamma
@@ -377,7 +377,7 @@ LBBNN_Conv2d <- torch::nn_module(
       eps <- torch::torch_randn(size=(dim(delta)), device=self$device)
       activations <- psi + torch::torch_sqrt(delta) * eps
     }else {#only sample from weights with inclusion prob > 0.5 aka the mediaan probability model 
-      gamma <-(torch::torch_clone(self$alpha)> 0.5) * 1.
+      gamma <-(self$alpha$clone()$detach()> 0.5) * 1.
       w <- torch::torch_normal(self$weight_mean*z_k$view(c(-1,1,1,1)), self$weight_sigma)
       bias <- torch::torch_normal(self$bias_mean, self$bias_sigma)
       weight <- w * gamma
