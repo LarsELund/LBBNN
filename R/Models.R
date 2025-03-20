@@ -105,14 +105,16 @@ LBBNN_Net <- torch::nn_module(
       x0 = torch::torch_matmul(x0, torch::torch_t(alpha))
     }
     #output layer
-    alpha_out = (torch::torch_clone(self$out_layer$alpha)> 0.5) * 1.
+    alpha_out <- (torch::torch_clone(self$out_layer$alpha)> 0.5) * 1.
     alpha_mats <-append(alpha_mats,alpha_out)
-    alpha_out$requires_grad = True
+    alpha_out$requires_grad = TRUE
     x0 = torch::torch_matmul(x0, torch::torch_t(alpha_out))
-    x0$backward() #compute derivatives to get active paths
+    L <- torch::torch_sum(x0) #summing in case more than 1 output. This is
+    #equivalent to backpropagate for each output node.
+    L$backward() #compute derivatives to get active paths
                   #any alpha preceding an alpha with value 0 will also become
                   #zero when gradients are passed backwards, and thus we will
-                  #be left with the active paths
+                  #be left with the active paths.
     i = 1
     for(b in alpha_mats){
       alpha_mats[i] = b*b$grad
