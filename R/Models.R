@@ -116,8 +116,9 @@ LBBNN_Net <- torch::nn_module(
                   #zero when gradients are passed backwards, and thus we will
                   #be left with the active paths.
     i = 1
+    alpha_mats_out <- list()
     for(b in alpha_mats){
-      alpha_mats[i] = b*b$grad
+      alpha_mats_out <-append(alpha_mats_out,b * b$grad)
       i <- i +1
       
     } 
