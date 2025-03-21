@@ -183,14 +183,14 @@ LBBNN_Linear <- torch::nn_module(
     self$alpha <- 1 / (1 + torch::torch_exp(-self$lambda_l))
     self$weight_sigma <- torch::torch_log1p(torch_exp(self$weight_rho))
     self$bias_sigma <- torch::torch_log1p(torch_exp(self$bias_rho))
-    z_k <- torch::torch_ones_like(self$weight_mean) 
+    self$z_k <- torch::torch_ones_like(self$weight_mean) 
     if(self$flow){
       out <- self$sample_z()
-      z_k <- out$z
+      self$z_k <- out$z
     }
     if (! MPM) {#compute the mean and the variance of the activations using the LRT
-      e_w <- self$weight_mean * self$alpha * z_k
-      var_w <- self$alpha * (self$weight_sigma^2 + (1 - self$alpha) * self$weight_mean^2*z_k^2)
+      e_w <- self$weight_mean * self$alpha * self$z_k
+      var_w <- self$alpha * (self$weight_sigma^2 + (1 - self$alpha) * self$weight_mean^2*self$z_k^2)
       
       e_b <- torch::torch_matmul(input, torch::torch_t(e_w)) + self$bias_mean
       var_b <- torch::torch_matmul(input^2, torch::torch_t(var_w)) + self$bias_sigma^2
@@ -199,7 +199,7 @@ LBBNN_Linear <- torch::nn_module(
       
     }else {#only sample from weights with inclusion prob > 0.5 aka the median probability model 
       gamma <-(self$alpha$clone()$detach()> 0.5) * 1.
-      w <- torch::torch_normal(self$weight_mean * z_k, self$weight_sigma)
+      w <- torch::torch_normal(self$weight_mean * self$z_k, self$weight_sigma)
       bias <- torch::torch_normal(self$bias_mean, self$bias_sigma)
       weight <- w * gamma
       activations <- torch::torch_matmul(input, torch_t(weight)) + bias

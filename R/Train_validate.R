@@ -29,12 +29,17 @@ library(torch)
 train_LBBNN <- function(epochs,LBBNN,lr,train_dl,device = 'cpu'){
   opt <- torch::optim_adam(LBBNN$parameters,lr = lr)
   accs <- c()
+  accs2<-c()
   losses <-c()
   density <- c()
   out_layer_density <- c()
+  active_path_dens <-c()
+  active_path_accs <-c()
   for (epoch in 1:epochs) {
     LBBNN$train()
     corrects <- 0
+    corrects2 <- 0
+    corrects_path<-0
     totals <- 0
     train_loss <- c()
     # use coro::loop() for stability and performance
@@ -44,19 +49,35 @@ train_LBBNN <- function(epochs,LBBNN,lr,train_dl,device = 'cpu'){
       data <- b[[1]]$to(device = device)
       output <- LBBNN(data,MPM=FALSE)
       target <- b[[2]]$to(device=device)
+      
   
       if(LBBNN$problem_type == 'multiclass classification'| LBBNN$problem_type == 'MNIST'){ #nll loss needs float tensors but bce loss needs long tensors 
         target <- torch::torch_tensor(target,dtype = torch::torch_long())
       }
       else(output <- output$squeeze()) #remove last dimension from binary classifiction or regression
+      
       loss <- LBBNN$loss_fn(output, target) + LBBNN$kl_div() / length(train_dl)
-      loss$backward()
-      opt$step()
+      alpha_mats <- LBBNN$compute_paths()
+      
+      
       if(LBBNN$problem_type == 'multiclass classification' | LBBNN$problem_type == 'MNIST'){
         prediction <-max.col(output)
         corrects <- corrects + sum(prediction == target)
         totals <- totals + length(target)
         train_loss <- c(train_loss,loss$item())
+        
+        #computing metrics only using active paths #this might be expensive to compute for each forward pass
+        #so could consider only doing it at test time 
+        out_paths <- LBBNN$compute_sparse_mpm(data,alpha_mats)
+        pred <-max.col(out_paths$output)
+        corrects_path <- corrects_path + sum(pred == target)
+        #test mpm 
+        output2 <- LBBNN(data,MPM=TRUE)
+        prediction2 <-max.col(output2)
+        corrects2 <- corrects2 + sum(prediction2 == target)
+        
+        
+        
       }
       else if(LBBNN$problem_type == 'binary classification'){
         corrects<-corrects + sum((output > 0.5) == target)
@@ -72,19 +93,26 @@ train_LBBNN <- function(epochs,LBBNN,lr,train_dl,device = 'cpu'){
         train_loss <- c(train_loss,loss$item())
         
       }
+      loss$backward()
+      opt$step()
+      
       
       
     })
     
     train_acc <- corrects / totals
+    mpm_acc <-corrects2 / totals
+    train_acc_path <- corrects_path / totals
     if(LBBNN$problem_type != 'regression'){
       cat(sprintf(
-        "\nEpoch %d, training: loss = %3.5f, acc = %3.5f,, density = %3.5f \n",
-        epoch, mean(train_loss), train_acc,LBBNN$density()
+        "\nEpoch %d, training: loss = %3.5f, acc = %3.5f,acc sparse path = %3.5f, density = %3.5f,dens sparse path = %3.5f,mpm acc = %3.5f \n",
+        epoch, mean(train_loss), train_acc,train_acc_path,LBBNN$density(),out_paths$used_weights/out_paths$total_weights,mpm_acc
       ))
       
       
       accs <- c(accs,train_acc$item())
+      accs2 <- c(accs2,mpm_acc$item())
+      active_path_accs <- c(active_path_accs,train_acc_path$item())
       losses <- c(losses,mean(train_loss))
     }
     if(LBBNN$problem_type == 'regression'){
@@ -96,7 +124,7 @@ train_LBBNN <- function(epochs,LBBNN,lr,train_dl,device = 'cpu'){
       losses <- c(losses,mean(train_loss))
     }
     density <- c(density,LBBNN$density())
-    
+
     
   }
   l = list('accs' = accs,'loss' = losses,'density' = density)
