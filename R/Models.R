@@ -138,7 +138,7 @@ LBBNN_Net <- torch::nn_module(
   },
   compute_sparse_mpm = function(x,alpha_mats){
     if(self$problem_type == 'MNIST')(x <- x$view(c(-1,28*28)))
-    num_included = 0
+    num_included <- 0
     tot = 0
     i = 1 #counter
     

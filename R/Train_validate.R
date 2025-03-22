@@ -29,7 +29,6 @@ library(torch)
 train_LBBNN <- function(epochs,LBBNN,lr,train_dl,device = 'cpu'){
   opt <- torch::optim_adam(LBBNN$parameters,lr = lr)
   accs <- c()
-  accs2<-c()
   losses <-c()
   density <- c()
   out_layer_density <- c()
@@ -38,7 +37,6 @@ train_LBBNN <- function(epochs,LBBNN,lr,train_dl,device = 'cpu'){
   for (epoch in 1:epochs) {
     LBBNN$train()
     corrects <- 0
-    corrects2 <- 0
     corrects_path<-0
     totals <- 0
     train_loss <- c()
@@ -71,10 +69,7 @@ train_LBBNN <- function(epochs,LBBNN,lr,train_dl,device = 'cpu'){
         out_paths <- LBBNN$compute_sparse_mpm(data,alpha_mats)
         pred <-max.col(out_paths$output)
         corrects_path <- corrects_path + sum(pred == target)
-        #test mpm 
-        output2 <- LBBNN(data,MPM=TRUE)
-        prediction2 <-max.col(output2)
-        corrects2 <- corrects2 + sum(prediction2 == target)
+  
         
         
         
@@ -101,17 +96,15 @@ train_LBBNN <- function(epochs,LBBNN,lr,train_dl,device = 'cpu'){
     })
     
     train_acc <- corrects / totals
-    mpm_acc <-corrects2 / totals
     train_acc_path <- corrects_path / totals
     if(LBBNN$problem_type != 'regression'){
       cat(sprintf(
-        "\nEpoch %d, training: loss = %3.5f, acc = %3.5f,acc sparse path = %3.5f, density = %3.5f,dens sparse path = %3.5f,mpm acc = %3.5f \n",
-        epoch, mean(train_loss), train_acc,train_acc_path,LBBNN$density(),out_paths$used_weights/out_paths$total_weights,mpm_acc
+        "\nEpoch %d, training: loss = %3.5f, acc = %3.5f,acc sparse path = %3.5f, density = %3.5f,dens sparse path = %3.5f \n",
+        epoch, mean(train_loss), train_acc,train_acc_path,LBBNN$density(),out_paths$used_weights/out_paths$total_weights
       ))
       
       
       accs <- c(accs,train_acc$item())
-      accs2 <- c(accs2,mpm_acc$item())
       active_path_accs <- c(active_path_accs,train_acc_path$item())
       losses <- c(losses,mean(train_loss))
     }
