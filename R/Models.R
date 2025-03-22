@@ -103,20 +103,20 @@ LBBNN_Net <- torch::nn_module(
       alpha <-(torch::torch_clone(l$alpha)> 0.5) * 1.
       alpha$requires_grad = TRUE
       alpha_mats<- append(alpha_mats,alpha)
-      x0 = torch::torch_matmul(x0, torch::torch_t(alpha))
+      x0 <- torch::torch_matmul(x0, torch::torch_t(alpha))
     }
     #output layer
     alpha_out <- (torch::torch_clone(self$out_layer$alpha)> 0.5) * 1.
     alpha_mats <-append(alpha_mats,alpha_out)
     alpha_out$requires_grad = TRUE
-    x0 = torch::torch_matmul(x0, torch::torch_t(alpha_out))
+    x0 <- torch::torch_matmul(x0, torch::torch_t(alpha_out))
     L <- torch::torch_sum(x0) #summing in case more than 1 output. This is
     #equivalent to backpropagate for each output node.
     L$backward() #compute derivatives to get active paths
                   #any alpha preceding an alpha with value 0 will also become
                   #zero when gradients are passed backwards, and thus we will
                   #be left with the active paths.
-    i = 1
+    i <- 1
     alpha_mats_out <- list()
     for(b in alpha_mats){
       alpha_mats_out <-append(alpha_mats_out,b * b$grad)
@@ -139,12 +139,12 @@ LBBNN_Net <- torch::nn_module(
   compute_sparse_mpm = function(x,alpha_mats){
     if(self$problem_type == 'MNIST')(x <- x$view(c(-1,28*28)))
     num_included <- 0
-    tot = 0
-    i = 1 #counter
+    tot <- 0
+    i <- 1 #counter
     
     for(l in self$layers$children){
       alpha <- alpha_mats[[i]]
-      alpha = (alpha != 0) * 1.
+      alpha <- (alpha != 0) * 1.
       num_included <-c(num_included,torch::torch_count_nonzero(alpha)$item())
       tot <-c(tot,alpha$numel())
       w_mu <- l$weight_mean$clone()$detach()
@@ -164,11 +164,11 @@ LBBNN_Net <- torch::nn_module(
     }
     #output layer
     alpha_out <- alpha_mats[[length(alpha_mats)]]
-    alpha_out = (alpha_out != 0) * 1.
+    alpha_out <- (alpha_out != 0) * 1.
     w_mu_out <- self$out_layer$weight_mean$clone()$detach()
     b_mu_out <- self$out_layer$bias_mean$clone()$detach()
-    rho_out = self$out_layer$weight_rho$clone()$detach()
-    b_rho_out = self$out_layer$bias_rho$clone()$detach()
+    rho_out <- self$out_layer$weight_rho$clone()$detach()
+    b_rho_out <- self$out_layer$bias_rho$clone()$detach()
     w_sigma_out <- torch::torch_log1p(torch_exp(rho_out))
     b_sigma_out <- torch::torch_log1p(torch_exp(b_rho_out))
    
