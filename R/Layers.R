@@ -156,10 +156,10 @@ LBBNN_Linear <- torch::nn_module(
     self$reset_parameters()
   },
   reset_parameters = function() {
-    torch::nn_init_normal_(self$weight_mean,mean = 0,std = 1)
-    torch::nn_init_normal_(self$weight_rho,mean = -9, std = 0.1)
+    torch::nn_init_uniform_(self$weight_mean,-0.01,0.01)
+    torch::nn_init_normal_(self$weight_rho,mean = -9, std = 1.0)
     torch::nn_init_uniform_(self$bias_mean,-0.2,0.2)
-    torch::nn_init_normal_(self$bias_rho,mean = -9, std = 0.1)
+    torch::nn_init_normal_(self$bias_rho,mean = -9, std = 1.0)
     torch::nn_init_uniform_(self$lambda_l,self$density_init[1],self$density_init[2])
     if(self$flow){
       torch::nn_init_normal_(self$q0_mean,mean = 0,std = 1)
