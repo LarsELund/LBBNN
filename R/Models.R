@@ -154,10 +154,10 @@ LBBNN_Net <- torch::nn_module(
       w_sigma <- torch::torch_log1p(torch_exp(rho))
       b_sigma <- torch::torch_log1p(torch_exp(b_rho))
       
-      w <- torch::torch_normal(w_mu*l$z_k,w_sigma)
+      w <- torch::torch_normal(w_mu*l$z_k,w_sigma) #note that we do not need to sample z at test time
       b <- torch::torch_normal(b_mu,b_sigma)
       weight <- alpha * w
-      x <- self$act(torch::torch_matmul(x, torch_t(weight)) + b)
+      x <- self$act(torch::torch_matmul(x, torch::torch_t(weight)) + b)
       i <- i+1
       
       
@@ -177,7 +177,7 @@ LBBNN_Net <- torch::nn_module(
     w_out <- torch::torch_normal(w_mu_out*z_out,w_sigma_out)
     b_out <- torch::torch_normal(b_mu_out,b_sigma_out)
     weight_out <- alpha_out * w_out
-    x <- self$out(torch::torch_matmul(x,torch_t(weight_out)) + b_out)
+    x <- self$out(torch::torch_matmul(x,torch::torch_t(weight_out)) + b_out)
     
     num_included <-c(num_included,torch::torch_count_nonzero(alpha_out)$item())
     tot <-c(tot,alpha_out$numel())

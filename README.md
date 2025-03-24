@@ -99,8 +99,8 @@ as arguments the number of epochs to train for, the model to train, the
 learning rate, and the data to train on:
 
 ``` r
-results_mf <- train_LBBNN(epochs = 500,LBBNN = model_mf, lr = 0.01,train_dl = train_loader,device = device)
-results_flow <- train_LBBNN(epochs = 500,LBBNN = model_flows, lr = 0.01,train_dl = train_loader,device = device)
+results_mf <- train_LBBNN(epochs = 300,LBBNN = model_mf, lr = 0.01,train_dl = train_loader,device = device)
+results_flow <- train_LBBNN(epochs = 300,LBBNN = model_flows, lr = 0.01,train_dl = train_loader,device = device)
 ```
 
 Visualize the results:
@@ -143,20 +143,26 @@ samples for model averaging, and the validation data.
 ``` r
 validate_LBBNN(LBBNN = model_mf,num_samples = 1000,test_dl = test_loader,device)
 #> $accuracy_full_model
-#> [1] 0.8666667
-#> 
-#> $accuracy_sparse
-#> [1] 0.8666667
-#> 
-#> $density
-#> [1] 0.01
-validate_LBBNN(LBBNN = model_flows,num_samples = 1000,test_dl = test_loader,device)
-#> $accuracy_full_model
-#> [1] 0.8777778
-#> 
-#> $accuracy_sparse
 #> [1] 0.8833333
 #> 
+#> $accuracy_sparse
+#> [1] 0.8611111
+#> 
 #> $density
-#> [1] 0.005
+#> [1] 0.001875
+#> 
+#> $density_active_path
+#> [1] 0.00125
+validate_LBBNN(LBBNN = model_flows,num_samples = 1000,test_dl = test_loader,device)
+#> $accuracy_full_model
+#> [1] 0.8833333
+#> 
+#> $accuracy_sparse
+#> [1] 0.8777778
+#> 
+#> $density
+#> [1] 0.008125
+#> 
+#> $density_active_path
+#> [1] 0.004375
 ```

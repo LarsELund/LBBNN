@@ -93,8 +93,8 @@ model_flows <- LBBNN_Net(problem_type = problem,sizes = sizes,prior = inclusion_
 To train the models, we have a function called train_LBBNN, which takes as arguments the number of epochs to train for,
 the model to train, the learning rate, and the data to train on:
 ```{r,results='hide'}
-results_mf <- train_LBBNN(epochs = 500,LBBNN = model_mf, lr = 0.01,train_dl = train_loader,device = device)
-results_flow <- train_LBBNN(epochs = 500,LBBNN = model_flows, lr = 0.01,train_dl = train_loader,device = device)
+results_mf <- train_LBBNN(epochs = 300,LBBNN = model_mf, lr = 0.01,train_dl = train_loader,device = device)
+results_flow <- train_LBBNN(epochs = 300,LBBNN = model_flows, lr = 0.01,train_dl = train_loader,device = device)
 ```
 Visualize the results:
 

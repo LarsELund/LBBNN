@@ -78,6 +78,11 @@ train_LBBNN <- function(epochs,LBBNN,lr,train_dl,device = 'cpu'){
         corrects<-corrects + sum((output > 0.5) == target)
         totals <- totals + length(target)
         train_loss <- c(train_loss,loss$item())
+        out_paths <- LBBNN$compute_sparse_mpm(data,alpha_mats)
+        out_mpm <- out_paths$output$squeeze()
+        corrects_path <- corrects_path + sum((out_mpm > 0.5) == target)
+        
+        
         
       }
       else if(LBBNN$problem_type == 'custom')
@@ -99,7 +104,7 @@ train_LBBNN <- function(epochs,LBBNN,lr,train_dl,device = 'cpu'){
     train_acc_path <- corrects_path / totals
     if(LBBNN$problem_type != 'regression'){
       cat(sprintf(
-        "\nEpoch %d, training: loss = %3.5f, acc = %3.5f,acc sparse path = %3.5f, density = %3.5f,dens sparse path = %3.5f \n",
+        "\nEpoch %d, training: loss = %3.5f, acc = %3.5f,acc sparse path = %3.5f, density = %3.5f,density active path = %3.5f \n",
         epoch, mean(train_loss), train_acc,train_acc_path,LBBNN$density(),out_paths$used_weights/out_paths$total_weights
       ))
       
@@ -147,7 +152,9 @@ validate_LBBNN <- function(LBBNN,num_samples,test_dl,device = 'cpu'){
   totals <- 0 
   val_loss <- c()
   val_loss_mpm <-c()
+  val_loss_mpm2<-c()
   out_shape <- 1 #if binary classification or regression
+  alpha_mats <- LBBNN$compute_paths()
   with_no_grad({ 
     coro::loop(for (b in test_dl){
       target <- b[[2]]$to(device=device)
@@ -160,7 +167,8 @@ validate_LBBNN <- function(LBBNN,num_samples,test_dl,device = 'cpu'){
       for(i in 1:num_samples){
         data <- b[[1]]$to(device = device)
         outputs[i]<- LBBNN(data,MPM=FALSE)
-        output_mpm[i]<- LBBNN(data,MPM=TRUE)
+        out_paths <- LBBNN$compute_sparse_mpm(data,alpha_mats)
+        output_mpm[i] <- out_paths$output
         
       }
       out_full <-outputs$mean(1) #average over num_samples dimension
@@ -168,10 +176,12 @@ validate_LBBNN <- function(LBBNN,num_samples,test_dl,device = 'cpu'){
       
       if(LBBNN$problem_type == 'multiclass classification' | LBBNN$problem_type == 'MNIST'){
         prediction <-max.col(out_full)
-        prediction_mpm <- max.col(out_mpm)
         corrects <- corrects + sum(prediction == target)
-        corrects_sparse <- corrects_sparse + sum(prediction_mpm == target)
         totals <- totals + length(target)
+        
+        #prediction using only weights in active paths
+        prediction_mpm <-max.col(out_mpm)
+        corrects_sparse <- corrects_sparse + sum(prediction_mpm == target)
         
         
       }
@@ -201,8 +211,9 @@ validate_LBBNN <- function(LBBNN,num_samples,test_dl,device = 'cpu'){
   acc_full<- corrects / totals
   acc_sparse <- corrects_sparse / totals
   density <- LBBNN$density()
+  density2 <- out_paths$used_weights / out_paths$total_weights
   if(LBBNN$problem_type!='regression'){
-    l = list('accuracy_full_model' = acc_full$item(),'accuracy_sparse' = acc_sparse$item(),'density'=density)
+    l = list('accuracy_full_model' = acc_full$item(),'accuracy_sparse' = acc_sparse$item(),'density'=density,'density_active_path'=density2)
   }
   else{
     l = list('validation_error'=mean(val_loss),'validation_error_sparse' = mean(val_loss_mpm),'density'=density)

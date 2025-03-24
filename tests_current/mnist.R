@@ -80,7 +80,7 @@ LBBNN_ConvNet <- nn_module(
 
 
 problem <- 'MNIST'
-sizes <- c(28*28,600,10) #7 input variables, one hidden layer of 100 neurons, 1 output neuron.
+sizes <- c(28*28,60,10) #7 input variables, one hidden layer of 100 neurons, 1 output neuron.
 inclusion_priors <-c(0.1,0.1) #one prior probability per weight matrix.
 std_priors <-c(1.0,1.0) #one prior probability per weight matrix.
 inclusion_inits <- matrix(rep(c(-15,10),2),nrow = 2,ncol = 2)
@@ -90,8 +90,8 @@ model <- LBBNN_Net(problem_type = problem,sizes = sizes,
                    prior = inclusion_priors,inclusion_inits =inclusion_inits ,
                    std = std_priors,flow = TRUE,num_transforms = 2,dims = c(200,200),device = device)
 model$to(device = device)
-results <- train_LBBNN(epochs = 250,LBBNN = model, lr = 0.0001,train_dl = train_loader,device = device)
-
+results <- train_LBBNN(epochs = 5,LBBNN = model, lr = 0.001,train_dl = train_loader,device = device)
+validate <-validate_LBBNN(model,num_samples = 100,test_dl = test_loader,device = device)
 
 
 
