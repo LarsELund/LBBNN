@@ -8,7 +8,9 @@
 
 The goal of LBBNN is to implement Latent Bayesian Binary Neural Networks
 (<https://openreview.net/pdf?id=d6kqUKzG3V>) in R, using the torch for R
-package.
+package. Currently, standard LBBNNs are implemented. In the future, we
+will also implement LBBNNs with input-skip (see
+<https://arxiv.org/abs/2503.10496>).
 
 ## Installation
 
