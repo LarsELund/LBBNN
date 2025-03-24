@@ -216,9 +216,9 @@ LBBNN_Linear <- torch::nn_module(
       out <- self$sample_z()
       z2 <- out$z
       log_det_q <- out$logdet
-      log_q0 = torch::torch_sum(-0.5 * torch::torch_log(pi)$to(device = self$device) - 0.5 * self$q0_logvar
+      log_q0 <- torch::torch_sum(-0.5 * torch::torch_log(pi)$to(device = self$device) - 0.5 * self$q0_logvar
                 - 0.5 * ((self$z - self$q0_mean) ** 2 / torch::torch_exp(self$q0_logvar)))
-      log_q =  log_q0 -log_det_q
+      log_q <- log_q0 -log_det_q
       
       ######get log r
       W_mean <- z2 * self$weight_mean * self$alpha
@@ -227,8 +227,8 @@ LBBNN_Linear <- torch::nn_module(
       act_var <- torch::torch_matmul(self$c1^2,torch::torch_t(W_var))
       act_inner <- act_mean + torch::torch_sqrt(act_var) * torch::torch_randn_like(act_var)
       act <- torch::nnf_hardtanh(act_inner)
-      mean_r = self$b1$outer(act)$mean(-1)  # eq (9) from MNF paper
-      log_var_r = self$b2$outer(act)$mean(-1)  # eq (10) from MNF paper
+      mean_r <- self$b1$outer(act)$mean(-1)  # eq (9) from MNF paper
+      log_var_r <- self$b2$outer(act)$mean(-1)  # eq (10) from MNF paper
       out2 <- self$sample_z()
       z_b <- out2$z
       log_det_r <- out2$logdet
@@ -404,23 +404,23 @@ LBBNN_Conv2d <- torch::nn_module(
       out <- self$sample_z()
       z2 <- out$z
       log_det_q <- out$logdet
-      log_q0 = torch::torch_sum(-0.5 * torch::torch_log(pi)$to(device = self$device) - 0.5 * self$q0_logvar
+      log_q0 <- torch::torch_sum(-0.5 * torch::torch_log(pi)$to(device = self$device) - 0.5 * self$q0_logvar
                                 - 0.5 * ((self$z - self$q0_mean) ** 2 / torch::torch_exp(self$q0_logvar)))
-      log_q =  log_q0 -log_det_q
+      log_q <- log_q0 -log_det_q
       
       ######get log r
       W_mean <- self$weight_mean * self$alpha * z2$view(c(-1,1,1,1))
       W_var <-  self$alpha * (self$weight_sigma^2 + (1 - self$alpha) * self$weight_mean^2 * z2$view(c(-1,1,1,1))^2)
-      act_mu = torch::torch_matmul(W_mean$view(-1, length(self$c1)),self$c1) # eq. (11)
-      act_var = torch::torch_matmul(W_mean$view(-1, length(self$c1)),self$c1^2)
+      act_mu <- torch::torch_matmul(W_mean$view(-1, length(self$c1)),self$c1) # eq. (11)
+      act_var <- torch::torch_matmul(W_mean$view(-1, length(self$c1)),self$c1^2)
       
       # For convolutional layers, linear mappings empirically work better than
       # tanh. Hence no need for act = tanh(act). Christos Louizos
       # confirmed this in https://github.com/AMLab-Amsterdam/MNF_VBNN/issues/4
       # even though the paper states the use of tanh in conv layers.
       act <- act_mu + torch::torch_sqrt(act_var) * torch::torch_randn_like(act_var)
-      mean_r = self$b1$outer(act)$mean(-1)  # eq (9) from MNF paper
-      log_var_r = self$b2$outer(act)$mean(-1)  # eq (10) from MNF paper
+      mean_r <- self$b1$outer(act)$mean(-1)  # eq (9) from MNF paper
+      log_var_r <- self$b2$outer(act)$mean(-1)  # eq (10) from MNF paper
       out2 <- self$sample_z()
       z_b <- out2$z
       log_det_r <- out2$logdet
