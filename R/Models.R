@@ -151,8 +151,8 @@ LBBNN_Net <- torch::nn_module(
       b_mu <- l$bias_mean$clone()$detach()
       rho <- l$weight_rho$clone()$detach()
       b_rho <- l$bias_rho$clone()$detach()
-      w_sigma <- torch::torch_log1p(torch_exp(rho))
-      b_sigma <- torch::torch_log1p(torch_exp(b_rho))
+      w_sigma <- torch::torch_log1p(torch::torch_exp(rho))
+      b_sigma <- torch::torch_log1p(torch::torch_exp(b_rho))
       
       w <- torch::torch_normal(w_mu*l$z_k,w_sigma) #note that we do not need to sample z at test time
       b <- torch::torch_normal(b_mu,b_sigma)
@@ -169,8 +169,8 @@ LBBNN_Net <- torch::nn_module(
     b_mu_out <- self$out_layer$bias_mean$clone()$detach()
     rho_out <- self$out_layer$weight_rho$clone()$detach()
     b_rho_out <- self$out_layer$bias_rho$clone()$detach()
-    w_sigma_out <- torch::torch_log1p(torch_exp(rho_out))
-    b_sigma_out <- torch::torch_log1p(torch_exp(b_rho_out))
+    w_sigma_out <- torch::torch_log1p(torch::torch_exp(rho_out))
+    b_sigma_out <- torch::torch_log1p(torch::torch_exp(b_rho_out))
    
     z_out <- self$out_layer$z_k
     
