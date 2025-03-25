@@ -9,6 +9,7 @@ library(torch)
 #' @param train_dl An instance of torch dataloader, containing the data to be trained.
 #' @param device the device to be trained on. Default is cpu.
 #' @return a list containing the losses and accuracies (if classification) and density for each epoch during training.
+#' For comparisons sake we show the density with and without active paths.
 #' @examples 
 #' x<-torch::torch_randn(1000,10) #generate some data
 #'b <- torch::torch_rand(10)
