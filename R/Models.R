@@ -130,8 +130,8 @@ LBBNN_Net <- torch::nn_module(
   },
   density = function(){
     alphas <- NULL
-    for(l in self$layers$children)(alphas <- c(alphas,as.numeric(l$alpha$detach()))) #as.numeric flattens the matrix
-    alphas<-c(alphas,as.numeric(self$out_layer$alpha$detach()))
+    for(l in self$layers$children)(alphas <- c(alphas,as.numeric(l$alpha$clone()$detach()))) #as.numeric flattens the matrix
+    alphas<-c(alphas,as.numeric(self$out_layer$alpha$clone()$detach()))
     return(mean(alphas > 0.5))
     
     
