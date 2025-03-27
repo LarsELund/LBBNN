@@ -129,6 +129,7 @@ LBBNN_Linear <- torch::nn_module(
     #inclusion variational parameters
     self$lambda_l <- torch::nn_parameter(torch::torch_empty(out_features, in_features,device = device))
     self$alpha <- torch::torch_empty(out_features, in_features,device = device)
+    self$alpha_active_path <- torch::torch_empty(out_features, in_features,device = device) #used to store alpha in active paths
     
     #define priors. For now, the user is only allowed to define the inclusion prior themselves
     self$alpha_prior <- torch::torch_zeros(out_features, in_features, device=device) + alpha_prior(prior_inclusion,device = device)
@@ -198,10 +199,9 @@ LBBNN_Linear <- torch::nn_module(
       activations <- e_b + torch::torch_sqrt(var_b) * eps
       
     }else {#only sample from weights with inclusion prob > 0.5 aka the median probability model 
-      gamma <-(self$alpha$clone()$detach()> 0.5) * 1.
       w <- torch::torch_normal(self$weight_mean * self$z_k, self$weight_sigma)
       bias <- torch::torch_normal(self$bias_mean, self$bias_sigma)
-      weight <- w * gamma
+      weight <- w * self$alpha_active_path
       activations <- torch::torch_matmul(input, torch_t(weight)) + bias
     }
     

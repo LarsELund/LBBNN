@@ -19,6 +19,7 @@ train_LBBNN(epochs, LBBNN, lr, train_dl, device = "cpu")
 }
 \value{
 a list containing the losses and accuracies (if classification) and density for each epoch during training.
+For comparisons sake we show the density with and without active paths.
 }
 \description{
 Function that for each epoch itereates through each mini-batch, computing

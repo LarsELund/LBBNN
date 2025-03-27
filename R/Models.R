@@ -98,15 +98,17 @@ LBBNN_Net <- torch::nn_module(
     #sending a random input through the network of alpha matrices (0 and 1)
     #and then backpropagating to find active paths
     x0 <-torch::torch_randn(self$layers$children$`0`$alpha$shape[2],device =self$device) #input shape
-    alpha_mats <- list() #initialize empty list to append clean alphas
+    alpha_mats <- list() #initialize empty list to append network alphas
     for(l in self$layers$children){
       alpha <-(torch::torch_clone(l$alpha)> 0.5) * 1.
+      alpha <- alpha$detach()
       alpha$requires_grad = TRUE
       alpha_mats<- append(alpha_mats,alpha)
       x0 <- torch::torch_matmul(x0, torch::torch_t(alpha))
     }
     #output layer
     alpha_out <- (torch::torch_clone(self$out_layer$alpha)> 0.5) * 1.
+    alpha_out <- alpha_out$detach()
     alpha_out$requires_grad = TRUE
     alpha_mats <-append(alpha_mats,alpha_out)
     x0 <- torch::torch_matmul(x0, torch::torch_t(alpha_out))
@@ -118,11 +120,21 @@ LBBNN_Net <- torch::nn_module(
                   #be left with the active paths.
     i <- 1
     alpha_mats_out <- list()
-    for(b in alpha_mats){
-      alpha_mats_out <-append(alpha_mats_out,b * b$grad)
-      i <- i +1
+    for(j in self$layers$children){
+      alp = alpha_mats[[i]] * alpha_mats[[i]]$grad
+      alp[alp!=0] <- 1
+      alpha_mats_out<- append(alpha_mats_out,alp$detach())
+      j$alpha_active_path <- alp$detach()
+      i = i +1
       
-    } 
+    }
+    alp_out <- alpha_mats[[length(alpha_mats)]] *alpha_mats[[length(alpha_mats)]]$grad #last alpha
+    alp_out[alp_out!=0] <- 1
+    alpha_mats_out<- append(alpha_mats_out,alp_out$detach())
+    
+    
+    self$out_layer$alpha_active_path <- alp_out$detach()
+    
    
     
     return(alpha_mats_out)
@@ -136,60 +148,22 @@ LBBNN_Net <- torch::nn_module(
     
     
   },
-  compute_sparse_mpm = function(x,alpha_mats){
-    if(self$problem_type == 'MNIST')(x <- x$view(c(-1,28*28)))
-    num_included <- 0
+  density_active_path = function(){
+    num_incl <- 0
     tot <- 0
-    i <- 1 #counter
-    
     for(l in self$layers$children){
-      alpha <- alpha_mats[[i]]
-      alpha <- (alpha != 0) * 1.
-      num_included <-c(num_included,torch::torch_count_nonzero(alpha)$item())
-      tot <-c(tot,alpha$numel())
-      w_mu <- l$weight_mean$clone()$detach()
-      b_mu <- l$bias_mean$clone()$detach()
-      rho <- l$weight_rho$clone()$detach()
-      b_rho <- l$bias_rho$clone()$detach()
-      w_sigma <- torch::torch_log1p(torch::torch_exp(rho))
-      b_sigma <- torch::torch_log1p(torch::torch_exp(b_rho))
-      
-      w <- torch::torch_normal(w_mu*l$z_k,w_sigma) #note that we do not need to sample z at test time
-      b <- torch::torch_normal(b_mu,b_sigma)
-      weight <- alpha * w
-      x <- self$act(torch::torch_matmul(x, torch::torch_t(weight)) + b)
-      i <- i+1
-      
+      tot <- tot +  l$alpha_active_path$numel() #total number of alphas
+      num_incl <- num_incl + torch::torch_sum(l$alpha_active_path) #number of ones
       
     }
-    #output layer
-    alpha_out <- alpha_mats[[length(alpha_mats)]]
-    alpha_out <- (alpha_out != 0) * 1.
-    w_mu_out <- self$out_layer$weight_mean$clone()$detach()
-    b_mu_out <- self$out_layer$bias_mean$clone()$detach()
-    rho_out <- self$out_layer$weight_rho$clone()$detach()
-    b_rho_out <- self$out_layer$bias_rho$clone()$detach()
-    w_sigma_out <- torch::torch_log1p(torch::torch_exp(rho_out))
-    b_sigma_out <- torch::torch_log1p(torch::torch_exp(b_rho_out))
-   
-    z_out <- self$out_layer$z_k
-    
-    w_out <- torch::torch_normal(w_mu_out*z_out,w_sigma_out)
-    b_out <- torch::torch_normal(b_mu_out,b_sigma_out)
-    weight_out <- alpha_out * w_out
-    x <- self$out(torch::torch_matmul(x,torch::torch_t(weight_out)) + b_out)
-    
-    num_included <-c(num_included,torch::torch_count_nonzero(alpha_out)$item())
-    tot <-c(tot,alpha_out$numel())
-    
-    
-    
-    
-    l <- list('output'=x,'used_weights'=sum(num_included),'total_weights'=sum(tot))
-    return(l)
-  
-  }
+    num_incl <- num_incl + torch::torch_sum(self$out_layer$alpha_active_path) #output layer
+    tot <- tot +  self$out_layer$alpha_active_path$numel()
 
+    return(num_incl$item() / tot)
+    
+    
+    
+  }
   
 )
 

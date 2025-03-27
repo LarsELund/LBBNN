@@ -34,11 +34,9 @@ train_LBBNN <- function(epochs,LBBNN,lr,train_dl,device = 'cpu'){
   density <- c()
   out_layer_density <- c()
   active_path_dens <-c()
-  active_path_accs <-c()
   for (epoch in 1:epochs) {
     LBBNN$train()
     corrects <- 0
-    corrects_path<-0
     totals <- 0
     train_loss <- c()
     # use coro::loop() for stability and performance
@@ -49,7 +47,7 @@ train_LBBNN <- function(epochs,LBBNN,lr,train_dl,device = 'cpu'){
       output <- LBBNN(data,MPM=FALSE)
       target <- b[[2]]$to(device=device)
       
-  
+      alpha_mats <- LBBNN$compute_paths()
       if(LBBNN$problem_type == 'multiclass classification'| LBBNN$problem_type == 'MNIST'){ #nll loss needs float tensors but bce loss needs long tensors 
         target <- torch::torch_tensor(target,dtype = torch::torch_long())
       }
@@ -64,13 +62,7 @@ train_LBBNN <- function(epochs,LBBNN,lr,train_dl,device = 'cpu'){
         corrects <- corrects + sum(prediction == target)
         totals <- totals + length(target)
         train_loss <- c(train_loss,loss$item())
-        
-        #computing metrics only using active paths #this might be expensive to compute for each forward pass
-        #so could consider only doing it at test time 
-        out_paths <- LBBNN$compute_sparse_mpm(data,alpha_mats)
-        pred <-max.col(out_paths$output)
-        corrects_path <- corrects_path + sum(pred == target)
-  
+    
         
         
         
@@ -79,9 +71,7 @@ train_LBBNN <- function(epochs,LBBNN,lr,train_dl,device = 'cpu'){
         corrects<-corrects + sum((output > 0.5) == target)
         totals <- totals + length(target)
         train_loss <- c(train_loss,loss$item())
-        out_paths <- LBBNN$compute_sparse_mpm(data,alpha_mats)
-        out_mpm <- out_paths$output$squeeze()
-        corrects_path <- corrects_path + sum((out_mpm > 0.5) == target)
+        
         
         
         
@@ -102,16 +92,14 @@ train_LBBNN <- function(epochs,LBBNN,lr,train_dl,device = 'cpu'){
     })
     
     train_acc <- corrects / totals
-    train_acc_path <- corrects_path / totals
     if(LBBNN$problem_type != 'regression'){
       cat(sprintf(
-        "\nEpoch %d, training: loss = %3.5f, acc = %3.5f,acc sparse path = %3.5f, density = %3.5f,density active path = %3.5f \n",
-        epoch, mean(train_loss), train_acc,train_acc_path,LBBNN$density(),out_paths$used_weights/out_paths$total_weights
+        "\nEpoch %d, training: loss = %3.5f, acc = %3.5f, density = %3.5f, density active path = %3.5f \n",
+        epoch, mean(train_loss), train_acc,LBBNN$density(),LBBNN$density_active_path()
       ))
       
       
       accs <- c(accs,train_acc$item())
-      active_path_accs <- c(active_path_accs,train_acc_path$item())
       losses <- c(losses,mean(train_loss))
     }
     if(LBBNN$problem_type == 'regression'){
@@ -124,9 +112,11 @@ train_LBBNN <- function(epochs,LBBNN,lr,train_dl,device = 'cpu'){
     }
     density <- c(density,LBBNN$density())
 
+
     
   }
   l = list('accs' = accs,'loss' = losses,'density' = density)
+
   return(l)
 }
 
@@ -168,8 +158,7 @@ validate_LBBNN <- function(LBBNN,num_samples,test_dl,device = 'cpu'){
       for(i in 1:num_samples){
         data <- b[[1]]$to(device = device)
         outputs[i]<- LBBNN(data,MPM=FALSE)
-        out_paths <- LBBNN$compute_sparse_mpm(data,alpha_mats)
-        output_mpm[i] <- out_paths$output
+        output_mpm[i] <- LBBNN(data,MPM=TRUE)
         
       }
       out_full <-outputs$mean(1) #average over num_samples dimension
@@ -212,12 +201,12 @@ validate_LBBNN <- function(LBBNN,num_samples,test_dl,device = 'cpu'){
   acc_full<- corrects / totals
   acc_sparse <- corrects_sparse / totals
   density <- LBBNN$density()
-  density2 <- out_paths$used_weights / out_paths$total_weights
+  density2 <- LBBNN$density_active_path()
   if(LBBNN$problem_type!='regression'){
     l = list('accuracy_full_model' = acc_full$item(),'accuracy_sparse' = acc_sparse$item(),'density'=density,'density_active_path'=density2)
   }
   else{
-    l = list('validation_error'=mean(val_loss),'validation_error_sparse' = mean(val_loss_mpm),'density'=density)
+    l = list('validation_error'=mean(val_loss),'validation_error_sparse' = mean(val_loss_mpm),'density'=density,'density_active_path'=density2)
   }
   return(l)
 }

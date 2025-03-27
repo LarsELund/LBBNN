@@ -145,10 +145,10 @@ samples for model averaging, and the validation data.
 ``` r
 validate_LBBNN(LBBNN = model_mf,num_samples = 1000,test_dl = test_loader,device)
 #> $accuracy_full_model
-#> [1] 0.8833333
+#> [1] 0.8777778
 #> 
 #> $accuracy_sparse
-#> [1] 0.8611111
+#> [1] 0.8555555
 #> 
 #> $density
 #> [1] 0.001875
@@ -157,14 +157,14 @@ validate_LBBNN(LBBNN = model_mf,num_samples = 1000,test_dl = test_loader,device)
 #> [1] 0.00125
 validate_LBBNN(LBBNN = model_flows,num_samples = 1000,test_dl = test_loader,device)
 #> $accuracy_full_model
-#> [1] 0.8833333
+#> [1] 0.8722222
 #> 
 #> $accuracy_sparse
-#> [1] 0.8777778
+#> [1] 0.8722222
 #> 
 #> $density
-#> [1] 0.008125
+#> [1] 0.00625
 #> 
 #> $density_active_path
-#> [1] 0.004375
+#> [1] 0.005
 ```
