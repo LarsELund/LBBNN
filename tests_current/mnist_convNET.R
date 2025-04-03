@@ -87,10 +87,10 @@ inclusion_inits <- matrix(rep(c(-15,10),3),nrow = 2,ncol = 3)
 device <- 'mps'
 torch_manual_seed(0)
 model <- LBBNN_Net(problem_type = problem,sizes = sizes,
-                   prior = inclusion_priors,inclusion_inits =inclusion_inits ,input_skip = FALSE
+                   prior = inclusion_priors,inclusion_inits =inclusion_inits ,input_skip = FALSE,
                    std = std_priors,flow = TRUE,num_transforms = 2,dims = c(200,200),device = device)
 model$to(device = device)
-results <- train_LBBNN(epochs = 5,LBBNN = model, lr = 0.0001,train_dl = train_loader,device = device)
+results <- train_LBBNN(epochs = 1,LBBNN = model, lr = 0.0001,train_dl = train_loader,device = device)
 validate <-validate_LBBNN(model,num_samples = 100,test_dl = test_loader,device = device)
 
 

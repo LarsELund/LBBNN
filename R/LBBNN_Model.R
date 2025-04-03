@@ -45,7 +45,7 @@ LBBNN_Net <- torch::nn_module(
     self$act <- torch::nn_leaky_relu()
     if(length(prior) != length(sizes) - 1)(stop('Must have one prior inclusion probability per weight matrix'))
     for(i in 1:(length(sizes)-2)){
-
+      
       self$layers$append(LBBNN_Linear(sizes[i],sizes[i+1],prior_inclusion = prior[i],
                         standard_prior = std[i],density_init = inclusion_inits[,i],
                         flow = self$flow,num_transforms = self$num_transforms, hidden_dims = self$dims,
@@ -125,17 +125,17 @@ LBBNN_Net <- torch::nn_module(
     for(j in self$layers$children){
       alp = alpha_mats[[i]] * alpha_mats[[i]]$grad
       alp[alp!=0] <- 1
-      alpha_mats_out<- append(alpha_mats_out,alp$detach())
-      j$alpha_active_path <- alp$detach()
+      alpha_mats_out<- append(alpha_mats_out,alp$clone()$detach())
+      j$alpha_active_path <- alp$clone()$detach()
       i = i +1
       
     }
     alp_out <- alpha_mats[[length(alpha_mats)]] *alpha_mats[[length(alpha_mats)]]$grad #last alpha
     alp_out[alp_out!=0] <- 1
-    alpha_mats_out<- append(alpha_mats_out,alp_out$detach())
+    alpha_mats_out<- append(alpha_mats_out,alp_out$clone()$detach())
     
     
-    self$out_layer$alpha_active_path <- alp_out$detach()
+    self$out_layer$alpha_active_path <- alp_out$clone()$detach()
     
    
     

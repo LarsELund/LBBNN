@@ -34,6 +34,7 @@ train_LBBNN <- function(epochs,LBBNN,lr,train_dl,device = 'cpu'){
   density <- c()
   out_layer_density <- c()
   active_path_dens <-c()
+  
   for (epoch in 1:epochs) {
     LBBNN$train()
     corrects <- 0
@@ -47,14 +48,14 @@ train_LBBNN <- function(epochs,LBBNN,lr,train_dl,device = 'cpu'){
       output <- LBBNN(data,MPM=FALSE)
       target <- b[[2]]$to(device=device)
       
-      alpha_mats <- LBBNN$compute_paths()
+    #  alpha_mats <- LBBNN$compute_paths()
       if(LBBNN$problem_type == 'multiclass classification'| LBBNN$problem_type == 'MNIST'){ #nll loss needs float tensors but bce loss needs long tensors 
         target <- torch::torch_tensor(target,dtype = torch::torch_long())
       }
       else(output <- output$squeeze()) #remove last dimension from binary classifiction or regression
       
       loss <- LBBNN$loss_fn(output, target) + LBBNN$kl_div() / length(train_dl)
-      alpha_mats <- LBBNN$compute_paths()
+
       
       
       if(LBBNN$problem_type == 'multiclass classification' | LBBNN$problem_type == 'MNIST'){
@@ -137,7 +138,7 @@ train_LBBNN <- function(epochs,LBBNN,lr,train_dl,device = 'cpu'){
 #'a posterior inclusion probability larger than 0.5. The density is also returned.
 #'@export
 validate_LBBNN <- function(LBBNN,num_samples,test_dl,device = 'cpu'){
-  LBBNN$eval
+  LBBNN$eval()
   corrects <- 0
   corrects_sparse <-0
   totals <- 0 
@@ -145,7 +146,7 @@ validate_LBBNN <- function(LBBNN,num_samples,test_dl,device = 'cpu'){
   val_loss_mpm <-c()
   val_loss_mpm2<-c()
   out_shape <- 1 #if binary classification or regression
-  alpha_mats <- LBBNN$compute_paths()
+  alpha_mats <- LBBNN$compute_paths() #to get the aplhas to use in mpm
   with_no_grad({ 
     coro::loop(for (b in test_dl){
       target <- b[[2]]$to(device=device)
@@ -200,6 +201,7 @@ validate_LBBNN <- function(LBBNN,num_samples,test_dl,device = 'cpu'){
   })
   acc_full<- corrects / totals
   acc_sparse <- corrects_sparse / totals
+  
   density <- LBBNN$density()
   density2 <- LBBNN$density_active_path()
   if(LBBNN$problem_type!='regression'){
