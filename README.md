@@ -89,10 +89,10 @@ mean-field posterior, and one with normalizing flows:
 ``` r
 torch_manual_seed(0)
 model_mf <- LBBNN_Net(problem_type = problem,sizes = sizes,prior = inclusion_priors,
-                      inclusion_inits = inclusion_inits,std = stds,
+                      inclusion_inits = inclusion_inits,input_skip = FALSE,std = stds,
                    flow = FALSE,device = device)
 model_flows <- LBBNN_Net(problem_type = problem,sizes = sizes,prior = inclusion_priors,
-                   inclusion_inits = inclusion_inits,std = stds,
+                   inclusion_inits = inclusion_inits,input_skip = FALSE,std = stds,
                    flow = TRUE,device = device)
 ```
 

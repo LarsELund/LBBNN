@@ -10,6 +10,7 @@ library(torch)
 #' @param prior a vector containing the prior inclusion probabilities for each layer in the network. Length must be ONE less than sizes.
 #' @param std  a vector containing the prior standard deviation for each layer in the network. Length must be ONE less than sizes.
 #' @param inclusion_inits a matrix of size (2,number of weight matrices). One upper and one lower bound for each layer.
+#' @param input_skip TRUE or FALSE
 #' @param flow whether to use normalizing flows. TRUE or FALSE.
 #' @param num_transforms how many transformations to use in the flow.
 #' @param dims hidden dimension for the neural network in the RNVP transform.
@@ -31,12 +32,13 @@ library(torch)
 LBBNN_Net <- torch::nn_module(
   "LBBNN_Net",
   
-  initialize = function(problem_type,sizes,prior,std,inclusion_inits,flow = FALSE,
+  initialize = function(problem_type,sizes,prior,std,inclusion_inits,input_skip = FALSE,flow = FALSE,
                         num_transforms = 2, dims = c(200,200),
                         device = 'cpu',link = NULL, nll = NULL) {
     self$device <- device
     self$layers <- torch::nn_module_list()
     self$problem_type <- problem_type
+    self$input_skip <- input_skip
     self$flow <- flow
     self$num_transforms <- num_transforms
     self$dims <- dims
