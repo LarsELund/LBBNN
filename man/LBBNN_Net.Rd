@@ -53,7 +53,7 @@ stds <- c(1.0,1.0,1.0)  # One prior inclusion probability for each weight matrix
 inclusion_inits <- matrix(rep(c(-10,10),3),nrow = 2,ncol = 3)
 prob <- 'multiclass classification'
 net <- LBBNN_Net(problem_type = prob, sizes = layers, prior = alpha,std = stds
-,inclusion_inits = inclusion_inits,flow = FALSE,device = 'cpu')
+,inclusion_inits = inclusion_inits,input_skip = FALSE,flow = FALSE,device = 'cpu')
 print(net)
 x <- torch::torch_rand(100,20,requires_grad = FALSE) #generate some dummy data
 output <- net(x) #forward pass
