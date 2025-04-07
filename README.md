@@ -76,8 +76,8 @@ inclusion parameters.
 
 ``` r
 problem <- 'binary classification'
-sizes <- c(7,200,1) #7 input variables, one hidden layer of 100 neurons, 1 output neuron.
-inclusion_priors <-c(0.5,0.5) #one prior probability per weight matrix.
+sizes <- c(7,500,1) #7 input variables, one hidden layer of 100 neurons, 1 output neuron.
+inclusion_priors <-c(0.1,0.1) #one prior probability per weight matrix.
 stds <- c(1.0,1.0) #prior standard deviation for each layer.
 inclusion_inits <- matrix(rep(c(0,2),2),nrow = 2,ncol = 2) #one low and high for each layer
 device <- 'cpu' #can also be mps or gpu.
@@ -101,8 +101,8 @@ as arguments the number of epochs to train for, the model to train, the
 learning rate, and the data to train on:
 
 ``` r
-results_mf <- train_LBBNN(epochs = 300,LBBNN = model_mf, lr = 0.01,train_dl = train_loader,device = device)
-results_flow <- train_LBBNN(epochs = 300,LBBNN = model_flows, lr = 0.01,train_dl = train_loader,device = device)
+results_mf <- train_LBBNN(epochs = 100,LBBNN = model_mf, lr = 0.005,train_dl = train_loader,device = device)
+results_flow <- train_LBBNN(epochs = 100,LBBNN = model_flows, lr = 0.005,train_dl = train_loader,device = device)
 ```
 
 Visualize the results:
@@ -138,33 +138,33 @@ legend(x = "center",
 
 <img src="man/figures/README-unnamed-chunk-5-3.png" width="100%" />
 
-Finally, to check the results on our validation data, we use the
+Finally, to check the results on the validation data, we use the
 function Validate_LBBNN, which takes as input a model, the number of
 samples for model averaging, and the validation data.
 
 ``` r
-validate_LBBNN(LBBNN = model_mf,num_samples = 1000,test_dl = test_loader,device)
+validate_LBBNN(LBBNN = model_mf,num_samples = 100,test_dl = test_loader,device)
 #> $accuracy_full_model
 #> [1] 0.8777778
 #> 
 #> $accuracy_sparse
-#> [1] 0.8555555
+#> [1] 0.8777778
 #> 
 #> $density
-#> [1] 0.001875
+#> [1] 0.1905
 #> 
 #> $density_active_path
-#> [1] 0.00125
-validate_LBBNN(LBBNN = model_flows,num_samples = 1000,test_dl = test_loader,device)
+#> [1] 0.06075
+validate_LBBNN(LBBNN = model_flows,num_samples = 100,test_dl = test_loader,device)
 #> $accuracy_full_model
-#> [1] 0.8722222
+#> [1] 0.8833333
 #> 
 #> $accuracy_sparse
-#> [1] 0.8722222
+#> [1] 0.8611111
 #> 
 #> $density
-#> [1] 0.00625
+#> [1] 0.187
 #> 
 #> $density_active_path
-#> [1] 0.005
+#> [1] 0.0525
 ```
