@@ -174,7 +174,7 @@ LBBNN_Linear <- torch::nn_module(
   },
   sample_z = function(){
     q0_std <- torch::torch_sqrt(torch::torch_exp(self$q0_logvar))
-    epsilon_z <- torch::torch_rand_like(q0_std)
+    epsilon_z <- torch::torch_randn_like(q0_std)
     self$z <- self$q0_mean + q0_std * epsilon_z #the initial random normal variable to be send through the flow
     out <- self$RNVP_flow(self$z) #returns z_k and the log determinant of the transformation
     return(out)
@@ -390,7 +390,7 @@ LBBNN_Conv2d <- torch::nn_module(
   
   sample_z = function(){
     q0_std <- torch::torch_sqrt(torch::torch_exp(self$q0_logvar))
-    epsilon_z <- torch::torch_rand_like(q0_std)
+    epsilon_z <- torch::torch_randn_like(q0_std)
     self$z <- self$q0_mean + q0_std * epsilon_z #the initial random normal variable to be send through the flow
     out <- self$RNVP_flow(self$z) #returns z_k and the log determinant of the transformation
     return(out)

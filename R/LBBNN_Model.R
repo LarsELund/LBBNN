@@ -42,16 +42,26 @@ LBBNN_Net <- torch::nn_module(
     self$flow <- flow
     self$num_transforms <- num_transforms
     self$dims <- dims
+    self$sizes <- sizes
     self$act <- torch::nn_leaky_relu()
     if(length(prior) != length(sizes) - 1)(stop('Must have one prior inclusion probability per weight matrix'))
-    for(i in 1:(length(sizes)-2)){
-      
-      self$layers$append(LBBNN_Linear(sizes[i],sizes[i+1],prior_inclusion = prior[i],
+   
+    
+     #define the layers of the network
+     #for the first layer input-skip and LBBNNs are the same,
+     #but for all subsequent layers, input-skip will have shape (dim + p,dim)
+     #where p is the number of variables. (i.e. the first element of sizes)
+     for(i in 1:(length(sizes)-2)){
+      if(i == 1 || input_skip == FALSE){in_shape <- sizes[i]} #no input skip on the first layer or with std LBBNNs
+      else(in_shape <- sizes[i] + sizes[1])
+      self$layers$append(LBBNN_Linear(in_shape,sizes[i+1],prior_inclusion = prior[i],
                         standard_prior = std[i],density_init = inclusion_inits[,i],
                         flow = self$flow,num_transforms = self$num_transforms, hidden_dims = self$dims,
                         device=self$device))
     }
-    self$out_layer <- (LBBNN_Linear(sizes[length(sizes)-1],sizes[length(sizes)]
+    if(input_skip){out_size <- sizes[length(sizes) - 1] + sizes[1]
+    }else{out_size <- sizes[length(sizes) - 1]}
+    self$out_layer <- (LBBNN_Linear(out_size,sizes[length(sizes)]
                       ,prior_inclusion = prior[length(prior)],standard_prior = std[length(std)],
 
                       density_init = inclusion_inits[,ncol(inclusion_inits)],flow = self$flow,
@@ -79,17 +89,31 @@ LBBNN_Net <- torch::nn_module(
     else(stop('the type of problem must either be: \'binary classification\', 
               \'multiclass classification\', \'regression\' or \'custom\''))
   },
-  forward = function(x,MPM=FALSE) {
+  forward = function(x,MPM=FALSE){
     if(self$problem_type == 'MNIST')(x <- x$view(c(-1,28*28)))
+    #regular LBBNN
+    if(!self$input_skip){
+      for(l in self$layers$children){
+       x <- self$act(l(x,MPM)) #iterate over hidden layers
+        
+      }
+      x <- self$out(self$out_layer(x,MPM))
+    }
+    else{x_input <- x$view(c(-1,self$sizes[1]))
+    x <- self$layers$children$`0`(x_input,MPM) #first layer
+    j <- 1
     for(l in self$layers$children){
-      
-      x <- self$act(l(x,MPM)) #iterate over hidden layers
+      if(j > 1){#skip the first layer when iterating. Probably a more elegant way to do so.
+        x <- l(torch_cat(c(x,x_input),dim = 2),MPM)
+      }
+      j <- j + 1
+    }
+    x<- self$out(self$out_layer(torch_cat(c(x,x_input),dim = 2),MPM))
       
     }
-    x <- self$out(self$out_layer(x,MPM))
+   
     return(x)
-    
-  },
+    },
   kl_div = function(){
     kl <- 0
     for(l in self$layers$children)(kl <- kl + l$kl_div()) 
@@ -99,17 +123,18 @@ LBBNN_Net <- torch::nn_module(
   compute_paths = function(){
     #sending a random input through the network of alpha matrices (0 and 1)
     #and then backpropagating to find active paths
-    x0 <-torch::torch_randn(self$layers$children$`0`$alpha$shape[2],device =self$device) #input shape
+    a <- rnorm(n = self$layers$children$`0`$alpha$shape[2])
+    x0 <- torch::torch_tensor(a, dtype = torch::torch_float32(),device = self$device)
     alpha_mats <- list() #initialize empty list to append network alphas
     for(l in self$layers$children){
-      lamd <- l$lambda_l$clone()$detach()
+      lamd <- l$lambda_l$detach()
       alpha <- (torch::torch_sigmoid(lamd) > 0.5) * 1
       alpha$requires_grad = TRUE
       alpha_mats<- append(alpha_mats,alpha)
       x0 <- torch::torch_matmul(x0, torch::torch_t(alpha))
     }
     #output layer
-    lamd_out <- self$out_layer$lambda_l$clone()$detach()
+    lamd_out <- self$out_layer$lambda_l$detach()
     alpha_out <- (torch::torch_sigmoid(lamd_out) > 0.5) * 1
     alpha_out <- alpha_out$detach()
     alpha_out$requires_grad = TRUE
@@ -126,21 +151,21 @@ LBBNN_Net <- torch::nn_module(
     for(j in self$layers$children){
       alp = alpha_mats[[i]] * alpha_mats[[i]]$grad
       alp[alp!=0] <- 1
-      alpha_mats_out<- append(alpha_mats_out,alp$clone()$detach())
-      j$alpha_active_path <- alp$clone()$detach()
+      alpha_mats_out<- append(alpha_mats_out,alp$detach())
+      j$alpha_active_path <- alp$detach()
       i = i +1
       
     }
     alp_out <- alpha_mats[[length(alpha_mats)]] *alpha_mats[[length(alpha_mats)]]$grad #last alpha
     alp_out[alp_out!=0] <- 1
-    alpha_mats_out<- append(alpha_mats_out,alp_out$clone()$detach())
+    alpha_mats_out<- append(alpha_mats_out,alp_out$detach())
     
     
-    self$out_layer$alpha_active_path <- alp_out$clone()$detach()
+    self$out_layer$alpha_active_path <- alp_out$detach()
     
    
     
-    return(alpha_mats_out)
+    return(NULL)
     
   },
   density = function(){

@@ -61,8 +61,8 @@ x_test <- scale(x_test, center=attr(x_train, "scaled:center"), scale=attr(x_trai
 #create tensor dataset and pass it to a dataloader object to enable easy mini-batch based optimization
 train_data <- torch::tensor_dataset(torch_tensor(x_train),torch_tensor(y_train)) 
 test_data <- torch::tensor_dataset(torch_tensor(x_test),torch_tensor(y_test))
-train_loader <- torch::dataloader(train_data, batch_size = 300, shuffle = TRUE)
-test_loader <- torch::dataloader(test_data, batch_size = 100)
+train_loader <- torch::dataloader(train_data, batch_size = length(train_data) , shuffle = TRUE)
+test_loader <- torch::dataloader(test_data, batch_size = length(test_data))
 ```
 To initialize our LBBNN, we need to define some hyperparameters. Firstly, the user has
 to define what type of problem it is. This could be either binary classification (as in this case), multiclass classification
@@ -71,10 +71,10 @@ is the number of variables in the dataset (7 in this case), the last element is 
 
 ```{r}
 problem <- 'binary classification'
-sizes <- c(7,500,1) #7 input variables, one hidden layer of 100 neurons, 1 output neuron.
+sizes <- c(7,600,1) #7 input variables, one hidden layer of 100 neurons, 1 output neuron.
 inclusion_priors <-c(0.1,0.1) #one prior probability per weight matrix.
-stds <- c(1.0,1.0) #prior standard deviation for each layer.
-inclusion_inits <- matrix(rep(c(0,2),2),nrow = 2,ncol = 2) #one low and high for each layer
+stds <- c(10,10) #prior standard deviation for each layer.
+inclusion_inits <- matrix(rep(c(-10,15),2),nrow = 2,ncol = 2) #one low and high for each layer
 device <- 'cpu' #can also be mps or gpu.
 ```
 
@@ -94,8 +94,8 @@ model_flows <- LBBNN_Net(problem_type = problem,sizes = sizes,prior = inclusion_
 To train the models, we have a function called train_LBBNN, which takes as arguments the number of epochs to train for,
 the model to train, the learning rate, and the data to train on:
 ```{r,results='hide'}
-results_mf <- train_LBBNN(epochs = 100,LBBNN = model_mf, lr = 0.005,train_dl = train_loader,device = device)
-results_flow <- train_LBBNN(epochs = 100,LBBNN = model_flows, lr = 0.005,train_dl = train_loader,device = device)
+results_mf <- train_LBBNN(epochs = 800,LBBNN = model_mf, lr = 0.005,train_dl = train_loader,device = device)
+results_flow <- train_LBBNN(epochs = 800,LBBNN = model_flows, lr = 0.005,train_dl = train_loader,device = device)
 ```
 Visualize the results:
 
@@ -122,8 +122,8 @@ legend(x = "center",
 Finally, to check the results on the validation data, we use the function Validate_LBBNN, which takes as input a model, the number of samples for model averaging, and the validation data.
 
 ```{r}
-validate_LBBNN(LBBNN = model_mf,num_samples = 100,test_dl = test_loader,device)
-validate_LBBNN(LBBNN = model_flows,num_samples = 100,test_dl = test_loader,device)
+validate_LBBNN(LBBNN = model_mf,num_samples = 1000,test_dl = test_loader,device)
+validate_LBBNN(LBBNN = model_flows,num_samples = 1000,test_dl = test_loader,device)
 ```
 
 

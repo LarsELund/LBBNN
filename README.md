@@ -54,8 +54,8 @@ x_test <- scale(x_test, center=attr(x_train, "scaled:center"), scale=attr(x_trai
 #create tensor dataset and pass it to a dataloader object to enable easy mini-batch based optimization
 train_data <- torch::tensor_dataset(torch_tensor(x_train),torch_tensor(y_train)) 
 test_data <- torch::tensor_dataset(torch_tensor(x_test),torch_tensor(y_test))
-train_loader <- torch::dataloader(train_data, batch_size = 300, shuffle = TRUE)
-test_loader <- torch::dataloader(test_data, batch_size = 100)
+train_loader <- torch::dataloader(train_data, batch_size = length(train_data) , shuffle = TRUE)
+test_loader <- torch::dataloader(test_data, batch_size = length(test_data))
 ```
 
 To initialize our LBBNN, we need to define some hyperparameters.
@@ -76,10 +76,10 @@ inclusion parameters.
 
 ``` r
 problem <- 'binary classification'
-sizes <- c(7,500,1) #7 input variables, one hidden layer of 100 neurons, 1 output neuron.
+sizes <- c(7,600,1) #7 input variables, one hidden layer of 100 neurons, 1 output neuron.
 inclusion_priors <-c(0.1,0.1) #one prior probability per weight matrix.
-stds <- c(1.0,1.0) #prior standard deviation for each layer.
-inclusion_inits <- matrix(rep(c(0,2),2),nrow = 2,ncol = 2) #one low and high for each layer
+stds <- c(10,10) #prior standard deviation for each layer.
+inclusion_inits <- matrix(rep(c(-10,15),2),nrow = 2,ncol = 2) #one low and high for each layer
 device <- 'cpu' #can also be mps or gpu.
 ```
 
@@ -101,8 +101,8 @@ as arguments the number of epochs to train for, the model to train, the
 learning rate, and the data to train on:
 
 ``` r
-results_mf <- train_LBBNN(epochs = 100,LBBNN = model_mf, lr = 0.005,train_dl = train_loader,device = device)
-results_flow <- train_LBBNN(epochs = 100,LBBNN = model_flows, lr = 0.005,train_dl = train_loader,device = device)
+results_mf <- train_LBBNN(epochs = 800,LBBNN = model_mf, lr = 0.005,train_dl = train_loader,device = device)
+results_flow <- train_LBBNN(epochs = 800,LBBNN = model_flows, lr = 0.005,train_dl = train_loader,device = device)
 ```
 
 Visualize the results:
@@ -143,28 +143,28 @@ function Validate_LBBNN, which takes as input a model, the number of
 samples for model averaging, and the validation data.
 
 ``` r
-validate_LBBNN(LBBNN = model_mf,num_samples = 100,test_dl = test_loader,device)
+validate_LBBNN(LBBNN = model_mf,num_samples = 1000,test_dl = test_loader,device)
 #> $accuracy_full_model
-#> [1] 0.8777778
+#> [1] 0.8888889
 #> 
 #> $accuracy_sparse
-#> [1] 0.8777778
-#> 
-#> $density
-#> [1] 0.1905
-#> 
-#> $density_active_path
-#> [1] 0.06075
-validate_LBBNN(LBBNN = model_flows,num_samples = 100,test_dl = test_loader,device)
-#> $accuracy_full_model
 #> [1] 0.8833333
 #> 
-#> $accuracy_sparse
-#> [1] 0.8611111
-#> 
 #> $density
-#> [1] 0.187
+#> [1] 0.2616667
 #> 
 #> $density_active_path
-#> [1] 0.0525
+#> [1] 0.08604167
+validate_LBBNN(LBBNN = model_flows,num_samples = 1000,test_dl = test_loader,device)
+#> $accuracy_full_model
+#> [1] 0.8666667
+#> 
+#> $accuracy_sparse
+#> [1] 0.8666667
+#> 
+#> $density
+#> [1] 0.2554167
+#> 
+#> $density_active_path
+#> [1] 0.08270833
 ```

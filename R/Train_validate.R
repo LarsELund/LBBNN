@@ -36,6 +36,7 @@ train_LBBNN <- function(epochs,LBBNN,lr,train_dl,device = 'cpu'){
   active_path_dens <-c()
   
   for (epoch in 1:epochs) {
+    LBBNN$compute_paths()
     LBBNN$train()
     corrects <- 0
     totals <- 0
@@ -94,8 +95,8 @@ train_LBBNN <- function(epochs,LBBNN,lr,train_dl,device = 'cpu'){
     train_acc <- corrects / totals
     if(LBBNN$problem_type != 'regression'){
       cat(sprintf(
-        "\nEpoch %d, training: loss = %3.5f, acc = %3.5f, density = %3.5f, density active path = %3.5f \n",
-        epoch, mean(train_loss), train_acc,LBBNN$density(),LBBNN$density_active_path()
+        "\nEpoch %d, training: loss = %3.5f, acc = %3.5f, density = %3.5f",
+        epoch, mean(train_loss), train_acc,LBBNN$density()
       ))
       
       
@@ -145,7 +146,7 @@ validate_LBBNN <- function(LBBNN,num_samples,test_dl,device = 'cpu'){
   val_loss_mpm <-c()
   val_loss_mpm2<-c()
   out_shape <- 1 #if binary classification or regression
-  alpha_mats <- LBBNN$compute_paths() #to get the aplhas to use in mpm
+  LBBNN$compute_paths() #to get the aplhas to use in mpm
   with_no_grad({ 
     coro::loop(for (b in test_dl){
       target <- b[[2]]$to(device=device)
