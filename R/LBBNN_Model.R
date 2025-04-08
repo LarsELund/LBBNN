@@ -102,14 +102,15 @@ LBBNN_Net <- torch::nn_module(
     x0 <-torch::torch_randn(self$layers$children$`0`$alpha$shape[2],device =self$device) #input shape
     alpha_mats <- list() #initialize empty list to append network alphas
     for(l in self$layers$children){
-      alpha <-(torch::torch_clone(l$alpha)> 0.5) * 1.
-      alpha <- alpha$detach()
+      lamd <- l$lambda_l$clone()$detach()
+      alpha <- (torch::torch_sigmoid(lamd) > 0.5) * 1
       alpha$requires_grad = TRUE
       alpha_mats<- append(alpha_mats,alpha)
       x0 <- torch::torch_matmul(x0, torch::torch_t(alpha))
     }
     #output layer
-    alpha_out <- (torch::torch_clone(self$out_layer$alpha)> 0.5) * 1.
+    lamd_out <- self$out_layer$lambda_l$clone()$detach()
+    alpha_out <- (torch::torch_sigmoid(lamd_out) > 0.5) * 1
     alpha_out <- alpha_out$detach()
     alpha_out$requires_grad = TRUE
     alpha_mats <-append(alpha_mats,alpha_out)

@@ -181,7 +181,7 @@ LBBNN_Linear <- torch::nn_module(
   }
   ,
   forward = function(input,MPM=FALSE) {
-    self$alpha <- 1 / (1 + torch::torch_exp(-self$lambda_l))
+    self$alpha <- torch::torch_sigmoid(self$lambda_l)
     self$weight_sigma <- torch::torch_log1p(torch_exp(self$weight_rho))
     self$bias_sigma <- torch::torch_log1p(torch_exp(self$bias_rho))
     self$z_k <- torch::torch_ones_like(self$weight_mean) 

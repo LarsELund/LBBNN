@@ -48,7 +48,6 @@ train_LBBNN <- function(epochs,LBBNN,lr,train_dl,device = 'cpu'){
       output <- LBBNN(data,MPM=FALSE)
       target <- b[[2]]$to(device=device)
       
-    #  alpha_mats <- LBBNN$compute_paths()
       if(LBBNN$problem_type == 'multiclass classification'| LBBNN$problem_type == 'MNIST'){ #nll loss needs float tensors but bce loss needs long tensors 
         target <- torch::torch_tensor(target,dtype = torch::torch_long())
       }
