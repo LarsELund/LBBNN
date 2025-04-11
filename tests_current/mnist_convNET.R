@@ -16,7 +16,7 @@ test_ds <- mnist_dataset(
 )
 
 train_loader <- dataloader(train_ds, batch_size = 100, shuffle = TRUE)
-test_loader <- dataloader(test_ds, batch_size = 1000)
+test_loader <- dataloader(test_ds, batch_size = 100)
 
 
 
@@ -75,22 +75,18 @@ LBBNN_ConvNet <- nn_module(
   }
 )
 
-
-
-
-
 problem <- 'MNIST'
-sizes <- c(28*28,400,400,10) #7 input variables, one hidden layer of 100 neurons, 1 output neuron.
+sizes <- c(28*28,100,100,10) #7 input variables, one hidden layer of 100 neurons, 1 output neuron.
 inclusion_priors <-c(0.1,0.1,0.1) #one prior probability per weight matrix.
 std_priors <-c(1.0,1.0,1.0) #one prior probability per weight matrix.
 inclusion_inits <- matrix(rep(c(-10,10),3),nrow = 2,ncol = 3)
 device <- 'mps'
 torch_manual_seed(0)
 model <- LBBNN_Net(problem_type = problem,sizes = sizes,
-                   prior = inclusion_priors,inclusion_inits =inclusion_inits ,input_skip = FALSE,
-                   std = std_priors,flow = TRUE,num_transforms = 2,dims = c(200,200),device = device)
+                   prior = inclusion_priors,inclusion_inits =inclusion_inits ,input_skip = TRUE,
+                   std = std_priors,flow = FALSE,num_transforms = 2,dims = c(200,200),device = device)
 model$to(device = device)
-results <- train_LBBNN(epochs = 100,LBBNN = model, lr = 0.0001,train_dl = train_loader,device = device)
+results <- train_LBBNN(epochs = 5,LBBNN = model, lr = 0.001,train_dl = train_loader,device = device)
 validate <-validate_LBBNN(model,num_samples = 100,test_dl = test_loader,device = device)
 
 

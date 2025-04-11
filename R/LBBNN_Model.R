@@ -126,6 +126,7 @@ LBBNN_Net <- torch::nn_module(
     a <- rnorm(n = self$layers$children$`0`$alpha$shape[2])
     x0 <- torch::torch_tensor(a, dtype = torch::torch_float32(),device = self$device)
     alpha_mats <- list() #initialize empty list to append network alphas
+    
     for(l in self$layers$children){
       lamd <- l$lambda_l$detach()
       alpha <- (torch::torch_sigmoid(lamd) > 0.5) * 1
@@ -168,6 +169,72 @@ LBBNN_Net <- torch::nn_module(
     return(NULL)
     
   },
+  compute_paths_input_skip = function(){
+ 
+    #sending a random input through the network of alpha matrices (0 and 1)
+    #and then backpropagating to find active paths
+    a <- rnorm(n = self$layers$children$`0`$alpha$shape[2])
+    x0 <- torch::torch_tensor(a, dtype = torch::torch_float32(),device = self$device)$unsqueeze(dim = 1)
+    alpha_mats <- list() #initialize empty list to append network alphas
+    lamd_input <- self$layers$children$`0`$lambda_l
+    alpha_input <- (torch::torch_sigmoid(lamd_input) > 0.5) * 1
+    alpha_input$requires_grad = TRUE
+    alpha_mats <- append(alpha_mats,alpha_input)
+    
+    x<- torch::torch_matmul(x0, torch::torch_t(alpha_input))
+    
+    j <- 1
+    for(l in self$layers$children){
+      if(j > 1){#skip the first layer when iterating. Probably a more elegant way to do so.
+        x <- (torch_cat(c(x,x0),dim = 2))
+        lamd <- l$lambda_l$detach()
+        alpha <- (torch::torch_sigmoid(lamd) > 0.5) * 1
+        alpha$requires_grad = TRUE
+        alpha_mats<- append(alpha_mats,alpha)
+        x <- torch::torch_matmul(x, torch::torch_t(alpha))
+        
+      }
+      j <- j + 1
+    }
+    #output layer
+    lamd_out <- self$out_layer$lambda_l$detach()
+    alpha_out <- (torch::torch_sigmoid(lamd_out) > 0.5) * 1
+    alpha_out <- alpha_out$detach()
+    alpha_out$requires_grad = TRUE
+    alpha_mats <-append(alpha_mats,alpha_out)
+    x_out <- (torch_cat(c(x,x0),dim = 2))
+    x_out <- torch::torch_matmul(x_out, torch::torch_t(alpha_out))
+    
+    L <- torch::torch_sum(x_out) #summing in case more than 1 output. This is
+    #equivalent to backpropagate for each output node.
+    L$backward() #compute derivatives to get active paths
+    #any alpha preceding an alpha with value 0 will also become
+    #zero when gradients are passed backwards, and thus we will
+    #be left with the active paths.
+    i <- 1
+    alpha_mats_out <- list()
+    for(j in self$layers$children){
+      alp = alpha_mats[[i]] * alpha_mats[[i]]$grad
+      alp[alp!=0] <- 1
+      alpha_mats_out<- append(alpha_mats_out,alp$detach())
+      j$alpha_active_path <- alp$detach()
+      i = i +1
+      
+    }
+    alp_out <- alpha_mats[[length(alpha_mats)]] *alpha_mats[[length(alpha_mats)]]$grad #last alpha
+    alp_out[alp_out!=0] <- 1
+    alpha_mats_out<- append(alpha_mats_out,alp_out$detach())
+    
+    
+    self$out_layer$alpha_active_path <- alp_out$detach()
+    
+    
+    
+    
+    return(NULL)
+    
+  },
+  
   density = function(){
     alphas <- NULL
     for(l in self$layers$children)(alphas <- c(alphas,as.numeric(l$alpha$clone()$detach()))) #as.numeric flattens the matrix
@@ -179,13 +246,33 @@ LBBNN_Net <- torch::nn_module(
   density_active_path = function(){
     num_incl <- 0
     tot <- 0
+    paths <- c() #intialize empty vector to compute path depths (only for input-skip)
+    p <- self$sizes[1]
     for(l in self$layers$children){
       tot <- tot +  l$alpha_active_path$numel() #total number of alphas
       num_incl <- num_incl + torch::torch_sum(l$alpha_active_path) #number of ones
-      
+      if(self$input_skip){
+        alp <- l$alpha_active_path
+        count <- (alp[,(dim(alp)[2] - p + 1):dim(alp)[2]] != 0)$flatten()$sum()$item() #count number non-zero elements in the p last entries of alpha matrix. this gives active paths
+        paths <- append(paths,count)
+      }
     }
     num_incl <- num_incl + torch::torch_sum(self$out_layer$alpha_active_path) #output layer
     tot <- tot +  self$out_layer$alpha_active_path$numel()
+    
+    #if no input skip then avg and max depth is always equal to the number of layers
+    avg_path_length <- length(self$layers) + 1
+    max_path_length <- length(self$layers) + 1
+    
+    if(self$input_skip){
+      alp_out <- self$out_layer$alpha_active_path
+      out_count <- (alp_out[,(dim(alp_out)[2] - p + 1):dim(alp_out)[2]] != 0)$flatten()$sum()$item()
+      paths <- append(paths,out_count)
+      count_vector <- c((length(self$layers) + 1):1) #from number of layers -> 1. number of layers is the maximum possible path length.
+      avg_path_length <- (torch::torch_dot(paths,count_vector) / sum(paths))$item() 
+      max_path_length <- count_vector[torch::torch_argmax((paths!= 0) * 1)$item()] #get the index of of the first non-zero item in count vector, corresponding to the maximum path
+    }
+
 
     return(num_incl$item() / tot)
     

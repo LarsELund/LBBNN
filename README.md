@@ -77,8 +77,8 @@ inclusion parameters.
 ``` r
 problem <- 'binary classification'
 sizes <- c(7,600,1) #7 input variables, one hidden layer of 100 neurons, 1 output neuron.
-inclusion_priors <-c(0.1,0.1) #one prior probability per weight matrix.
-stds <- c(10,10) #prior standard deviation for each layer.
+inclusion_priors <-c(0.5,0.5) #one prior probability per weight matrix.
+stds <- c(1,1) #prior standard deviation for each layer.
 inclusion_inits <- matrix(rep(c(-10,15),2),nrow = 2,ncol = 2) #one low and high for each layer
 device <- 'cpu' #can also be mps or gpu.
 ```
@@ -145,26 +145,26 @@ samples for model averaging, and the validation data.
 ``` r
 validate_LBBNN(LBBNN = model_mf,num_samples = 1000,test_dl = test_loader,device)
 #> $accuracy_full_model
-#> [1] 0.8888889
+#> [1] 0.8666667
 #> 
 #> $accuracy_sparse
-#> [1] 0.8833333
+#> [1] 0.8722222
 #> 
 #> $density
-#> [1] 0.2616667
+#> [1] 0.2741667
 #> 
 #> $density_active_path
-#> [1] 0.08604167
+#> [1] 0.09020833
 validate_LBBNN(LBBNN = model_flows,num_samples = 1000,test_dl = test_loader,device)
 #> $accuracy_full_model
 #> [1] 0.8666667
 #> 
 #> $accuracy_sparse
-#> [1] 0.8666667
+#> [1] 0.8722222
 #> 
 #> $density
-#> [1] 0.2554167
+#> [1] 0.2727083
 #> 
 #> $density_active_path
-#> [1] 0.08270833
+#> [1] 0.09770833
 ```
