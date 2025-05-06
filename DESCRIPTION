@@ -19,5 +19,6 @@ Imports:
     readxl,
     reshape2,
     tidyr,
-    torch
+    torch,
+    igraph
  
