@@ -104,11 +104,11 @@ LBBNN_Net <- torch::nn_module(
     j <- 1
     for(l in self$layers$children){
       if(j > 1){#skip the first layer when iterating. Probably a more elegant way to do so.
-        x <- l(torch_cat(c(x,x_input),dim = 2),MPM)
+        x <- l(torch::torch_cat(c(x,x_input),dim = 2),MPM)
       }
       j <- j + 1
     }
-    x<- self$out(self$out_layer(torch_cat(c(x,x_input),dim = 2),MPM))
+    x<- self$out(self$out_layer(torch::torch_cat(c(x,x_input),dim = 2),MPM))
       
     }
    
@@ -186,7 +186,7 @@ LBBNN_Net <- torch::nn_module(
     j <- 1
     for(l in self$layers$children){
       if(j > 1){#skip the first layer when iterating. Probably a more elegant way to do so.
-        x <- (torch_cat(c(x,x0),dim = 2))
+        x <- (torch::torch_cat(c(x,x0),dim = 2))
         lamd <- l$lambda_l$detach()
         alpha <- (torch::torch_sigmoid(lamd) > 0.5) * 1
         alpha$requires_grad = TRUE
@@ -202,7 +202,7 @@ LBBNN_Net <- torch::nn_module(
     alpha_out <- alpha_out$detach()
     alpha_out$requires_grad = TRUE
     alpha_mats <-append(alpha_mats,alpha_out)
-    x_out <- (torch_cat(c(x,x0),dim = 2))
+    x_out <- (torch::torch_cat(c(x,x0),dim = 2))
     x_out <- torch::torch_matmul(x_out, torch::torch_t(alpha_out))
     
     L <- torch::torch_sum(x_out) #summing in case more than 1 output. This is

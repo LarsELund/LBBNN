@@ -149,7 +149,7 @@ validate_LBBNN <- function(LBBNN,num_samples,test_dl,device = 'cpu'){
   out_shape <- 1 #if binary classification or regression
   if(!LBBNN$input_skip){LBBNN$compute_paths()}
   else(LBBNN$compute_paths_input_skip())
-  with_no_grad({ 
+  torch::with_no_grad({ 
     coro::loop(for (b in test_dl){
       target <- b[[2]]$to(device=device)
       if(LBBNN$problem_type == 'multiclass classification'| LBBNN$problem_type == 'MNIST'){ #nll loss needs float tensors but bce loss needs long tensors 
