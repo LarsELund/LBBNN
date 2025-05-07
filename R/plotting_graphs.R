@@ -26,16 +26,17 @@ colnames(mat2) <- c('u1','u2','v1','v2')
 mat2[1,4] = 1
 mat2[1,3] = 1
 mat2[2,4] = 1
-mat2 <- graph_from_adjacency_matrix(mat2)
+mat2 <- graph_from_adjacency_matrix(mat2,mode = 'directed')
 
 #aa <- graph_from_adjacency_matrix(A)
-cc <- graph_from_adjacency_matrix(ccc)
+cc <- graph_from_adjacency_matrix(ccc,mode = 'directed')
 #l <- layout_as_tree(cc,flip.y = FALSE)
 #plot(cc,layout =  l)
 
 g <- cc + mat2
 tr <- layout_as_tree(g,flip.y = FALSE)
-plot(g, layout = tr)
+plot(g,vertex.size = 30,vertex.color = 'lightblue',
+     edge.width = 1, layout = tr,edge.arrow.mode = '-')
 
 
 
