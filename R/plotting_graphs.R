@@ -35,8 +35,29 @@ cc <- graph_from_adjacency_matrix(ccc,mode = 'directed')
 
 g <- cc + mat2
 tr <- layout_as_tree(g,flip.y = T)
-plot(g,vertex.size = 30,vertex.color = 'lightblue',
-     edge.width = 1, layout = -tr[,2:1],edge.arrow.mode = '-')
+node_dist <- abs(tr[1,1]  -tr[2,1])
+inp_layer_center <- mean(tr[1:4,1])
+
+inp_size <- 4
+h1_size <- 2
+h2_size <- 2
+tr2 <- matrix(0,nrow = length(g), ncol = 2) #specifies x and y position for each node in graph
+tr2[1:inp_size,2] <- 1 #all nodes of input layer at same height
+tr2[(inp_size+1):(inp_size + h1_size),2] <- 0.5 #hidden layer one
+tr2[(inp_size + h1_size+1):(inp_size +h1_size + h2_size),2] <- 0 #hidden layer two
+
+#now adjust the positions of the nodes within each layer
+start_pos <- 0
+end_pos <- 1.5
+input_pos <- seq(from = start_pos, to = end_pos, length.out = 4)
+u_pos <- seq(from = start_pos + 0.5,end_pos - 0.5,length.out = 2)
+v_pos <- seq(from = start_pos + 0.5,end_pos - 0.5,length.out = 2)
+
+tr2[1:inp_size,1] <- input_pos
+tr2[(inp_size+1):(inp_size + h1_size),1] <- u_pos
+tr2[(inp_size + h1_size+1):(inp_size +h1_size + h2_size),1] <- v_pos
+plot(g,vertex.size = 15,vertex.color = 'lightblue',
+     edge.width = 1, layout = -tr2[,2:1],edge.arrow.mode = '-')
 
 
 
