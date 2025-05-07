@@ -34,9 +34,9 @@ cc <- graph_from_adjacency_matrix(ccc,mode = 'directed')
 #plot(cc,layout =  l)
 
 g <- cc + mat2
-tr <- layout_as_tree(g,flip.y = FALSE)
+tr <- layout_as_tree(g,flip.y = T)
 plot(g,vertex.size = 30,vertex.color = 'lightblue',
-     edge.width = 1, layout = tr,edge.arrow.mode = '-')
+     edge.width = 1, layout = -tr[,2:1],edge.arrow.mode = '-')
 
 
 
