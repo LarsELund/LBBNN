@@ -61,7 +61,39 @@ plot(g,vertex.size = 15,vertex.color = 'lightblue',
 
 
 
+###try to generalize with input layer first:
 
+N <- 5 #num input neurons
+start <- 0 #always start at the coordinate 0
+neuron_spacing = 0.5 #how much whitespace between neurons in the plot
+input_positions <- seq(from = start,length.out = N,by = neuron_spacing)
+N_u <- 4 #number of neurons in hidden layer
 
+if(N %% 2 == 0 & N_u %% 2 == 0){ #if both layers have even number of neurons
+  N_u_center <- median(input_positions)
+  N_u_start_pos <- N_u_center + neuron_spacing / 2 - (N_u /2 * neuron_spacing) #add the half space, then subtract half of the array to get to start point
+  N_u_positions <- seq(from = N_u_start_pos, length.out = N_u,by = neuron_spacing)
+} 
 
+if(N %% 2 != 0 & N_u %% 2 != 0){ #if both layers have odd number of neurons
+  N_u_center <- median(input_positions)
+  N_u_start_pos <- N_u_center - ((N_u - 1) / 2) * neuron_spacing #just need to figure out how many neurons to the left of the median one
+  N_u_positions <- seq(from = N_u_start_pos, length.out = N_u,by = neuron_spacing)
+} 
+
+if((N + N_u) %% 2 != 0){ #in the case of even and odd number of neurons. Even + odd = odd
+  if(N > N_u){ #in this case, N_u is odd
+    N_u_center <- median(input_positions)
+    N_u_start_pos <- N_u_center + neuron_spacing / 2 - (N_u /2 * neuron_spacing) 
+    N_u_positions <- seq(from = N_u_start_pos, length.out = N_u,by = neuron_spacing)
+  }
+  if(N < N_u){ #in this case, N_u is even
+    N_u_center <- median(input_positions)
+    N_u_start_pos <- N_u_center - ((N_u - 1) / 2) * neuron_spacing 
+    N_u_positions <- seq(from = N_u_start_pos, length.out = N_u,by = neuron_spacing)
+  }
+}
+
+print(input_positions)
+print(N_u_positions)
 
