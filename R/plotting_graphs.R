@@ -97,3 +97,5 @@ if((N + N_u) %% 2 != 0){ #in the case of even and odd number of neurons. Even + 
 print(input_positions)
 print(N_u_positions)
 
+##need to generalize so that we can have a function that takes a list of L layers of alphas
+## and returns the plot
