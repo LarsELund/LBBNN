@@ -1,5 +1,6 @@
 library(igraph)
 library(Matrix)
+require(graphics)
 g <- make_graph(edges = c(1, 2, 1, 5,3,4,6,7), n = 10, directed = TRUE)
 plot(g)
 b <- as_adjacency_matrix(g)
@@ -21,11 +22,12 @@ colnames(ccc) <- c('x1','x2','x3','x4','u1','u2')
 #rownames(bbb) <- c('x1','x2','x3','x4')
 colnames(bbb) <- c('x1','x2','x3','x4')
 
-mat2 <- matrix(0,nrow = 4,ncol = 4)
-colnames(mat2) <- c('u1','u2','v1','v2')
-mat2[1,4] = 1
-mat2[1,3] = 1
-mat2[2,4] = 1
+mat2 <- matrix(0,nrow = 8,ncol = 8)
+colnames(mat2) <- c('u1','u2','x11','x22','x33','x44','v_1','v_2')
+mat2[1,8] = 1
+mat2[1,7] = 1
+mat2[2,8] = 1
+mat2[3,7] = 1
 mat2 <- graph_from_adjacency_matrix(mat2,mode = 'directed')
 
 #aa <- graph_from_adjacency_matrix(A)
@@ -39,7 +41,7 @@ node_dist <- abs(tr[1,1]  -tr[2,1])
 inp_layer_center <- mean(tr[1:4,1])
 
 inp_size <- 4
-h1_size <- 2
+h1_size <- 2 + inp_size
 h2_size <- 2
 tr2 <- matrix(0,nrow = length(g), ncol = 2) #specifies x and y position for each node in graph
 tr2[1:inp_size,2] <- 1 #all nodes of input layer at same height
@@ -50,13 +52,13 @@ tr2[(inp_size + h1_size+1):(inp_size +h1_size + h2_size),2] <- 0 #hidden layer t
 start_pos <- 0
 end_pos <- 1.5
 input_pos <- seq(from = start_pos, to = end_pos, length.out = 4)
-u_pos <- seq(from = start_pos + 0.5,end_pos - 0.5,length.out = 2)
+u_pos <- seq(from = start_pos + 0.5,end_pos - 0.5,length.out = 6)
 v_pos <- seq(from = start_pos + 0.5,end_pos - 0.5,length.out = 2)
 
 tr2[1:inp_size,1] <- input_pos
 tr2[(inp_size+1):(inp_size + h1_size),1] <- u_pos
 tr2[(inp_size + h1_size+1):(inp_size +h1_size + h2_size),1] <- v_pos
-plot(g,vertex.size = 15,vertex.color = 'lightblue',
+plot(g,vertex.size = 18,vertex.color = 'lightblue',
      edge.width = 1, layout = -tr2[,2:1],edge.arrow.mode = '-')
 
 
@@ -99,3 +101,4 @@ print(N_u_positions)
 
 ##need to generalize so that we can have a function that takes a list of L layers of alphas
 ## and returns the plot
+## need to automatically give names to the inputs and the hidden neurons # x1... xn, u1,..un etc
