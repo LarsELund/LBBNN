@@ -58,18 +58,18 @@ v_pos <- seq(from = start_pos + 0.5,end_pos - 0.5,length.out = 2)
 tr2[1:inp_size,1] <- input_pos
 tr2[(inp_size+1):(inp_size + h1_size),1] <- u_pos
 tr2[(inp_size + h1_size+1):(inp_size +h1_size + h2_size),1] <- v_pos
-plot(g,vertex.size = 18,vertex.color = 'lightblue',
+plot(g,vertex.size = 14,vertex.color = 'lightblue',
      edge.width = 1, layout = -tr2[,2:1],edge.arrow.mode = '-')
 
 
 
 ###try to generalize with input layer first:
 
-N <- 5 #num input neurons
+N <- 4 #num input neurons
 start <- 0 #always start at the coordinate 0
 neuron_spacing = 0.5 #how much whitespace between neurons in the plot
 input_positions <- seq(from = start,length.out = N,by = neuron_spacing)
-N_u <- 4 #number of neurons in hidden layer
+N_u <-  4 + 2 #number of neurons in hidden layer
 
 if(N %% 2 == 0 & N_u %% 2 == 0){ #if both layers have even number of neurons
   N_u_center <- median(input_positions)
@@ -99,6 +99,23 @@ if((N + N_u) %% 2 != 0){ #in the case of even and odd number of neurons. Even + 
 print(input_positions)
 print(N_u_positions)
 
+assign_plot_pts <- function(spacing){
+  
+}
+
+a <- matrix(rnorm(25),nrow = 5,ncol=5)
+b <-matrix(rnorm(49),nrow = 7,ncol = 7)
+n_inp <- 5
+n_u <-2
+ncol <- 5
+num_lays <- 2 #need to assign names for both layers
+for(i in 1:num_lays){
+  
+}
+
+
+
 ##need to generalize so that we can have a function that takes a list of L layers of alphas
 ## and returns the plot
 ## need to automatically give names to the inputs and the hidden neurons # x1... xn, u1,..un etc
+
