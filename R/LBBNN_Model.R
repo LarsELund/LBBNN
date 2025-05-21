@@ -121,6 +121,10 @@ LBBNN_Net <- torch::nn_module(
     return(kl)
   },
   compute_paths = function(){
+    if(model$input_skip == TRUE){
+      stop('model$input_skip must be FALSE to use this funciton')
+    }
+   
     #sending a random input through the network of alpha matrices (0 and 1)
     #and then backpropagating to find active paths
     a <- rnorm(n = self$layers$children$`0`$alpha$shape[2])
@@ -166,10 +170,13 @@ LBBNN_Net <- torch::nn_module(
     
    
     
-    return(NULL)
+    return(alpha_mats_out)
     
   },
   compute_paths_input_skip = function(){
+    if(model$input_skip == FALSE){
+      stop('model$input_skip must be TRUE to use this funciton')
+    }
  
     #sending a random input through the network of alpha matrices (0 and 1)
     #and then backpropagating to find active paths
@@ -231,9 +238,11 @@ LBBNN_Net <- torch::nn_module(
     
     
     
-    return(NULL)
+    return(alpha_mats_out)
     
   },
+
+  
   
   density = function(){
     alphas <- NULL

@@ -2,6 +2,22 @@ library(igraph)
 library(Matrix)
 require(graphics)
 
+torch_manual_seed(0)
+problem <- 'binary classification'
+sizes <- c(4,2,2,1) 
+inclusion_priors <-c(0.1,0.1,0.1) #one prior probability per weight matrix.
+std_priors <-c(1.0,1.0,1.0) #one prior probability per weight matrix.
+inclusion_inits <- matrix(rep(c(-3,3),3),nrow = 2,ncol = 3)
+device <- 'cpu'
+
+model <- LBBNN_Net(problem_type = problem,sizes = sizes,
+                   prior = inclusion_priors,inclusion_inits =inclusion_inits ,input_skip = TRUE,
+                   std = std_priors,flow = FALSE,num_transforms = 2,dims = c(200,200),device = device)
+
+
+#create a function that returns adjacency matricies
+
+
 
 mat <- matrix(data = c(1,1,1,0,0,1,0,1),ncol = 2,nrow = 4) #input layer data
 
