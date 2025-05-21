@@ -15,7 +15,30 @@ model <- LBBNN_Net(problem_type = problem,sizes = sizes,
                    std = std_priors,flow = FALSE,num_transforms = 2,dims = c(200,200),device = device)
 
 
-#create a function that returns adjacency matricies
+
+
+get_adj_mats <- function(model){#function to get adjacency matrices from alpha matrices
+  mats_out <-list()
+  i <- 1
+  for(l in model$layers$children){
+    alp <- t(as.matrix(l$alpha_active_path))
+    adj_mat <- matrix(0,nrow = sum(dim(alp)),ncol = sum(dim(alp))) #initialize empty matrix
+    first_dim <- 1:dim(alp)[1]
+    second_dim <- (dim(alp)[1] +1):sum(dim(alp))
+    adj_mat[first_dim,second_dim] <- alp
+    mats_out[[i]] <- adj_mat
+    i <- i + 1
+  } #do the same for the output layer
+  alp_out <- t(as.matrix(model$out_layer$alpha_active_path))
+  adj_mat_out <- matrix(0,nrow = sum(dim(alp_out)),ncol = sum(dim(alp_out))) #
+  first_dim <- 1:dim(alp_out)[1]
+  second_dim <- (dim(alp_out)[1] +1):sum(dim(alp_out))
+  adj_mat_out[first_dim,second_dim] <- alp_out
+  mats_out[[i]] <- adj_mat_out
+  
+  
+  return(mats_out)
+}
 
 
 
