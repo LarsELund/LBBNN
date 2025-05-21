@@ -143,7 +143,7 @@ if((N + N_u) %% 2 != 0){ #in the case of even and odd number of neurons. Even + 
 print(input_positions)
 print(N_u_positions)
 
-assign_plot_pts <- function(spacing){
+assign_plot_pts <- function(model,spacing){
   
 }
 #similar to the example above
@@ -153,57 +153,70 @@ cc <- matrix(rnorm(49),nrow = 7,ncol = 7)
 n_inp <- 4
 sizes <- c(4,2,2,1) #4 input, two hidden layers of two each, one output
 
-alphas <- list(a,b,cc) #a list with adjacency matrices of the original alpha matrices
-for(i in 1:length(alphas)){
-  mat_names <- c()
-  if(i == 1){ #for the input layer
-    for(j in 1:n_inp){ #first the x_i
-      name <- paste('x',j,'_',i-1,sep = '') #i-1 because x belongs to the first (input layer)
-      mat_names <- c(mat_names,name)
-    }
-    for(j in 1:sizes[i + 1]){#then the u
-      name <- paste('u',j,'_',i,sep = '')
-      mat_names <- c(mat_names,name)
-    }
-    
-    colnames(alphas[[i]]) <- mat_names
-  }
-  else if(i < length(alphas)){#all other layers except the last
-   
+
+
+assign_names<- function(model){#assign names to the nodes before plotting
+  alphas <- get_adj_mats(model)
+  sizes <- model$sizes
+  for(i in 1:length(alphas)){
     mat_names <- c()
-    for(j in 1:sizes[i]){#N - n_input is the number of neurons in the hidden layer
-      name <- paste('u',j,'_',i-1,sep = '')
-      mat_names <- c(mat_names,name)
+    if(i == 1){ #for the input layer
+      for(j in 1:n_inp){ #first the x_i
+        name <- paste('x',j,'_',i-1,sep = '') #i-1 because x belongs to the first (input layer)
+        mat_names <- c(mat_names,name)
+      }
+      for(j in 1:sizes[i + 1]){#then the u
+        name <- paste('u',j,'_',i,sep = '')
+        mat_names <- c(mat_names,name)
+      }
+      
+      colnames(alphas[[i]]) <- mat_names
     }
-    for(j in 1:n_inp){#the input skip x
-      name <- paste('x',j,'_',i-1,sep = '')
-      mat_names <- c(mat_names,name)
+    else if(i < length(alphas)){#all other layers except the last
+      
+      mat_names <- c()
+      for(j in 1:sizes[i]){#N - n_input is the number of neurons in the hidden layer
+        name <- paste('u',j,'_',i-1,sep = '')
+        mat_names <- c(mat_names,name)
+      }
+      for(j in 1:n_inp){#the input skip x
+        name <- paste('x',j,'_',i-1,sep = '')
+        mat_names <- c(mat_names,name)
+      }
+      for(j in 1:sizes[i + 1]){#the hidden neurons for the next layer
+        name <- paste('u',j,'_',i,sep = '')
+        mat_names <- c(mat_names,name)
+      }
+      colnames(alphas[[i]]) <- mat_names
+      
     }
-    for(j in 1:sizes[i + 1]){#the hidden neurons for the next layer
-      name <- paste('u',j,'_',i,sep = '')
-      mat_names <- c(mat_names,name)
+    else{#the last layer note: this is almost the same as above, could join them together??
+      mat_names <- c()
+      for(j in 1:sizes[i]){#N - n_input is the number of neurons in the hidden layer
+        name <- paste('u',j,'_',i-1,sep = '')
+        mat_names <- c(mat_names,name)
+      }
+      for(j in 1:n_inp){#the input skip x
+        name <- paste('x',j,'_',i-1,sep = '')
+        mat_names <- c(mat_names,name)
+      }
+      for(j in 1:sizes[i + 1]){#the hidden neurons for the next layer
+        name <- paste('y',j,sep = '')
+        mat_names <- c(mat_names,name)
+      }
+      colnames(alphas[[i]]) <- mat_names
+      
     }
-    colnames(alphas[[i]]) <- mat_names
     
   }
-  else{#the last layer note: this is almost the same as above, could join them together??
-    mat_names <- c()
-    for(j in 1:sizes[i]){#N - n_input is the number of neurons in the hidden layer
-      name <- paste('u',j,'_',i-1,sep = '')
-      mat_names <- c(mat_names,name)
-    }
-    for(j in 1:n_inp){#the input skip x
-      name <- paste('x',j,'_',i-1,sep = '')
-      mat_names <- c(mat_names,name)
-    }
-    for(j in 1:sizes[i + 1]){#the hidden neurons for the next layer
-      name <- paste('y',j,sep = '')
-      mat_names <- c(mat_names,name)
-    }
-    colnames(alphas[[i]]) <- mat_names
-    
-  }
+  return(alphas)
   
+}
+
+bb <- assign_names(model) #need to convert the output into a graph
+g <- make_empty_graph(n = 0) #initialize empty graph
+for(L in 1:length(bb)){
+  g <- g +  graph_from_adjacency_matrix(bb[[L]],mode = 'directed')
 }
 
 
