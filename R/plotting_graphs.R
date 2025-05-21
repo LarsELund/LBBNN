@@ -143,7 +143,13 @@ if((N + N_u) %% 2 != 0){ #in the case of even and odd number of neurons. Even + 
 print(input_positions)
 print(N_u_positions)
 
-assign_plot_pts <- function(model,spacing){
+assign_plot_positions <- function(model,spacing){
+  gg <- assign_names(model) #the named neurons 
+  g <- make_empty_graph(n = 0) #initialize empty graph
+  for(L in 1:length(bb)){#add each adjacency matrix to the graph
+    g <- g +  graph_from_adjacency_matrix(gg[[L]],mode = 'directed')
+  }
+  positions <- matrix(0,nrow = length(g), ncol = 2) #need the x and y coordinates for each node in g
   
 }
 #similar to the example above
