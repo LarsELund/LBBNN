@@ -273,7 +273,7 @@ LBBNN_plot <- function(model,layer_spacing,neuron_spacing,vertex_size,edge_width
 psps <- matrix(0,nrow = 17,ncol = 2)
 siz <- c(4,2,2,1)
 i <- 1
-spacing <- 0.5
+spacing <- 2
 pts<- seq(from = 1,by = spacing,length.out = length(siz))
 start_p <- 1 #should decrease for further layers
 index_start <- 0
@@ -314,6 +314,6 @@ for(s in siz){
   
 }
 
-LBBNN_plot(model,layer_spacing = 0.5,neuron_spacing = 0.5,vertex_size = 10,edge_width = 1)
+LBBNN_plot(model,layer_spacing = 2.5,neuron_spacing = 0.5,vertex_size = 10,edge_width = 1)
 
 
