@@ -213,10 +213,59 @@ assign_names<- function(model){#assign names to the nodes before plotting
   
 }
 
-bb <- assign_names(model) #need to convert the output into a graph
-g <- make_empty_graph(n = 0) #initialize empty graph
-for(L in 1:length(bb)){
-  g <- g +  graph_from_adjacency_matrix(bb[[L]],mode = 'directed')
+
+
+
+
+LBBNN_plot <- function(model,layer_spacing,neuron_spacing){
+  graph <- assign_names(model) #the graph with names neurons, given some model with alpha matrices
+  g <- make_empty_graph(n = 0) #initialize empty graph
+  for(L in 1:length(graph)){
+    g <- g +  graph_from_adjacency_matrix(graph[[L]],mode = 'directed')
+  }
+  plot_points <- matrix(0,nrow = length(g),ncol = 2) #x,y coordinates for all neurons in g
+  layer_positions <- seq(from = 1,by = layer_spacing,length.out = length(model$sizes)) #position for each layer
+  index_start <- 0 
+  dim_1_pos <- 0
+  i <- 1
+  for(s in model$sizes){
+    
+    if(i == 1){
+      plot_points[1:model$sizes[i],2] <- layer_positions[i] #input layer coords
+      index_start <- model$sizes[i] + 1 #where to start next layer
+      dim_1_pos <- seq(from = 0,length.out = model$sizes[i],by = spacing)#coords within input layer
+      plot_points[1:siz[i],1] <- dim_1_pos 
+      
+    }
+    else if(i < length(siz)){#all other layers except the last
+      
+      plot_points[(index_start:(index_start + model$sizes[1] + model$sizes[i]-1)),2] <- layer_positions[i]
+      #N = size of prev layer #N_u size of current layer
+      dim_1_pos <- assign_within_layer_pos(N = length(dim_1_pos),N_u = model$sizes[1] + model$sizes[i],
+                                           input_positions = dim_1_pos,neuron_spacing = neuron_spacing)
+      
+      
+      
+      plot_points[(index_start:(index_start + model$sizes[1] + model$sizes[i]-1)),1] <- dim_1_pos
+      index_start <- index_start + model$sizes[1] + model$sizes[i] 
+      
+      
+      
+    }
+    else{ #output layer
+      dim_1_pos <- assign_within_layer_pos(N = length(dim_1_pos),N_u = model$sizes[length(model$sizes)],
+                                           input_positions = dim_1_pos,neuron_spacing = neuron_spacing)
+      plot_points[(index_start:(dim(plot_points)[1])),1] <- dim_1_pos
+      plot_points[(index_start:(dim(plot_points)[1])),2] <- layer_positions[i]
+      
+      
+    }
+    i <- i + 1
+    
+  }
+  #return(plot_points)
+  
+  
 }
 
 psps <- matrix(0,nrow = 17,ncol = 2)
