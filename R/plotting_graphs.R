@@ -106,42 +106,36 @@ plot(g,vertex.size = 14,vertex.color = 'lightblue',
      edge.width = 1, layout = -tr2[,2:1],edge.arrow.mode = '-')
 
 
-
-###try to generalize with input layer first:
-
-N <- 4 #num input neurons
-start <- 0 #always start at the coordinate 0
-neuron_spacing = 0.5 #how much whitespace between neurons in the plot
-input_positions <- seq(from = start,length.out = N,by = neuron_spacing)
-N_u <-  4 + 2 #number of neurons in hidden layer
-
-if(N %% 2 == 0 & N_u %% 2 == 0){ #if both layers have even number of neurons
-  N_u_center <- median(input_positions)
-  N_u_start_pos <- N_u_center + neuron_spacing / 2 - (N_u /2 * neuron_spacing) #add the half space, then subtract half of the array to get to start point
-  N_u_positions <- seq(from = N_u_start_pos, length.out = N_u,by = neuron_spacing)
-} 
-
-if(N %% 2 != 0 & N_u %% 2 != 0){ #if both layers have odd number of neurons
-  N_u_center <- median(input_positions)
-  N_u_start_pos <- N_u_center - ((N_u - 1) / 2) * neuron_spacing #just need to figure out how many neurons to the left of the median one
-  N_u_positions <- seq(from = N_u_start_pos, length.out = N_u,by = neuron_spacing)
-} 
-
-if((N + N_u) %% 2 != 0){ #in the case of even and odd number of neurons. Even + odd = odd
-  if(N > N_u){ #in this case, N_u is odd
+assign_within_layer_pos<- function(N,N_u,input_positions,neuron_spacing){
+  if(N %% 2 == 0 & N_u %% 2 == 0){ #if both layers have even number of neurons
     N_u_center <- median(input_positions)
-    N_u_start_pos <- N_u_center + neuron_spacing / 2 - (N_u /2 * neuron_spacing) 
+    N_u_start_pos <- N_u_center + neuron_spacing / 2 - (N_u /2 * neuron_spacing) #add the half space, then subtract half of the array to get to start point
     N_u_positions <- seq(from = N_u_start_pos, length.out = N_u,by = neuron_spacing)
-  }
-  if(N < N_u){ #in this case, N_u is even
+
+  } 
+  
+  if(N %% 2 != 0 & N_u %% 2 != 0){ #if both layers have odd number of neurons
     N_u_center <- median(input_positions)
-    N_u_start_pos <- N_u_center - ((N_u - 1) / 2) * neuron_spacing 
+    N_u_start_pos <- N_u_center - ((N_u - 1) / 2) * neuron_spacing #just need to figure out how many neurons to the left of the median one
     N_u_positions <- seq(from = N_u_start_pos, length.out = N_u,by = neuron_spacing)
+  } 
+  
+  if((N + N_u) %% 2 != 0){ #in the case of even and odd number of neurons. Even + odd = odd
+    if(N > N_u){ #in this case, N_u is odd
+      N_u_center <- median(input_positions)
+      N_u_start_pos <- N_u_center + neuron_spacing / 2 - (N_u /2 * neuron_spacing) 
+      N_u_positions <- seq(from = N_u_start_pos, length.out = N_u,by = neuron_spacing)
+    }
+    if(N < N_u){ #in this case, N_u is even
+      N_u_center <- median(input_positions)
+      N_u_start_pos <- N_u_center - ((N_u - 1) / 2) * neuron_spacing 
+      N_u_positions <- seq(from = N_u_start_pos, length.out = N_u,by = neuron_spacing)
+    }
   }
+    return(N_u_positions)
 }
 
-print(input_positions)
-print(N_u_positions)
+
 
 assign_plot_positions <- function(model,spacing){
   gg <- assign_names(model) #the named neurons 
@@ -225,6 +219,49 @@ for(L in 1:length(bb)){
   g <- g +  graph_from_adjacency_matrix(bb[[L]],mode = 'directed')
 }
 
+psps <- matrix(0,nrow = 17,ncol = 2)
+siz <- c(4,2,2,1)
+i <- 1
+spacing <- 0.5
+pts<- seq(from = 1,by = spacing,length.out = length(siz))
+start_p <- 1 #should decrease for further layers
+index_start <- 0
+dim_1_pos <- 0
+for(s in siz){
+  
+  if(i == 1){
+    psps[1:siz[i],2] <- pts[i] #input layer 
+    index_start <- siz[i] + 1 #where to start next layer
+    dim_1_pos <- seq(from = 0,length.out = siz[i],by = spacing)#coords within each layer
+    psps[1:siz[i],1] <- dim_1_pos
+
+  }
+  else if(i < length(siz)){#all other layers except the last
+
+   psps[(index_start:(index_start + siz[1] + siz[i]-1)),2] <- pts[i]
+                                        #N = size of prev layer #N_u size of current layer
+   dim_1_pos <- assign_within_layer_pos(N = length(dim_1_pos),N_u = siz[1] + siz[i],
+                                        input_positions = dim_1_pos,neuron_spacing = spacing)
+   
+   
+   
+   psps[(index_start:(index_start + siz[1] + siz[i]-1)),1] <- dim_1_pos
+   index_start <- index_start + siz[1] + siz[i] 
+ 
+  
+   
+  }
+  else{ #output layer
+     dim_1_pos <- assign_within_layer_pos(N = length(dim_1_pos),N_u = siz[length(siz)],
+                                         input_positions = dim_1_pos,neuron_spacing = spacing)
+     psps[(index_start:(dim(psps)[1])),1] <- dim_1_pos
+     psps[(index_start:(dim(psps)[1])),2] <- pts[i]
+     
+     
+  }
+  i <- i + 1
+  
+}
 
 
 ##need to generalize so that we can have a function that takes a list of L layers of alphas
