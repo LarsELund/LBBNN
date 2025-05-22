@@ -76,7 +76,7 @@ LBBNN_ConvNet <- nn_module(
 )
 
 problem <- 'MNIST'
-sizes <- c(28*28,100,100,10) 
+sizes <- c(28*28,3,3,10) 
 inclusion_priors <-c(0.1,0.1,0.1) #one prior probability per weight matrix.
 std_priors <-c(1.0,1.0,1.0) #one prior probability per weight matrix.
 inclusion_inits <- matrix(rep(c(-10,10),3),nrow = 2,ncol = 3)

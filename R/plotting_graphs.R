@@ -2,12 +2,12 @@ library(igraph)
 library(Matrix)
 require(graphics)
 
-torch_manual_seed(0)
+torch::torch_manual_seed(0)
 problem <- 'binary classification'
-sizes <- c(4,2,2,1) 
+sizes <- c(5,3,3,3) 
 inclusion_priors <-c(0.1,0.1,0.1) #one prior probability per weight matrix.
 std_priors <-c(1.0,1.0,1.0) #one prior probability per weight matrix.
-inclusion_inits <- matrix(rep(c(-3,3),3),nrow = 2,ncol = 3)
+inclusion_inits <- matrix(rep(c(0,1),3),nrow = 2,ncol = 3)
 device <- 'cpu'
 
 model <- LBBNN_Net(problem_type = problem,sizes = sizes,
@@ -161,7 +161,7 @@ assign_names<- function(model){#assign names to the nodes before plotting
   for(i in 1:length(alphas)){
     mat_names <- c()
     if(i == 1){ #for the input layer
-      for(j in 1:n_inp){ #first the x_i
+      for(j in 1:sizes[1]){ #first the x_i
         name <- paste('x',j,'_',i-1,sep = '') #i-1 because x belongs to the first (input layer)
         mat_names <- c(mat_names,name)
       }
@@ -179,7 +179,7 @@ assign_names<- function(model){#assign names to the nodes before plotting
         name <- paste('u',j,'_',i-1,sep = '')
         mat_names <- c(mat_names,name)
       }
-      for(j in 1:n_inp){#the input skip x
+      for(j in 1:sizes[1]){#the input skip x
         name <- paste('x',j,'_',i-1,sep = '')
         mat_names <- c(mat_names,name)
       }
@@ -196,7 +196,7 @@ assign_names<- function(model){#assign names to the nodes before plotting
         name <- paste('u',j,'_',i-1,sep = '')
         mat_names <- c(mat_names,name)
       }
-      for(j in 1:n_inp){#the input skip x
+      for(j in 1:sizes[1]){#the input skip x
         name <- paste('x',j,'_',i-1,sep = '')
         mat_names <- c(mat_names,name)
       }
@@ -216,7 +216,7 @@ assign_names<- function(model){#assign names to the nodes before plotting
 
 
 
-
+#' @export
 LBBNN_plot <- function(model,layer_spacing,neuron_spacing,vertex_size,edge_width){
   graph <- assign_names(model) #the graph with names neurons, given some model with alpha matrices
   g <- make_empty_graph(n = 0) #initialize empty graph
@@ -234,7 +234,7 @@ LBBNN_plot <- function(model,layer_spacing,neuron_spacing,vertex_size,edge_width
       plot_points[1:model$sizes[i],2] <- layer_positions[i] #input layer coords
       index_start <- model$sizes[i] + 1 #where to start next layer
       dim_1_pos <- seq(from = 0,length.out = model$sizes[i],by = spacing)#coords within input layer
-      plot_points[1:siz[i],1] <- dim_1_pos 
+      plot_points[1:model$sizes[i],1] <- dim_1_pos 
       
     }
     else if(i < length(siz)){#all other layers except the last
@@ -314,8 +314,6 @@ for(s in siz){
   
 }
 
+LBBNN_plot(model,layer_spacing = 0.5,neuron_spacing = 0.5,vertex_size = 10,edge_width = 1)
 
-##need to generalize so that we can have a function that takes a list of L layers of alphas
-## and returns the plot
-## need to automatically give names to the inputs and the hidden neurons # x1... xn, u1,..un etc
 
