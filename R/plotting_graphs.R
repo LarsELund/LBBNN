@@ -217,14 +217,14 @@ assign_names<- function(model){#assign names to the nodes before plotting
 
 
 
-LBBNN_plot <- function(model,layer_spacing,neuron_spacing){
+LBBNN_plot <- function(model,layer_spacing,neuron_spacing,vertex_size,edge_width){
   graph <- assign_names(model) #the graph with names neurons, given some model with alpha matrices
   g <- make_empty_graph(n = 0) #initialize empty graph
   for(L in 1:length(graph)){
     g <- g +  graph_from_adjacency_matrix(graph[[L]],mode = 'directed')
   }
   plot_points <- matrix(0,nrow = length(g),ncol = 2) #x,y coordinates for all neurons in g
-  layer_positions <- seq(from = 1,by = layer_spacing,length.out = length(model$sizes)) #position for each layer
+  layer_positions <- seq(from = 0,by = - layer_spacing,length.out = length(model$sizes)) #position for each layer
   index_start <- 0 
   dim_1_pos <- 0
   i <- 1
@@ -263,7 +263,9 @@ LBBNN_plot <- function(model,layer_spacing,neuron_spacing){
     i <- i + 1
     
   }
-  #return(plot_points)
+  plot(g,vertex.size = vertex_size,vertex.color = 'lightblue',vertex.label.cex = 0.8,
+       edge.width = edge_width, layout = -plot_points[,2:1],edge.arrow.mode = '-')
+ 
   
   
 }
