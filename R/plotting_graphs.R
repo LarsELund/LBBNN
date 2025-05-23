@@ -4,10 +4,10 @@ require(graphics)
 
 torch::torch_manual_seed(0)
 problem <- 'binary classification'
-sizes <- c(5,3,3,3) 
-inclusion_priors <-c(0.1,0.1,0.1) #one prior probability per weight matrix.
-std_priors <-c(1.0,1.0,1.0) #one prior probability per weight matrix.
-inclusion_inits <- matrix(rep(c(0,1),3),nrow = 2,ncol = 3)
+sizes <- c(3,4,5,3,2) 
+inclusion_priors <-c(0.1,0.1,0.1,0.1) #one prior probability per weight matrix.
+std_priors <-c(1.0,1.0,1.0,1.0) #one prior probability per weight matrix.
+inclusion_inits <- matrix(rep(c(0,1),4),nrow = 2,ncol = 4)
 device <- 'cpu'
 
 model <- LBBNN_Net(problem_type = problem,sizes = sizes,
@@ -233,11 +233,11 @@ LBBNN_plot <- function(model,layer_spacing,neuron_spacing,vertex_size,edge_width
     if(i == 1){
       plot_points[1:model$sizes[i],2] <- layer_positions[i] #input layer coords
       index_start <- model$sizes[i] + 1 #where to start next layer
-      dim_1_pos <- seq(from = 0,length.out = model$sizes[i],by = spacing)#coords within input layer
+      dim_1_pos <- seq(from = 0,length.out = model$sizes[i],by = neuron_spacing)#coords within input layer
       plot_points[1:model$sizes[i],1] <- dim_1_pos 
       
     }
-    else if(i < length(siz)){#all other layers except the last
+    else if(i < length(model$sizes)){#all other layers except the last
       
       plot_points[(index_start:(index_start + model$sizes[1] + model$sizes[i]-1)),2] <- layer_positions[i]
       #N = size of prev layer #N_u size of current layer
@@ -266,54 +266,12 @@ LBBNN_plot <- function(model,layer_spacing,neuron_spacing,vertex_size,edge_width
   plot(g,vertex.size = vertex_size,vertex.color = 'lightblue',vertex.label.cex = 0.8,
        edge.width = edge_width, layout = -plot_points[,2:1],edge.arrow.mode = '-')
  
-  
-  
-}
-
-psps <- matrix(0,nrow = 17,ncol = 2)
-siz <- c(4,2,2,1)
-i <- 1
-spacing <- 2
-pts<- seq(from = 1,by = spacing,length.out = length(siz))
-start_p <- 1 #should decrease for further layers
-index_start <- 0
-dim_1_pos <- 0
-for(s in siz){
-  
-  if(i == 1){
-    psps[1:siz[i],2] <- pts[i] #input layer 
-    index_start <- siz[i] + 1 #where to start next layer
-    dim_1_pos <- seq(from = 0,length.out = siz[i],by = spacing)#coords within each layer
-    psps[1:siz[i],1] <- dim_1_pos
-
-  }
-  else if(i < length(siz)){#all other layers except the last
-
-   psps[(index_start:(index_start + siz[1] + siz[i]-1)),2] <- pts[i]
-                                        #N = size of prev layer #N_u size of current layer
-   dim_1_pos <- assign_within_layer_pos(N = length(dim_1_pos),N_u = siz[1] + siz[i],
-                                        input_positions = dim_1_pos,neuron_spacing = spacing)
-   
-   
-   
-   psps[(index_start:(index_start + siz[1] + siz[i]-1)),1] <- dim_1_pos
-   index_start <- index_start + siz[1] + siz[i] 
- 
-  
-   
-  }
-  else{ #output layer
-     dim_1_pos <- assign_within_layer_pos(N = length(dim_1_pos),N_u = siz[length(siz)],
-                                         input_positions = dim_1_pos,neuron_spacing = spacing)
-     psps[(index_start:(dim(psps)[1])),1] <- dim_1_pos
-     psps[(index_start:(dim(psps)[1])),2] <- pts[i]
-     
-     
-  }
-  i <- i + 1
+  print(plot_points)
   
 }
 
-LBBNN_plot(model,layer_spacing = 2.5,neuron_spacing = 0.5,vertex_size = 10,edge_width = 1)
+
+
+LBBNN_plot(model,layer_spacing = 1,neuron_spacing = 1,vertex_size = 20,edge_width = 1)
 
 
