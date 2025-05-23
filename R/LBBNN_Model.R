@@ -282,7 +282,6 @@ LBBNN_Net <- torch::nn_module(
       max_path_length <- count_vector[torch::torch_argmax((paths!= 0) * 1)$item()] #get the index of of the first non-zero item in count vector, corresponding to the maximum path
     }
 
-
     return(num_incl$item() / tot)
     
     
