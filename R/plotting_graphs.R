@@ -4,10 +4,10 @@ require(graphics)
 
 torch::torch_manual_seed(0)
 problem <- 'binary classification'
-sizes <- c(3,4,5,3,2) 
-inclusion_priors <-c(0.1,0.1,0.1,0.1) #one prior probability per weight matrix.
-std_priors <-c(1.0,1.0,1.0,1.0) #one prior probability per weight matrix.
-inclusion_inits <- matrix(rep(c(0,1),4),nrow = 2,ncol = 4)
+sizes <- c(3,4,2) 
+inclusion_priors <-c(0.1,0.1) #one prior probability per weight matrix.
+std_priors <-c(1.0,1) #one prior probability per weight matrix.
+inclusion_inits <- matrix(rep(c(0,1),2),nrow = 2,ncol = 2)
 device <- 'cpu'
 
 model <- LBBNN_Net(problem_type = problem,sizes = sizes,
@@ -263,7 +263,7 @@ LBBNN_plot <- function(model,layer_spacing,neuron_spacing,vertex_size,edge_width
     i <- i + 1
     
   }
-  plot(g,vertex.size = vertex_size,vertex.color = 'lightblue',vertex.label.cex = 0.8,
+  plot(g,vertex.size = vertex_size,vertex.color = 'lightblue',vertex.label.cex = 0.6,
        edge.width = edge_width, layout = -plot_points[,2:1],edge.arrow.mode = '-')
  
   print(plot_points)

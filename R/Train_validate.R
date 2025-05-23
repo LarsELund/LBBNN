@@ -36,8 +36,8 @@ train_LBBNN <- function(epochs,LBBNN,lr,train_dl,device = 'cpu'){
   active_path_dens <-c()
   
   for (epoch in 1:epochs) {
-   # if(!LBBNN$input_skip){LBBNN$compute_paths()}
-  #  else(LBBNN$compute_paths_input_skip())
+  #  if(LBBNN$input_skip){LBBNN$compute_paths_input_skip()}
+  #  else(LBBNN$compute_paths)
     LBBNN$train()
     corrects <- 0
     totals <- 0
@@ -147,8 +147,8 @@ validate_LBBNN <- function(LBBNN,num_samples,test_dl,device = 'cpu'){
   val_loss_mpm <-c()
   val_loss_mpm2<-c()
   out_shape <- 1 #if binary classification or regression
-  if(!LBBNN$input_skip){LBBNN$compute_paths()}
-  else(LBBNN$compute_paths_input_skip())
+  if(LBBNN$input_skip){LBBNN$compute_paths_input_skip()}
+  else(LBBNN$compute_paths)
   torch::with_no_grad({ 
     coro::loop(for (b in test_dl){
       target <- b[[2]]$to(device=device)
