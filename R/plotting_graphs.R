@@ -135,6 +135,7 @@ assign_names<- function(model){#assign names to the nodes before plotting
 
 #' @export
 LBBNN_plot <- function(model,layer_spacing,neuron_spacing,vertex_size,edge_width){
+  if(model$input_skip == FALSE)(stop('Plotting currently only implemented for input-skip'))
   graph <- assign_names(model) #the graph with names neurons, given some model with alpha matrices
   g <- igraph::make_empty_graph(n = 0) #initialize empty graph
   for(L in 1:length(graph)){
