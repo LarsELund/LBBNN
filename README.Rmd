@@ -111,6 +111,11 @@ LBBNN_plot(model_input_skip,layer_spacing = 1,neuron_spacing = 1,vertex_size = 1
 ```
 Note that only 3 of the 7 input variables are used, with one of them just a linear connection.
 
+Check where inputs are coming from:
+```{r}
+print(get_input_inclusions(model_input_skip))
+```
+
 Visualize the results:
 ```{r}
 #plot(results_mf$loss,type = 'l',main = 'Loss durning training',xlab='Epoch',ylab='Loss',col='purple')

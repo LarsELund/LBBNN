@@ -135,6 +135,20 @@ LBBNN_plot(model_input_skip,layer_spacing = 1,neuron_spacing = 1,vertex_size = 1
 that only 3 of the 7 input variables are used, with one of them just a
 linear connection.
 
+Check where inputs are coming from:
+
+``` r
+print(get_input_inclusions(model_input_skip))
+#>    L0 L1 L2
+#> x0  0  0  0
+#> x1  0  0  0
+#> x2  0  0  1
+#> x3  1  1  1
+#> x4  0  0  0
+#> x5  0  0  0
+#> x6  1  0  1
+```
+
 Visualize the results:
 
 ``` r

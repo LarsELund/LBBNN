@@ -4,7 +4,7 @@ require(graphics)
 
 torch::torch_manual_seed(0)
 problem <- 'binary classification'
-sizes <- c(7,5,5,1) 
+sizes <- c(4,3,2,5) 
 inclusion_priors <-c(0.1,0.1,0.1) #one prior probability per weight matrix.
 std_priors <-c(1.0,1,0.1) #one prior probability per weight matrix.
 inclusion_inits <- matrix(rep(c(0,1),3),nrow = 2,ncol = 3)
@@ -14,6 +14,41 @@ model <- LBBNN_Net(problem_type = problem,sizes = sizes,
                    prior = inclusion_priors,inclusion_inits =inclusion_inits ,input_skip = TRUE,
                    std = std_priors,flow = FALSE,num_transforms = 2,dims = c(200,200),device = device)
 
+#' @export
+get_input_inclusions <- function(model){#check which inputs are included and from what layer
+  if(model$input_skip == FALSE)(stop('This function is currently only implemented for input-skip'))
+  #change row names to x0,..xn and colnames to layer 0,.. L
+  x_names <- c()
+  layer_names <- c()
+  for(k in 1:model$sizes[1]){
+    x_names<- c(x_names,paste('x',k-1,sep = ''))
+  }
+  for(l in 1:(length(model$sizes)-1)){
+    layer_names <- c(layer_names,paste('L',l-1,sep = ''))
+  }
+  
+  
+  inclusion_matrix <- matrix(0,nrow = model$sizes[1],ncol = length(model$sizes) - 1)
+  #add the names
+  colnames(inclusion_matrix) <- layer_names
+  rownames(inclusion_matrix) <- x_names
+  
+  
+  inp_size <- model$sizes[1]
+  i <- 1
+  for(l in model$layers$children){
+    alp <- l$alpha_active_path
+    incl<- as.numeric(torch::torch_max(alp[,-inp_size:dim(alp)[2]],dim = 1)[[1]])
+    inclusion_matrix[,i] <- incl 
+    i <- i + 1
+  }
+  alp_out <- model$out_layer$alpha_active_path
+  incl<- as.numeric(torch::torch_max(alp_out[,-inp_size:dim(alp_out)[2]],dim = 1)[[1]])
+  inclusion_matrix[,i] <- incl 
+  i <- i + 1
+ 
+ return(inclusion_matrix) 
+}
 
 
 
@@ -192,5 +227,6 @@ LBBNN_plot <- function(model,layer_spacing,neuron_spacing,vertex_size,edge_width
 
 
 LBBNN_plot(model,layer_spacing = 2,neuron_spacing = 2,vertex_size = 16,edge_width = 1)
+
 
 
