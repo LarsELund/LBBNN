@@ -135,9 +135,10 @@ LBBNN_plot(model_input_skip,layer_spacing = 1,neuron_spacing = 1,vertex_size = 1
 that only 3 of the 7 input variables are used, with one of them just a
 linear connection.
 
-This can also be see using the get_input_inclusions() function, which is
-useful in the case of larger networks where the plot may be too large to
-iterpret easily.
+This can also be seen using the get_input_inclusions() function, which
+is useful in the case of larger networks where the plot may be too large
+to iterpret easily. We can also use this function to check which inputs
+have linear connections, etc.
 
 ``` r
 print(get_input_inclusions(model_input_skip))
