@@ -204,16 +204,16 @@ LBBNN_plot <- function(model,layer_spacing,neuron_spacing,vertex_size,edge_width
     
   }
   #assign colors based on what type of neuron it is
-  for(z in 1:length(V(g))){ 
-    string <- V(g)[z]
+  for(z in 1:length(igraph::V(g))){ 
+    string <- igraph::V(g)[z]
     if(grepl('x',string$name)){ #for input neurons
-      V(g)[z]$color <- 'lightgreen'
+      igraph::V(g)[z]$color <- 'lightgreen'
     }
     else if(grepl('u',string$name)){ #hidden neurons
-      V(g)[z]$color <- 'lightblue'
+      igraph::V(g)[z]$color <- 'lightblue'
     }
     else{
-      V(g)[z]$color <- 'red' #output neurons
+      igraph::V(g)[z]$color <- 'red' #output neurons
     }
     
     
