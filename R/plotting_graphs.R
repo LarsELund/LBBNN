@@ -210,7 +210,7 @@ LBBNN_plot <- function(model,layer_spacing,neuron_spacing,vertex_size,edge_width
       igraph::V(g)[z]$color <- 'lightgreen'
     }
     else if(grepl('u',string$name)){ #hidden neurons
-      igraph::V(g)[z]$color <- 'lightblue'
+      igraph::V(g)[z]$color <- '#ADD8E6'
     }
     else{
       igraph::V(g)[z]$color <- 'red' #output neurons
@@ -237,7 +237,3 @@ model <- LBBNN_Net(problem_type = problem,sizes = sizes,
                    std = std_priors,flow = FALSE,num_transforms = 2,dims = c(200,200),device = device)
 
 LBBNN_plot(model,1,1,14,1)
-
-
-zz <- 'x88'
-grepl('x',zz)
