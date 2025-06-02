@@ -43,7 +43,7 @@ LBBNN_Net <- torch::nn_module(
     self$num_transforms <- num_transforms
     self$dims <- dims
     self$sizes <- sizes
-    self$local_explanation <- local_expl
+    self$local_explanation <- local_expl # TRUE when we want to compute local explanations
     
     
     if(self$local_explanation){
@@ -115,7 +115,13 @@ LBBNN_Net <- torch::nn_module(
       }
       j <- j + 1
     }
-    x<- self$out(self$out_layer(torch::torch_cat(c(x,x_input),dim = 2),MPM))
+    
+    #when computing local explanations, we skip sigmoid/softmax
+    if(self$local_explanation){
+      x<- self$out_layer(torch::torch_cat(c(x,x_input),dim = 2),MPM)
+    }
+    else(x<- self$out(self$out_layer(torch::torch_cat(c(x,x_input),dim = 2),MPM)))
+
       
     }
    
