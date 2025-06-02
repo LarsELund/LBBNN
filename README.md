@@ -128,7 +128,7 @@ validate_LBBNN(LBBNN = model_input_skip,num_samples = 1000,test_dl = test_loader
 Plot the network structure of a given model:
 
 ``` r
-LBBNN_plot(model_input_skip,layer_spacing = 1,neuron_spacing = 1,vertex_size = 15,edge_width = 1)
+LBBNN_plot(model_input_skip,layer_spacing = 1,neuron_spacing = 1,vertex_size = 15,edge_width = 0.5)
 ```
 
 <img src="man/figures/README-unnamed-chunk-6-1.png" width="100%" /> Note

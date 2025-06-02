@@ -107,7 +107,7 @@ validate_LBBNN(LBBNN = model_input_skip,num_samples = 1000,test_dl = test_loader
 
 Plot the network structure of a given model:
 ```{r}
-LBBNN_plot(model_input_skip,layer_spacing = 1,neuron_spacing = 1,vertex_size = 15,edge_width = 1)
+LBBNN_plot(model_input_skip,layer_spacing = 1,neuron_spacing = 1,vertex_size = 15,edge_width = 0.5)
 ```
 Note that only 3 of the 7 input variables are used, with one of them just a linear connection.
 
