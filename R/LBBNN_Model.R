@@ -34,7 +34,7 @@ LBBNN_Net <- torch::nn_module(
   
   initialize = function(problem_type,sizes,prior,std,inclusion_inits,input_skip = FALSE,flow = FALSE,
                         num_transforms = 2, dims = c(200,200),
-                        device = 'cpu',link = NULL, nll = NULL) {
+                        device = 'cpu',link = NULL, nll = NULL,local_expl = FALSE) {
     self$device <- device
     self$layers <- torch::nn_module_list()
     self$problem_type <- problem_type
@@ -43,7 +43,14 @@ LBBNN_Net <- torch::nn_module(
     self$num_transforms <- num_transforms
     self$dims <- dims
     self$sizes <- sizes
-    self$act <- torch::nn_leaky_relu()
+    self$local_explanation <- local_expl
+    
+    
+    if(self$local_explanation){
+      slope <- 0 #we want just RELU when computing local explanations
+    }
+    else(slope <- 0.01) #the default for leaky relu
+    self$act <- torch::nn_leaky_relu(slope) 
     if(length(prior) != length(sizes) - 1)(stop('Must have one prior inclusion probability per weight matrix'))
    
     

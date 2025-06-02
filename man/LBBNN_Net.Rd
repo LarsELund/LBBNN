@@ -16,7 +16,8 @@ LBBNN_Net(
   dims = c(200, 200),
   device = "cpu",
   link = NULL,
-  nll = NULL
+  nll = NULL,
+  local_expl = FALSE
 )
 }
 \arguments{
