@@ -207,19 +207,23 @@ LBBNN_plot <- function(model,layer_spacing,neuron_spacing,vertex_size,edge_width
   for(z in 1:length(igraph::V(g))){ 
     string <- igraph::V(g)[z]
     if(grepl('x',string$name)){ #for input neurons
-      igraph::V(g)[z]$color <- 'lightgreen'
+      igraph::V(g)[z]$color <- '#D5E8D4'
+      igraph::V(g)[z]$frame.color <- '#D5E8D4'#change color of boundary too
     }
     else if(grepl('u',string$name)){ #hidden neurons
       igraph::V(g)[z]$color <- '#ADD8E6'
+      igraph::V(g)[z]$frame.color <- '#ADD8E6'
     }
     else{
-      igraph::V(g)[z]$color <- 'red' #output neurons
+      igraph::V(g)[z]$color <- '#F8CECC' #output neurons
+      igraph::V(g)[z]$frame.color <- '#F8CECC'
     }
     
     
   }
   
-  plot(g,vertex.size = vertex_size,vertex.label.cex = 0.5,
+  plot(g,vertex.size = vertex_size,vertex.label.cex = 0.5, 
+       edge.color = 'black',vertex.label.color='black',
        edge.width = edge_width, layout = -plot_points[,2:1],edge.arrow.mode = '-',margin = 0.0)
  
 
