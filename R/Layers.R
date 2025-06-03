@@ -184,7 +184,7 @@ LBBNN_Linear <- torch::nn_module(
     self$alpha <- torch::torch_sigmoid(self$lambda_l)
     self$weight_sigma <- torch::torch_log1p(torch_exp(self$weight_rho))
     self$bias_sigma <- torch::torch_log1p(torch_exp(self$bias_rho))
-    self$z_k <- torch::torch_ones_like(self$weight_mean) 
+    self$z_k <- torch::torch_ones_like(self$weight_mean) #if not flow, all z = 1.
     if(self$flow){
       out <- self$sample_z()
       self$z_k <- out$z
@@ -198,7 +198,7 @@ LBBNN_Linear <- torch::nn_module(
       eps <- torch::torch_randn(size=(dim(var_b)), device=self$device)
       activations <- e_b + torch::torch_sqrt(var_b) * eps
       
-    }else {#only sample from weights with inclusion prob > 0.5 aka the median probability model 
+    }else {#median probability model
       w <- torch::torch_normal(self$weight_mean * self$z_k, self$weight_sigma)
       bias <- torch::torch_normal(self$bias_mean, self$bias_sigma)
       weight <- w * self$alpha_active_path
