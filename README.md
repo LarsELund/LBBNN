@@ -152,6 +152,46 @@ print(get_input_inclusions(model_input_skip))
 #> x6  1  0  1
 ```
 
+``` r
+dat <- torch::torch_rand(1,7)
+outs <- get_local_explanations_gradient(model_input_skip,dat,num_samples = 3)
+print(outs$explanations)
+#> torch_tensor
+#> (1,.,.) = 
+#>   0.0000
+#>   0.0000
+#>  -0.2074
+#>  -0.7272
+#>   0.0000
+#>   0.0000
+#>  -2.1114
+#> 
+#> (2,.,.) = 
+#>   0.0000
+#>   0.0000
+#>  -0.1978
+#>  -0.7447
+#>   0.0000
+#>   0.0000
+#>  -2.0970
+#> 
+#> (3,.,.) = 
+#>   0.0000
+#>   0.0000
+#>  -0.2045
+#>  -0.7459
+#>   0.0000
+#>   0.0000
+#>  -2.1257
+#> [ CPUFloatType{3,7,1} ]
+print(outs$predictions)
+#> torch_tensor
+#> -2.0205
+#> -2.0096
+#> -2.0303
+#> [ CPUFloatType{3,1} ]
+```
+
 Visualize the results:
 
 ``` r

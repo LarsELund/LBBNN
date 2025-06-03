@@ -117,6 +117,15 @@ larger networks where the plot may be too large to iterpret easily. We can also 
 print(get_input_inclusions(model_input_skip))
 ```
 
+```{r}
+dat <- torch::torch_rand(1,7)
+outs <- get_local_explanations_gradient(model_input_skip,dat,num_samples = 3)
+print(outs$explanations)
+print(outs$predictions)
+```
+
+
+
 Visualize the results:
 ```{r}
 #plot(results_mf$loss,type = 'l',main = 'Loss durning training',xlab='Epoch',ylab='Loss',col='purple')
