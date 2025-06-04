@@ -152,6 +152,8 @@ print(get_input_inclusions(model_input_skip))
 #> x6  1  0  1
 ```
 
+Get the local explanation of some random input:
+
 ``` r
 dat <- torch::torch_rand(1,7)
 outs <- get_local_explanations_gradient(model_input_skip,dat,num_samples = 3)
