@@ -70,10 +70,29 @@ model <- LBBNN_Net(problem_type = problem,sizes = sizes,
 
 
 dat <- torch_rand(1,28*28)
-outputs <- get_local_explanations_gradient(model,dat,device = device)
+outputs <- get_local_explanations_gradient(model,input_data = dat,num_samples = 100,device = device)
 
 
+### next is to plot the contributions with error bars
 
+preds<- as.matrix(outputs$predictions)
+expl <- as.array(outputs$explanations)
+bb <- preds[,1]
+cc <-quantile(bb,probs = c(0.025,0.5,0.975))
+
+quants <- function(x){
+  return(quantile(x,probs = c(0.025,0.5,0.975))) #95% CI and median
+}
+
+res<-apply(preds,2,quants)
+
+plot_local_explanations_gradient <- function(model,input_data,num_samples,device,quantiles){
+  outputs <- get_local_explanations_gradient(model = model,input_data = input_data,num_samples
+                                             =num_samples,device = device)
+  
+  
+
+}
 
 
 
