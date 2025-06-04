@@ -101,6 +101,7 @@ as arguments the number of epochs to train for, the model to train, the
 learning rate, and the data to train on:
 
 ``` r
+#model_input_skip$local_explanation = TRUE #to make sure we are using RELU
 results_input_skip <- train_LBBNN(epochs = 800,LBBNN = model_input_skip, lr = 0.005,train_dl = train_loader,device = device)
 #results_LBBNN <- train_LBBNN(epochs = 800,LBBNN = model_LBBNN, lr = 0.005,train_dl = train_loader,device = device)
 ```
@@ -152,47 +153,14 @@ print(get_input_inclusions(model_input_skip))
 #> x6  1  0  1
 ```
 
-Get the local explanation of some random input:
+Get the local explanation of some input:
 
 ``` r
-dat <- torch::torch_rand(1,7)
-outs <- get_local_explanations_gradient(model_input_skip,dat,num_samples = 3)
-print(outs$explanations)
-#> torch_tensor
-#> (1,.,.) = 
-#>   0.0000
-#>   0.0000
-#>  -0.2074
-#>  -0.7272
-#>   0.0000
-#>   0.0000
-#>  -2.1114
-#> 
-#> (2,.,.) = 
-#>   0.0000
-#>   0.0000
-#>  -0.1978
-#>  -0.7447
-#>   0.0000
-#>   0.0000
-#>  -2.0970
-#> 
-#> (3,.,.) = 
-#>   0.0000
-#>   0.0000
-#>  -0.2045
-#>  -0.7459
-#>   0.0000
-#>   0.0000
-#>  -2.1257
-#> [ CPUFloatType{3,7,1} ]
-print(outs$predictions)
-#> torch_tensor
-#> -2.0205
-#> -2.0096
-#> -2.0303
-#> [ CPUFloatType{3,1} ]
+data <- torch_rand(1,7)
+plot_local_explanations_gradient(model_input_skip,data,100,device = device)
 ```
+
+<img src="man/figures/README-unnamed-chunk-8-1.png" width="100%" />
 
 Visualize the results:
 
