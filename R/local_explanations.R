@@ -117,7 +117,7 @@ plot_local_explanations_gradient <- function(model,input_data,num_samples,device
       max = max
     )
     #add a row for the prediction
- #   data<-rbind(data,c('prediction',pred_median,pred_quantiles[,cls][1],pred_quantiles[,cls][3]))
+    #data<-rbind(data,c('prediction',pred_median,pred_quantiles[,cls][1],pred_quantiles[,cls][3]))
    
     print(ggplot(data) +
       geom_bar( aes(x=name, y=median), stat="identity", fill='#D5E8D4', alpha=0.7) +

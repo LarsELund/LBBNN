@@ -44,13 +44,7 @@ LBBNN_Net <- torch::nn_module(
     self$dims <- dims
     self$sizes <- sizes
     self$local_explanation <- local_expl # TRUE when we want to compute local explanations
-    
-    
-    if(self$local_explanation){
-      slope <- 0 #we want just RELU when computing local explanations
-    }
-    else(slope <- 0.01) #the default for leaky relu
-    self$act <- torch::nn_leaky_relu(slope) 
+    self$act <- torch::nn_leaky_relu(0) 
     if(length(prior) != length(sizes) - 1)(stop('Must have one prior inclusion probability per weight matrix'))
    
     
