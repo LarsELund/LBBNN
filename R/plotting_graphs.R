@@ -1,11 +1,14 @@
 library(igraph)
 library(Matrix)
 require(graphics)
-#' @description Function that check which inputs are included, and from which layer.
+
+#' Function that checks which inputs are included, and from which layer
+#' @description Useful when the number of inputs and/or hidden neurons are very
+#' large, and direct visualization of the network is difficult. 
 #' @param model A trained LBBNN model with input_skip. 
 #' @return A matrix of shape (p, L-1) where p is the number of input variables
-#' and L the number of layers, with each element being 1 (if included) or 0 
-#' if not included. 
+#' and L the total number of layers (including input and output), with each element being 1 if the variable is included
+#' or 0 if not included. 
 #' @export
 get_input_inclusions <- function(model){
   if(model$input_skip == FALSE)(stop('This function is currently only implemented for input-skip'))
@@ -42,8 +45,14 @@ get_input_inclusions <- function(model){
 }
 
 
-
-get_adj_mats <- function(model){#function to get adjacency matrices from alpha matrices
+#' Function to obtain adjacency matrices to be used with igraph plotting
+#' @description Given a trained LBBNN model with input-skip, this 
+#' function takes the alpha active path matrices for each layer and converts
+#' them to adjacency matrices so that they can be plotted with igraph.
+#' @param model A trained LBBNN model with input-skip. 
+#' @return The adjacency matrices. 
+#' @export
+get_adj_mats <- function(model){
   mats_out <-list()
   i <- 1
   for(l in model$layers$children){
@@ -233,6 +242,8 @@ LBBNN_plot <- function(model,layer_spacing,neuron_spacing,vertex_size,edge_width
 
   
 }
+#can use the below as an example
+##
 sizes <- c(2,3,3,2) 
 problem <- 'multiclass classification'
 inclusion_priors <-c(0.1,0.1,0.1) #one prior probability per weight matrix.
