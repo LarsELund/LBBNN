@@ -97,9 +97,9 @@ plot_local_explanations_gradient <- function(model,input_data,num_samples,device
     names <- c()
     median <- expl_quantiles[2,]
     pred_median<- pred_quantiles[,cls][2] #add the median of the prediction to the end
-    median <- c(median)
-    min <- c(expl_quantiles[1,])
-    max <- c(expl_quantiles[3,])
+    contribution <- c(median,pred_median)
+    min <- c(expl_quantiles[1,],pred_quantiles[,cls][1])
+    max <- c(expl_quantiles[3,],pred_quantiles[,cls][3])
     
     
     for(x in 1:model$sizes[1]){#get names for x-axis
@@ -107,21 +107,26 @@ plot_local_explanations_gradient <- function(model,input_data,num_samples,device
       names <- c(names,name)
       
     }
-    names <- c(names) 
+    names <- c(names,'prediction') 
   
 
     data <- data.frame(
       name=names,
-      median = median,
+      contribution = contribution,
       min = min,
       max = max
     )
     #add a row for the prediction
     #data<-rbind(data,c('prediction',pred_median,pred_quantiles[,cls][1],pred_quantiles[,cls][3]))
    
-    print(ggplot(data) +
-      geom_bar( aes(x=name, y=median), stat="identity", fill='#D5E8D4', alpha=0.7) +
-      geom_errorbar( aes(x=name, ymin=min, ymax=max), width=0.6, colour="black", alpha=0.9, size=0.5))
+    print(ggplot(data <- data,aes(x=factor(name,levels = name),
+                            y=contribution,
+                            fill=factor(ifelse(name=="prediction","prediction","input variables")))) +
+      geom_bar(stat="identity") +
+      scale_fill_manual(name = "", values=c("#D5E8D4",'#F8CECC')) +
+      geom_errorbar( aes(x=name, ymin=min, ymax=max), width=0.6, colour="black", alpha=0.9, size=0.5) +
+      xlab("")) + ylab('Contribution')
+    
     
     
     
