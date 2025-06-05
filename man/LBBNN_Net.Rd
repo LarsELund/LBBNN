@@ -15,9 +15,9 @@ LBBNN_Net(
   num_transforms = 2,
   dims = c(200, 200),
   device = "cpu",
+  local_expl = FALSE,
   link = NULL,
-  nll = NULL,
-  local_expl = FALSE
+  nll = NULL
 )
 }
 \arguments{
@@ -40,6 +40,8 @@ LBBNN_Net(
 \item{dims}{hidden dimension for the neural network in the RNVP transform.}
 
 \item{device}{the device to be trained on. Can be 'cpu', 'gpu' or 'mps'. Default is cpu.}
+
+\item{local_expl}{If set to TRUE, the network skips the last sigmoid/softmax layer to compute local explanations.}
 }
 \description{
 Generates a LBBNN composed of feed forward layers defined by LBBNN_Linear

@@ -15,6 +15,7 @@ library(torch)
 #' @param num_transforms how many transformations to use in the flow.
 #' @param dims hidden dimension for the neural network in the RNVP transform.
 #' @param device the device to be trained on. Can be 'cpu', 'gpu' or 'mps'. Default is cpu.
+#' @param local_expl If set to TRUE, the network skips the last sigmoid/softmax layer to compute local explanations.
 #' @examples
 #' layers <- c(20,200,200,5) #Two hidden layers 
 #' alpha <- c(0.3,0.5,0.9)  # One prior inclusion probability for each weight matrix 
@@ -34,7 +35,7 @@ LBBNN_Net <- torch::nn_module(
   
   initialize = function(problem_type,sizes,prior,std,inclusion_inits,input_skip = FALSE,flow = FALSE,
                         num_transforms = 2, dims = c(200,200),
-                        device = 'cpu',link = NULL, nll = NULL,local_expl = FALSE) {
+                        device = 'cpu',local_expl = FALSE,link = NULL, nll = NULL) {
     self$device <- device
     self$layers <- torch::nn_module_list()
     self$problem_type <- problem_type
@@ -251,7 +252,7 @@ LBBNN_Net <- torch::nn_module(
 
   
   
-  density = function(){
+  density = function(){ #the standard density, before taking into consideration active paths
     alphas <- NULL
     for(l in self$layers$children)(alphas <- c(alphas,as.numeric(l$alpha$clone()$detach()))) #as.numeric flattens the matrix
     alphas<-c(alphas,as.numeric(self$out_layer$alpha$clone()$detach()))
@@ -259,7 +260,7 @@ LBBNN_Net <- torch::nn_module(
     
     
   },
-  density_active_path = function(){
+  density_active_path = function(){#density when removing connections not within active paths
     num_incl <- 0
     tot <- 0
     paths <- c() #intialize empty vector to compute path depths (only for input-skip)
