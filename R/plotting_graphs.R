@@ -1,7 +1,11 @@
 library(igraph)
 library(Matrix)
 require(graphics)
-
+#' @description Function that check which inputs are included, and from which layer.
+#' @param model A trained LBBNN model with input_skip. 
+#' @return A matrix of shape (p, L-1) where p is the number of input variables
+#' and L the number of layers, with each element being 1 (if included) or 0 
+#' if not included. 
 #' @export
 get_input_inclusions <- function(model){
   if(model$input_skip == FALSE)(stop('This function is currently only implemented for input-skip'))
