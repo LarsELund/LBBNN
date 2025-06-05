@@ -86,11 +86,8 @@ model <- LBBNN_Net(problem_type = problem,sizes = sizes,
                    prior = inclusion_priors,inclusion_inits =inclusion_inits ,input_skip = TRUE,
                    std = std_priors,flow = FALSE,num_transforms = 2,dims = c(200,200),device = device)
 model$to(device = device)
-results <- train_LBBNN(epochs = 3,LBBNN = model, lr = 0.001,train_dl = train_loader,device = device)
+results <- train_LBBNN(epochs = 20,LBBNN = model, lr = 0.001,train_dl = train_loader,device = device)
 validate <-validate_LBBNN(model,num_samples = 100,test_dl = test_loader,device = device)
-
-
-
 
 
 
