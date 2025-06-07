@@ -75,7 +75,14 @@ get_adj_mats <- function(model){
   return(mats_out)
 }
 
-
+#' Function for plotting nodes in the network between two layers. 
+#' @description Takes care of the three possible cases. Both layers have even
+#' number of neurons, both layers have odd numbers, or one of each. 
+#' @param N Number of neurons in the first layer.
+#' @param N_u Number of neurons in the second layer.
+#' @param input_positions Positions of the neurons in the input layer.
+#' @param neuron_spacing How much space between the neurons. (do we need this?, seems like igraph overrides or smth)
+#' @return Positions of the second layer. 
 assign_within_layer_pos<- function(N,N_u,input_positions,neuron_spacing){
   if(N %% 2 == 0 & N_u %% 2 == 0){ #if both layers have even number of neurons
     N_u_center <- median(input_positions)
