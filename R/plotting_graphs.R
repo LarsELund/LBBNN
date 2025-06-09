@@ -250,7 +250,7 @@ LBBNN_plot <- function(model,layer_spacing,neuron_spacing,vertex_size,edge_width
   
 }
 #can use the below as an example
-##
+#add class label to plot (or which output neuron it is)
 sizes <- c(2,3,3,2) 
 problem <- 'multiclass classification'
 inclusion_priors <-c(0.1,0.1,0.1) #one prior probability per weight matrix.
