@@ -111,7 +111,7 @@ Validate_LBBNN, which takes as input a model, the number of samples for
 model averaging, and the validation data.
 
 ``` r
-validate_LBBNN(LBBNN = model_input_skip,num_samples = 1000,test_dl = test_loader,device)
+validate_LBBNN(LBBNN = model_input_skip,num_samples = 100,test_dl = test_loader,device)
 #> $accuracy_full_model
 #> [1] 0.8722222
 #> 
@@ -157,7 +157,7 @@ Get the local explanation of some input:
 
 ``` r
 data <- test_data[1][[1]]
-plot_local_explanations_gradient(model_input_skip,data,num_samples = 1000,device = device)
+plot_local_explanations_gradient(model_input_skip,data,num_samples = 100,device = device)
 ```
 
 <img src="man/figures/README-unnamed-chunk-8-1.png" width="100%" />

@@ -102,7 +102,7 @@ results_input_skip <- train_LBBNN(epochs = 800,LBBNN = model_input_skip, lr = 0.
 To check the results on the validation data, we use the function Validate_LBBNN, which takes as input a model, the number of samples for model averaging, and the validation data.
 
 ```{r}
-validate_LBBNN(LBBNN = model_input_skip,num_samples = 1000,test_dl = test_loader,device)
+validate_LBBNN(LBBNN = model_input_skip,num_samples = 100,test_dl = test_loader,device)
 #validate_LBBNN(LBBNN = model_flows,num_samples = 1000,test_dl = test_loader,device)
 ```
 
@@ -120,7 +120,7 @@ print(get_input_inclusions(model_input_skip))
 Get the local explanation of some input:
 ```{r}
 data <- test_data[1][[1]]
-plot_local_explanations_gradient(model_input_skip,data,num_samples = 1000,device = device)
+plot_local_explanations_gradient(model_input_skip,data,num_samples = 100,device = device)
 ```
 
 
