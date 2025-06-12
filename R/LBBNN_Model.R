@@ -111,7 +111,7 @@ LBBNN_Net <- torch::nn_module(
       j <- j + 1
     }
     
-    #when computing local explanations, we skip sigmoid/softmax
+    #if we only want the raw output, skip sigmoid/softmax
     if(self$local_explanation){
       x<- self$out_layer(torch::torch_cat(c(x,x_input),dim = 2),MPM)
     }

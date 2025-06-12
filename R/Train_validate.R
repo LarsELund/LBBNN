@@ -215,32 +215,6 @@ validate_LBBNN <- function(LBBNN,num_samples,test_dl,device = 'cpu'){
 }
 
 
-#example
-
-#torch_manual_seed(0)
-#x<-torch_randn(200,10) #generate some data
-#b <- torch_rand(10)
-#y <- torch_matmul(x,b)
-#med <- torch_median(y)
-#y[y > med] = 1
-#y[y <= med] = 0
-#train_data <- tensor_dataset(x,y)
-#train_loader <- dataloader(train_data,batch_size = 100,shuffle=TRUE)
-#problem<-'binary classification'
-#sizes <- c(10,50,50,1) #10 input variables, one hidden layer of 50 neurons, 1 output
-#inclusion_priors <-c(0.3,0.5,0.9) #one prior probability per weight matrix
-#model <- LBBNN_Net(problem,sizes,inclusion_priors)
-#output <- train_LBBNN(epochs = 100,LBBNN = model, lr = 0.01,train_dl = train_loader)
-
-#generate test data
-#x<-torch_randn(200,10) #generate some data
-#y <- torch_matmul(x,b)
-#med <- torch_median(y)
-#y[y > med] = 1
-#y[y <= med] = 0
-#test_data <- tensor_dataset(x,y)
-#test_loader <- dataloader(test_data,batch_size = 100,shuffle=FALSE)
-#val_out <- validate_LBBNN(model,10,test_loader)
 
 
 
