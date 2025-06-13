@@ -215,7 +215,30 @@ validate_LBBNN <- function(LBBNN,num_samples,test_dl,device = 'cpu'){
 }
 
 
+##create a predict function
+#check if this even works
 
+#'@export
+posterior_predict.LBBNN <- function(LBBNN,mpm,newdata,draws,link = NULL){#should newdata be a dataloader or a dataset?
+  LBBNN$eval()
+  LBBNN$raw_output = TRUE #skip final sigmoid/softmax 
+  if(LBBNN$input_skip){LBBNN$compute_paths_input_skip()} #need this to get active paths to compute mpm
+  else(LBBNN$compute_paths)
+  out_shape <- LBBNN$sizes[length(LBBNN$sizes)]
+  all_outs <- NULL
+  torch::with_no_grad({ 
+    coro::loop(for (b in newdata){
+      outputs <- torch::torch_zeros(draws,dim(b[[1]])[1],out_shape)$to(device=device)
+      for(i in 1:draws){
+        data <- b[[1]]$to(device = device)
+        outputs[i]<- LBBNN(data,MPM=mpm)
+      }
+      all_outs <- torch::torch_cat(c(all_outs,outputs),dim = 2) #add all the mini-batches together
+      
+    })  
+  })
+  return(all_outs)
+}
 
 
 

@@ -21,7 +21,7 @@ get_local_explanations_gradient <- function(model,input_data,
   explanations <- torch::torch_zeros(num_samples,p,num_classes)
   predictions <- torch::torch_zeros(num_samples,num_classes)
   
-  model$local_explanation = TRUE #to skip last sigmoid/softmax layer
+  model$raw_input = TRUE #to skip last sigmoid/softmax layer
   for( b in 1:num_samples){#for each sample, get explanations for each class
     input_data$requires_grad = TRUE
     input_data <- input_data$to(device = device)

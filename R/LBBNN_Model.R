@@ -35,7 +35,7 @@ LBBNN_Net <- torch::nn_module(
   
   initialize = function(problem_type,sizes,prior,std,inclusion_inits,input_skip = FALSE,flow = FALSE,
                         num_transforms = 2, dims = c(200,200),
-                        device = 'cpu',local_expl = FALSE,link = NULL, nll = NULL) {
+                        device = 'cpu',raw_output = FALSE,link = NULL, nll = NULL) {
     self$device <- device
     self$layers <- torch::nn_module_list()
     self$problem_type <- problem_type
@@ -44,7 +44,7 @@ LBBNN_Net <- torch::nn_module(
     self$num_transforms <- num_transforms
     self$dims <- dims
     self$sizes <- sizes
-    self$local_explanation <- local_expl # TRUE when we want to compute local explanations
+    self$raw_output <- raw_output # TRUE when we want to compute local explanations
     self$act <- torch::nn_leaky_relu(0) 
     if(length(prior) != length(sizes) - 1)(stop('Must have one prior inclusion probability per weight matrix'))
    
@@ -112,7 +112,7 @@ LBBNN_Net <- torch::nn_module(
     }
     
     #if we only want the raw output, skip sigmoid/softmax
-    if(self$local_explanation){
+    if(self$raw_output){
       x<- self$out_layer(torch::torch_cat(c(x,x_input),dim = 2),MPM)
     }
     else(x<- self$out(self$out_layer(torch::torch_cat(c(x,x_input),dim = 2),MPM)))

@@ -15,7 +15,7 @@ LBBNN_Net(
   num_transforms = 2,
   dims = c(200, 200),
   device = "cpu",
-  local_expl = FALSE,
+  raw_output = FALSE,
   link = NULL,
   nll = NULL
 )
