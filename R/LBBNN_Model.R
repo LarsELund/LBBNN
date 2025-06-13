@@ -45,7 +45,7 @@ LBBNN_Net <- torch::nn_module(
     self$dims <- dims
     self$sizes <- sizes
     self$raw_output <- raw_output # TRUE when we want to compute local explanations
-    self$act <- torch::nn_leaky_relu(0) 
+    self$act <- torch::nn_leaky_relu(0.01) 
     if(length(prior) != length(sizes) - 1)(stop('Must have one prior inclusion probability per weight matrix'))
    
     
@@ -95,6 +95,7 @@ LBBNN_Net <- torch::nn_module(
     if(self$problem_type == 'MNIST')(x <- x$view(c(-1,28*28)))
     #regular LBBNN
     if(!self$input_skip){
+      x <- x$view(c(-1,self$sizes[1]))
       for(l in self$layers$children){
        x <- self$act(l(x,MPM)) #iterate over hidden layers
         
