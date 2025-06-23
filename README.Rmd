@@ -64,7 +64,7 @@ test_data <- torch::tensor_dataset(torch_tensor(x_test),torch_tensor(y_test))
 train_loader <- torch::dataloader(train_data, batch_size = length(train_data) , shuffle = TRUE)
 test_loader <- torch::dataloader(test_data, batch_size = length(test_data))
 ```
-To initialize our LBBNN, we need to define some hyperparameters. Firstly, the user has
+To initialize the LBBNN, we need to define some hyperparameters. Firstly, the user has
 to define what type of problem it is. This could be either binary classification (as in this case), multiclass classification
 (more than two classes), or regression (continous output). In addition the user defines a size vector, where the first element
 is the number of variables in the dataset (7 in this case), the last element is the number of output neurons (1 in our case), and the elements in between define the number of neurons in the hidden layer(s).  The user must define the prior inclusion probability for each weight matrix (where each weight will have the same prior probability). This is an important parameter, as it controls what prior knowledge the user may have about how dense they believe the network should be. In addition to this, the user defines the prior standard deviation for the weight and bias parameters. The user also defines the initialization of the inclusion parameters. 

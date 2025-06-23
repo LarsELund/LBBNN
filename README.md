@@ -58,7 +58,7 @@ train_loader <- torch::dataloader(train_data, batch_size = length(train_data) , 
 test_loader <- torch::dataloader(test_data, batch_size = length(test_data))
 ```
 
-To initialize our LBBNN, we need to define some hyperparameters.
+To initialize the LBBNN, we need to define some hyperparameters.
 Firstly, the user has to define what type of problem it is. This could
 be either binary classification (as in this case), multiclass
 classification (more than two classes), or regression (continous
