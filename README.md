@@ -103,7 +103,9 @@ learning rate, and the data to train on:
 ``` r
 #model_input_skip$local_explanation = TRUE #to make sure we are using RELU
 results_input_skip <- train_LBBNN(epochs = 800,LBBNN = model_input_skip, lr = 0.005,train_dl = train_loader,device = device)
-#results_LBBNN <- train_LBBNN(epochs = 800,LBBNN = model_LBBNN, lr = 0.005,train_dl = train_loader,device = device)
+#save the model 
+torch::torch_save(model_input_skip$state_dict(), 
+paste(getwd(),'/R/saved models/README_input_skip_example_model.pth',sep = ''))
 ```
 
 To check the results on the validation data, we use the function
