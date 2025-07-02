@@ -128,7 +128,7 @@ validate_LBBNN(LBBNN = model_input_skip,num_samples = 100,test_dl = test_loader,
 #validate_LBBNN(LBBNN = model_flows,num_samples = 1000,test_dl = test_loader,device)
 ```
 
-Plot the network structure of a given model:
+Plot the network structure of the given model:
 
 ``` r
 LBBNN_plot(model_input_skip,layer_spacing = 1,neuron_spacing = 1,vertex_size = 15,edge_width = 0.5)
