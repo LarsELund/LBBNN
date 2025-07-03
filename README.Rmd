@@ -125,6 +125,10 @@ data <- test_data[1][[1]]
 plot_local_explanations_gradient(model_input_skip,data,num_samples = 100,device = device)
 ```
 
+```{r}
+data <- test_data[100][[1]]
+plot_local_explanations_gradient(model_input_skip,data,num_samples = 100,device = device)
+```
 
 
 Visualize the results:

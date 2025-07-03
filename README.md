@@ -164,6 +164,13 @@ plot_local_explanations_gradient(model_input_skip,data,num_samples = 100,device 
 
 <img src="man/figures/README-unnamed-chunk-8-1.png" width="100%" />
 
+``` r
+data <- test_data[100][[1]]
+plot_local_explanations_gradient(model_input_skip,data,num_samples = 100,device = device)
+```
+
+<img src="man/figures/README-unnamed-chunk-9-1.png" width="100%" />
+
 Visualize the results:
 
 ``` r
