@@ -126,7 +126,7 @@ plot_local_explanations_gradient(model_input_skip,data,num_samples = 100,device 
 ```
 And another one:
 ```{r}
-data <- test_data[100][[1]]
+data <- torch::torch_randn(size = c(1,7)) *5
 plot_local_explanations_gradient(model_input_skip,data,num_samples = 100,device = device)
 ```
 
