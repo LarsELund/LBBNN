@@ -20,5 +20,6 @@ Imports:
     reshape2,
     tidyr,
     torch,
-    igraph
+    igraph,
+    coro
  
