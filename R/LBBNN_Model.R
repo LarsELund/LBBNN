@@ -16,6 +16,8 @@ library(torch)
 #' @param dims hidden dimension for the neural network in the RNVP transform.
 #' @param device the device to be trained on. Can be 'cpu', 'gpu' or 'mps'. Default is cpu.
 #' @param raw_output If set to TRUE, the network skips the last sigmoid/softmax layer to compute local explanations.
+#' @param link User can define their own link function (not implemented yet)
+#' @param nll User can define their own likelihood function (not implemented yet)
 #' @examples
 #' layers <- c(20,200,200,5) #Two hidden layers 
 #' alpha <- c(0.3,0.5,0.9)  # One prior inclusion probability for each weight matrix 

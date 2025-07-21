@@ -42,6 +42,10 @@ LBBNN_Net(
 \item{device}{the device to be trained on. Can be 'cpu', 'gpu' or 'mps'. Default is cpu.}
 
 \item{raw_output}{If set to TRUE, the network skips the last sigmoid/softmax layer to compute local explanations.}
+
+\item{link}{User can define their own link function (not implemented yet)}
+
+\item{nll}{User can define their own likelihood function (not implemented yet)}
 }
 \description{
 Generates a LBBNN composed of feed forward layers defined by LBBNN_Linear
