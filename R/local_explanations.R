@@ -74,12 +74,12 @@ model <- LBBNN_Net(problem_type = problem,sizes = sizes,
 ### next is to plot the contributions with error bars
 
 #' Function to obtain empirical 95% confidence interval, including the median
-#' @description 
+#' @description Using the built in quantile function to return 95% confidence interval
 #' @param x numeric vector whose sample quantiles is desired.
-#' @return The adjacency matrices. 
+#' @return The quantiles
 #' @export
 quants <- function(x){
-  return(quantile(x,probs = c(0.025,0.5,0.975))) #95% CI and median
+  return(stats::quantile(x,probs = c(0.025,0.5,0.975))) #95% CI and median
 }
 
 
