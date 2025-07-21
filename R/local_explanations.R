@@ -21,7 +21,7 @@ get_local_explanations_gradient <- function(model,input_data,
   explanations <- torch::torch_zeros(num_samples,p,num_classes)
   predictions <- torch::torch_zeros(num_samples,num_classes)
   
-  model$raw_input = TRUE #to skip last sigmoid/softmax layer
+  model$raw_output = TRUE #to skip last sigmoid/softmax layer
   for( b in 1:num_samples){#for each sample, get explanations for each class
     input_data$requires_grad = TRUE
     input_data <- input_data$to(device = device)
@@ -123,13 +123,13 @@ plot_local_explanations_gradient <- function(model,input_data,num_samples,device
     #add a row for the prediction
     #data<-rbind(data,c('prediction',pred_median,pred_quantiles[,cls][1],pred_quantiles[,cls][3]))
    
-    print(ggplot(data <- data,aes(x=factor(name,levels = name),
+    print(ggplot2::ggplot(data <- data,ggplot2::aes(x=factor(name,levels = name),
                             y=contribution,
                             fill=factor(ifelse(name=="prediction","prediction","input variables")))) +
-      geom_bar(stat="identity") +
-      scale_fill_manual(name = paste("Output neuron",cls-1), values=c("#D5E8D4",'#F8CECC')) +
-      geom_errorbar( aes(x=name, ymin=min, ymax=max), width=0.6, colour="black", alpha=0.9, size=0.5) +
-      xlab("")+ylab('Contribution')+ggtitle('Local explanation, with 95% empirical confidence bars')) 
+      ggplot2::geom_bar(stat="identity") +
+      ggplot2::scale_fill_manual(name = paste("Output neuron",cls-1), values=c("#D5E8D4",'#F8CECC')) +
+      ggplot2::geom_errorbar(ggplot2::aes(x=name, ymin=min, ymax=max), width=0.6, colour="black", alpha=0.9, size=0.5) +
+      ggplot2::xlab("")+ggplot2::ylab('Contribution')+ggplot2::ggtitle('Local explanation, with 95% empirical confidence bars')) 
     
     
     

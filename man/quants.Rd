@@ -10,8 +10,8 @@ quants(x)
 \item{x}{numeric vector whose sample quantiles is desired.}
 }
 \value{
-The adjacency matrices.
+The quantiles
 }
 \description{
-Function to obtain empirical 95\% confidence interval, including the median
+Using the built in quantile function to return 95\% confidence interval
 }
