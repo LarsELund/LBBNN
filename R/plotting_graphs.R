@@ -174,7 +174,25 @@ assign_names<- function(model){#assign names to the nodes before plotting
 
 
 
-
+#' Function to plot an islab structure after removing weights in non-active paths.
+#' @description Uses igraph to plot. Some issues related to the sizes and spacing.
+#' @param model A trained LBBNN model with input_skip. 
+#' @param layer_spacing Spacing inbetween layers.
+#' @param neuron_spacing Spacing between neurons within a layer.
+#' @param vertex_size Size of the neurons. 
+#' @param edge_width Width of the edges connecting neurons.
+#' @examples
+#' sizes <- c(2,3,3,2) 
+#' problem <- 'multiclass classification'
+#' inclusion_priors <-c(0.1,0.1,0.1) #one prior probability per weight matrix.
+#' std_priors <-c(1.0,1.0,1.0) #one prior probability per weight matrix.
+#' inclusion_inits <- matrix(rep(c(-10,10),3),nrow = 2,ncol = 3)
+#' device <- 'cpu'
+#' torch_manual_seed(0)
+#' model <- LBBNN_Net(problem_type = problem,sizes = sizes,
+#'                   prior = inclusion_priors,inclusion_inits =inclusion_inits ,input_skip = TRUE,
+#'                 std = std_priors,flow = FALSE,num_transforms = 2,dims = c(200,200),device = device)
+#' LBBNN_plot(model,1,1,14,1)
 #' @export
 LBBNN_plot <- function(model,layer_spacing,neuron_spacing,vertex_size,edge_width){
   if(model$input_skip == FALSE)(stop('Plotting currently only implemented for input-skip'))
@@ -249,16 +267,4 @@ LBBNN_plot <- function(model,layer_spacing,neuron_spacing,vertex_size,edge_width
 
   
 }
-#can use the below as an example
-sizes <- c(2,3,3,2) 
-problem <- 'multiclass classification'
-inclusion_priors <-c(0.1,0.1,0.1) #one prior probability per weight matrix.
-std_priors <-c(1.0,1.0,1.0) #one prior probability per weight matrix.
-inclusion_inits <- matrix(rep(c(-10,10),3),nrow = 2,ncol = 3)
-device <- 'cpu'
-torch_manual_seed(0)
-model <- LBBNN_Net(problem_type = problem,sizes = sizes,
-                   prior = inclusion_priors,inclusion_inits =inclusion_inits ,input_skip = TRUE,
-                   std = std_priors,flow = FALSE,num_transforms = 2,dims = c(200,200),device = device)
 
-LBBNN_plot(model,1,1,14,1)
