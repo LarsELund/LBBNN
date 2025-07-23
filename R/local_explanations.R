@@ -1,8 +1,9 @@
 library(torch)
 library(ggplot2)
 
-#' Function to get gradient based local explanations
-#' @description 
+#' Function to get gradient based local explanations.
+#' @description Works by computing the gradient wrt to input, given we have
+#' relu activation functions.
 #' @param model Input-skip model to explain. Not implemented for regular LBBNNs.
 #' @param input_data The data to be explained (one sample).
 #' @param num_samples How many sample to use to produce credible intervals.
@@ -94,7 +95,18 @@ quants <- function(x){
 }
 
 
-
+#' Function to plot the local explanations
+#' @description 
+#' @param model Input-skip model to explain. Not implemented for regular LBBNNs.
+#' @param input_data The data to be explained (one sample).
+#' @param num_samples How many sample to use to produce credible intervals.
+#' @param magnitude If TRUE, only return explanations. If FALSE, multiply by input values.
+#' @param include_potential_contribution IF TRUE, If covariate=0, 
+#' we assume that the contribution is negative (good/bad that it is not included)
+#' if FALSE, just removes zero covariates.
+#' @param device the device to be trained on. Default is cpu.
+#' @return a list containing the losses and accuracies (if classification) and density for each epoch during training.
+#' For comparisons sake we show the density with and without active paths.
 #' @export
 plot_local_explanations_gradient <- function(model,input_data,num_samples,device){
   outputs <- get_local_explanations_gradient(model = model,input_data = input_data,num_samples
