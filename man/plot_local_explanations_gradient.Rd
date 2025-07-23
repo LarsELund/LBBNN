@@ -14,17 +14,11 @@ plot_local_explanations_gradient(model, input_data, num_samples, device)
 \item{num_samples}{How many sample to use to produce credible intervals.}
 
 \item{device}{the device to be trained on. Default is cpu.}
-
-\item{magnitude}{If TRUE, only return explanations. If FALSE, multiply by input values.}
-
-\item{include_potential_contribution}{IF TRUE, If covariate=0,
-we assume that the contribution is negative (good/bad that it is not included)
-if FALSE, just removes zero covariates.}
 }
 \value{
 a list containing the losses and accuracies (if classification) and density for each epoch during training.
 For comparisons sake we show the density with and without active paths.
 }
 \description{
-Function to plot the local explanations
+Plots the contribution of each covariate, and the prediction, with error bars.
 }
