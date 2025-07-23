@@ -34,5 +34,5 @@ For comparisons sake we show the density with and without active paths.
 }
 \description{
 Works by computing the gradient wrt to input, given we have
-relu activation functions, gives us the contribution of each covariate.
+relu activation functions.
 }
