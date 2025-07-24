@@ -27,7 +27,7 @@ inclusion_priors <-c(0.1,0.1,0.1) #one prior probability per weight matrix.
 std_priors <-c(1.0,1.0,1.0) #one prior probability per weight matrix.
 inclusion_inits <- matrix(rep(c(-10,10),3),nrow = 2,ncol = 3)
 device <- 'cpu'
-torch_manual_seed(0)
+torch::torch_manual_seed(0)
 model <- LBBNN_Net(problem_type = problem,sizes = sizes,
                   prior = inclusion_priors,inclusion_inits =inclusion_inits ,input_skip = TRUE,
                 std = std_priors,flow = FALSE,num_transforms = 2,dims = c(200,200),device = device)
