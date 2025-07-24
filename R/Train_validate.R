@@ -219,7 +219,7 @@ validate_LBBNN <- function(LBBNN,num_samples,test_dl,device = 'cpu'){
 #check if this even works
 
 #'@export
-posterior_predict.LBBNN <- function(LBBNN,mpm,newdata,draws,link = NULL){#should newdata be a dataloader or a dataset?
+posterior_predict.LBBNN <- function(LBBNN,mpm,newdata,draws,device = 'cpu',link = NULL){#should newdata be a dataloader or a dataset?
   LBBNN$eval()
   LBBNN$raw_output = TRUE #skip final sigmoid/softmax 
   if(LBBNN$input_skip){LBBNN$compute_paths_input_skip()} #need this to get active paths to compute mpm
