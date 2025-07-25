@@ -26,33 +26,20 @@ pak::pak("LarsELund/LBBNN")
 
 This is a basic example which shows you how to implement a simple feed
 forward LBBNN on the raisin dataset, both using the mean-field
-posterior, and normalizing flows. First we import the neccessary
-libraries, then pre-process the data:
+posterior, and normalizing flows. First we demonstrate how to
+pre-process the data so it can be used in the torch eco-system
 
 ``` r
 library(LBBNN)
 library(ggplot2)
 library(torch)
 
-#split data in training and test sets
-set.seed(0)
-sample <- sample.int(n = nrow(Raisin_Dataset), size = floor(0.80*nrow(Raisin_Dataset)), replace = FALSE)
-train  <- Raisin_Dataset[sample,]
-test   <- Raisin_Dataset[-sample,]
-
-#standardize
-y_train <- as.numeric(train$Class)
-y_test <- as.numeric(test$Class)
-x_train <- as.matrix(train[,1:7])
-x_test <- as.matrix(test[,1:7])
-x_train <- scale(x_train)
-x_test <- scale(x_test, center=attr(x_train, "scaled:center"), scale=attr(x_train, "scaled:scale"))
-
-#create tensor dataset and pass it to a dataloader object to enable easy mini-batch based optimization
-train_data <- torch::tensor_dataset(torch_tensor(x_train),torch_tensor(y_train)) 
-test_data <- torch::tensor_dataset(torch_tensor(x_test),torch_tensor(y_test))
-train_loader <- torch::dataloader(train_data, batch_size = length(train_data) , shuffle = TRUE)
-test_loader <- torch::dataloader(test_data, batch_size = length(test_data))
+#the get_dataloaders function takes a data.frame dataset as input, then splits the data
+#in a training and validation set based on train_proportion, and returns torch dataloader 
+#objects.
+loaders <- get_dataloaders(Raisin_Dataset,train_proportion = 0.8,train_batch_size = 720,test_batch_size = 180)
+train_loader <- loaders$train_loader
+test_loader <- loaders$test_loader
 ```
 
 To initialize the LBBNN, we need to define some hyperparameters.
@@ -112,10 +99,10 @@ model averaging, and the validation data.
 ``` r
 validate_LBBNN(LBBNN = model_input_skip,num_samples = 100,test_dl = test_loader,device)
 #> $accuracy_full_model
-#> [1] 0.8722222
+#> [1] 0.8888889
 #> 
 #> $accuracy_sparse
-#> [1] 0.8722222
+#> [1] 0.8944445
 #> 
 #> $density
 #> [1] 0.2523364
@@ -152,10 +139,14 @@ print(get_input_inclusions(model_input_skip))
 #> x6  1  0  1
 ```
 
-Get the local explanation of some input:
+Get the local explanation of some input input:
 
 ``` r
-data <- test_data[1][[1]]
+x <- torch::dataloader_next(torch::dataloader_make_iter(train_loader))[[1]]
+set.seed(1)
+inds <- sample.int(dim(x)[1],1)
+
+data <- x[inds,]
 plot_local_explanations_gradient(model_input_skip,data,num_samples = 100,device = device)
 ```
 
@@ -163,7 +154,7 @@ plot_local_explanations_gradient(model_input_skip,data,num_samples = 100,device 
 another one:
 
 ``` r
-data <- torch::torch_randn(size = c(1,7)) * 0.1 -2
+data <- torch::torch_randn(size = c(1,7))  -2
 plot_local_explanations_gradient(model_input_skip,data,num_samples = 100,device = device)
 ```
 
