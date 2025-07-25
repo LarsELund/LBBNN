@@ -34,9 +34,6 @@ library(LBBNN)
 library(ggplot2)
 library(torch)
 
-Raisin_Dataset$Class[Raisin_Dataset$Class == 'Kecimen'] = 1
-Raisin_Dataset$Class[Raisin_Dataset$Class == 'Besni'] = 0
-
 #split data in training and test sets
 set.seed(0)
 sample <- sample.int(n = nrow(Raisin_Dataset), size = floor(0.80*nrow(Raisin_Dataset)), replace = FALSE)
@@ -166,7 +163,7 @@ plot_local_explanations_gradient(model_input_skip,data,num_samples = 100,device 
 another one:
 
 ``` r
-data <- torch::torch_randn(size = c(1,7)) *5
+data <- torch::torch_randn(size = c(1,7)) * 0.1 -2
 plot_local_explanations_gradient(model_input_skip,data,num_samples = 100,device = device)
 ```
 
