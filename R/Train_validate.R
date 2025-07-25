@@ -224,7 +224,7 @@ posterior_predict.LBBNN <- function(LBBNN,mpm,newdata,draws,device = 'cpu',link 
   LBBNN$raw_output = TRUE #skip final sigmoid/softmax 
   if(LBBNN$input_skip){LBBNN$compute_paths_input_skip()} #need this to get active paths to compute mpm
   else(LBBNN$compute_paths)
-  out_shape <- LBBNN$sizes[length(LBBNN$sizes)]
+  out_shape <- LBBNN$sizes[length(LBBNN$sizes)] #number of output neurons
   all_outs <- NULL
   torch::with_no_grad({ 
     coro::loop(for (b in newdata){
