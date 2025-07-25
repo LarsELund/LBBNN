@@ -21,3 +21,10 @@
 #' }
 #' @source \url{https://archive.ics.uci.edu/dataset/850/raisin}
 "Raisin_Dataset"
+
+
+#' Mice Dataset
+#' @description Only used for internal testing for now.
+#' @format  This dataset has 1080 rows and  78 columns.
+#' @source \url{https://pubmed.ncbi.nlm.nih.gov/26111164/}
+"Mice_Dataset"
