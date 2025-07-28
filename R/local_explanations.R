@@ -145,7 +145,7 @@ plot_local_explanations_gradient <- function(model,input_data,num_samples,device
                             y=contribution,
                             fill=factor(ifelse(name=="prediction","prediction","input variables")))) +
       ggplot2::geom_bar(stat="identity") +
-      ggplot2::scale_fill_manual(name = paste("Output neuron",cls-1), values=c("#D5E8D4",'#F8CECC')) +
+      ggplot2::scale_fill_manual(name = paste("Output neuron",cls), values=c("#D5E8D4",'#F8CECC')) +
       ggplot2::geom_errorbar(ggplot2::aes(x=name, ymin=min, ymax=max), width=0.6, colour="black", alpha=0.9, size=0.5) +
       ggplot2::xlab("")+ggplot2::ylab('Contribution')+ggplot2::ggtitle('Local explanation, with 95% empirical confidence bars')) 
     

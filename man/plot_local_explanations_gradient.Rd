@@ -4,7 +4,12 @@
 \alias{plot_local_explanations_gradient}
 \title{Function to plot the local explanations}
 \usage{
-plot_local_explanations_gradient(model, input_data, num_samples, device)
+plot_local_explanations_gradient(
+  model,
+  input_data,
+  num_samples,
+  device = "cpu"
+)
 }
 \arguments{
 \item{model}{Input-skip model to explain. Not implemented for regular LBBNNs.}

@@ -29,8 +29,7 @@ if FALSE, just removes zero covariates.}
 \item{device}{the device to be trained on. Default is cpu.}
 }
 \value{
-a list containing the losses and accuracies (if classification) and density for each epoch during training.
-For comparisons sake we show the density with and without active paths.
+A list of the local explanations
 }
 \description{
 Works by computing the gradient wrt to input, given we have
