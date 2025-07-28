@@ -103,7 +103,7 @@ quants <- function(x){
 #' @return a list containing the losses and accuracies (if classification) and density for each epoch during training.
 #' For comparisons sake we show the density with and without active paths.
 #' @export
-plot_local_explanations_gradient <- function(model,input_data,num_samples,device){
+plot_local_explanations_gradient <- function(model,input_data,num_samples,device = 'cpu'){
   outputs <- get_local_explanations_gradient(model = model,input_data = input_data,num_samples
                                              =num_samples,device = device)
   
