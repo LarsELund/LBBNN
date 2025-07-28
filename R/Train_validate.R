@@ -49,14 +49,14 @@ train_LBBNN <- function(epochs,LBBNN,lr,train_dl,device = 'cpu'){
       data <- b[[1]]$to(device = device)
       output <- LBBNN(data,MPM=FALSE)
       target <- b[[2]]$to(device=device)
+ 
       if(LBBNN$problem_type == 'multiclass classification'| LBBNN$problem_type == 'MNIST'){ #nll loss needs float tensors but bce loss needs long tensors 
         target <- torch::torch_tensor(target,dtype = torch::torch_long())
       }
       else(output <- output$squeeze()) #remove last dimension from binary classifiction or regression
       
       loss <- LBBNN$loss_fn(output, target) + LBBNN$kl_div() / length(train_dl)
-
-      
+    
       
       if(LBBNN$problem_type == 'multiclass classification' | LBBNN$problem_type == 'MNIST'){
         prediction <-max.col(output)
