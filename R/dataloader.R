@@ -1,7 +1,20 @@
 #use this to abstract away the torch dataloader objects so the user only needs the function defined here
 library(torch)
 
-#'@export
+#' Wrapper around torch dataloader
+#' @description  Takes a dataset and returns both torch train and test dataloaders,
+#' needed for subsequent optimization. Avoids the user having to define these dataloaders
+#' themselves. 
+#' @param dataset Some dataset. Must be a data.frame, where the last column is y, the dependent variable.
+#' @param train_proportion A number between 0 and 1, giving the proportion of data to be used for training.
+#' Usually a large number e.g. 0.8, but could also be smaller than 0.5 even though this is uncommon. 
+#' @param train_batch_size How many samples in each batch in the train dataloader. 
+#' @param test_batch_size How many samples in each batch in the test dataloader. 
+#' @param standardize default is TRUE. Usually an advantage for gradient based optimization.
+#' @param shuffle_train default is TRUE. Ensures data is randomly shuffled before each iteration.
+#' @param shuffle_test  default is FALSE, as there is no need to shuffle the test data, as the order of the data is irrelevant. 
+#' @return A list containing a train_loader and a test_loader object. 
+#'@export 
 get_dataloaders <- function(dataset,train_proportion,train_batch_size,test_batch_size,
                             standardize = TRUE, shuffle_train = TRUE,shuffle_test = FALSE){
   if(! inherits(dataset, "data.frame"))stop(paste('dataset must be a data.frame object'))
