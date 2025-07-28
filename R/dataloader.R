@@ -28,14 +28,14 @@ get_dataloaders <- function(dataset,train_proportion,train_batch_size,test_batch
   y_test <- as.numeric(test[,dim(test)[2]])
   x_train <- as.matrix(train[,1:p])
   x_test <- as.matrix(test[,1:p])
-
+  if(min(y_train) == 0 & max(y_train) > 1){y_train <- y_train + 1  #indexing needs to go from 1 <- C in multiclass case
+                                           y_test<- y_test + 1}
   if(standardize){
     x_train <- scale(x_train)
     x_test <- scale(x_test, center=attr(x_train, "scaled:center"), scale=attr(x_train, "scaled:scale"))
   }
   train_data <- torch::tensor_dataset(torch::torch_tensor(x_train),torch::torch_tensor(y_train)) 
   test_data <- torch::tensor_dataset(torch::torch_tensor(x_test),torch::torch_tensor(y_test))
-  
   if(train_batch_size > length(train_data))(stop('Can not have larger batch size than the amount of training data'))
   if(test_batch_size > length(test_data))(stop('Can not have larger test batch size than the amount of test data'))
   
