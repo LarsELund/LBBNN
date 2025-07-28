@@ -215,9 +215,17 @@ validate_LBBNN <- function(LBBNN,num_samples,test_dl,device = 'cpu'){
 }
 
 
-##create a predict function
-#check if this even works
 
+#'Custom posterior_predict function for LBBNNs.
+#'@description Draw from the (variational) posterior predictive distribution.
+#'@param LBBNN An instance of a trained LBBNN_net.
+#'@param mpm To use the median probability model or not. 
+#'@param newdata A torch dataloader containing the variables with which to predict.
+#'@param draws The number of times to sample from the variational posterior. 
+#'@param device The device to perform the operations on. Default is cpu. 
+#'@param link Link function to apply to the output of the network. 
+#'@return A matrix of size (draws,N,C), where N is the number of data points in the test_loader,
+#'and C the number of classes. (1 for regression).
 #'@export
 posterior_predict.LBBNN <- function(LBBNN,mpm,newdata,draws,device = 'cpu',link = NULL){#should newdata be a dataloader or a dataset?
   LBBNN$eval()
