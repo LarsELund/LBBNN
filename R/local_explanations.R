@@ -138,8 +138,7 @@ plot_local_explanations_gradient <- function(model,input_data,num_samples,device
       min = min,
       max = max
     )
-    #add a row for the prediction
-    #data<-rbind(data,c('prediction',pred_median,pred_quantiles[,cls][1],pred_quantiles[,cls][3]))
+   
    
     print(ggplot2::ggplot(data <- data,ggplot2::aes(x=factor(name,levels = name),
                             y=contribution,
