@@ -47,7 +47,7 @@ LBBNN_Net <- torch::nn_module(
     self$dims <- dims
     self$sizes <- sizes
     self$raw_output <- raw_output # TRUE when we want to compute local explanations
-    self$act <- torch::nn_leaky_relu(0.01) 
+    self$act <- torch::nn_leaky_relu(0.00) 
     if(length(prior) != length(sizes) - 1)(stop('Must have one prior inclusion probability per weight matrix'))
    
     
