@@ -114,7 +114,7 @@ inds <- sample.int(dim(x)[1],1)
 data <- x[inds,]
 plot_local_explanations_gradient(model_input_skip,data,num_samples = 100,device = device)
 ```
-And another one:
+Another (random) one:
 ```{r}
 data <- torch::torch_randn(size = c(1,7))  -2
 plot_local_explanations_gradient(model_input_skip,data,num_samples = 100,device = device)

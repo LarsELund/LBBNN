@@ -4,6 +4,7 @@
 # LBBNN
 
 <!-- badges: start -->
+
 <!-- badges: end -->
 
 The goal of LBBNN is to implement Latent Bayesian Binary Neural Networks
@@ -99,10 +100,10 @@ model averaging, and the validation data.
 ``` r
 validate_LBBNN(LBBNN = model_input_skip,num_samples = 100,test_dl = test_loader,device)
 #> $accuracy_full_model
-#> [1] 0.8888889
+#> [1] 0.9
 #> 
 #> $accuracy_sparse
-#> [1] 0.8944445
+#> [1] 0.9055555
 #> 
 #> $density
 #> [1] 0.2523364
@@ -132,8 +133,8 @@ print(get_input_inclusions(model_input_skip))
 #>    L0 L1 L2
 #> x0  0  0  0
 #> x1  0  0  0
-#> x2  0  0  1
-#> x3  1  1  1
+#> x2  1  0  1
+#> x3  1  0  1
 #> x4  0  0  0
 #> x5  0  0  0
 #> x6  1  0  1
@@ -150,8 +151,8 @@ data <- x[inds,]
 plot_local_explanations_gradient(model_input_skip,data,num_samples = 100,device = device)
 ```
 
-<img src="man/figures/README-unnamed-chunk-8-1.png" width="100%" /> And
-another one:
+<img src="man/figures/README-unnamed-chunk-8-1.png" width="100%" />
+Another (random) one:
 
 ``` r
 data <- torch::torch_randn(size = c(1,7))  -2
