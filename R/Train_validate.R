@@ -27,14 +27,16 @@ library(torch)
 #'model <- LBBNN_Net(problem,sizes,inclusion_priors,stds,inclusion_inits,flow = FALSE)
 #'output <- train_LBBNN(epochs = 10,LBBNN = model, lr = 0.01,train_dl = train_loader)
 #'@export
-train_LBBNN <- function(epochs,LBBNN,lr,train_dl,device = 'cpu'){
+train_LBBNN <- function(epochs,LBBNN,lr,train_dl,device = 'cpu',scheduler = NULL,sch_step_size = NULL){
   opt <- torch::optim_adam(LBBNN$parameters,lr = lr)
   accs <- c()
   losses <-c()
   density <- c()
   out_layer_density <- c()
   active_path_dens <-c()
-  
+  if(scheduler == 'step'){
+    sl <- torch::lr_step(opt,step_size = sch_step_size,gamma = 0.5)
+  }
   for (epoch in 1:epochs) {
   #  if(LBBNN$input_skip){LBBNN$compute_paths_input_skip()}
   #  else(LBBNN$compute_paths)
@@ -91,7 +93,7 @@ train_LBBNN <- function(epochs,LBBNN,lr,train_dl,device = 'cpu'){
       
       
     })
-    
+    sl$step()
     train_acc <- corrects / totals
     if(LBBNN$problem_type != 'regression'){
       cat(sprintf(

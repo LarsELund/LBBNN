@@ -16,10 +16,11 @@ library(torch)
 #' @return A list containing a train_loader and a test_loader object. 
 #'@export 
 get_dataloaders <- function(dataset,train_proportion,train_batch_size,test_batch_size,
-                            standardize = TRUE, shuffle_train = TRUE,shuffle_test = FALSE){
+                            standardize = TRUE, shuffle_train = TRUE,shuffle_test = FALSE,seed = 1){
   if(! inherits(dataset, "data.frame"))stop(paste('dataset must be a data.frame object'))
   if(! inherits(train_proportion, "numeric"))stop(paste(train_proportion,'must be a numeric value'))
   if(train_proportion > 1 | train_proportion < 0)stop(paste(train_proportion,'must be a numeric between 0 and 1'))
+  set.seed(seed)
   sample <- sample.int(n = nrow(dataset), size = floor(train_proportion*nrow(dataset)), replace = FALSE)
   train  <- dataset[sample,]
   test   <- dataset[-sample,]
