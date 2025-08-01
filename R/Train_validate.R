@@ -114,8 +114,8 @@ train_LBBNN <- function(epochs,LBBNN,lr,train_dl,device = 'cpu',scheduler = NULL
     }
     if(LBBNN$problem_type == 'regression'){
       cat(sprintf(
-        "\nEpoch %d, training: loss = %3.5f \n",
-        epoch, mean(train_loss)
+        "\nEpoch %d, training: loss = %3.5f, density = %3.5f \n",
+        epoch, mean(train_loss), LBBNN$density()
       ))
       
       losses <- c(losses,mean(train_loss))
