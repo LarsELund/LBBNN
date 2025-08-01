@@ -11,7 +11,8 @@ get_dataloaders(
   test_batch_size,
   standardize = TRUE,
   shuffle_train = TRUE,
-  shuffle_test = FALSE
+  shuffle_test = FALSE,
+  seed = 1
 )
 }
 \arguments{

@@ -4,7 +4,15 @@
 \alias{train_LBBNN}
 \title{Function to train an instance of LBBNN_Net}
 \usage{
-train_LBBNN(epochs, LBBNN, lr, train_dl, device = "cpu")
+train_LBBNN(
+  epochs,
+  LBBNN,
+  lr,
+  train_dl,
+  device = "cpu",
+  scheduler = NULL,
+  sch_step_size = NULL
+)
 }
 \arguments{
 \item{epochs}{Total number of epochs to train for, where one epoch is a pass through the entire training dataset (all minibatches).}
