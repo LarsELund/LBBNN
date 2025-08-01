@@ -28,3 +28,12 @@
 #' @format  This dataset has 1080 rows and  78 columns.
 #' @source \url{https://pubmed.ncbi.nlm.nih.gov/26111164/}
 "Mice_Dataset"
+
+#' Gallstone Dataset
+#' @description Taken from the UCI machine learning repository. The task is 
+#' to classify whether the patient had gallstones or not. It contains a mix
+#' of demographic data and bioimpedance data.
+#' @format  This dataset has 319 rows and  38 columns.
+#' @source \url{https://pmc.ncbi.nlm.nih.gov/articles/PMC11309733/#T2}
+"Gallstone_Dataset"
+
