@@ -34,9 +34,13 @@ train_LBBNN <- function(epochs,LBBNN,lr,train_dl,device = 'cpu',scheduler = NULL
   density <- c()
   out_layer_density <- c()
   active_path_dens <-c()
-  if(scheduler == 'step'){
-    sl <- torch::lr_step(opt,step_size = sch_step_size,gamma = 0.5)
+  if(! is.null(scheduler)){
+    if(scheduler == 'step'){
+      sl <- torch::lr_step(opt,step_size = sch_step_size,gamma = 0.5)
+    }
   }
+
+  
   for (epoch in 1:epochs) {
   #  if(LBBNN$input_skip){LBBNN$compute_paths_input_skip()}
   #  else(LBBNN$compute_paths)
@@ -93,7 +97,8 @@ train_LBBNN <- function(epochs,LBBNN,lr,train_dl,device = 'cpu',scheduler = NULL
       
       
     })
-    sl$step()
+    if ( !is.null(scheduler)){sl$step()}
+  
     train_acc <- corrects / totals
     if(LBBNN$problem_type != 'regression'){
       cat(sprintf(
