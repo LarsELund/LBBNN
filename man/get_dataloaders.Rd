@@ -30,6 +30,9 @@ Usually a large number e.g. 0.8, but could also be smaller than 0.5 even though 
 \item{shuffle_train}{default is TRUE. Ensures data is randomly shuffled before each iteration.}
 
 \item{shuffle_test}{default is FALSE, as there is no need to shuffle the test data, as the order of the data is irrelevant.}
+
+\item{seed}{The seed used in splitting train/test. Important if one wants to compare to other algorithms that
+do not need to use torch dataloaders.}
 }
 \value{
 A list containing a train_loader and a test_loader object.

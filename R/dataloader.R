@@ -12,7 +12,9 @@ library(torch)
 #' @param test_batch_size How many samples in each batch in the test dataloader. 
 #' @param standardize default is TRUE. Usually an advantage for gradient based optimization.
 #' @param shuffle_train default is TRUE. Ensures data is randomly shuffled before each iteration.
-#' @param shuffle_test  default is FALSE, as there is no need to shuffle the test data, as the order of the data is irrelevant. 
+#' @param shuffle_test  default is FALSE, as there is no need to shuffle the test data, as the order of the data is irrelevant.
+#' @param seed The seed used in splitting train/test. Important if one wants to compare to other algorithms that
+#' do not need to use torch dataloaders.
 #' @return A list containing a train_loader and a test_loader object. 
 #'@export 
 get_dataloaders <- function(dataset,train_proportion,train_batch_size,test_batch_size,

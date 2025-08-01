@@ -8,6 +8,8 @@ library(torch)
 #' @param lr The learning rate to be used in the Adam optimizer.
 #' @param train_dl An instance of torch dataloader, containing the data to be trained.
 #' @param device the device to be trained on. Default is cpu.
+#' @param scheduler A torch learning rate scheduler object. Can be used to decay learning rate for better convergence.
+#' @param sch_step_size Where to decay if using torch::lr_step. E.g. 1000 means learning rate is decayed every 1000 epochs.
 #' @return a list containing the losses and accuracies (if classification) and density for each epoch during training.
 #' For comparisons sake we show the density with and without active paths.
 #' @examples 
@@ -36,7 +38,7 @@ train_LBBNN <- function(epochs,LBBNN,lr,train_dl,device = 'cpu',scheduler = NULL
   active_path_dens <-c()
   if(! is.null(scheduler)){
     if(scheduler == 'step'){
-      sl <- torch::lr_step(opt,step_size = sch_step_size,gamma = 0.5)
+      sl <- torch::lr_step(opt,step_size = sch_step_size,gamma = 0.1)
     }
   }
 

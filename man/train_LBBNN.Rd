@@ -24,6 +24,10 @@ train_LBBNN(
 \item{train_dl}{An instance of torch dataloader, containing the data to be trained.}
 
 \item{device}{the device to be trained on. Default is cpu.}
+
+\item{scheduler}{A torch learning rate scheduler object. Can be used to decay learning rate for better convergence.}
+
+\item{sch_step_size}{Where to decay if using torch::lr_step. E.g. 1000 means learning rate is decayed every 1000 epochs.}
 }
 \value{
 a list containing the losses and accuracies (if classification) and density for each epoch during training.
