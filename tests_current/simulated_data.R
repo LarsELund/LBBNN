@@ -24,7 +24,8 @@ sim_dat <-cbind(sim_dat,y)
 
 
 
-loaders <- get_dataloaders(sim_dat,train_proportion = 0.9,train_batch_size = 1500,test_batch_size = 500)
+loaders <- get_dataloaders(sim_dat,train_proportion = 0.9,train_batch_size = 1500
+                           ,test_batch_size = 500,standardize = FALSE)
 train_loader <- loaders$train_loader
 test_loader <- loaders$test_loader
 
@@ -42,7 +43,7 @@ model_input_skip <- LBBNN_Net(problem_type = problem,sizes = sizes,prior = inclu
 
 
 
-results_input_skip <- train_LBBNN(epochs = 600,LBBNN = model_input_skip,
+results_input_skip <- train_LBBNN(epochs = 1500,LBBNN = model_input_skip,
                                   lr = 0.005,train_dl = train_loader,device = device)
 
 #run validate before plotting
