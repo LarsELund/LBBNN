@@ -206,7 +206,7 @@ LBBNN_Linear <- torch::nn_module(
     }
     
     
-    
+
     return(activations)},
   kl_div = function() {
     z2 <- torch::torch_ones_like(self$weight_mean) #if not flow

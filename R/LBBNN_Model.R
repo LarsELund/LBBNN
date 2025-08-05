@@ -16,6 +16,7 @@ library(torch)
 #' @param dims hidden dimension for the neural network in the RNVP transform.
 #' @param device the device to be trained on. Can be 'cpu', 'gpu' or 'mps'. Default is cpu.
 #' @param raw_output If set to TRUE, the network skips the last sigmoid/softmax layer to compute local explanations.
+#' @param custom_act Allows the user to submit their own activation function. E.g. a different one per neuron.
 #' @param link User can define their own link function (not implemented yet)
 #' @param nll User can define their own likelihood function (not implemented yet)
 #' @examples
@@ -37,7 +38,7 @@ LBBNN_Net <- torch::nn_module(
   
   initialize = function(problem_type,sizes,prior,std,inclusion_inits,input_skip = FALSE,flow = FALSE,
                         num_transforms = 2, dims = c(200,200),
-                        device = 'cpu',raw_output = FALSE,link = NULL, nll = NULL) {
+                        device = 'cpu',raw_output = FALSE,custom_act = NULL,link = NULL, nll = NULL) {
     self$device <- device
     self$layers <- torch::nn_module_list()
     self$problem_type <- problem_type
@@ -47,7 +48,10 @@ LBBNN_Net <- torch::nn_module(
     self$dims <- dims
     self$sizes <- sizes
     self$raw_output <- raw_output # TRUE when we want to compute local explanations
-    self$act <- torch::nn_leaky_relu(0.00) 
+    self$act <- torch::nn_leaky_relu(0.00)
+    if(! is.null(custom_act)){
+      self$act <- custom_act
+      }
     if(length(prior) != length(sizes) - 1)(stop('Must have one prior inclusion probability per weight matrix'))
    
     
