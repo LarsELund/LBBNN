@@ -16,6 +16,7 @@ LBBNN_Net(
   dims = c(200, 200),
   device = "cpu",
   raw_output = FALSE,
+  custom_act = NULL,
   link = NULL,
   nll = NULL
 )
@@ -42,6 +43,8 @@ LBBNN_Net(
 \item{device}{the device to be trained on. Can be 'cpu', 'gpu' or 'mps'. Default is cpu.}
 
 \item{raw_output}{If set to TRUE, the network skips the last sigmoid/softmax layer to compute local explanations.}
+
+\item{custom_act}{Allows the user to submit their own activation function. E.g. a different one per neuron.}
 
 \item{link}{User can define their own link function (not implemented yet)}
 
