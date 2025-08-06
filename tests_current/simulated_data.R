@@ -10,7 +10,7 @@ torch::torch_manual_seed(2)
 X <- matrix(rnorm(N*p,mean =-0.1 ,sd = 0.1), ncol = p)
 
 #make some X relevant for prediction
-y_base <-  0.3 * log(abs(X[,1])) + 0.2* cos(X[,2] * 2 * pi) + 3* X[,3] * X[,4] + 2.4 * X[,5] - 2* X[,6] **2 + rnorm(N,sd = 0.01) 
+y_base <-  0.1 * log(abs(X[,1])) + 0.2* cos(X[,2] * 2 * pi) + 3* X[,3] * X[,4] - 0.2 * X[,5] - 2* X[,6] **2 + rnorm(N,sd = 0.01) 
 hist(y_base)
 y <- c()
 # change y to 0 and 1
@@ -43,8 +43,8 @@ model_input_skip <- LBBNN_Net(problem_type = problem,sizes = sizes,prior = inclu
 
 
 
-results_input_skip <- train_LBBNN(epochs = 1500,LBBNN = model_input_skip,
-                                  lr = 0.005,train_dl = train_loader,device = device)
+results_input_skip <- train_LBBNN(epochs = 500,LBBNN = model_input_skip,
+                                  lr = 0.01,train_dl = train_loader,device = device)
 
 #run validate before plotting
 validate_LBBNN(LBBNN = model_input_skip,num_samples = 10,test_dl = test_loader,device)
@@ -54,7 +54,6 @@ LBBNN_plot(model_input_skip,layer_spacing = 1,neuron_spacing = 1,vertex_size = 1
 
 #get a random sample from the dataloader
 x <- torch::dataloader_next(torch::dataloader_make_iter(train_loader))[[1]]
-set.seed(1)
 inds <- sample.int(dim(x)[1],2)
 
 d1 <- x[inds[1],]
