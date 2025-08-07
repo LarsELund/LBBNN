@@ -1,16 +1,16 @@
 library(torch)
 
 
-N = 5000
-p = 15
+i = 5000
+j = 15
 
 set.seed(2)
 torch::torch_manual_seed(2)
 #generate some data
-X <- matrix(rnorm(N*p,mean =-0.1 ,sd = 0.1), ncol = p)
+X <- matrix(rnorm(i*j,mean =-0.1 ,sd = 0.1), ncol = p)
 
 #make some X relevant for prediction
-y_base <-  0.1 * log(abs(X[,1])) + 3 * cos(X[,2]) + 2* X[,3] * X[,4] + 2.4 * X[,5] - 2* X[,6] **2 + rnorm(N,sd = 0.01) 
+y_base <-  0.1 * log(abs(X[,1])) + 3 * cos(X[,2]) + 2* X[,3] * X[,4] + 2 * X[,5] - 2* X[,6] **2 + rnorm(N,sd = 0.01) 
 hist(y_base)
 y <- c()
 # change y to 0 and 1
@@ -24,17 +24,18 @@ sim_data <-cbind(sim_data,y)
 
 
 
-loaders <- get_dataloaders(sim_data,train_proportion = 0.9,train_batch_size = 1500
-                           ,test_batch_size = 500,standardize = FALSE)
+loaders <- get_dataloaders(sim_data,train_proportion = 0.9,
+                           train_batch_size = 1500,test_batch_size = 500,
+                           standardize = FALSE)
 train_loader <- loaders$train_loader
-test_loader <- loaders$test_loader
+test_loader  <- loaders$test_loader
 
 problem <- 'binary classification'
-sizes <- c(p,5,5,1) #p input variables
-inclusion_priors <-c(0.5,0.5,0.5) #one prior probability per weight matrix.
-stds <- c(100,100,100) #prior standard deviation for each layer.
-inclusion_inits <- matrix(rep(c(-10,10),3),nrow = 2,ncol = 3) #one low and high for each layer
-device <- 'cpu' #can also be mps or gpu.
+sizes <- c(j,5,5,1) # 2 hidden layers, 5 neurons in each 
+incl_priors <-c(0.5,0.5,0.5) #prior inclusion probs for each weight matrix
+stds <- c(100,100,100) #prior distribution for the standard deviation of the weights
+incl_inits <- matrix(rep(c(-10,10),3),nrow = 2,ncol = 3) #initializations for inclusion params
+device <- 'cpu' #can also be 'gpu' or 'mps'
 
 
 model_input_skip <- LBBNN_Net(problem_type = problem,sizes = sizes,prior = inclusion_priors,
