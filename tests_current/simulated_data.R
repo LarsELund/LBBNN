@@ -10,7 +10,7 @@ torch::torch_manual_seed(2)
 X <- matrix(rnorm(N*p,mean =-0.1 ,sd = 0.1), ncol = p)
 
 #make some X relevant for prediction
-y_base <-  0.1 * log(abs(X[,1])) + 0.2* cos(X[,2] * 2 * pi) + 3* X[,3] * X[,4] - 0.2 * X[,5] - 2* X[,6] **2 + rnorm(N,sd = 0.01) 
+y_base <-  0.1 * log(abs(X[,1])) + 3 * cos(X[,2]) + 2* X[,3] * X[,4] + 2.4 * X[,5] - 2* X[,6] **2 + rnorm(N,sd = 0.01) 
 hist(y_base)
 y <- c()
 # change y to 0 and 1
@@ -18,13 +18,13 @@ y[y_base > median(y_base)] = 1
 y[y_base <= median(y_base)] = 0
 
 
-sim_dat <- as.data.frame(X)
-sim_dat <-cbind(sim_dat,y)
+sim_data <- as.data.frame(X)
+sim_data <-cbind(sim_data,y)
 
 
 
 
-loaders <- get_dataloaders(sim_dat,train_proportion = 0.9,train_batch_size = 1500
+loaders <- get_dataloaders(sim_data,train_proportion = 0.9,train_batch_size = 1500
                            ,test_batch_size = 500,standardize = FALSE)
 train_loader <- loaders$train_loader
 test_loader <- loaders$test_loader
@@ -43,8 +43,8 @@ model_input_skip <- LBBNN_Net(problem_type = problem,sizes = sizes,prior = inclu
 
 
 
-results_input_skip <- train_LBBNN(epochs = 500,LBBNN = model_input_skip,
-                                  lr = 0.01,train_dl = train_loader,device = device)
+results_input_skip <- train_LBBNN(epochs = 1000,LBBNN = model_input_skip,
+                                  lr = 0.005,train_dl = train_loader,device = device)
 
 #run validate before plotting
 validate_LBBNN(LBBNN = model_input_skip,num_samples = 10,test_dl = test_loader,device)
