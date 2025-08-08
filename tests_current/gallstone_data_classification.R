@@ -66,11 +66,7 @@ LBBNN_plot(model_input_skip,layer_spacing = 1,neuron_spacing = 1,vertex_size =3,
 x <- torch::dataloader_next(torch::dataloader_make_iter(train_loader))[[1]]
 set.seed(seed)
 index <- sample.int(dim(x)[1],1)
-
 sample_data <- x[index,]
-
-
-
 plot_local_explanations_gradient(model_input_skip,sample_data,num_samples = 100)
 
 
