@@ -44,8 +44,8 @@ model_input_skip <- LBBNN_Net(problem_type = problem,sizes = sizes,prior = inclu
 
 
 
-results_input_skip <- train_LBBNN(epochs = 1000,LBBNN = model_input_skip,
-                                  lr = 0.005,train_dl = train_loader,device = device)
+train_LBBNN(epochs = 1000,LBBNN = model_input_skip,
+                  lr = 0.005,train_dl = train_loader,device = device)
 
 #run validate before plotting
 validate_LBBNN(LBBNN = model_input_skip,num_samples = 10,test_dl = test_loader,device)
