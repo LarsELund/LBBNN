@@ -260,7 +260,7 @@ LBBNN_plot <- function(model,layer_spacing,neuron_spacing,vertex_size,edge_width
     
   }
   
-  plot(g,vertex.size = vertex_size,vertex.label.cex = 0.5, 
+  plot(g,vertex.size = vertex_size,vertex.label.cex = 0.3, 
        edge.color = 'black',vertex.label.color='black',
        edge.width = edge_width, layout = -plot_points[,2:1],edge.arrow.mode = '-',margin = 0.0)
  

@@ -52,27 +52,27 @@ model_input_skip <- LBBNN_Net(problem_type = problem,sizes = sizes,prior = inclu
 
 
 
-results_input_skip <- train_LBBNN(epochs = 750,LBBNN = model_input_skip,
+results_input_skip <- train_LBBNN(epochs = 1000,LBBNN = model_input_skip,
                                   lr = 0.005,train_dl = train_loader,device = device,
                                   scheduler = 'step',sch_step_size = 1000)
 
 #need to run validate before plotting
 validate_LBBNN(LBBNN = model_input_skip,num_samples = 100,test_dl = test_loader,device)
 
-LBBNN_plot(model_input_skip,layer_spacing = 1,neuron_spacing = 1,vertex_size =5,edge_width = 0.5)
+LBBNN_plot(model_input_skip,layer_spacing = 1,neuron_spacing = 1,vertex_size =3,edge_width = 0.5)
 
 
 #get a random sample from the dataloader
 x <- torch::dataloader_next(torch::dataloader_make_iter(train_loader))[[1]]
-set.seed(1)
-inds <- sample.int(dim(x)[1],2)
+set.seed(seed)
+index <- sample.int(dim(x)[1],1)
 
-d1 <- x[inds[1],]
-d2 <- x[inds[2],]
+sample_data <- x[index,]
 
 
-plot_local_explanations_gradient(model_input_skip,d1,num_samples = 100)
-plot_local_explanations_gradient(model_input_skip,d2,num_samples = 100)
+
+plot_local_explanations_gradient(model_input_skip,sample_data,num_samples = 100)
+
 
 
 
