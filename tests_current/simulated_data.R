@@ -34,7 +34,7 @@ problem <- 'binary classification'
 sizes <- c(j,5,5,1) # 2 hidden layers, 5 neurons in each 
 incl_priors <-c(0.5,0.5,0.5) #prior inclusion probs for each weight matrix
 stds <- c(100,100,100) #prior distribution for the standard deviation of the weights
-incl_inits <- matrix(rep(c(-10,10),3),nrow = 2,ncol = 3) #initializations for inclusion params
+incl_inits <- matrix(rep(c(-15,10),3),nrow = 2,ncol = 3) #initializations for inclusion params
 device <- 'cpu' #can also be 'gpu' or 'mps'
 
 
@@ -45,12 +45,11 @@ model_input_skip <- LBBNN_Net(problem_type = problem,sizes = sizes,prior = inclu
 
 
 train_LBBNN(epochs = 1000,LBBNN = model_input_skip,
-                  lr = 0.005,train_dl = train_loader,device = device)
+            lr = 0.005,train_dl = train_loader,device = device)
 
-#run validate before plotting
 validate_LBBNN(LBBNN = model_input_skip,num_samples = 10,test_dl = test_loader,device)
 
-LBBNN_plot(model_input_skip,layer_spacing = 1,neuron_spacing = 1,vertex_size = 10,edge_width = 0.5)
+LBBNN_plot(model_input_skip,layer_spacing = 1,neuron_spacing = 1,vertex_size = 8,edge_width = 0.5)
 
 
 #get a random sample from the dataloader
