@@ -31,14 +31,14 @@ ground_truth <- test$outcome
 
 
 problem <- 'regression'
-sizes <- c(23,5,5,1) #7 input variables, one hidden layer of 100 neurons, 1 output neuron.
-inclusion_priors <-c(0.5,0.5,0.5) #one prior probability per weight matrix.
-stds <- c(1,1,1) #prior standard deviation for each layer.
+sizes <- c(23,10,1) #7 input variables, one hidden layer of 100 neurons, 1 output neuron.
+inclusion_priors <-c(0.5,0.5) #one prior probability per weight matrix.
+stds <- c(0.1,1) #prior standard deviation for each layer.
 
 
 #note, having init from (0,5) seeems to reduce it to a linear model with around 83 % acc, similar to what the 
 #paper reports for logistic regression
-inclusion_inits <- matrix(rep(c(-10,15),3),nrow = 2,ncol = 3) #one low and high for each layer
+inclusion_inits <- matrix(rep(c(-20,1),3),nrow = 2,ncol = 3) #one low and high for each layer
 device <- 'cpu' #can also be mps or gpu.
 
 
@@ -49,7 +49,7 @@ model_input_skip <- LBBNN_Net(problem_type = problem,sizes = sizes,prior = inclu
 
 
 
-results_input_skip <- train_LBBNN(epochs = 500,LBBNN = model_input_skip,
+results_input_skip <- train_LBBNN(epochs = 1000,LBBNN = model_input_skip,
                                   lr = 0.01,train_dl = train_loader,device = device,
                                   scheduler = 'step',sch_step_size = 10000)
 
