@@ -43,21 +43,21 @@ train_loader <- loaders$train_loader
 test_loader <- loaders$test_loader
 ```
 
-To initialize the LBBNN, we need to define some hyperparameters.
-Firstly, the user has to define what type of problem it is. This could
-be either binary classification (as in this case), multiclass
-classification (more than two classes), or regression (continous
-output). In addition the user defines a size vector, where the first
-element is the number of variables in the dataset (7 in this case), the
-last element is the number of output neurons (1 in our case), and the
-elements in between define the number of neurons in the hidden layer(s).
-The user must define the prior inclusion probability for each weight
-matrix (where each weight will have the same prior probability). This is
-an important parameter, as it controls what prior knowledge the user may
-have about how dense they believe the network should be. In addition to
-this, the user defines the prior standard deviation for the weight and
-bias parameters. The user also defines the initialization of the
-inclusion parameters.
+To initialize the LBBNN, we need to define some hyperparameters. First,
+the user has to define what type of problem it is. This could be either
+binary classification (as in this case), multiclass classification (more
+than two classes), or regression (continous output). In addition the
+user defines a size vector, where the first element is the number of
+variables in the dataset (7 in this case), the last element is the
+number of output neurons (1 in our case), and the elements in between
+define the number of neurons in the hidden layer(s). The user must
+define the prior inclusion probability for each weight matrix (where
+each weight will have the same prior probability). This is an important
+parameter, as it controls what prior knowledge the user may have about
+how dense they believe the network should be. In addition to this, the
+user defines the prior standard deviation for the weight and bias
+parameters. The user also defines the initialization of the inclusion
+parameters.
 
 ``` r
 problem <- 'binary classification'
@@ -100,10 +100,10 @@ model averaging, and the validation data.
 ``` r
 validate_LBBNN(LBBNN = model_input_skip,num_samples = 100,test_dl = test_loader,device)
 #> $accuracy_full_model
-#> [1] 0.9
+#> [1] 0.8722222
 #> 
 #> $accuracy_sparse
-#> [1] 0.9055555
+#> [1] 0.8666667
 #> 
 #> $density
 #> [1] 0.2523364
@@ -133,8 +133,8 @@ print(get_input_inclusions(model_input_skip))
 #>    L0 L1 L2
 #> x0  0  0  0
 #> x1  0  0  0
-#> x2  1  0  1
-#> x3  1  0  1
+#> x2  0  0  1
+#> x3  1  1  1
 #> x4  0  0  0
 #> x5  0  0  0
 #> x6  1  0  1

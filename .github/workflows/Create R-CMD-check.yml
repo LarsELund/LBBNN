@@ -1,0 +1,59 @@
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+#
+# See https://github.com/r-lib/actions/tree/master/examples#readme for
+# additional example workflows available for the R community.
+
+# ======================================================== #
+# Determines when the action is triggered                  #
+# ======================================================== #
+
+on: [push, pull_request]
+name: R-CMD-check
+
+# ======================================================== #
+# Determine actions to take                                #
+# ======================================================== #
+
+jobs:
+  R-CMD-check:
+    runs-on: ${{ matrix.config.os }}
+    name: ${{ matrix.config.os }} (R ${{ matrix.config.r }})
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - {os: windows-latest, r: 'release'}
+          - {os: macOS-latest, r: 'release'}
+          - {os: ubuntu-latest, r: 'release'}
+          - {os: ubuntu-latest, r: 'devel', http-user-agent: 'release'}
+          - {os: ubuntu-latest, r: 'oldrel-1'}
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      R_KEEP_PKG_SOURCE: yes
+    steps:
+        - name: Checking out the repository
+          uses: actions/checkout@v3
+
+        - name: Setting up pandoc
+          uses: r-lib/actions/setup-pandoc@v2
+
+        - name: Setting up R ${{ matrix.config.r }} on ${{ matrix.config.os }}
+          uses: r-lib/actions/setup-r@v2
+          with:
+            r-version: ${{ matrix.config.r }}
+            http-user-agent: ${{ matrix.config.http-user-agent }}
+            use-public-rspm: true
+
+        - name: Querying dependencies
+          uses: r-lib/actions/setup-r-dependencies@v2
+          with:
+            extra-packages: any::rcmdcheck
+            needs: check
+
+        - name: Checking package
+          uses: r-lib/actions/check-r-package@v2
+          with:
+            upload-snapshots: true
