@@ -11,8 +11,8 @@ Custom_activation <- nn_module(
     x2 <- x[,2]
     x3 <- x[,3]
     x4 <- x[,4:shapes[2]]
-    x1 <- torch::torch_sin(x1)$unsqueeze(2)
-    x2 <- torch::torch_cos(x2)$unsqueeze(2)
+    x1 <- torch::torch_exp(x1)$unsqueeze(2)
+    x2 <- torch::torch_sigmoid(x2)$unsqueeze(2)
     x3 <- (x3^2)$unsqueeze(2)
     x4 <- self$act(x4)
      
