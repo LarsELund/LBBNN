@@ -7,10 +7,10 @@ j = 15
 set.seed(2)
 torch::torch_manual_seed(2)
 #generate some data
-X <- matrix(rnorm(i*j,mean =-0.1 ,sd = 0.1), ncol = p)
+X <- matrix(rnorm(i*j,mean =-0.1 ,sd = 0.1), ncol = j)
 
 #make some X relevant for prediction
-y_base <-  0.1 * log(abs(X[,1])) + 3 * cos(X[,2]) + 2* X[,3] * X[,4] + 2 * X[,5] - 2* X[,6] **2 + rnorm(N,sd = 0.01) 
+y_base <-  0.1 * log(abs(X[,1])) + 3 * cos(X[,2]) + 2* X[,3] * X[,4] + 2 * X[,5] - 2* X[,6] **2 + rnorm(i,sd = 0.01) 
 hist(y_base)
 y <- c()
 # change y to 0 and 1
@@ -38,8 +38,8 @@ incl_inits <- matrix(rep(c(-15,10),3),nrow = 2,ncol = 3) #initializations for in
 device <- 'cpu' #can also be 'gpu' or 'mps'
 
 
-model_input_skip <- LBBNN_Net(problem_type = problem,sizes = sizes,prior = inclusion_priors,
-                              inclusion_inits = inclusion_inits,input_skip = TRUE,std = stds,
+model_input_skip <- LBBNN_Net(problem_type = problem,sizes = sizes,prior = incl_priors,
+                              inclusion_inits = incl_inits,input_skip = TRUE,std = stds,
                               flow = TRUE,device = device)
 
 
