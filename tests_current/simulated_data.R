@@ -1,5 +1,6 @@
 library(torch)
 
+### this is the version used in the tutorial 1 in the paper 
 
 i = 5000
 j = 15
