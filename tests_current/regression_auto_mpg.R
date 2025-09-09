@@ -3,11 +3,14 @@ library(torch)
 library(gbm)
 library(mltools)
 
-
-seed = 42
+## performance of our method seems highly dependent on seed, 
+## with seed = 42 it is on par with GBM, but much worse with others, e.g. 4
+## so we have some convergence issues here, or in general some problems with
+## regression? need to check this further 
+seed <- 42
 torch::torch_manual_seed(seed)
 loaders <- get_dataloaders(mgp_dataset,train_proportion = 0.80,
-                           train_batch_size = 150,test_batch_size = 80,standardize = FALSE,seed = seed)
+                           train_batch_size = 318,test_batch_size = 80,standardize = TRUE,seed = seed)
 train_loader <- loaders$train_loader
 test_loader <- loaders$test_loader
 
@@ -31,24 +34,24 @@ ground_truth <- test$outcome
 
 
 problem <- 'regression'
-sizes <- c(23,10,1) 
-inclusion_priors <-c(0.5,0.5) #one prior probability per weight matrix.
-stds <- c(0.1,0.01) #prior standard deviation for each layer.
+sizes <- c(23,10,1) #7 input variables, one hidden layer of 100 neurons, 1 output neuron.
+inclusion_priors <-c(0.5,0.5 ) #one prior probability per weight matrix.
+stds <- c(0.1,1) #prior standard deviation for each layer.
 
 
-inclusion_inits <- matrix(rep(c(0,20),3),nrow = 2,ncol = 3) #one low and high for each layer
+inclusion_inits <- matrix(rep(c(-20,1),2),nrow = 2,ncol = 2) #one low and high for each layer
 device <- 'cpu' #can also be mps or gpu.
 
 
 
 model_input_skip <- LBBNN_Net(problem_type = problem,sizes = sizes,prior = inclusion_priors,
                               inclusion_inits = inclusion_inits,input_skip = TRUE,std = stds,
-                              flow = FALSE,device = device)
+                              flow = TRUE,device = device)
 
 
 
-results_input_skip <- train_LBBNN(epochs = 500,LBBNN = model_input_skip,
-                                  lr = 0.001,train_dl = train_loader,device = device,
+results_input_skip <- train_LBBNN(epochs = 5000,LBBNN = model_input_skip,
+                                  lr = 0.005,train_dl = train_loader,device = device,
                                   scheduler = 'step',sch_step_size = 10000)
 
 #need to run validate before plotting
@@ -69,7 +72,7 @@ plot_local_explanations_gradient(model_input_skip,d1,num_samples = 100)
 plot_local_explanations_gradient(model_input_skip,d2,num_samples = 100)
 
 
-b <- posterior_predict.LBBNN(model_input_skip,mpm = TRUE,test_loader,draws = 1000)
+b <- posterior_predict.LBBNN(model_input_skip,mpm = TRUE,test_loader,draws = 100)
 b<-b$squeeze()
 b <- torch::torch_mean(b,dim = 1)
 b <- as.numeric(b)
