@@ -2,6 +2,8 @@ library(ggplot2)
 library(torch)
 library(gbm)
 
+#code for example two in the overleaf article
+
 
 seed = 42
 torch::torch_manual_seed(seed)
@@ -10,9 +12,9 @@ loaders <- get_dataloaders(Gallstone_Dataset,train_proportion = 0.70,
 train_loader <- loaders$train_loader
 test_loader <- loaders$test_loader
 
-#first, check how good xboost does on this dataset
 #the paper reports approx 85% accuracy
 #https://pmc.ncbi.nlm.nih.gov/articles/PMC11309733/#T2
+
 
 
 set.seed(seed)
