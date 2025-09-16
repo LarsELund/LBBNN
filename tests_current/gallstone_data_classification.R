@@ -5,7 +5,7 @@ library(gbm)
 #code for example two in the overleaf article
 
 
-seed = 42
+seed <- 42
 torch::torch_manual_seed(seed)
 loaders <- get_dataloaders(Gallstone_Dataset,train_proportion = 0.70,
                   train_batch_size = 223,test_batch_size = 96,standardize = TRUE,seed = seed)
