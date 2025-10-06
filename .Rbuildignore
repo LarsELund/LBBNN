@@ -1,3 +1,10 @@
+^\.github$
+^Rplot.*$
+^Rplots\.pdf$
+^dataset$
+^tests_current$
+^LBBNN\.Rproj$
+^\.Rproj\.user$
 ^README\.Rmd$
 ^LICENSE\.md$
 ^.*\.Rproj$

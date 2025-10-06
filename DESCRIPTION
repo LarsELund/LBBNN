@@ -17,7 +17,5 @@ Imports:
     ggplot2,
     torch,
     igraph,
-    coro,
-    gbm,
-    latex2exp
+    coro
  
