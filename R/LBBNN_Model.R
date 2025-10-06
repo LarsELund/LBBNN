@@ -189,7 +189,7 @@ LBBNN_Net <- torch::nn_module(
     
   },
   compute_paths_input_skip = function(){
-    if(model$input_skip == FALSE){
+    if(self$input_skip == FALSE){
       stop('model$input_skip must be TRUE to use this funciton')
     }
  
