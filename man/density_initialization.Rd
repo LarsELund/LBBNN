@@ -19,7 +19,7 @@ A vector of size two c(lower,upper)
 \description{
 Generate initialization for the inclusion parameters.
 This will control the initial density of the network, and thus an important tuning
-parameter. The intialization parameters are sampled from 1/(1+exp(-U)),
+parameter. The initialization parameters are sampled from 1/(1+exp(-U)),
 with U ~ Uniform(lower,upper)
 }
 \examples{

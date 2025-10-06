@@ -13,7 +13,7 @@ std_prior(x, device = "cpu")
 }
 \value{
 a numeric to be added to either (out_shape,in_shape) in case of linear layers
-or (out_channels,in_channels,kernel0,kernel1) in case of conv layers
+or (out_channels,in_channels,kernel0,kernel1) in case of convolutional layers
 }
 \description{
 A function to generate prior standard deviations for

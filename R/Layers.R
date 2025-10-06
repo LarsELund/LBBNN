@@ -6,9 +6,9 @@ library(torch)
 #' each weight in an LBBNN layer. Currently only the same probability for each
 #' weight in a layer is allowed. 
 #' @param x A number between 0 and 1.
-#' @param device The devive to be trained on
+#' @param device The device to be trained on
 #' @return a numeric to be added to either (out_shape,in_shape) in case of linear layers
-#' or (out_channels,in_channels,kernel0,kernel1) in case of conv layers
+#' or (out_channels,in_channels,kernel0,kernel1) in case of convolutional layers
 #' @examples
 #' alpha_prior(0.25)
 #' @export
@@ -33,7 +33,7 @@ alpha_prior <- function(x,device = 'cpu') {
 #' @param x A number greater than 0.
 #' @param device device to train on
 #' @return a numeric to be added to either (out_shape,in_shape) in case of linear layers
-#' or (out_channels,in_channels,kernel0,kernel1) in case of conv layers
+#' or (out_channels,in_channels,kernel0,kernel1) in case of convolutional layers
 #' @examples
 #' std_prior(0.3)
 #' @export
@@ -54,7 +54,7 @@ std_prior <- function(x,device = 'cpu') {
 #' Function to get initialization values for the inclusion parameters
 #' @description Generate initialization for the inclusion parameters.
 #' This will control the initial density of the network, and thus an important tuning
-#' parameter. The intialization parameters are sampled from 1/(1+exp(-U)),
+#' parameter. The initialization parameters are sampled from 1/(1+exp(-U)),
 #' with U ~ Uniform(lower,upper) 
 #' @param lower a number
 #' @param upper a number, greater than lower

@@ -21,15 +21,19 @@ LBBNN_plot(model, layer_spacing, neuron_spacing, vertex_size, edge_width)
 Uses igraph to plot. Some issues related to the sizes and spacing.
 }
 \examples{
-sizes <- c(2,3,3,2) 
+\donttest{
+sizes <- c(2,3,3,2)
 problem <- 'multiclass classification'
-inclusion_priors <-c(0.1,0.1,0.1) #one prior probability per weight matrix.
-std_priors <-c(1.0,1.0,1.0) #one prior probability per weight matrix.
-inclusion_inits <- matrix(rep(c(-10,10),3),nrow = 2,ncol = 3)
+inclusion_priors <- c(0.1,0.1,0.1)
+std_priors <- c(1.0,1.0,1.0)
+inclusion_inits <- matrix(rep(c(-10,10),3), nrow = 2, ncol = 3)
 device <- 'cpu'
 torch::torch_manual_seed(0)
-model <- LBBNN_Net(problem_type = problem,sizes = sizes,
-                  prior = inclusion_priors,inclusion_inits =inclusion_inits ,input_skip = TRUE,
-                std = std_priors,flow = FALSE,num_transforms = 2,dims = c(200,200),device = device)
-LBBNN_plot(model,1,1,14,1)
+model <- LBBNN_Net(problem_type = problem, sizes = sizes,
+                   prior = inclusion_priors, inclusion_inits = inclusion_inits,
+                   input_skip = TRUE, std = std_priors, flow = FALSE,
+                   num_transforms = 2, dims = c(200,200), device = device)
+model$compute_paths_input_skip()
+LBBNN_plot(model, 1, 1, 14, 1)
+}
 }
