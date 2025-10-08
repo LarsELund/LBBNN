@@ -19,6 +19,7 @@ library(torch)
 #' @param custom_act Allows the user to submit their own activation function. E.g. a different one per neuron.
 #' @param link User can define their own link function (not implemented yet)
 #' @param nll User can define their own likelihood function (not implemented yet)
+#' @param bias_inclusion_prob determines whether the bias should be as associated with inclusion probabilities. TRUE or FALSE  
 #' @examples
 #' layers <- c(20,200,200,5) #Two hidden layers 
 #' alpha <- c(0.3,0.5,0.9)  # One prior inclusion probability for each weight matrix 
@@ -38,12 +39,13 @@ LBBNN_Net <- torch::nn_module(
   
   initialize = function(problem_type,sizes,prior,std,inclusion_inits,input_skip = FALSE,flow = FALSE,
                         num_transforms = 2, dims = c(200,200),
-                        device = 'cpu',raw_output = FALSE,custom_act = NULL,link = NULL, nll = NULL) {
+                        device = 'cpu',raw_output = FALSE,custom_act = NULL,link = NULL, nll = NULL, bias_inclusion_prob = FALSE) {
     self$device <- device
     self$layers <- torch::nn_module_list()
     self$problem_type <- problem_type
     self$input_skip <- input_skip
     self$flow <- flow
+    self$bias_inclusion_prob <- bias_inclusion_prob
     self$num_transforms <- num_transforms
     self$dims <- dims
     self$sizes <- sizes
@@ -62,18 +64,31 @@ LBBNN_Net <- torch::nn_module(
      for(i in 1:(length(sizes)-2)){
       if(i == 1 || input_skip == FALSE){in_shape <- sizes[i]} #no input skip on the first layer or with std LBBNNs
       else(in_shape <- sizes[i] + sizes[1])
-      self$layers$append(LBBNN_Linear(in_shape,sizes[i+1],prior_inclusion = prior[i],
-                        standard_prior = std[i],density_init = inclusion_inits[,i],
-                        flow = self$flow,num_transforms = self$num_transforms, hidden_dims = self$dims,
-                        device=self$device))
+      self$layers$append(LBBNN_Linear(
+        in_shape,
+        sizes[i+1],
+        prior_inclusion = prior[i],
+        standard_prior = std[i],
+        density_init = inclusion_inits[,i],
+        flow = self$flow,
+        num_transforms = self$num_transforms, 
+        hidden_dims = self$dims,
+        device=self$device,
+        bias_inclusion_prob=self$bias_inclusion_prob))
     }
     if(input_skip){out_size <- sizes[length(sizes) - 1] + sizes[1]
     }else{out_size <- sizes[length(sizes) - 1]}
-    self$out_layer <- (LBBNN_Linear(out_size,sizes[length(sizes)]
-                      ,prior_inclusion = prior[length(prior)],standard_prior = std[length(std)],
-
-                      density_init = inclusion_inits[,ncol(inclusion_inits)],flow = self$flow,
-                      num_transforms = self$num_transforms,hidden_dims = self$dims,device=self$device))
+    self$out_layer <- (LBBNN_Linear(
+      out_size,
+      sizes[length(sizes)],
+      prior_inclusion = prior[length(prior)],
+      standard_prior = std[length(std)],
+      density_init = inclusion_inits[,ncol(inclusion_inits)],
+      flow = self$flow,
+      num_transforms = self$num_transforms,
+      hidden_dims = self$dims,
+      device=self$device,
+      bias_inclusion_prob=self$bias_inclusion_prob))
 
 
     if(problem_type == 'binary classification'){
@@ -136,7 +151,7 @@ LBBNN_Net <- torch::nn_module(
     return(kl)
   },
   compute_paths = function(){
-    if(model$input_skip == TRUE){
+    if(self$input_skip == TRUE){
       stop('model$input_skip must be FALSE to use this funciton')
     }
    
