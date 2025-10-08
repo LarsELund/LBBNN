@@ -13,7 +13,8 @@ LBBNN_Linear(
   flow = FALSE,
   num_transforms = 2,
   hidden_dims = c(200, 200),
-  device = "cpu"
+  device = "cpu",
+  bias_inclusion_prob = FALSE
 )
 }
 \arguments{
@@ -34,6 +35,8 @@ LBBNN_Linear(
 \item{hidden_dims}{Dimension of the hidden layer(s) in the neural networks of the RNVP transform.}
 
 \item{device}{The device to be used. Default is CPU.}
+
+\item{bias_inclusion_prob}{determines whether the bias should be as associated with inclusion probabilities. TRUE or FALSE}
 }
 \description{
 Includes function for forward pass, where one can
