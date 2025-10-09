@@ -1,6 +1,5 @@
 library(torch)
 library(ggplot2)
-library(latex2exp)
 
 #' Function to get gradient based local explanations.
 #' @description Works by computing the gradient wrt to input, given we have
@@ -70,20 +69,7 @@ get_local_explanations_gradient <- function(model,input_data,
 
 
 
-problem <- 'multiclass classification'
-sizes <- c(7,3,3,10) 
-inclusion_priors <-c(0.1,0.1,0.1) #one prior probability per weight matrix.
-std_priors <-c(1.0,1.0,1.0) #one prior probability per weight matrix.
-inclusion_inits <- matrix(rep(c(-10,10),3),nrow = 2,ncol = 3)
-device <- 'mps'
-torch_manual_seed(0)
-model <- LBBNN_Net(problem_type = problem,sizes = sizes,
-                   prior = inclusion_priors,inclusion_inits =inclusion_inits ,input_skip = TRUE,
-                   std = std_priors,flow = FALSE,num_transforms = 2,dims = c(200,200),device = device)
-
-
-
-### next is to plot the contributions with error bars
+# next is to plot the contributions with error bars
 
 #' Function to obtain empirical 95% confidence interval, including the median
 #' @description Using the built in quantile function to return 95% confidence interval

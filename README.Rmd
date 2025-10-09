@@ -16,15 +16,16 @@ knitr::opts_chunk$set(
 # LBBNN
 
 <!-- badges: start -->
+
+[![](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental) [![](https://img.shields.io/github/last-commit/LarsELund/LBBNN.svg)](https://github.com/LarsELund/LBBNN/commits/main) [![](https://img.shields.io/github/languages/code-size/LarsELund/LBBNN.svg)](https://github.com/LarsELund/LBBNN) [![R-CMD-check](https://github.com/LarsELund/LBBNN/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/LarsELund/LBBNN/actions) [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 <!-- badges: end -->
 
-The goal of the LBBNN package is to implement Latent Bayesian Binary Neural Networks (https://openreview.net/pdf?id=d6kqUKzG3V) in R, 
-using the torch for R package. Currently, standard LBBNNs are implemented. In the future,
-we will also implement LBBNNs with input-skip (see https://arxiv.org/abs/2503.10496).
+The goal of LBBNN is to implement Latent Bayesian Binary Neural Networks (<https://openreview.net/pdf?id=d6kqUKzG3V>) in R, using the torch for R package. Currently, standard LBBNNs are implemented. In the future, we will also implement LBBNNs with input-skip (see <https://arxiv.org/abs/2503.10496>).
 
 ## Installation
 
-You can install the development version of LBBNN from [GitHub](https://github.com/) with:
+You can install the development version of LBBNN from [GitHub](https://github.com/LarsELund/LBBNN) with:
 
 ``` r
 # install.packages("pak")
@@ -33,9 +34,7 @@ pak::pak("LarsELund/LBBNN")
 
 ## Example
 
-This is a basic example which shows you how to implement a simple feed forward
-LBBNN on the raisin dataset, both using the mean-field posterior, and normalizing flows. 
-First we demonstrate how to pre-process the data so it can be used in the torch eco-system
+This is a basic example which shows you how to implement a simple feed forward LBBNN on the raisin dataset, both using the mean-field posterior, and normalizing flows. First we demonstrate how to preprocess the data so it can be used in the torch ecosystem
 
 ```{r example}
 library(LBBNN)
@@ -50,10 +49,8 @@ train_loader <- loaders$train_loader
 test_loader <- loaders$test_loader
 
 ```
-To initialize the LBBNN, we need to define some hyperparameters. First, the user has
-to define what type of problem it is. This could be either binary classification (as in this case), multiclass classification
-(more than two classes), or regression (continous output). In addition the user defines a size vector, where the first element
-is the number of variables in the dataset (7 in this case), the last element is the number of output neurons (1 in our case), and the elements in between define the number of neurons in the hidden layer(s).  The user must define the prior inclusion probability for each weight matrix (where each weight will have the same prior probability). This is an important parameter, as it controls what prior knowledge the user may have about how dense they believe the network should be. In addition to this, the user defines the prior standard deviation for the weight and bias parameters. The user also defines the initialization of the inclusion parameters. 
+
+To initialize the LBBNN, we need to define some hyperparameters. First, the user has to define what type of problem it is. This could be either binary classification (as in this case), multiclass classification (more than two classes), or regression (continuous output). In addition the user defines a size vector, where the first element is the number of variables in the dataset (7 in this case), the last element is the number of output neurons (1 in our case), and the elements in between define the number of neurons in the hidden layer(s). The user must define the prior inclusion probability for each weight matrix (where each weight will have the same prior probability). This is an important parameter, as it controls what prior knowledge the user may have about how dense they believe the network should be. In addition to this, the user defines the prior standard deviation for the weight and bias parameters. The user also defines the initialization of the inclusion parameters.
 
 ```{r}
 problem <- 'binary classification'
@@ -64,8 +61,8 @@ inclusion_inits <- matrix(rep(c(-10,15),3),nrow = 2,ncol = 3) #one low and high 
 device <- 'cpu' #can also be mps or gpu.
 ```
 
-We are now ready to define the models, here we show one with the mean-field posterior,
-and one with normalizing flows:
+We are now ready to define the models, here we show one with the mean-field posterior, and one with normalizing flows:
+
 ```{r}
 torch_manual_seed(0)
 model_input_skip <- LBBNN_Net(problem_type = problem,sizes = sizes,prior = inclusion_priors,
@@ -77,8 +74,8 @@ model_LBBNN <- LBBNN_Net(problem_type = problem,sizes = sizes,prior = inclusion_
 
 ```
 
-To train the models, we have a function called train_LBBNN, which takes as arguments the number of epochs to train for,
-the model to train, the learning rate, and the data to train on:
+To train the models, we have a function called train_LBBNN, which takes as arguments the number of epochs to train for, the model to train, the learning rate, and the data to train on:
+
 ```{r,results='hide'}
 #model_input_skip$local_explanation = TRUE #to make sure we are using RELU
 results_input_skip <- train_LBBNN(epochs = 800,LBBNN = model_input_skip, lr = 0.005,train_dl = train_loader,device = device)
@@ -95,17 +92,21 @@ validate_LBBNN(LBBNN = model_input_skip,num_samples = 100,test_dl = test_loader,
 ```
 
 Plot the network structure of the given model:
+
 ```{r}
 LBBNN_plot(model_input_skip,layer_spacing = 1,neuron_spacing = 1,vertex_size = 15,edge_width = 0.5)
 ```
+
 Note that only 3 of the 7 input variables are used, with one of them just a linear connection.
 
-This can also be seen using the get_input_inclusions() function, which is useful in the case of
-larger networks where the plot may be too large to iterpret easily. We can also use this function to check which inputs have linear connections, etc.
+This can also be seen using the get_input_inclusions() function, which is useful in the case of larger networks where the plot may be too large to interpret easily. We can also use this function to check which inputs have linear connections, etc.
+
 ```{r}
 print(get_input_inclusions(model_input_skip))
 ```
-Get the local explanation of some input input:
+
+Get the local explanation of a sample input:
+
 ```{r}
 x <- torch::dataloader_next(torch::dataloader_make_iter(train_loader))[[1]]
 set.seed(1)
@@ -114,14 +115,16 @@ inds <- sample.int(dim(x)[1],1)
 data <- x[inds,]
 plot_local_explanations_gradient(model_input_skip,data,num_samples = 100,device = device)
 ```
+
 Another (random) one:
+
 ```{r}
 data <- torch::torch_randn(size = c(1,7))  -2
 plot_local_explanations_gradient(model_input_skip,data,num_samples = 100,device = device)
 ```
 
-
 Visualize the results:
+
 ```{r}
 #plot(results_mf$loss,type = 'l',main = 'Loss durning training',xlab='Epoch',ylab='Loss',col='purple')
 #lines(results_flow$loss)
@@ -141,5 +144,3 @@ Visualize the results:
   #     fill = c("purple","black"))
 
 ```
-
-

@@ -18,7 +18,8 @@ LBBNN_Net(
   raw_output = FALSE,
   custom_act = NULL,
   link = NULL,
-  nll = NULL
+  nll = NULL,
+  bias_inclusion_prob = FALSE
 )
 }
 \arguments{
@@ -49,6 +50,8 @@ LBBNN_Net(
 \item{link}{User can define their own link function (not implemented yet)}
 
 \item{nll}{User can define their own likelihood function (not implemented yet)}
+
+\item{bias_inclusion_prob}{determines whether the bias should be as associated with inclusion probabilities. TRUE or FALSE}
 }
 \description{
 Generates a LBBNN composed of feed forward layers defined by LBBNN_Linear

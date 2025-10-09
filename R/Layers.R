@@ -6,9 +6,9 @@ library(torch)
 #' each weight in an LBBNN layer. Currently only the same probability for each
 #' weight in a layer is allowed. 
 #' @param x A number between 0 and 1.
-#' @param device The devive to be trained on
+#' @param device The device to be trained on
 #' @return a numeric to be added to either (out_shape,in_shape) in case of linear layers
-#' or (out_channels,in_channels,kernel0,kernel1) in case of conv layers
+#' or (out_channels,in_channels,kernel0,kernel1) in case of convolutional layers
 #' @examples
 #' alpha_prior(0.25)
 #' @export
@@ -33,7 +33,7 @@ alpha_prior <- function(x,device = 'cpu') {
 #' @param x A number greater than 0.
 #' @param device device to train on
 #' @return a numeric to be added to either (out_shape,in_shape) in case of linear layers
-#' or (out_channels,in_channels,kernel0,kernel1) in case of conv layers
+#' or (out_channels,in_channels,kernel0,kernel1) in case of convolutional layers
 #' @examples
 #' std_prior(0.3)
 #' @export
@@ -54,7 +54,7 @@ std_prior <- function(x,device = 'cpu') {
 #' Function to get initialization values for the inclusion parameters
 #' @description Generate initialization for the inclusion parameters.
 #' This will control the initial density of the network, and thus an important tuning
-#' parameter. The intialization parameters are sampled from 1/(1+exp(-U)),
+#' parameter. The initialization parameters are sampled from 1/(1+exp(-U)),
 #' with U ~ Uniform(lower,upper) 
 #' @param lower a number
 #' @param upper a number, greater than lower
@@ -94,6 +94,7 @@ density_initialization <- function(lower,upper,device = 'cpu') {
 #' @param num_transforms Number of transformations for the flow. Default is 2.
 #' @param hidden_dims Dimension of the hidden layer(s) in the neural networks of the RNVP transform.
 #' @param device The device to be used. Default is CPU.
+#' @param bias_inclusion_prob determines whether the bias should be as associated with inclusion probabilities. TRUE or FALSE  
 #' @description Includes function for forward pass, where one can
 #' either use the full model, or the medium probability model (MPM).
 #' Also contains method to initialize parameters and compute KL-divergence.
@@ -106,17 +107,27 @@ density_initialization <- function(lower,upper,device = 'cpu') {
 #' @export
 LBBNN_Linear <- torch::nn_module(
   "LBBNN_Linear",
-  initialize = function(in_features, out_features,prior_inclusion,standard_prior,
-                        density_init,flow = FALSE,num_transforms = 2,hidden_dims = c(200,200),device = 'cpu') {
+  initialize = function(
+    in_features, 
+    out_features,
+    prior_inclusion,
+    standard_prior,
+    density_init,
+    flow = FALSE,
+    num_transforms = 2,
+    hidden_dims = c(200,200),
+    device = 'cpu',
+    bias_inclusion_prob = FALSE) {
     self$in_features  <- in_features
     self$out_features <- out_features
     self$device <- device
     self$flow <- flow #true or false
+    self$bias_inclusion_prob <- bias_inclusion_prob # true or false
     self$num_transforms <- num_transforms
     self$hidden_dims <- hidden_dims
     self$density_init = density_initialization(density_init[1],density_init[2])
    
-     #weight variational parameters
+    #weight variational parameters
     self$weight_mean <- torch::nn_parameter(torch::torch_empty(out_features, in_features,device = device))
     self$weight_rho <- torch::nn_parameter(torch::torch_empty(out_features, in_features,device = device))
     self$weight_sigma <- torch::torch_empty(out_features, in_features,device = device)
@@ -130,9 +141,19 @@ LBBNN_Linear <- torch::nn_module(
     self$lambda_l <- torch::nn_parameter(torch::torch_empty(out_features, in_features,device = device))
     self$alpha <- torch::torch_empty(out_features, in_features,device = device)
     self$alpha_active_path <- torch::torch_empty(out_features, in_features,device = device) #used to store alpha in active paths
-    
+
     #define priors. For now, the user is only allowed to define the inclusion prior themselves
     self$alpha_prior <- torch::torch_zeros(out_features, in_features, device=device) + alpha_prior(prior_inclusion,device = device)
+
+
+    if(self$bias_inclusion_prob){
+    #inclusion variational parameters for bias
+    self$bias_lambda_l <- torch::nn_parameter(torch::torch_empty(out_features, device = device))
+    self$bias_alpha <- torch::torch_empty(out_features, device = device)
+
+    #define priors for bias. For now, the user is only allowed to define the inclusion prior themselves
+    self$bias_alpha_prior <- torch::torch_zeros(out_features, device=device) + alpha_prior(prior_inclusion,device = device)
+    }
     
     #standard normal prior on the weights and biases
     self$weight_mean_prior <- torch::torch_zeros(out_features, in_features, device=device)
@@ -182,6 +203,9 @@ LBBNN_Linear <- torch::nn_module(
   ,
   forward = function(input,MPM=FALSE) {
     self$alpha <- torch::torch_sigmoid(self$lambda_l)
+    if(self$bias_inclusion_prob){
+    self$bias_alpha <- torch::torch_sigmoid(self$bias_lambda_l)
+    } 
     self$weight_sigma <- torch::torch_log1p(torch_exp(self$weight_rho))
     self$bias_sigma <- torch::torch_log1p(torch_exp(self$bias_rho))
     self$z_k <- torch::torch_ones_like(self$weight_mean) #if not flow, all z = 1.
@@ -192,9 +216,15 @@ LBBNN_Linear <- torch::nn_module(
     if (! MPM) {#compute the mean and the variance of the activations using the LRT
       e_w <- self$weight_mean * self$alpha * self$z_k
       var_w <- self$alpha * (self$weight_sigma^2 + (1 - self$alpha) * self$weight_mean^2*self$z_k^2)
-      
-      e_b <- torch::torch_matmul(input, torch::torch_t(e_w)) + self$bias_mean
-      var_b <- torch::torch_matmul(input^2, torch::torch_t(var_w)) + self$bias_sigma^2
+      if(self$bias_inclusion_prob){
+        e_b_alpha <- self$bias_mean * self$bias_alpha
+        var_b_alpha <- self$bias_alpha * (self$bias_sigma^2 + (1-self$bias_alpha)*self$bias_mean^2)
+      } else {
+        e_b_alpha <- 0
+        var_b_alpha <- 0
+      }
+      e_b <- torch::torch_matmul(input, torch::torch_t(e_w)) + e_b_alpha
+      var_b <- torch::torch_matmul(input^2, torch::torch_t(var_w)) + var_b_alpha
       eps <- torch::torch_randn(size=(dim(var_b)), device=self$device)
       activations <- e_b + torch::torch_sqrt(var_b) * eps
       
@@ -202,6 +232,9 @@ LBBNN_Linear <- torch::nn_module(
       w <- torch::torch_normal(self$weight_mean * self$z_k, self$weight_sigma)
       bias <- torch::torch_normal(self$bias_mean, self$bias_sigma)
       weight <- w * self$alpha_active_path
+      if(self$bias_inclusion_prob){
+      bias <- bias * (self$bias_alpha>0.5)
+      }
       activations <- torch::torch_matmul(input, torch_t(weight)) + bias
     }
     
@@ -240,15 +273,28 @@ LBBNN_Linear <- torch::nn_module(
       
     }
     
-    
-    kl_bias <- torch::torch_sum(torch::torch_log(self$bias_sigma_prior / self$bias_sigma) - 0.5 + (self$bias_sigma^2
-                    + (self$bias_mean - self$bias_mean_prior)^2) / (2 * self$bias_sigma_prior^2))
+    if(self$bias_inclusion_prob){
+      kl_bias <- torch::torch_sum(
+        self$bias_alpha * (
+          torch::torch_log(self$bias_sigma_prior / self$bias_sigma) 
+          - 0.5 
+          + torch::torch_log(self$bias_alpha/self$bias_alpha_prior + 1e-20) 
+          + (self$bias_sigma^2 + (self$bias_mean - self$bias_mean_prior)^2) / (2*self$bias_sigma_prior^2)
+        ) 
+        + (1-self$bias_alpha) * torch::torch_log((1-self$bias_alpha) / (1 - self$bias_alpha_prior) + 1e-20)
+    )
+    }else {
+      kl_bias <- torch::torch_sum(
+        torch::torch_log(self$bias_sigma_prior / self$bias_sigma) 
+        - 0.5 
+        + (self$bias_sigma^2 + (self$bias_mean - self$bias_mean_prior)^2) / (2 * self$bias_sigma_prior^2))
+    }
     
     kl_weight <- torch::torch_sum(self$alpha * (torch::torch_log(self$weight_sigma_prior / self$weight_sigma)
                                          - 0.5 + torch::torch_log(self$alpha / self$alpha_prior+1e-20)
                                          + (self$weight_sigma^2 + (self$weight_mean*z2 - self$weight_mean_prior)^2) / (
                                            2 * self$weight_sigma_prior^2))
-                           + (1 - self$alpha) * torch::torch_log((1 - self$alpha) / (1 - self$alpha_prior)+1e-20))
+                           + (1 - self$alpha) * torch::torch_log((1 - self$alpha) / (1 - self$alpha_prior) + 1e-20))
     
     
     return(kl_bias + kl_weight + log_q - log_r)}

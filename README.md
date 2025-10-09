@@ -4,7 +4,11 @@
 # LBBNN
 
 <!-- badges: start -->
-
+[![](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
+[![](https://img.shields.io/github/last-commit/LarsELund/LBBNN.svg)](https://github.com/LarsELund/LBBNN/commits/main)
+[![](https://img.shields.io/github/languages/code-size/LarsELund/LBBNN.svg)](https://github.com/LarsELund/LBBNN)
+[![R-CMD-check](https://github.com/LarsELund/LBBNN/workflows/R-CMD-check/badge.svg)](https://github.com/LarsELund/LBBNN/actions)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 <!-- badges: end -->
 
 The goal of the LBBNN package is to implement Latent Bayesian Binary
@@ -16,7 +20,7 @@ the future, we will also implement LBBNNs with input-skip (see
 ## Installation
 
 You can install the development version of LBBNN from
-[GitHub](https://github.com/) with:
+[GitHub](https://github.com/LarsELund/LBBNN) with:
 
 ``` r
 # install.packages("pak")
@@ -28,7 +32,7 @@ pak::pak("LarsELund/LBBNN")
 This is a basic example which shows you how to implement a simple feed
 forward LBBNN on the raisin dataset, both using the mean-field
 posterior, and normalizing flows. First we demonstrate how to
-pre-process the data so it can be used in the torch eco-system
+preprocess the data so it can be used in the torch ecosystem
 
 ``` r
 library(LBBNN)
@@ -46,7 +50,7 @@ test_loader <- loaders$test_loader
 To initialize the LBBNN, we need to define some hyperparameters. First,
 the user has to define what type of problem it is. This could be either
 binary classification (as in this case), multiclass classification (more
-than two classes), or regression (continous output). In addition the
+than two classes), or regression (continuous output). In addition the
 user defines a size vector, where the first element is the number of
 variables in the dataset (7 in this case), the last element is the
 number of output neurons (1 in our case), and the elements in between
@@ -125,7 +129,7 @@ linear connection.
 
 This can also be seen using the get_input_inclusions() function, which
 is useful in the case of larger networks where the plot may be too large
-to iterpret easily. We can also use this function to check which inputs
+to interpret easily. We can also use this function to check which inputs
 have linear connections, etc.
 
 ``` r
@@ -140,7 +144,7 @@ print(get_input_inclusions(model_input_skip))
 #> x6  1  0  1
 ```
 
-Get the local explanation of some input input:
+Get the local explanation of a sample input:
 
 ``` r
 x <- torch::dataloader_next(torch::dataloader_make_iter(train_loader))[[1]]
