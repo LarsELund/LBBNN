@@ -43,7 +43,7 @@ inclusion_inits <- matrix(rep(c(-20,1),2),nrow = 2,ncol = 2) #one low and high f
 device <- 'cpu' #can also be mps or gpu.
 
 
-
+#works when inclusion is activated, breaks otherwise
 model_input_skip <- LBBNN_Net(problem_type = problem,sizes = sizes,prior = inclusion_priors,
                               inclusion_inits = inclusion_inits,input_skip = TRUE,std = stds,
                               flow = TRUE,device = device)
@@ -57,7 +57,7 @@ results_input_skip <- train_LBBNN(epochs = 5000,LBBNN = model_input_skip,
 #need to run validate before plotting
 validate_LBBNN(LBBNN = model_input_skip,num_samples = 100,test_dl = test_loader,device)
 
-LBBNN_plot(model_input_skip,layer_spacing = 1,neuron_spacing = 1,vertex_size =8,edge_width = 0.5)
+LBBNN_plot(model_input_skip,layer_spacing = 1,neuron_spacing = 1,vertex_size = 8,edge_width = 0.5)
 
 
 #get a random sample from the dataloader
@@ -82,4 +82,5 @@ print(paste('GMB R2 = ',cor(predictions,ground_truth)^2))
 
 print(paste('LBBNN MSE =',mltools::mse(b,ground_truth)))
 print(paste('LBBNN R2 = ',cor(b,ground_truth)^2))
+
 
