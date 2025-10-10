@@ -220,8 +220,8 @@ LBBNN_Linear <- torch::nn_module(
         e_b_alpha <- self$bias_mean * self$bias_alpha
         var_b_alpha <- self$bias_alpha * (self$bias_sigma^2 + (1-self$bias_alpha)*self$bias_mean^2)
       } else {
-        e_b_alpha <- 0
-        var_b_alpha <- 0
+        e_b_alpha <- self$bias_mean
+        var_b_alpha <- self$bias_sigma^2
       }
       e_b <- torch::torch_matmul(input, torch::torch_t(e_w)) + e_b_alpha
       var_b <- torch::torch_matmul(input^2, torch::torch_t(var_w)) + var_b_alpha

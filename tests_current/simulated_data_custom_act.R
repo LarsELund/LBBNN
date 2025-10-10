@@ -7,7 +7,7 @@ p = 10 #this gives the correct solution, but using p = 5 gives a solution using 
 set.seed(2)
 torch::torch_manual_seed(2)
 #generate some data
-X <- matrix(runif(N*p,min = -5 ,max = 0), ncol = p)
+X <- matrix(runif(N*p,min = -0.9 ,max = 0.9), ncol = p)
 
 #make some X relevant for prediction
 y_base <- exp(X[,1])
