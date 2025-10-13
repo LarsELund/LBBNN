@@ -2,49 +2,6 @@ library(igraph)
 library(Matrix)
 require(graphics)
 
-#' Function that checks which inputs are included, and from which layer
-#' @description Useful when the number of inputs and/or hidden neurons are very
-#' large, and direct visualization of the network is difficult. 
-#' @param model A trained LBBNN model with input_skip. 
-#' @return A matrix of shape (p, L-1) where p is the number of input variables
-#' and L the total number of layers (including input and output), with each element being 1 if the variable is included
-#' or 0 if not included. 
-#' @export
-get_input_inclusions <- function(model){
-  if(model$input_skip == FALSE)(stop('This function is currently only implemented for input-skip'))
-  x_names <- c()
-  layer_names <- c()
-  for(k in 1:model$sizes[1]){
-    x_names<- c(x_names,paste('x',k-1,sep = ''))
-  }
-  for(l in 1:(length(model$sizes)-1)){
-    layer_names <- c(layer_names,paste('L',l-1,sep = ''))
-  }
-  
-  
-  inclusion_matrix <- matrix(0,nrow = model$sizes[1],ncol = length(model$sizes) - 1)
-  #add the names
-  colnames(inclusion_matrix) <- layer_names
-  rownames(inclusion_matrix) <- x_names
-  
-  
-  inp_size <- model$sizes[1]
-  i <- 1
-  for(l in model$layers$children){
-    alp <- l$alpha_active_path
-    incl<- as.numeric(torch::torch_max(alp[,-inp_size:dim(alp)[2]],dim = 1)[[1]])
-    inclusion_matrix[,i] <- incl 
-    i <- i + 1
-  }
-  alp_out <- model$out_layer$alpha_active_path
-  incl<- as.numeric(torch::torch_max(alp_out[,-inp_size:dim(alp_out)[2]],dim = 1)[[1]])
-  inclusion_matrix[,i] <- incl 
-  i <- i + 1
- 
- return(inclusion_matrix) 
-}
-
-
 #' Function to obtain adjacency matrices to be used with igraph plotting
 #' @description Given a trained LBBNN model with input-skip, this 
 #' function takes the alpha active path matrices for each layer and converts

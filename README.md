@@ -4,17 +4,20 @@
 # LBBNN
 
 <!-- badges: start -->
+
 [![](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![](https://img.shields.io/github/last-commit/LarsELund/LBBNN.svg)](https://github.com/LarsELund/LBBNN/commits/main)
 [![](https://img.shields.io/github/languages/code-size/LarsELund/LBBNN.svg)](https://github.com/LarsELund/LBBNN)
-[![R-CMD-check](https://github.com/LarsELund/LBBNN/workflows/R-CMD-check/badge.svg)](https://github.com/LarsELund/LBBNN/actions)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![R-CMD-check](https://github.com/LarsELund/LBBNN/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/LarsELund/LBBNN/actions)
+[![License:
+MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 <!-- badges: end -->
 
-The goal of the LBBNN package is to implement Latent Bayesian Binary
-Neural Networks (<https://openreview.net/pdf?id=d6kqUKzG3V>) in R, using
-the torch for R package. Currently, standard LBBNNs are implemented. In
-the future, we will also implement LBBNNs with input-skip (see
+The goal of LBBNN is to implement Latent Bayesian Binary Neural Networks
+(<https://openreview.net/pdf?id=d6kqUKzG3V>) in R, using the torch for R
+package. Currently, standard LBBNNs are implemented. In the future, we
+will also implement LBBNNs with input-skip (see
 <https://arxiv.org/abs/2503.10496>).
 
 ## Installation
@@ -31,8 +34,8 @@ pak::pak("LarsELund/LBBNN")
 
 This is a basic example which shows you how to implement a simple feed
 forward LBBNN on the raisin dataset, both using the mean-field
-posterior, and normalizing flows. First we demonstrate how to
-preprocess the data so it can be used in the torch ecosystem
+posterior, and normalizing flows. First we demonstrate how to preprocess
+the data so it can be used in the torch ecosystem
 
 ``` r
 library(LBBNN)
@@ -123,9 +126,10 @@ Plot the network structure of the given model:
 LBBNN_plot(model_input_skip,layer_spacing = 1,neuron_spacing = 1,vertex_size = 15,edge_width = 0.5)
 ```
 
-<img src="man/figures/README-unnamed-chunk-6-1.png" width="100%" /> Note
-that only 3 of the 7 input variables are used, with one of them just a
-linear connection.
+<img src="man/figures/README-unnamed-chunk-6-1.png" width="100%" />
+
+Note that only 3 of the 7 input variables are used, with one of them
+just a linear connection.
 
 This can also be seen using the get_input_inclusions() function, which
 is useful in the case of larger networks where the plot may be too large
@@ -133,15 +137,20 @@ to interpret easily. We can also use this function to check which inputs
 have linear connections, etc.
 
 ``` r
-print(get_input_inclusions(model_input_skip))
-#>    L0 L1 L2
-#> x0  0  0  0
-#> x1  0  0  0
-#> x2  0  0  1
-#> x3  1  1  1
-#> x4  0  0  0
-#> x5  0  0  0
-#> x6  1  0  1
+summary(model_input_skip)
+#> Summary of LBBNN_Net object:
+#> -----------------------------------
+#> Shows the number of times each variable was included from each layer
+#> In addition to the average local explanation (contribution) for one random input
+#> -----------------------------------
+#>    L0 L1 L2 mean_explanation
+#> x0  0  0  0             0.00
+#> x1  0  0  0             0.00
+#> x2  0  0  1            -0.17
+#> x3  1  1  1            -0.63
+#> x4  0  0  0             0.00
+#> x5  0  0  0             0.00
+#> x6  1  0  1            -2.25
 ```
 
 Get the local explanation of a sample input:
@@ -156,6 +165,7 @@ plot_local_explanations_gradient(model_input_skip,data,num_samples = 100,device 
 ```
 
 <img src="man/figures/README-unnamed-chunk-8-1.png" width="100%" />
+
 Another (random) one:
 
 ``` r
