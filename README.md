@@ -150,6 +150,14 @@ summary(model_input_skip)
 #> x6  1  0  1            -2.25
 ```
 
+Compute residuals: y_true - y_predicted
+
+``` r
+residuals(model_input_skip)[1:10]
+#>  [1] -0.47491318  0.46904647 -0.14563666  0.40983611 -0.05854724  0.19214028
+#>  [7] -0.08140449 -0.28510988 -0.12890983 -0.04447413
+```
+
 Get the local explanation of a sample input:
 
 ``` r
@@ -161,7 +169,7 @@ data <- x[inds,]
 plot_local_explanations_gradient(model_input_skip,data,num_samples = 100,device = device)
 ```
 
-<img src="man/figures/README-unnamed-chunk-8-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-9-1.png" width="100%" />
 
 Another (random) one:
 
@@ -170,7 +178,7 @@ data <- torch::torch_randn(size = c(1,7))  -2
 plot_local_explanations_gradient(model_input_skip,data,num_samples = 100,device = device)
 ```
 
-<img src="man/figures/README-unnamed-chunk-9-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-10-1.png" width="100%" />
 
 Visualize the results:
 

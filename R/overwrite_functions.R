@@ -62,6 +62,20 @@ summary.LBBNN_Net <- function(object, ...) {
 
 }
 
+#' @export
+residuals.LBBNN_Net <- function(object,type = c('response'), ...) {
+  y_true <- object$y
+  y_predicted <- object$r
+  if(type == 'response'){
+    return(y_true - y_predicted)
+  }
+  else(stop('only y - y_pred residuals are currently implemented'))
+  
+  
+  
+}
+
+
 
 
 

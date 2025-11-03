@@ -46,6 +46,11 @@ train_LBBNN <- function(epochs,LBBNN,lr,train_dl,device = 'cpu',scheduler = NULL
   for (epoch in 1:epochs) {
   #  if(LBBNN$input_skip){LBBNN$compute_paths_input_skip()}
   #  else(LBBNN$compute_paths)
+    if(epoch == epochs){ #only need these at the last epoch for residuals
+     LBBNN$y <- c()
+    LBBNN$r <- c()}
+ 
+    
     LBBNN$train()
     corrects <- 0
     totals <- 0
@@ -57,6 +62,11 @@ train_LBBNN <- function(epochs,LBBNN,lr,train_dl,device = 'cpu',scheduler = NULL
       data <- b[[1]]$to(device = device)
       output <- LBBNN(data,MPM=FALSE)
       target <- b[[2]]$to(device=device)
+      if(epoch == epochs){ #add the targets and outputs to y and r
+        LBBNN$y <- c(LBBNN$y, as.numeric(target$clone()$detach()$cpu()))
+        LBBNN$r <- c(LBBNN$r,as.numeric(output$clone()$detach()$squeeze()$cpu()))}
+      
+      
  
       if(LBBNN$problem_type == 'multiclass classification'| LBBNN$problem_type == 'MNIST'){ #nll loss needs float tensors but bce loss needs long tensors 
         target <- torch::torch_tensor(target,dtype = torch::torch_long())

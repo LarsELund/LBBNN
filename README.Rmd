@@ -104,6 +104,12 @@ This can also be seen using the custom summary function:
 ```{r}
 summary(model_input_skip)
 ```
+Compute residuals: y_true - y_predicted
+
+```{r}
+residuals(model_input_skip)[1:10]
+```
+
 
 Get the local explanation of a sample input:
 
