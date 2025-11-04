@@ -51,6 +51,7 @@ LBBNN_Net <- torch::nn_module(
     self$sizes <- sizes
     self$raw_output <- raw_output # TRUE when we want to compute local explanations
     self$act <- torch::nn_leaky_relu(0.00)
+    self$computed_paths <- FALSE
     if(! is.null(custom_act)){
       self$act <- custom_act
       }
@@ -151,10 +152,11 @@ LBBNN_Net <- torch::nn_module(
     return(kl)
   },
   compute_paths = function(){
+    
     if(self$input_skip == TRUE){
       stop('self$input_skip must be FALSE to use this funciton')
     }
-   
+    self$computed_paths <- TRUE
     #sending a random input through the network of alpha matrices (0 and 1)
     #and then backpropagating to find active paths
     a <- rnorm(n = self$layers$children$`0`$alpha$shape[2])
@@ -207,7 +209,7 @@ LBBNN_Net <- torch::nn_module(
     if(self$input_skip == FALSE){
       stop('self$input_skip must be TRUE to use this funciton')
     }
- 
+    self$computed_paths <- TRUE
     #sending a random input through the network of alpha matrices (0 and 1)
     #and then backpropagating to find active paths
     a <- rnorm(n = self$layers$children$`0`$alpha$shape[2])

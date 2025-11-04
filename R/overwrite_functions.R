@@ -47,16 +47,40 @@ get_input_inclusions <- function(model){
 summary.LBBNN_Net <- function(object, ...) {
 
   if(object$input_skip == FALSE)(stop('Summary only applies to objects with input-skip = TRUE'))
+  if(object$computed_paths == FALSE){object$compute_paths_input_skip()} 
   inclusions <- get_input_inclusions(object) # a matrix of size (p,L), with p # inputs, L # layers 
-  data <- torch::torch_randn(size = c(1,object$sizes[1])) #some random data
-  outputs <- get_local_explanations_gradient(object,data,num_samples = 100,device = object$device)
-  explanation <- outputs$explanations
-  mean_explanation <- round(as.numeric(torch::torch_mean(explanation,dim = 1)$squeeze()),2)
-  summary_out <- cbind(inclusions,mean_explanation)
+   
+  #now get the average inclusion probabilities of each layer
+  p <- object$sizes[1] # number of inputs
+  L <- length(object$sizes) - 1 # number of layers
+  alpha_means <- matrix(nrow = p, ncol = L)
+  i <- 1
+  all_alphas <- c()
+  col_names <- c()
+  for(l in object$layers$children){
+    alpha_l <- l$alpha$clone()$detach()$cpu()
+    aa <- alpha_l[, (dim(alpha_l)[2] - p + 1):dim(alpha_l)[2]] #only need last p corresponding to input, ignoring hidden layer alphas
+    alpha_means[,i] <- round(as.numeric(aa$mean(dim = 1)),3)
+    all_alphas <- rbind(all_alphas, as.matrix(aa))
+    col_names <- c(col_names,paste('a',i - 1,sep = ''))
+    i <- i + 1
+  }
+  #now do the output layer
+  alpha_out <- object$out_layer$alpha$clone()$detach()
+  a_out <- alpha_out[, (dim(alpha_out)[2] - p + 1):dim(alpha_out)[2]]
+  col_names <- c(col_names,paste('a',i - 1,sep = ''))
+  alpha_means[,i] <- round(as.numeric(a_out$mean(dim = 1)),3)
+  a_avg <- round(colMeans(all_alphas),3)
+  colnames(alpha_means) <- col_names
+  alpha_means <- cbind(alpha_means,a_avg)
+  summary_out <- cbind(inclusions,alpha_means)
   cat("Summary of LBBNN_Net object:\n")
   cat("-----------------------------------\n")
   cat("Shows the number of times each variable was included from each layer\n")
-  cat("In addition to the average local explanation (contribution) for one random input\n")
+  cat("-----------------------------------\n")
+  cat("Then the average inclusion probability for each input from each layer\n")
+  cat("-----------------------------------\n")
+  cat("The final column shows the average inclusion probability across all layers\n")
   cat("-----------------------------------\n")
   print(summary_out)
 

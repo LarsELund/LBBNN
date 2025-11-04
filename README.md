@@ -131,23 +131,26 @@ LBBNN_plot(model_input_skip,layer_spacing = 1,neuron_spacing = 1,vertex_size = 1
 Note that only 3 of the 7 input variables are used, with one of them
 just a linear connection.
 
-This can also be seen using the custom summary function:
+This can also be seen using the summary function:
 
 ``` r
 summary(model_input_skip)
 #> Summary of LBBNN_Net object:
 #> -----------------------------------
 #> Shows the number of times each variable was included from each layer
-#> In addition to the average local explanation (contribution) for one random input
 #> -----------------------------------
-#>    L0 L1 L2 mean_explanation
-#> x0  0  0  0             0.00
-#> x1  0  0  0             0.00
-#> x2  0  0  1            -0.17
-#> x3  1  1  1            -0.63
-#> x4  0  0  0             0.00
-#> x5  0  0  0             0.00
-#> x6  1  0  1            -2.25
+#> Then the average inclusion probability for each input from each layer
+#> -----------------------------------
+#> The final column shows the average inclusion probability across all layers
+#> -----------------------------------
+#>    L0 L1 L2    a0    a1    a2 a_avg
+#> x0  0  0  0 0.175 0.219 0.006 0.197
+#> x1  0  0  0 0.343 0.109 0.005 0.226
+#> x2  0  0  1 0.135 0.344 0.863 0.240
+#> x3  1  1  1 0.539 0.330 0.991 0.434
+#> x4  0  0  0 0.321 0.575 0.124 0.448
+#> x5  0  0  0 0.098 0.438 0.137 0.268
+#> x6  1  0  1 0.300 0.244 0.997 0.272
 ```
 
 Compute residuals: y_true - y_predicted

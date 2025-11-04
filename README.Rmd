@@ -99,7 +99,7 @@ LBBNN_plot(model_input_skip,layer_spacing = 1,neuron_spacing = 1,vertex_size = 1
 
 Note that only 3 of the 7 input variables are used, with one of them just a linear connection.
 
-This can also be seen using the custom summary function:
+This can also be seen using the summary function:
 
 ```{r}
 summary(model_input_skip)
