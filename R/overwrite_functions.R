@@ -102,5 +102,70 @@ residuals.LBBNN_Net <- function(object,type = c('response'), ...) {
 
 
 
+#' @export
+coef.LBBNN_Net <- function(object,data = c('train','test','other'),dataset = NULL,num_data = 1,num_samples = 10, ...) {
+  d <- match.arg(data)
+  all_means <- matrix(nrow = object$sizes[1],ncol = num_data)
+  row_names <- c()
+  for (i in 1:object$sizes[1]){
+    row_names <- c(row_names,paste('x',i-1,sep = ''))
+  }
+  
+  
+  
+  if(d == 'train'){
+    X <- train_loader$dataset$tensors[[1]]$clone()$detach()$cpu()}
+  else if(d == 'test'){
+    X <- test_loader$dataset$tensors[[1]]$clone()$detach()$cpu()}
+  
+  else{X <- dataset         # should be a tensor with shape (num_data,p), but need to make sure it accepts MNIST or other img data
+  if(class(X)[1] != 'torch_tensor')stop('the dataset must be a torch_tensor')   
+  if(length(dim(X)) == 1){X <- X$unsqueeze(dim = 1)} #reshape (p) to shape (1,p)
+  if(dim(X)[length(dim(X))] != object$sizes[1])stop('the last index must have shape equal to p')
+  
+  } 
+  
+  X_explain <- X[1:num_data,]
+  
+  if(dim(X)[1] < num_data)stop(paste('num_data =',num_data, 'can not be greater than the number of total data points,' ,dim(X)[1]))
+  
+  if(num_data == 1){ #here we get the CI from the uncertainty around the one sample
+    expl <- get_local_explanations_gradient(object,X_explain,num_samples = num_samples)
+    e <- expl$explanations
+    mean_explanation <- as.matrix(e$mean(dim = -1))
+    qs <- t(apply(mean_explanation,2,quants))
+    rownames(qs) <- row_names
+    return(qs)
+    
+    
+    
+    
+  }
+  
+  
+  for( i in 1:num_data){ #loop over data points, here the CI is across the means for each sample
+    data <- X_explain[i,]
+    expl <- get_local_explanations_gradient(object,data,num_samples = num_samples)
+    e <- expl$explanations
+    mean_explanation <- as.numeric(e$mean(dim = -1)$mean(dim = 1)) #first avg over classes, then over num_samples
+    all_means[,i] <- mean_explanation
+  }
+  
+  
+  
+  rownames(all_means) <- row_names
+  qs <- t(apply(all_means,1,quants))
+  
+  
+  return(qs)
+  
+}
+
+
+
+
+
+
+
 
 

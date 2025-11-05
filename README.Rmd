@@ -110,6 +110,15 @@ Compute residuals: y_true - y_predicted
 residuals(model_input_skip)[1:10]
 ```
 
+Get local explanations from some training data:
+
+```{r}
+coef(model_input_skip,data = 'train',num_data= 10)
+```
+
+
+
+
 
 Get the local explanation of a sample input:
 
