@@ -68,10 +68,10 @@ parameters.
 
 ``` r
 problem <- 'binary classification'
-sizes <- c(7,5,1) #7 input variables, one hidden layer of 100 neurons, 1 output neuron.
-inclusion_priors <-c(0.5,0.5) #one prior probability per weight matrix.
-stds <- c(1,1) #prior standard deviation for each layer.
-inclusion_inits <- matrix(rep(c(-10,15),2),nrow = 2,ncol = 2) #one low and high for each layer
+sizes <- c(7,5,5,1) #7 input variables, one hidden layer of 100 neurons, 1 output neuron.
+inclusion_priors <-c(0.5,0.5,0.5) #one prior probability per weight matrix.
+stds <- c(1,1,1) #prior standard deviation for each layer.
+inclusion_inits <- matrix(rep(c(-10,15),3),nrow = 2,ncol = 3) #one low and high for each layer
 device <- 'cpu' #can also be mps or gpu.
 ```
 
@@ -113,10 +113,10 @@ validate_LBBNN(LBBNN = model_input_skip,num_samples = 100,test_dl = test_loader,
 #> [1] 0.8666667
 #> 
 #> $density
-#> [1] 0.2765957
+#> [1] 0.2523364
 #> 
 #> $density_active_path
-#> [1] 0.212766
+#> [1] 0.09345794
 #validate_LBBNN(LBBNN = model_flows,num_samples = 1000,test_dl = test_loader,device)
 ```
 
@@ -143,22 +143,22 @@ summary(model_input_skip)
 #> -----------------------------------
 #> The final column shows the average inclusion probability across all layers
 #> -----------------------------------
-#>    L0 L1    a0    a1 a_avg
-#> x0  0  0 0.153 0.187 0.159
-#> x1  1  0 0.286 0.113 0.258
-#> x2  0  1 0.131 0.893 0.258
-#> x3  1  1 0.468 0.943 0.548
-#> x4  1  1 0.272 0.546 0.318
-#> x5  0  1 0.100 0.819 0.220
-#> x6  1  0 0.354 0.065 0.306
+#>    L0 L1 L2    a0    a1    a2 a_avg
+#> x0  0  0  0 0.175 0.219 0.006 0.180
+#> x1  0  0  0 0.343 0.109 0.005 0.206
+#> x2  0  0  1 0.135 0.344 0.863 0.296
+#> x3  1  1  1 0.539 0.330 0.991 0.485
+#> x4  0  0  0 0.321 0.575 0.124 0.419
+#> x5  0  0  0 0.098 0.438 0.137 0.256
+#> x6  1  0  1 0.300 0.244 0.997 0.338
 ```
 
 Compute residuals: y_true - y_predicted
 
 ``` r
 residuals(model_input_skip)[1:10]
-#>  [1] -0.55298477  0.16238338 -0.44029266  0.11851484 -0.04020388  0.04264444
-#>  [7] -0.02851789 -0.09309202  0.20648336  0.28967124
+#>  [1] -0.47491318  0.46904647 -0.14563666  0.40983611 -0.05854724  0.19214028
+#>  [7] -0.08140449 -0.28510988 -0.12890983 -0.04447413
 ```
 
 Get the local explanation of a sample input:

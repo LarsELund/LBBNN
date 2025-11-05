@@ -54,10 +54,10 @@ To initialize the LBBNN, we need to define some hyperparameters. First, the user
 
 ```{r}
 problem <- 'binary classification'
-sizes <- c(7,5,1) #7 input variables, one hidden layer of 100 neurons, 1 output neuron.
-inclusion_priors <-c(0.5,0.5) #one prior probability per weight matrix.
-stds <- c(1,1) #prior standard deviation for each layer.
-inclusion_inits <- matrix(rep(c(-10,15),2),nrow = 2,ncol = 2) #one low and high for each layer
+sizes <- c(7,5,5,1) #7 input variables, one hidden layer of 100 neurons, 1 output neuron.
+inclusion_priors <-c(0.5,0.5,0.5) #one prior probability per weight matrix.
+stds <- c(1,1,1) #prior standard deviation for each layer.
+inclusion_inits <- matrix(rep(c(-10,15),3),nrow = 2,ncol = 3) #one low and high for each layer
 device <- 'cpu' #can also be mps or gpu.
 ```
 
