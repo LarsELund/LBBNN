@@ -68,6 +68,7 @@ summary.LBBNN_Net <- function(object, ...) {
   #now do the output layer
   alpha_out <- object$out_layer$alpha$clone()$detach()
   a_out <- alpha_out[, (dim(alpha_out)[2] - p + 1):dim(alpha_out)[2]]
+  all_alphas <- rbind(all_alphas, as.matrix(a_out))
   col_names <- c(col_names,paste('a',i - 1,sep = ''))
   alpha_means[,i] <- round(as.numeric(a_out$mean(dim = 1)),3)
   a_avg <- round(colMeans(all_alphas),3)
