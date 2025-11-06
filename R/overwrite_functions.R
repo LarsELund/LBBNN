@@ -252,3 +252,26 @@ print.LBBNN_Net <- function(x, ...) {
   
   cat("\n=================================================================\n\n")
 }
+
+
+
+#' @export
+plot.LBBNN_Net <- function(x,type = c('global','local'),data = NULL,num_samples = 100, ...) {
+  d <- match.arg(type)
+  if(d == 'global'){
+    LBBNN_plot(x,...)
+  }
+  else{
+    if(is.null(data))stop('data must contain a sample to explain')
+    plot_local_explanations_gradient(x,input_data = data,num_samples = num_samples,device = x$device)
+    
+  }
+  
+  
+}
+
+
+
+
+
+

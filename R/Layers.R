@@ -235,7 +235,7 @@ LBBNN_Linear <- torch::nn_module(
       if(self$bias_inclusion_prob){
       bias <- bias * (self$bias_alpha>0.5)
       }
-      activations <- torch::torch_matmul(input, torch_t(weight)) + bias
+      activations <- torch::torch_matmul(input, torch::torch_t(weight)) + bias
     }
     
     

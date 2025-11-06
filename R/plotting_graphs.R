@@ -137,6 +137,7 @@ assign_names<- function(model){#assign names to the nodes before plotting
 #' @param layer_spacing Spacing inbetween layers.
 #' @param neuron_spacing Spacing between neurons within a layer.
 #' @param vertex_size Size of the neurons. 
+#' @param label_size The size of the text within neurons. 
 #' @param edge_width Width of the edges connecting neurons.
 #' @examples
 #' \donttest{
@@ -155,7 +156,7 @@ assign_names<- function(model){#assign names to the nodes before plotting
 #' LBBNN_plot(model, 1, 1, 14, 1)
 #' }
 #' @export
-LBBNN_plot <- function(model,layer_spacing,neuron_spacing,vertex_size,edge_width){
+LBBNN_plot <- function(model,layer_spacing = 1,neuron_spacing = 1,vertex_size = 10,label_size = 0.5,edge_width = 0.5){
   if(model$input_skip == FALSE)(stop('Plotting currently only implemented for input-skip'))
   graph <- assign_names(model) #the graph with names neurons, given some model with alpha matrices
   g <- igraph::make_empty_graph(n = 0) #initialize empty graph
@@ -221,7 +222,7 @@ LBBNN_plot <- function(model,layer_spacing,neuron_spacing,vertex_size,edge_width
     
   }
   
-  plot(g,vertex.size = vertex_size,vertex.label.cex = 0.3, 
+  plot(g,vertex.size = vertex_size,vertex.label.cex = label_size, 
        edge.color = 'black',vertex.label.color='black',
        edge.width = edge_width, layout = -plot_points[,2:1],edge.arrow.mode = '-',margin = 0.0)
  

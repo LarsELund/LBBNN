@@ -4,7 +4,14 @@
 \alias{LBBNN_plot}
 \title{Function to plot an islab structure after removing weights in non-active paths.}
 \usage{
-LBBNN_plot(model, layer_spacing, neuron_spacing, vertex_size, edge_width)
+LBBNN_plot(
+  model,
+  layer_spacing = 1,
+  neuron_spacing = 1,
+  vertex_size = 10,
+  label_size = 0.5,
+  edge_width = 0.5
+)
 }
 \arguments{
 \item{model}{A trained LBBNN model with input_skip.}
@@ -14,6 +21,8 @@ LBBNN_plot(model, layer_spacing, neuron_spacing, vertex_size, edge_width)
 \item{neuron_spacing}{Spacing between neurons within a layer.}
 
 \item{vertex_size}{Size of the neurons.}
+
+\item{label_size}{The size of the text within neurons.}
 
 \item{edge_width}{Width of the edges connecting neurons.}
 }

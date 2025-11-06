@@ -120,10 +120,10 @@ validate_LBBNN(LBBNN = model_input_skip,num_samples = 100,test_dl = test_loader,
 #validate_LBBNN(LBBNN = model_flows,num_samples = 1000,test_dl = test_loader,device)
 ```
 
-Plot the network structure of the given model:
+Plot the global structure of the given model:
 
 ``` r
-LBBNN_plot(model_input_skip,layer_spacing = 1,neuron_spacing = 1,vertex_size = 15,edge_width = 0.5)
+plot(model_input_skip,type = 'global',vertex_size = 13,edge_width = 0.9,label_size = 0.6)
 ```
 
 <img src="man/figures/README-unnamed-chunk-6-1.png" width="100%" />
@@ -153,6 +153,19 @@ summary(model_input_skip)
 #> x6  1  0  1 0.300 0.244 0.997 0.338
 ```
 
+Can also plot the explanation of some sample using plot():
+
+``` r
+x <- torch::dataloader_next(torch::dataloader_make_iter(train_loader))[[1]] #get a batch of data
+set.seed(1)
+inds <- sample.int(dim(x)[1],1)
+data <- x[inds,]
+#now plot 
+plot(model_input_skip,type = 'local',data = data,num_samples = 100)
+```
+
+<img src="man/figures/README-unnamed-chunk-8-1.png" width="100%" />
+
 Compute residuals: y_true - y_predicted
 
 ``` r
@@ -168,11 +181,11 @@ coef(model_input_skip,data = 'train',dataset = train_loader,num_data = 10)
 #>          2.5%        50%      97.5%
 #> x0  0.0000000  0.0000000  0.0000000
 #> x1  0.0000000  0.0000000  0.0000000
-#> x2 -0.1716654 -0.1708275 -0.1667258
-#> x3 -0.6478776 -0.6339076 -0.6261227
+#> x2 -0.1738946 -0.1705795 -0.1692970
+#> x3 -0.6450771 -0.6335578 -0.6225414
 #> x4  0.0000000  0.0000000  0.0000000
 #> x5  0.0000000  0.0000000  0.0000000
-#> x6 -2.2719427 -2.2502227 -2.2410240
+#> x6 -2.2675936 -2.2635968 -2.2387651
 ```
 
 Get predictions from the posteiror:
@@ -182,19 +195,6 @@ predictions <- predict(model_input_skip,mpm = TRUE,newdata = test_loader,draws =
 dim(predictions) #shape is (draws,samples,classes)
 #> [1] 100 180   1
 ```
-
-Visualize the explanation of a datapoint from the training data:
-
-``` r
-x <- torch::dataloader_next(torch::dataloader_make_iter(train_loader))[[1]]
-set.seed(1)
-inds <- sample.int(dim(x)[1],1)
-
-data <- x[inds,]
-plot_local_explanations_gradient(model_input_skip,data,num_samples = 100,device = device)
-```
-
-<img src="man/figures/README-unnamed-chunk-11-1.png" width="100%" />
 
 Print the model:
 
