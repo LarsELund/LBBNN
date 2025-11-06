@@ -235,39 +235,5 @@ validate_LBBNN <- function(LBBNN,num_samples,test_dl,device = 'cpu'){
 
 
 
-#'Custom posterior_predict function for LBBNNs.
-#'@description Draw from the (variational) posterior predictive distribution.
-#'@param LBBNN An instance of a trained LBBNN_net.
-#'@param mpm To use the median probability model or not. 
-#'@param newdata A torch dataloader containing the variables with which to predict.
-#'@param draws The number of times to sample from the variational posterior. 
-#'@param device The device to perform the operations on. Default is cpu. 
-#'@param link Link function to apply to the output of the network. 
-#'@return A matrix of size (draws,N,C), where N is the number of data points in the test_loader,
-#'and C the number of classes. (1 for regression).
-#'@export
-posterior_predict.LBBNN <- function(LBBNN,mpm,newdata,draws,device = 'cpu',link = NULL){#should newdata be a dataloader or a dataset?
-  LBBNN$eval()
-  LBBNN$raw_output = TRUE #skip final sigmoid/softmax 
-  if(LBBNN$input_skip){LBBNN$compute_paths_input_skip()} #need this to get active paths to compute mpm
-  else(LBBNN$compute_paths)
-  out_shape <- LBBNN$sizes[length(LBBNN$sizes)] #number of output neurons
-  all_outs <- NULL
-  torch::with_no_grad({ 
-    coro::loop(for (b in newdata){
-      outputs <- torch::torch_zeros(draws,dim(b[[1]])[1],out_shape)$to(device=device)
-      for(i in 1:draws){
-        data <- b[[1]]$to(device = device)
-        outputs[i]<- LBBNN(data,MPM=mpm)
-      }
-      all_outs <- torch::torch_cat(c(all_outs,outputs),dim = 2) #add all the mini-batches together
-      
-    })  
-  })
-  return(all_outs)
-}
-
-
-
 
 

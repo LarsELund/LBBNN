@@ -164,7 +164,7 @@ residuals(model_input_skip)[1:10]
 Get local explanations from some training data:
 
 ``` r
-coef(model_input_skip,data = 'train',num_data= 10)
+coef(model_input_skip,data = 'train',dataset = train_loader,num_data = 10)
 #>          2.5%        50%      97.5%
 #> x0  0.0000000  0.0000000  0.0000000
 #> x1  0.0000000  0.0000000  0.0000000
@@ -175,7 +175,15 @@ coef(model_input_skip,data = 'train',num_data= 10)
 #> x6 -2.2719427 -2.2502227 -2.2410240
 ```
 
-Get the local explanation of a sample input:
+Get predictions from the posteiror:
+
+``` r
+predictions <- predict(model_input_skip,mpm = TRUE,newdata = test_loader,draws = 100)
+dim(predictions) #shape is (draws,samples,classes)
+#> [1] 100 180   1
+```
+
+Visualize the explanation of a datapoint from the training data:
 
 ``` r
 x <- torch::dataloader_next(torch::dataloader_make_iter(train_loader))[[1]]
@@ -186,34 +194,4 @@ data <- x[inds,]
 plot_local_explanations_gradient(model_input_skip,data,num_samples = 100,device = device)
 ```
 
-<img src="man/figures/README-unnamed-chunk-10-1.png" width="100%" />
-
-Another (random) one:
-
-``` r
-data <- torch::torch_randn(size = c(1,7))  -2
-plot_local_explanations_gradient(model_input_skip,data,num_samples = 100,device = device)
-```
-
 <img src="man/figures/README-unnamed-chunk-11-1.png" width="100%" />
-
-Visualize the results:
-
-``` r
-#plot(results_mf$loss,type = 'l',main = 'Loss durning training',xlab='Epoch',ylab='Loss',col='purple')
-#lines(results_flow$loss)
-#legend(x = "center",  
- #      legend=c("Mean-Field", "Flows"),  
-#       fill = c("purple","black")) 
-#plot(results_mf$accs,type = 'l',main = 'Accuracy durning training',xlab='Epoch',ylab='Accuracy',yaxt="n",col='purple')
-#lines(results_flow$accs)
-#legend(x = "center",  
- #      legend=c("Mean-Field", "Flows"),  
-#       fill = c("purple","black"))
-#axis(2, at = c(0.60,0.65,0.70,0.75,0.80,0.85), las=2)
-#plot(results_mf$density,type = 'l',main = 'Density during training',xlab='Epoch',ylab='Density',col='purple')
-#lines(results_flow$density)
-#legend(x = "center",  
- #      legend=c("Mean-Field", "Flows"),  
-  #     fill = c("purple","black"))
-```

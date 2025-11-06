@@ -114,9 +114,9 @@ coef.LBBNN_Net <- function(object,data = c('train','test','other'),dataset = NUL
   
   
   if(d == 'train'){
-    X <- train_loader$dataset$tensors[[1]]$clone()$detach()$cpu()}
+    X <- dataset$dataset$tensors[[1]]$clone()$detach()$cpu()}
   else if(d == 'test'){
-    X <- test_loader$dataset$tensors[[1]]$clone()$detach()$cpu()}
+    X <- dataset$dataset$tensors[[1]]$clone()$detach()$cpu()}
   
   else{X <- dataset         # should be a tensor with shape (num_data,p), but need to make sure it accepts MNIST or other img data
   if(class(X)[1] != 'torch_tensor')stop('the dataset must be a torch_tensor')   
@@ -160,6 +160,45 @@ coef.LBBNN_Net <- function(object,data = c('train','test','other'),dataset = NUL
   return(qs)
   
 }
+
+
+#'Custom posterior_predict function for LBBNNs.
+#'@description Draw from the (variational) posterior predictive distribution.
+#'@param object An instance of a trained LBBNN_net.
+#'@param mpm To use the median probability model or not. 
+#'@param newdata A torch dataloader containing the variables with which to predict.
+#'@param draws The number of times to sample from the variational posterior. 
+#'@param device The device to perform the operations on. Default is cpu. 
+#'@param link Link function to apply to the output of the network. 
+#'@return A matrix of size (draws,N,C), where N is the number of data points in the test_loader,
+#'and C the number of classes. (1 for regression).
+#' @export
+predict.LBBNN_Net <- function(object,mpm,newdata,draws,device = 'cpu',link = NULL){#should newdata be a dataloader or a dataset?
+  object$eval()
+  object$raw_output = TRUE #skip final sigmoid/softmax
+  if(! object$computed_paths){
+    if(object$input_skip){object$compute_paths_input_skip()} #need this to get active paths to compute mpm
+    else(object$compute_paths)
+  }
+  out_shape <- object$sizes[length(object$sizes)] #number of output neurons
+  all_outs <- NULL
+  torch::with_no_grad({ 
+    coro::loop(for (b in newdata){
+      outputs <- torch::torch_zeros(draws,dim(b[[1]])[1],out_shape)$to(device=device)
+      for(i in 1:draws){
+        data <- b[[1]]$to(device = device)
+        outputs[i]<- object(data,MPM=mpm)
+      }
+      all_outs <- torch::torch_cat(c(all_outs,outputs),dim = 2) #add all the mini-batches together
+      
+    })  
+  })
+  return(all_outs)
+}
+
+
+
+
 
 
 
