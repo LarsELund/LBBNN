@@ -2,6 +2,7 @@
 
 S3method(coef,LBBNN_Net)
 S3method(predict,LBBNN_Net)
+S3method(print,LBBNN_Net)
 S3method(residuals,LBBNN_Net)
 S3method(summary,LBBNN_Net)
 export(Custom_activation)

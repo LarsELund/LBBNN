@@ -195,3 +195,35 @@ plot_local_explanations_gradient(model_input_skip,data,num_samples = 100,device 
 ```
 
 <img src="man/figures/README-unnamed-chunk-11-1.png" width="100%" />
+
+Print the model:
+
+``` r
+print(model_input_skip)
+#> 
+#> ========================================
+#>           LBBNN Model Summary           
+#> ========================================
+#> 
+#> Module Overview:
+#>   - An `nn_module` containing 343 parameters.
+#> 
+#> ---------------- Submodules ----------------
+#>   - layers               : nn_module_list  # 305 parameters
+#>   - layers.0             : LBBNN_Linear    # 115 parameters
+#>   - layers.1             : LBBNN_Linear    # 190 parameters
+#>   - act                  : nn_leaky_relu   # 0 parameters
+#>   - out_layer            : LBBNN_Linear    # 38 parameters
+#>   - out                  : nn_sigmoid      # 0 parameters
+#>   - loss_fn              : nn_bce_loss     # 0 parameters
+#> 
+#> Model Configuration:
+#>   - LBBNN with input-skip 
+#>   - Optimized using variational inference without normalizing flows 
+#> 
+#> Priors:
+#>   - Prior inclusion probabilities per layer:  0.5, 0.5, 0.5 
+#>   - Prior std dev for weights per layer:     1, 1, 1 
+#> 
+#> =================================================================
+```

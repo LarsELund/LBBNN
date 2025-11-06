@@ -136,5 +136,9 @@ data <- x[inds,]
 plot_local_explanations_gradient(model_input_skip,data,num_samples = 100,device = device)
 ```
 
+Print the model:
 
+```{r}
+print(model_input_skip)
+```
 

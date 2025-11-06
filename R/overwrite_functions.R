@@ -196,15 +196,59 @@ predict.LBBNN_Net <- function(object,mpm,newdata,draws,device = 'cpu',link = NUL
   return(all_outs)
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
+#' @export
+print.LBBNN_Net <- function(x, ...) {
+  
+  module_info <- x$modules[[1]]
+  
+  # Model description
+  model_name <- if (isTRUE(x$input_skip)) {
+    "LBBNN with input-skip"
+  } else {
+    "LBBNN without input-skip"
+  }
+  
+  flow <- if (isTRUE(x$flow)) {
+    "with normalizing flows"
+  } else {
+    "without normalizing flows"
+  }
+  
+  # Header
+  cat("\n========================================\n")
+  cat("          LBBNN Model Summary           \n")
+  cat("========================================\n\n")
+  
+  # Module info
+  total_params <- sum(sapply(module_info$parameters, length))
+  cat("Module Overview:\n")
+  cat("  - An `nn_module` containing", total_params, "parameters.\n\n")
+  
+  # Submodules
+  cat("---------------- Submodules ----------------\n")
+  submodules <- module_info$modules
+  if (length(submodules) == 0) {
+    cat("  No submodules detected.\n")
+  } else {
+    for (name in names(submodules)) {
+      mod <- submodules[[name]]
+      if (is.null(mod)) next
+      n_params <- if (!is.null(mod$parameters)) sum(sapply(mod$parameters, length)) else 0
+      cat(sprintf("  - %-20s : %-15s # %d parameters\n", name, class(mod)[1], n_params))
+    }
+  }
+  
+  # Model details
+  cat("\nModel Configuration:\n")
+  cat("  -", model_name, "\n")
+  cat("  - Optimized using variational inference", flow, "\n\n")
+  
+  # Priors
+  cat("Priors:\n")
+  cat("  - Prior inclusion probabilities per layer: ",
+      paste(x$prior_inclusion, collapse = ", "), "\n")
+  cat("  - Prior std dev for weights per layer:    ",
+      paste(x$prior_std, collapse = ", "), "\n")
+  
+  cat("\n=================================================================\n\n")
+}

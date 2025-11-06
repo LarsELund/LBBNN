@@ -49,6 +49,8 @@ LBBNN_Net <- torch::nn_module(
     self$num_transforms <- num_transforms
     self$dims <- dims
     self$sizes <- sizes
+    self$prior_inclusion <- prior
+    self$prior_std <- std
     self$raw_output <- raw_output # TRUE when we want to compute local explanations
     self$act <- torch::nn_leaky_relu(0.00)
     self$computed_paths <- FALSE
