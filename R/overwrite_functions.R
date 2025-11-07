@@ -103,9 +103,17 @@ residuals.LBBNN_Net <- function(object,type = c('response'), ...) {
 
 
 #' @export
-coef.LBBNN_Net <- function(object,data = c('train','test','other'),dataset = NULL,num_data = 1,num_samples = 10, ...) {
+coef.LBBNN_Net <- function(object,data = c('train','test','other'),dataset = NULL,inds = NULL,num_data = 1,num_samples = 10, ...) {
   d <- match.arg(data)
-  all_means <- matrix(nrow = object$sizes[1],ncol = num_data)
+  if(is.null(inds)){
+    all_means <- matrix(nrow = object$sizes[1],ncol = num_data)
+  }
+  else{
+    all_means <- matrix(nrow = object$sizes[1],ncol = length(inds))
+  }
+  
+  
+  
   row_names <- c()
   for (i in 1:object$sizes[1]){
     row_names <- c(row_names,paste('x',i-1,sep = ''))
@@ -125,9 +133,24 @@ coef.LBBNN_Net <- function(object,data = c('train','test','other'),dataset = NUL
   
   } 
   
-  X_explain <- X[1:num_data,]
+  if(is.null(inds)){
+    if(dim(X)[1] < num_data)stop(paste('num_data =',num_data, 'can not be greater than the number of total data points,' ,dim(X)[1]))
+    X_explain <- X[1:num_data,]
+ 
+  }
+  else{
+    inds <- as.integer(inds) #in case user sends a numeric vector
+    inds <- unique(inds) #remove any duplicates
+    if(dim(X)[1] < length(inds))stop(paste('number of indecies =',length(inds), 'can not be greater than the number of total data points,' ,dim(X)[1]))
+    if(dim(X)[1] < max(inds))stop(paste('the largest index =',max(inds), 'can not be greater than the number of total data points,' ,dim(X)[1]))
+    
+    num_data <- length(inds)
+    X_explain <- X[inds,]
+   
+    
+  }
   
-  if(dim(X)[1] < num_data)stop(paste('num_data =',num_data, 'can not be greater than the number of total data points,' ,dim(X)[1]))
+  
   
   if(num_data == 1){ #here we get the CI from the uncertainty around the one sample
     expl <- get_local_explanations_gradient(object,X_explain,num_samples = num_samples)

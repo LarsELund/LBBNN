@@ -158,8 +158,8 @@ Can also plot the explanation of some sample using plot():
 ``` r
 x <- torch::dataloader_next(torch::dataloader_make_iter(train_loader))[[1]] #get a batch of data
 set.seed(1)
-inds <- sample.int(dim(x)[1],1)
-data <- x[inds,]
+ind <- 42
+data <- x[ind,] #plot this specific data-point from the train_loader
 #now plot 
 plot(model_input_skip,type = 'local',data = data,num_samples = 100)
 ```
@@ -177,15 +177,15 @@ residuals(model_input_skip)[1:10]
 Get local explanations from some training data:
 
 ``` r
-coef(model_input_skip,data = 'train',dataset = train_loader,num_data = 10)
+coef(model_input_skip,data = 'train',dataset = train_loader,inds = c(2,3,4,5,6))
 #>          2.5%        50%      97.5%
 #> x0  0.0000000  0.0000000  0.0000000
 #> x1  0.0000000  0.0000000  0.0000000
-#> x2 -0.1738946 -0.1705795 -0.1692970
-#> x3 -0.6450771 -0.6335578 -0.6225414
+#> x2 -0.1741796 -0.1700146 -0.1692748
+#> x3 -0.6376726 -0.6318072 -0.6226083
 #> x4  0.0000000  0.0000000  0.0000000
 #> x5  0.0000000  0.0000000  0.0000000
-#> x6 -2.2675936 -2.2635968 -2.2387651
+#> x6 -2.2675548 -2.2585137 -2.2399948
 ```
 
 Get predictions from the posteiror:
