@@ -156,11 +156,9 @@ summary(model_input_skip)
 Can also plot the explanation of some sample using plot():
 
 ``` r
-x <- torch::dataloader_next(torch::dataloader_make_iter(train_loader))[[1]] #get a batch of data
-set.seed(1)
+x <- train_loader$dataset$tensors[[1]] #grab the dataset
 ind <- 42
-data <- x[ind,] #plot this specific data-point from the train_loader
-#now plot 
+data <- x[ind,] #plot this specific data-point
 plot(model_input_skip,type = 'local',data = data,num_samples = 100)
 ```
 
@@ -181,11 +179,11 @@ coef(model_input_skip,data = 'train',dataset = train_loader,inds = c(2,3,4,5,6))
 #>          2.5%        50%      97.5%
 #> x0  0.0000000  0.0000000  0.0000000
 #> x1  0.0000000  0.0000000  0.0000000
-#> x2 -0.1741796 -0.1700146 -0.1692748
-#> x3 -0.6376726 -0.6318072 -0.6226083
+#> x2 -0.1718342 -0.1712856 -0.1694423
+#> x3 -0.6384742 -0.6366022 -0.6288301
 #> x4  0.0000000  0.0000000  0.0000000
 #> x5  0.0000000  0.0000000  0.0000000
-#> x6 -2.2675548 -2.2585137 -2.2399948
+#> x6 -2.2649529 -2.2526221 -2.2471136
 ```
 
 Get predictions from the posteiror:

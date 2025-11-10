@@ -107,11 +107,9 @@ summary(model_input_skip)
 
 Can also plot the explanation of some sample using plot():
 ```{r}
-x <- torch::dataloader_next(torch::dataloader_make_iter(train_loader))[[1]] #get a batch of data
-set.seed(1)
+x <- train_loader$dataset$tensors[[1]] #grab the dataset
 ind <- 42
-data <- x[ind,] #plot this specific data-point from the train_loader
-#now plot 
+data <- x[ind,] #plot this specific data-point
 plot(model_input_skip,type = 'local',data = data,num_samples = 100)
 ```
 
