@@ -76,8 +76,13 @@ get_local_explanations_gradient <- function(model,input_data,
 #' @param x numeric vector whose sample quantiles is desired.
 #' @return The quantiles
 #' @export
-quants <- function(x){
-  return(stats::quantile(x,probs = c(0.025,0.5,0.975))) #95% CI and median
+quants <- function(x){ #maybe should allow for something other than 95% CI
+  out <- c(
+    lower = stats::quantile(x, 0.025),
+    mean  = mean(x),
+    upper = stats::quantile(x, 0.975)
+  )
+  return(out) #95% CI and median
 }
 
 

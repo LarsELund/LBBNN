@@ -94,7 +94,7 @@ validate_LBBNN(LBBNN = model_input_skip,num_samples = 100,test_dl = test_loader,
 Plot the global structure of the given model:
 
 ```{r}
-plot(model_input_skip,type = 'global',vertex_size = 13,edge_width = 0.9,label_size = 0.6)
+plot(model_input_skip,type = 'global',vertex_size = 13,edge_width = 0.6,label_size = 0.6)
 ```
 
 Note that only 3 of the 7 input variables are used, with one of them just a linear connection.
@@ -123,7 +123,7 @@ residuals(model_input_skip)[1:10]
 Get local explanations from some training data:
 
 ```{r}
-coef(model_input_skip,data = 'train',dataset = train_loader,inds = c(2,3,4,5,6))
+coef(model_input_skip,dataset = train_loader,inds = c(2,3,4,5,6))
 ```
 
 Get predictions from the posteiror:

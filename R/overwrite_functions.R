@@ -43,6 +43,15 @@ get_input_inclusions <- function(model){
   return(inclusion_matrix) 
 }
 
+
+#' Summary of LBBNN fit
+#' @description Summary method for objects of the LBBNN_Net class. Note that this function only applies to objects trained with input-skip.
+#' @param object An object of class LBBNN_Net.
+#' @param ... further arguments passed to or from other methods.
+#' @details For each layer (aside from the output), the summary contains a column showing the number of connections (paths) for each variable from that layer.
+#' In addition, each layer has a column showing the average inclusion probability associated with each variable. The final column shows the average inclusion probability 
+#' across all layers.
+#' @return The table of the summary values.
 #' @export
 summary.LBBNN_Net <- function(object, ...) {
 
@@ -74,7 +83,7 @@ summary.LBBNN_Net <- function(object, ...) {
   a_avg <- round(colMeans(all_alphas),3)
   colnames(alpha_means) <- col_names
   alpha_means <- cbind(alpha_means,a_avg)
-  summary_out <- cbind(inclusions,alpha_means)
+  summary_out <- as.data.frame(cbind(inclusions,alpha_means))
   cat("Summary of LBBNN_Net object:\n")
   cat("-----------------------------------\n")
   cat("Shows the number of times each variable was included from each layer\n")
@@ -84,9 +93,17 @@ summary.LBBNN_Net <- function(object, ...) {
   cat("The final column shows the average inclusion probability across all layers\n")
   cat("-----------------------------------\n")
   print(summary_out)
+  invisible(summary_out)
 
 }
 
+
+#' Residuals from LBBNN fit
+#' @description Residuals from an object of the LBBNN_Net class.
+#' @param object An object of class LBBNN_Net.
+#' @param type Currently only 'response' is implemented i.e. y_true - y_predicted.
+#' @param ... further arguments passed to or from other methods.
+#' @return The response residuals.
 #' @export
 residuals.LBBNN_Net <- function(object,type = c('response'), ...) {
   y_true <- object$y
@@ -101,10 +118,24 @@ residuals.LBBNN_Net <- function(object,type = c('response'), ...) {
 }
 
 
-
+#'  Get model coefficients (local explanations) of an LBBNN_Net object
+#' @description Given an input sample x_1,... x_j (with j the number of variables), the local explanation is found by 
+#' considering active paths. If relu activations are assumed, each path is a piecewise
+#' linear function, so the contribution for x_j is just the sum of the weights associated with the paths connecting x_j to the output. 
+#' The contributions are found by taking the gradient wrt x.   
+#' @param object an object of class LBBNN_Net.
+#' @param dataset Either a train_loader object or a torch_tensor object. In the latter case, the user can supply their own data.  
+#' @param inds a numeric vector of indicies indicating which samples in the dataset to be used for local explanations.
+#' @param output_neuron Which class to explain. In the case where we have more than one output neuron, each one has to be explained separately.
+#' @param num_data If no inds are chosen, the first num_data of the dataset are automatically used for explanations.
+#' @param num_samples how many samples to use for model averaging when sampling the weights in the active paths. 
+#' @param ... further arguments passed to or from other methods.
+#' @details If num_data = 1 (or the user only supplies one sample), the confidence interval is taken around the mean explanation of that sample, using model averaging
+#' of the weights. If num_data > 1, then the confidence interval is obtained wrt all the mean explanations of each individual sample.
+#' @return The mean coefficients and 95% CI.
 #' @export
-coef.LBBNN_Net <- function(object,data = c('train','test','other'),dataset = NULL,inds = NULL,num_data = 1,num_samples = 10, ...) {
-  d <- match.arg(data)
+coef.LBBNN_Net <- function(object,dataset,inds = NULL,output_neuron = 1,num_data = 1,num_samples = 10, ...) {
+  if(output_neuron > object$sizes[length(object$sizes)])stop(paste('output_neuron =',output_neuron, 'can not be greater than' ,object$sizes[length(object$sizes)]))
   if(is.null(inds)){
     all_means <- matrix(nrow = object$sizes[1],ncol = num_data)
   }
@@ -120,18 +151,15 @@ coef.LBBNN_Net <- function(object,data = c('train','test','other'),dataset = NUL
   }
   
   
-  
-  if(d == 'train'){
+
+  if(class(dataset)[1] == 'dataloader'){
     X <- dataset$dataset$tensors[[1]]$clone()$detach()$cpu()}
-  else if(d == 'test'){
-    X <- dataset$dataset$tensors[[1]]$clone()$detach()$cpu()}
-  
-  else{X <- dataset         # should be a tensor with shape (num_data,p), but need to make sure it accepts MNIST or other img data
-  if(class(X)[1] != 'torch_tensor')stop('the dataset must be a torch_tensor')   
+  else if(class(dataset)[1] == 'torch_tensor'){
+  X <- dataset         # should be a tensor with shape (num_data,p), but need to make sure it accepts MNIST or other img data
   if(length(dim(X)) == 1){X <- X$unsqueeze(dim = 1)} #reshape (p) to shape (1,p)
   if(dim(X)[length(dim(X))] != object$sizes[1])stop('the last index must have shape equal to p')
-  
-  } 
+  }
+  else{stop('dataset must be either a torch_tensor or a dataloader object')}
   
   if(is.null(inds)){
     if(dim(X)[1] < num_data)stop(paste('num_data =',num_data, 'can not be greater than the number of total data points,' ,dim(X)[1]))
@@ -155,10 +183,12 @@ coef.LBBNN_Net <- function(object,data = c('train','test','other'),dataset = NUL
   if(num_data == 1){ #here we get the CI from the uncertainty around the one sample
     expl <- get_local_explanations_gradient(object,X_explain,num_samples = num_samples)
     e <- expl$explanations
-    mean_explanation <- as.matrix(e$mean(dim = -1))
+    e <- e[,,output_neuron] #get the explanation based on which output neuron is chosen
+    
+    mean_explanation <- as.matrix(e)
     qs <- t(apply(mean_explanation,2,quants))
     rownames(qs) <- row_names
-    return(qs)
+    return(as.data.frame(qs))
     
     
     
@@ -170,7 +200,8 @@ coef.LBBNN_Net <- function(object,data = c('train','test','other'),dataset = NUL
     data <- X_explain[i,]
     expl <- get_local_explanations_gradient(object,data,num_samples = num_samples)
     e <- expl$explanations
-    mean_explanation <- as.numeric(e$mean(dim = -1)$mean(dim = 1)) #first avg over classes, then over num_samples
+    ee <- e[,,output_neuron]
+    mean_explanation <- as.numeric(ee$mean(dim = 1)) 
     all_means[,i] <- mean_explanation
   }
   
@@ -180,12 +211,12 @@ coef.LBBNN_Net <- function(object,data = c('train','test','other'),dataset = NUL
   qs <- t(apply(all_means,1,quants))
   
   
-  return(qs)
+  return(as.data.frame(qs))
   
 }
 
 
-#'Custom posterior_predict function for LBBNNs.
+#'Obtain predictions based on the variaiontal posterior distribution of an LBBNN object.
 #'@description Draw from the (variational) posterior predictive distribution.
 #'@param object An instance of a trained LBBNN_net.
 #'@param mpm To use the median probability model or not. 
@@ -218,6 +249,8 @@ predict.LBBNN_Net <- function(object,mpm,newdata,draws,device = 'cpu',link = NUL
   })
   return(all_outs)
 }
+
+
 
 #' @export
 print.LBBNN_Net <- function(x, ...) {
@@ -277,7 +310,13 @@ print.LBBNN_Net <- function(x, ...) {
 }
 
 
-
+#'Plot LBBNN objects
+#'@description Plot either the global structure or local explanations.
+#'@param x An instance of LBBNN_net.
+#'@param type 'global' or 'local'.
+#'@param data If local is chosen, one sample must be provided to obtain the explanation. Must be a torch_tensor of shape(1,p).
+#'@param num_samples How many samples to use for model averaging over the weights in case of local explanations.
+#'@param ... further arguments passed to or from other methods.
 #' @export
 plot.LBBNN_Net <- function(x,type = c('global','local'),data = NULL,num_samples = 100, ...) {
   d <- match.arg(type)
