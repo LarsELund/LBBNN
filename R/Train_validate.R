@@ -12,8 +12,9 @@ library(torch)
 #' @param sch_step_size Where to decay if using torch::lr_step. E.g. 1000 means learning rate is decayed every 1000 epochs.
 #' @return a list containing the losses and accuracy (if classification) and density for each epoch during training.
 #' For comparisons sake we show the density with and without active paths.
-#' @examples 
-#' x<-torch::torch_randn(1000,10) #generate some data
+#' @examples
+#' \donttest{ 
+#'x<-torch::torch_randn(1000,10) #generate some data
 #'b <- torch::torch_rand(10)
 #'y <- torch::torch_matmul(x,b)
 #'med <- torch::torch_median(y)
@@ -28,6 +29,7 @@ library(torch)
 #'stds <- c(1.0,1.0)
 #'model <- LBBNN_Net(problem,sizes,inclusion_priors,stds,inclusion_inits,flow = FALSE)
 #'output <- train_LBBNN(epochs = 10,LBBNN = model, lr = 0.01,train_dl = train_loader)
+#'}
 #'@export
 train_LBBNN <- function(epochs,LBBNN,lr,train_dl,device = 'cpu',scheduler = NULL,sch_step_size = NULL){
   opt <- torch::optim_adam(LBBNN$parameters,lr = lr)

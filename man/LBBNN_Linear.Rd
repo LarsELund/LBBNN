@@ -44,10 +44,11 @@ either use the full model, or the medium probability model (MPM).
 Also contains method to initialize parameters and compute KL-divergence.
 }
 \examples{
-if (requireNamespace("torch", quietly=TRUE)) torch::install_torch()
+\donttest{
 l1 <- LBBNN_Linear(in_features = 10,out_features = 5,prior_inclusion = 0.25,
 standard_prior = 1,density_init = c(0,1),flow = FALSE)
 x <- torch::torch_rand(20,10,requires_grad = FALSE)
 output <- l1(x,MPM = FALSE) #the forward pass, output has shape (20,5)
 print(l1$kl_div()$item()) #compute KL-divergence after the forward pass
+}
 }

@@ -4,7 +4,7 @@
 \alias{predict.LBBNN_Net}
 \title{Obtain predictions based on the variational posterior distribution of an LBBNN object.}
 \usage{
-\method{predict}{LBBNN_Net}(object, mpm, newdata, draws, device = "cpu", link = NULL)
+\method{predict}{LBBNN_Net}(object, mpm, newdata, draws, device = "cpu", link = NULL, ...)
 }
 \arguments{
 \item{object}{An instance of a trained LBBNN_net.}
@@ -18,6 +18,8 @@
 \item{device}{The device to perform the operations on. Default is cpu.}
 
 \item{link}{Link function to apply to the output of the network.}
+
+\item{...}{further arguments passed to or from other methods.}
 }
 \value{
 A matrix of size (draws,N,C), where N is the number of data points in the test_loader,

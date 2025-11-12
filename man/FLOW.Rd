@@ -19,7 +19,7 @@ all the layers in the module. Also computed the log determinant for the entire
 transformation, which is just the sum of the independent layers.
 }
 \examples{
-if (requireNamespace("torch", quietly=TRUE)) torch::install_torch() 
+\donttest{
 flow <- FLOW(c(200,100,100),transform_type = 'RNVP',num_transforms = 3)
 flow$to(device = 'cpu')
 x <- torch::torch_rand(200,device = 'cpu')
@@ -28,4 +28,5 @@ z_out <- output$z
 print(dim(z_out))
 log_det <- output$logdet
 print(log_det)
+}
 }

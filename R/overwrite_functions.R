@@ -224,10 +224,11 @@ coef.LBBNN_Net <- function(object,dataset,inds = NULL,output_neuron = 1,num_data
 #'@param draws The number of times to sample from the variational posterior. 
 #'@param device The device to perform the operations on. Default is cpu. 
 #'@param link Link function to apply to the output of the network. 
+#'@param ... further arguments passed to or from other methods.
 #'@return A matrix of size (draws,N,C), where N is the number of data points in the test_loader,
 #'and C the number of classes. (1 for regression).
 #' @export
-predict.LBBNN_Net <- function(object,mpm,newdata,draws,device = 'cpu',link = NULL){#should newdata be a dataloader or a dataset?
+predict.LBBNN_Net <- function(object,mpm,newdata,draws,device = 'cpu',link = NULL, ...){#should newdata be a dataloader or a dataset?
   object$eval()
   object$raw_output = TRUE #skip final sigmoid/softmax
   if(! object$computed_paths){

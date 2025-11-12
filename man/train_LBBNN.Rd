@@ -38,6 +38,7 @@ Function that for each epoch iterates through each mini-batch, computing
 the loss and using back-propagation to update the network parameters.
 }
 \examples{
+\donttest{ 
 x<-torch::torch_randn(1000,10) #generate some data
 b <- torch::torch_rand(10)
 y <- torch::torch_matmul(x,b)
@@ -53,4 +54,5 @@ inclusion_inits <- matrix(rep(c(-10,10),2),nrow = 2,ncol = 2)
 stds <- c(1.0,1.0)
 model <- LBBNN_Net(problem,sizes,inclusion_priors,stds,inclusion_inits,flow = FALSE)
 output <- train_LBBNN(epochs = 10,LBBNN = model, lr = 0.01,train_dl = train_loader)
+}
 }
