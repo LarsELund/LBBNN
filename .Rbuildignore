@@ -11,4 +11,7 @@
 ^\.Rproj\.user$
 ^data-raw$
 ^doc$
+^dataset$
 ^Meta$
+^CRAN-SUBMISSION$
+^cran-comments\.md$

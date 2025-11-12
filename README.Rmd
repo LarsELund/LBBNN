@@ -17,7 +17,7 @@ knitr::opts_chunk$set(
 
 <!-- badges: start -->
 
-[![](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental) [![](https://img.shields.io/github/last-commit/LarsELund/LBBNN.svg)](https://github.com/LarsELund/LBBNN/commits/main) [![](https://img.shields.io/github/languages/code-size/LarsELund/LBBNN.svg)](https://github.com/LarsELund/LBBNN) [![R-CMD-check](https://github.com/LarsELund/LBBNN/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/LarsELund/LBBNN/actions) [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental) [![](https://img.shields.io/github/last-commit/LarsELund/LBBNN.svg)](https://github.com/LarsELund/LBBNN/commits/main) [![](https://img.shields.io/github/languages/code-size/LarsELund/LBBNN.svg)](https://github.com/LarsELund/LBBNN) [![R-CMD-check](https://github.com/LarsELund/LBBNN/workflows/R-CMD-check/badge.svg)](https://github.com/LarsELund/LBBNN/actions) [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 <!-- badges: end -->
 
@@ -106,13 +106,13 @@ summary(model_input_skip)
 ```
 
 Can also plot the explanation of some sample using plot():
+
 ```{r}
 x <- train_loader$dataset$tensors[[1]] #grab the dataset
 ind <- 42
 data <- x[ind,] #plot this specific data-point
 plot(model_input_skip,type = 'local',data = data,num_samples = 100)
 ```
-
 
 Compute residuals: y_true - y_predicted
 
@@ -126,7 +126,7 @@ Get local explanations from some training data:
 coef(model_input_skip,dataset = train_loader,inds = c(2,3,4,5,6))
 ```
 
-Get predictions from the posteiror:
+Get predictions from the posterior:
 
 ```{r}
 predictions <- predict(model_input_skip,mpm = TRUE,newdata = test_loader,draws = 100)
@@ -138,4 +138,3 @@ Print the model:
 ```{r}
 print(model_input_skip)
 ```
-

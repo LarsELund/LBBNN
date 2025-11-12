@@ -1,6 +1,6 @@
 #' Raisins Dataset
 #'
-#' @description İ̇lkay Çinar, Murat Kokl and Sakir Tasdemi(2020)
+#' @description Ilkay Cinar, Murat Kokl and Sakir Tasdemi(2020)
 #' provide a dataset consisting of 2 varieties of Turkish raisins, with 450 
 #' samples of each type. The dataset contains 7 morphological features, 
 #' extracted from images taken of the Raisins. The goal is to classify to one of

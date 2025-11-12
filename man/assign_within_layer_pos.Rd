@@ -13,7 +13,7 @@ assign_within_layer_pos(N, N_u, input_positions, neuron_spacing)
 
 \item{input_positions}{Positions of the neurons in the input layer.}
 
-\item{neuron_spacing}{How much space between the neurons. (do we need this?, seems like igraph overrides or smth)}
+\item{neuron_spacing}{How much space between the neurons.}
 }
 \value{
 Positions of the second layer.

@@ -1,19 +1,20 @@
 library(torch)
 
 #' Function to train an instance of LBBNN_Net
-#' @description Function that for each epoch itereates through each mini-batch, computing
-#' the loss and using backpropagation to update the network parameters.
-#' @param epochs Total number of epochs to train for, where one epoch is a pass through the entire training dataset (all minibatches).
+#' @description Function that for each epoch iterates through each mini-batch, computing
+#' the loss and using back-propagation to update the network parameters.
+#' @param epochs Total number of epochs to train for, where one epoch is a pass through the entire training dataset (all mini batches).
 #' @param LBBNN An instance of the LBBNN_Net class, to be trained.
 #' @param lr The learning rate to be used in the Adam optimizer.
 #' @param train_dl An instance of torch dataloader, containing the data to be trained.
 #' @param device the device to be trained on. Default is cpu.
 #' @param scheduler A torch learning rate scheduler object. Can be used to decay learning rate for better convergence.
 #' @param sch_step_size Where to decay if using torch::lr_step. E.g. 1000 means learning rate is decayed every 1000 epochs.
-#' @return a list containing the losses and accuracies (if classification) and density for each epoch during training.
+#' @return a list containing the losses and accuracy (if classification) and density for each epoch during training.
 #' For comparisons sake we show the density with and without active paths.
-#' @examples 
-#' x<-torch::torch_randn(1000,10) #generate some data
+#' @examples
+#' \donttest{ 
+#'x<-torch::torch_randn(1000,10) #generate some data
 #'b <- torch::torch_rand(10)
 #'y <- torch::torch_matmul(x,b)
 #'med <- torch::torch_median(y)
@@ -28,6 +29,7 @@ library(torch)
 #'stds <- c(1.0,1.0)
 #'model <- LBBNN_Net(problem,sizes,inclusion_priors,stds,inclusion_inits,flow = FALSE)
 #'output <- train_LBBNN(epochs = 10,LBBNN = model, lr = 0.01,train_dl = train_loader)
+#'}
 #'@export
 train_LBBNN <- function(epochs,LBBNN,lr,train_dl,device = 'cpu',scheduler = NULL,sch_step_size = NULL){
   opt <- torch::optim_adam(LBBNN$parameters,lr = lr)

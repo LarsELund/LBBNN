@@ -19,11 +19,11 @@
 
 \item{dataset}{Either a train_loader object or a torch_tensor object. In the latter case, the user can supply their own data.}
 
-\item{inds}{a numeric vector of indicies indicating which samples in the dataset to be used for local explanations.}
+\item{inds}{a numeric vector of indices indicating which samples in the dataset to be used for local explanations.}
 
 \item{output_neuron}{Which class to explain. In the case where we have more than one output neuron, each one has to be explained separately.}
 
-\item{num_data}{If no inds are chosen, the first num_data of the dataset are automatically used for explanations.}
+\item{num_data}{If no indices are chosen, the first num_data of the dataset are automatically used for explanations.}
 
 \item{num_samples}{how many samples to use for model averaging when sampling the weights in the active paths.}
 
@@ -34,7 +34,7 @@ The mean coefficients and 95\% CI.
 }
 \description{
 Given an input sample x_1,... x_j (with j the number of variables), the local explanation is found by
-considering active paths. If relu activations are assumed, each path is a piecewise
+considering active paths. If relu activation functions are assumed, each path is a piecewise
 linear function, so the contribution for x_j is just the sum of the weights associated with the paths connecting x_j to the output.
 The contributions are found by taking the gradient wrt x.
 }

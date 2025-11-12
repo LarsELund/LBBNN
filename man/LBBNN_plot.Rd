@@ -2,7 +2,7 @@
 % Please edit documentation in R/plotting_graphs.R
 \name{LBBNN_plot}
 \alias{LBBNN_plot}
-\title{Function to plot an islab structure after removing weights in non-active paths.}
+\title{Function to plot an input skip structure after removing weights in non-active paths.}
 \usage{
 LBBNN_plot(
   model,
@@ -16,7 +16,7 @@ LBBNN_plot(
 \arguments{
 \item{model}{A trained LBBNN model with input_skip.}
 
-\item{layer_spacing}{Spacing inbetween layers.}
+\item{layer_spacing}{Spacing in between layers.}
 
 \item{neuron_spacing}{Spacing between neurons within a layer.}
 

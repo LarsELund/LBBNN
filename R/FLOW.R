@@ -6,10 +6,12 @@ library(torch)
 #' @description As of now, each hidden layer (except the last) is followed
 #' by a non-linear transformation. 
 #' @examples
+#' \donttest{
 #'net <- MLP(c(50,100,200,400))
 #'x <- torch::torch_rand(50)
 #'out <- net(x)
 #'print(dim(out))
+#'}
 #' @export
 MLP <- torch::nn_module(
   "MLP",
@@ -46,11 +48,13 @@ MLP <- torch::nn_module(
 #'This implementation uses the numerically stable updates introduced by IAF:
 # 'https://arxiv.org/abs/1606.04934
 #' @examples
+#' \donttest{
 #'z <- torch::torch_rand(200)
 #'layer <- RNVP_layer(c(200,50,100))
 #'out <- layer(z)
 #'print(dim(out))
 #'print(layer$log_det())
+#'}
 #' @export
 RNVP_layer <- torch::nn_module(
   "RNVP_layer",
@@ -87,6 +91,7 @@ RNVP_layer <- torch::nn_module(
 #' all the layers in the module. Also computed the log determinant for the entire 
 #' transformation, which is just the sum of the independent layers.
 #' @examples
+#' \donttest{
 #'flow <- FLOW(c(200,100,100),transform_type = 'RNVP',num_transforms = 3)
 #'flow$to(device = 'cpu')
 #'x <- torch::torch_rand(200,device = 'cpu')
@@ -95,6 +100,7 @@ RNVP_layer <- torch::nn_module(
 #'print(dim(z_out))
 #'log_det <- output$logdet
 #'print(log_det)
+#' }
 #' @export
 FLOW <- torch::nn_module(
   "FLOW",

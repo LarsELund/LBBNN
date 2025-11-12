@@ -120,14 +120,14 @@ residuals.LBBNN_Net <- function(object,type = c('response'), ...) {
 
 #'  Get model coefficients (local explanations) of an LBBNN_Net object
 #' @description Given an input sample x_1,... x_j (with j the number of variables), the local explanation is found by 
-#' considering active paths. If relu activations are assumed, each path is a piecewise
+#' considering active paths. If relu activation functions are assumed, each path is a piecewise
 #' linear function, so the contribution for x_j is just the sum of the weights associated with the paths connecting x_j to the output. 
 #' The contributions are found by taking the gradient wrt x.   
 #' @param object an object of class LBBNN_Net.
 #' @param dataset Either a train_loader object or a torch_tensor object. In the latter case, the user can supply their own data.  
-#' @param inds a numeric vector of indicies indicating which samples in the dataset to be used for local explanations.
+#' @param inds a numeric vector of indices indicating which samples in the dataset to be used for local explanations.
 #' @param output_neuron Which class to explain. In the case where we have more than one output neuron, each one has to be explained separately.
-#' @param num_data If no inds are chosen, the first num_data of the dataset are automatically used for explanations.
+#' @param num_data If no indices are chosen, the first num_data of the dataset are automatically used for explanations.
 #' @param num_samples how many samples to use for model averaging when sampling the weights in the active paths. 
 #' @param ... further arguments passed to or from other methods.
 #' @details If num_data = 1 (or the user only supplies one sample), the confidence interval is taken around the mean explanation of that sample, using model averaging
@@ -216,7 +216,7 @@ coef.LBBNN_Net <- function(object,dataset,inds = NULL,output_neuron = 1,num_data
 }
 
 
-#'Obtain predictions based on the variaiontal posterior distribution of an LBBNN object.
+#'Obtain predictions based on the variational posterior distribution of an LBBNN object.
 #'@description Draw from the (variational) posterior predictive distribution.
 #'@param object An instance of a trained LBBNN_net.
 #'@param mpm To use the median probability model or not. 
@@ -224,10 +224,15 @@ coef.LBBNN_Net <- function(object,dataset,inds = NULL,output_neuron = 1,num_data
 #'@param draws The number of times to sample from the variational posterior. 
 #'@param device The device to perform the operations on. Default is cpu. 
 #'@param link Link function to apply to the output of the network. 
+#'@param ... further arguments passed to or from other methods.
 #'@return A matrix of size (draws,N,C), where N is the number of data points in the test_loader,
 #'and C the number of classes. (1 for regression).
 #' @export
+<<<<<<< HEAD
 predict.LBBNN_Net <- function(object,mpm,newdata,draws,device = 'cpu',link = NULL,...){#should newdata be a dataloader or a dataset?
+=======
+predict.LBBNN_Net <- function(object,mpm,newdata,draws,device = 'cpu',link = NULL, ...){#should newdata be a dataloader or a dataset?
+>>>>>>> 2863d5381fd0bdf64be86903a40dbcb7de1cfb0b
   object$eval()
   object$raw_output = TRUE #skip final sigmoid/softmax
   if(! object$computed_paths){

@@ -9,7 +9,7 @@ MLP(hidden_sizes, device = "cpu")
 MLP(hidden_sizes, device = "cpu")
 }
 \arguments{
-\item{hidden_sizes}{A vector of ints. The first is the dimensionality of the vector,
+\item{hidden_sizes}{A vector of integers. The first is the dimensionality of the vector,
 to be transformed by RNVP. The subsequent are hidden dimensions in the MLP.}
 
 \item{device}{The device to be used. Default is CPU.}
@@ -22,10 +22,13 @@ As of now, each hidden layer (except the last) is followed
 by a non-linear transformation.
 }
 \examples{
+\donttest{
 net <- MLP(c(50,100,200,400))
 x <- torch::torch_rand(50)
 out <- net(x)
 print(dim(out))
+}
+if (requireNamespace("torch", quietly=TRUE)) torch::install_torch()
 net <- MLP(c(50,100,200,400))
 x <- torch::torch_rand(50)
 out <- net(x)

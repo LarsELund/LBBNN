@@ -9,7 +9,7 @@ RNVP_layer(hidden_sizes, device = "cpu")
 RNVP_layer(hidden_sizes, device = "cpu")
 }
 \arguments{
-\item{hidden_sizes}{A vector of ints. The first is the dimensionality of the vector,
+\item{hidden_sizes}{A vector of integers. The first is the dimensionality of the vector,
 to be transformed by RNVP. The subsequent are hidden dimensions in the MLP.}
 
 \item{device}{The device to be used. Default is CPU.}
@@ -24,20 +24,24 @@ This implementation uses the numerically stable updates introduced by IAF:
 
 Affine half flow aka Real Non-Volume Preserving (x = z * exp(s) + t),
 where a randomly selected half z1 of the dimensions in z are transformed as an
-affine function of the other half z2, i.e. scaled by s(z2) and shifted by t(z2).
+Affine function of the other half z2, i.e. scaled by s(z2) and shifted by t(z2).
 From "Density estimation using Real NVP", Dinh et al. (May 2016)
 https://arxiv.org/abs/1605.08803
 This implementation uses the numerically stable updates introduced by IAF:
 }
 \examples{
+\donttest{
 z <- torch::torch_rand(200)
 layer <- RNVP_layer(c(200,50,100))
 out <- layer(z)
 print(dim(out))
 print(layer$log_det())
+}
+\donttest{
 z <- torch::torch_rand(200)
 layer <- RNVP_layer(c(200,50,100))
 out <- layer(z)
 print(dim(out))
 print(layer$log_det())
+}
 }
