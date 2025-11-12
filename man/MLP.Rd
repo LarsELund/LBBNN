@@ -28,9 +28,10 @@ x <- torch::torch_rand(50)
 out <- net(x)
 print(dim(out))
 }
-if (requireNamespace("torch", quietly=TRUE)) torch::install_torch()
+\donttest{
 net <- MLP(c(50,100,200,400))
 x <- torch::torch_rand(50)
 out <- net(x)
 print(dim(out))
+}
 }
