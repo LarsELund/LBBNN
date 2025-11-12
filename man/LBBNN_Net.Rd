@@ -60,6 +60,7 @@ two hidden layers with 200 neurons each, and an output layer of 5 neurons.
 LBBNN_net also contains functions to compute kl-divergence and the density of the entire network.
 }
 \examples{
+if (requireNamespace("torch", quietly=TRUE)) torch::install_torch()
 layers <- c(20,200,200,5) #Two hidden layers 
 alpha <- c(0.3,0.5,0.9)  # One prior inclusion probability for each weight matrix 
 stds <- c(1.0,1.0,1.0)  # One prior inclusion probability for each weight matrix 

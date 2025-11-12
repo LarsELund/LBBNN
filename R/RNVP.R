@@ -5,6 +5,7 @@
 #' @description As of now, each hidden layer (except the last) is followed
 #' by a non-linear transformation. 
 #' @examples
+#' if (requireNamespace("torch", quietly=TRUE)) torch::install_torch()
 #'net <- MLP(c(50,100,200,400))
 #'x <- torch::torch_rand(50)
 #'out <- net(x)
@@ -46,6 +47,7 @@ MLP <- torch::nn_module(
 #'This implementation uses the numerically stable updates introduced by IAF:
 # 'https://arxiv.org/abs/1606.04934
 #' @examples
+#' if (requireNamespace("torch", quietly=TRUE)) torch::install_torch()
 #'z <- torch::torch_rand(200)
 #'layer <- RNVP_layer(c(200,50,100))
 #'out <- layer(z)

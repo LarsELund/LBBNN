@@ -30,11 +30,13 @@ https://arxiv.org/abs/1605.08803
 This implementation uses the numerically stable updates introduced by IAF:
 }
 \examples{
+if (requireNamespace("torch", quietly=TRUE)) torch::install_torch()
 z <- torch::torch_rand(200)
 layer <- RNVP_layer(c(200,50,100))
 out <- layer(z)
 print(dim(out))
 print(layer$log_det())
+if (requireNamespace("torch", quietly=TRUE)) torch::install_torch()
 z <- torch::torch_rand(200)
 layer <- RNVP_layer(c(200,50,100))
 out <- layer(z)

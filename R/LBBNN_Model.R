@@ -21,6 +21,7 @@ library(torch)
 #' @param nll User can define their own likelihood function (not implemented yet)
 #' @param bias_inclusion_prob determines whether the bias should be as associated with inclusion probabilities. TRUE or FALSE  
 #' @examples
+#' if (requireNamespace("torch", quietly=TRUE)) torch::install_torch()
 #' layers <- c(20,200,200,5) #Two hidden layers 
 #' alpha <- c(0.3,0.5,0.9)  # One prior inclusion probability for each weight matrix 
 #' stds <- c(1.0,1.0,1.0)  # One prior inclusion probability for each weight matrix 

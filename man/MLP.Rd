@@ -22,10 +22,12 @@ As of now, each hidden layer (except the last) is followed
 by a non-linear transformation.
 }
 \examples{
+if (requireNamespace("torch", quietly=TRUE)) torch::install_torch()
 net <- MLP(c(50,100,200,400))
 x <- torch::torch_rand(50)
 out <- net(x)
 print(dim(out))
+if (requireNamespace("torch", quietly=TRUE)) torch::install_torch()
 net <- MLP(c(50,100,200,400))
 x <- torch::torch_rand(50)
 out <- net(x)

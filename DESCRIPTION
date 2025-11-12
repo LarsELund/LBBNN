@@ -1,6 +1,6 @@
 Package: LBBNN
 Title: Implementation of Latent Binary Bayesian Neural Networks using torch for R
-Version: 0.0.0.9000
+Version: 0.1.1
 Authors@R: c(person("Lars", "Skaaret-Lund", email = "lars.skaaret-lund@nmbu.no", role = c("aut", "cre")), person("Aliaksandr", "Hubin", email = "aliaksandr.hubin@nmbu.no", role = c("aut")), person("Eirik", "Høyheim", email = "eirik.hoyheim@ffi.no", role = "aut"))
 Maintainer: Lars Skaaret-Lund <lars.skaaret-lund@nmbu.no>
 Description: Package that implements LBBNNs in R. The goal is to implement both the mean-field version, using the local reparametrization trick, in addition to the version taking into account dependencies between weights, using normalizing flows. In addition, the package will implement input-skip LBBNNs.

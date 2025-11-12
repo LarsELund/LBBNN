@@ -44,6 +44,7 @@ either use the full model, or the medium probability model (MPM).
 Also contains method to initialize parameters and compute KL-divergence.
 }
 \examples{
+if (requireNamespace("torch", quietly=TRUE)) torch::install_torch()
 layer <- LBBNN_Conv2d(in_channels = 1,out_channels = 32,kernel_size = c(3,3),
 prior_inclusion = 0.2,standard_prior = 1,density_init = c(-10,10),device = 'cpu')
 x <-torch::torch_randn(100,1,28,28)
