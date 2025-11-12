@@ -83,4 +83,4 @@ print(paste('GMB R2 = ',cor(predictions,ground_truth)^2))
 print(paste('LBBNN MSE =',mltools::mse(b,ground_truth)))
 print(paste('LBBNN R2 = ',cor(b,ground_truth)^2))
 
-coef()
+coef(model_input_skip,dataset = )
