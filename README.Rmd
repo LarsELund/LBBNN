@@ -106,13 +106,13 @@ summary(model_input_skip)
 ```
 
 Can also plot the explanation of some sample using plot():
+
 ```{r}
 x <- train_loader$dataset$tensors[[1]] #grab the dataset
 ind <- 42
 data <- x[ind,] #plot this specific data-point
 plot(model_input_skip,type = 'local',data = data,num_samples = 100)
 ```
-
 
 Compute residuals: y_true - y_predicted
 
@@ -138,4 +138,3 @@ Print the model:
 ```{r}
 print(model_input_skip)
 ```
-
