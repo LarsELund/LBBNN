@@ -11,5 +11,11 @@ Package that implements LBBNNs in R. The goal is to implement both the mean-fiel
 \author{
 \strong{Maintainer}: Lars Skaaret-Lund \email{lars.skaaret-lund@nmbu.no}
 
+Authors:
+\itemize{
+  \item Aliaksandr Hubin \email{aliaksandr.hubin@nmbu.no}
+  \item Eirik Høyheim \email{eirik.hoyheim@ffi.no}
+}
+
 }
 \keyword{internal}
