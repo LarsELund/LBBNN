@@ -17,7 +17,7 @@ knitr::opts_chunk$set(
 
 <!-- badges: start -->
 
-[![](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental) [![](https://img.shields.io/github/last-commit/LarsELund/LBBNN.svg)](https://github.com/LarsELund/LBBNN/commits/main) [![](https://img.shields.io/github/languages/code-size/LarsELund/LBBNN.svg)](https://github.com/LarsELund/LBBNN) [![R-CMD-check](https://github.com/LarsELund/LBBNN/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/LarsELund/LBBNN/actions) [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental) [![](https://img.shields.io/github/last-commit/LarsELund/LBBNN.svg)](https://github.com/LarsELund/LBBNN/commits/main) [![](https://img.shields.io/github/languages/code-size/LarsELund/LBBNN.svg)](https://github.com/LarsELund/LBBNN) [![R-CMD-check](https://github.com/LarsELund/LBBNN/workflows/R-CMD-check/badge.svg)](https://github.com/LarsELund/LBBNN/actions) [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 <!-- badges: end -->
 
