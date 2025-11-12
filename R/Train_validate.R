@@ -43,8 +43,8 @@ train_LBBNN <- function(epochs,LBBNN,lr,train_dl,device = 'cpu',scheduler = NULL
       sl <- torch::lr_step(opt,step_size = sch_step_size,gamma = 0.1)
     }
   }
-
-  
+  LBBNN$elapsed_time <- 0
+  start <- base::proc.time()
   for (epoch in 1:epochs) {
   #  if(LBBNN$input_skip){LBBNN$compute_paths_input_skip()}
   #  else(LBBNN$compute_paths)
@@ -138,8 +138,9 @@ train_LBBNN <- function(epochs,LBBNN,lr,train_dl,device = 'cpu',scheduler = NULL
     
   }
   l = list('accs' = accs,'loss' = losses,'density' = density)
-
-  return(l)
+  time <- base::proc.time() - start 
+  LBBNN$elapsed_time <- time[[3]]
+  invisible(l)
 }
 
 
@@ -169,6 +170,7 @@ validate_LBBNN <- function(LBBNN,num_samples,test_dl,device = 'cpu'){
   out_shape <- 1 #if binary classification or regression
   if(LBBNN$input_skip){LBBNN$compute_paths_input_skip()} #need this to get active paths to compute mpm
   else(LBBNN$compute_paths)
+  LBBNN$computed_paths <- TRUE
   torch::with_no_grad({ 
     coro::loop(for (b in test_dl){
       target <- b[[2]]$to(device=device)

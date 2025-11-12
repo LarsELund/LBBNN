@@ -93,6 +93,8 @@ summary.LBBNN_Net <- function(object, ...) {
   cat("The final column shows the average inclusion probability across all layers\n")
   cat("-----------------------------------\n")
   print(summary_out)
+  cat("-----------------------------------\n")
+  cat(paste('The model took',model_input_skip$elapsed_time,'seconds to train, using',model_input_skip$device))
   invisible(summary_out)
 
 }
@@ -228,11 +230,7 @@ coef.LBBNN_Net <- function(object,dataset,inds = NULL,output_neuron = 1,num_data
 #'@return A matrix of size (draws,N,C), where N is the number of data points in the test_loader,
 #'and C the number of classes. (1 for regression).
 #' @export
-<<<<<<< HEAD
 predict.LBBNN_Net <- function(object,mpm,newdata,draws,device = 'cpu',link = NULL,...){#should newdata be a dataloader or a dataset?
-=======
-predict.LBBNN_Net <- function(object,mpm,newdata,draws,device = 'cpu',link = NULL, ...){#should newdata be a dataloader or a dataset?
->>>>>>> 2863d5381fd0bdf64be86903a40dbcb7de1cfb0b
   object$eval()
   object$raw_output = TRUE #skip final sigmoid/softmax
   if(! object$computed_paths){
@@ -324,6 +322,9 @@ print.LBBNN_Net <- function(x, ...) {
 #'@param ... further arguments passed to or from other methods.
 #' @export
 plot.LBBNN_Net <- function(x,type = c('global','local'),data = NULL,num_samples = 100, ...) {
+  if(x$input_skip == FALSE)(stop('Plotting currently only implemented for input-skip'))
+  if(x$computed_paths == FALSE){x$compute_paths_input_skip()}
+  x$computed_paths <- TRUE
   d <- match.arg(type)
   if(d == 'global'){
     LBBNN_plot(x,...)

@@ -53,6 +53,7 @@ LBBNN_Net <- torch::nn_module(
     self$sizes <- sizes
     self$prior_inclusion <- prior
     self$prior_std <- std
+    self$elapsed_time <- 0 #to check how much time the model takes to train
     self$raw_output <- raw_output # TRUE when we want to compute local explanations
     self$act <- torch::nn_leaky_relu(0.00)
     self$computed_paths <- FALSE

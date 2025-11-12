@@ -36,7 +36,7 @@ print(paste('GBM accuracy =',acc))
 
 
 problem <- 'binary classification'
-sizes <- c(40,3,3,1) #7 input variables, one hidden layer of 100 neurons, 1 output neuron.
+sizes <- c(40,3,3,1) 
 inclusion_priors <-c(0.5,0.5,0.5) #one prior probability per weight matrix.
 stds <- c(1,1,1) #prior standard deviation for each layer.
 
@@ -56,20 +56,18 @@ results_input_skip <- train_LBBNN(epochs = 1000,LBBNN = model_input_skip,
                                   lr = 0.005,train_dl = train_loader,device = device,
                                   scheduler = 'step',sch_step_size = 1000)
 
-#need to run validate before plotting
 validate_LBBNN(LBBNN = model_input_skip,num_samples = 100,test_dl = test_loader,device)
 
-LBBNN_plot(model_input_skip,layer_spacing = 1,neuron_spacing = 1,vertex_size =3,edge_width = 0.5)
 
+x <- train_loader$dataset$tensors[[1]] #grab the dataset
+y <- train_loader$dataset$tensors[[2]] 
+ind <- 42
+data <- x[ind,] #plot this specific data-point
+output <- y[ind]
+print(output$item())
+plot(model_input_skip,type = 'local',data = data)
 
-#get a random sample from the dataloader
-x <- torch::dataloader_next(torch::dataloader_make_iter(train_loader))[[1]]
-set.seed(seed)
-index <- sample.int(dim(x)[1],1)
-sample_data <- x[index,]
-plot_local_explanations_gradient(model_input_skip,sample_data,num_samples = 100)
-
-
+plot(model_input_skip,type = 'global',vertex_size = 5,edge_width = 0.4,label_size = 0.3)
 
 
 
