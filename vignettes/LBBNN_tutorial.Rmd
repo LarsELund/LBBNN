@@ -23,13 +23,6 @@ knitr::opts_chunk$set(
 
 LBBNN implements Latent Bayesian Binary Neural Networks in R using the torch framework. This vignette walks through basic usage: data preparation, model definition, training, validation, and visualization.
 
-## Installation
-
-```{r}
-# install.packages("pak")
-pak::pak("LarsELund/LBBNN")
-```
-
 ## Setup
 
 ```{r}

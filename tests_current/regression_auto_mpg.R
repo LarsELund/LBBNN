@@ -72,7 +72,7 @@ plot_local_explanations_gradient(model_input_skip,d1,num_samples = 100)
 plot_local_explanations_gradient(model_input_skip,d2,num_samples = 100)
 
 
-b <- posterior_predict.LBBNN(model_input_skip,mpm = TRUE,test_loader,draws = 100)
+b <- predict(model_input_skip,mpm = TRUE,test_loader,draws = 100)
 b<-b$squeeze()
 b <- torch::torch_mean(b,dim = 1)
 b <- as.numeric(b)
@@ -83,4 +83,4 @@ print(paste('GMB R2 = ',cor(predictions,ground_truth)^2))
 print(paste('LBBNN MSE =',mltools::mse(b,ground_truth)))
 print(paste('LBBNN R2 = ',cor(b,ground_truth)^2))
 
-
+coef()
