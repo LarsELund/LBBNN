@@ -9,7 +9,7 @@ MLP(hidden_sizes, device = "cpu")
 MLP(hidden_sizes, device = "cpu")
 }
 \arguments{
-\item{hidden_sizes}{A vector of ints. The first is the dimensionality of the vector,
+\item{hidden_sizes}{A vector of integers. The first is the dimensionality of the vector,
 to be transformed by RNVP. The subsequent are hidden dimensions in the MLP.}
 
 \item{device}{The device to be used. Default is CPU.}

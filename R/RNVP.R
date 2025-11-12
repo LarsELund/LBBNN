@@ -1,5 +1,5 @@
 #' Class to generate a multi-layer perceptron, used in RNVP transforms. 
-#' @param hidden_sizes A vector of ints. The first is the dimensionality of the vector,
+#' @param hidden_sizes A vector of integers. The first is the dimensionality of the vector,
 #' to be transformed by RNVP. The subsequent are hidden dimensions in the MLP.
 #' @param device The device to be used. Default is CPU.
 #' @description As of now, each hidden layer (except the last) is followed
@@ -35,12 +35,12 @@ MLP <- torch::nn_module(
 
 
 #' Class to generate one RNVP transform layer. 
-#' @param hidden_sizes A vector of ints. The first is the dimensionality of the vector,
+#' @param hidden_sizes A vector of integers. The first is the dimensionality of the vector,
 #' to be transformed by RNVP. The subsequent are hidden dimensions in the MLP.
 #' @param device The device to be used. Default is CPU.
 #' @description Affine half flow aka Real Non-Volume Preserving (x = z * exp(s) + t),
 #' where a randomly selected half z1 of the dimensions in z are transformed as an
-#'affine function of the other half z2, i.e. scaled by s(z2) and shifted by t(z2).
+#'Affine function of the other half z2, i.e. scaled by s(z2) and shifted by t(z2).
 #'From "Density estimation using Real NVP", Dinh et al. (May 2016)
 #'https://arxiv.org/abs/1605.08803
 #'This implementation uses the numerically stable updates introduced by IAF:

@@ -15,7 +15,7 @@ train_LBBNN(
 )
 }
 \arguments{
-\item{epochs}{Total number of epochs to train for, where one epoch is a pass through the entire training dataset (all minibatches).}
+\item{epochs}{Total number of epochs to train for, where one epoch is a pass through the entire training dataset (all mini batches).}
 
 \item{LBBNN}{An instance of the LBBNN_Net class, to be trained.}
 
@@ -30,12 +30,12 @@ train_LBBNN(
 \item{sch_step_size}{Where to decay if using torch::lr_step. E.g. 1000 means learning rate is decayed every 1000 epochs.}
 }
 \value{
-a list containing the losses and accuracies (if classification) and density for each epoch during training.
+a list containing the losses and accuracy (if classification) and density for each epoch during training.
 For comparisons sake we show the density with and without active paths.
 }
 \description{
-Function that for each epoch itereates through each mini-batch, computing
-the loss and using backpropagation to update the network parameters.
+Function that for each epoch iterates through each mini-batch, computing
+the loss and using back-propagation to update the network parameters.
 }
 \examples{
 x<-torch::torch_randn(1000,10) #generate some data

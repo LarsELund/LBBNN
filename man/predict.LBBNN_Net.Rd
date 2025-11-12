@@ -2,7 +2,7 @@
 % Please edit documentation in R/overwrite_functions.R
 \name{predict.LBBNN_Net}
 \alias{predict.LBBNN_Net}
-\title{Obtain predictions based on the variaiontal posterior distribution of an LBBNN object.}
+\title{Obtain predictions based on the variational posterior distribution of an LBBNN object.}
 \usage{
 \method{predict}{LBBNN_Net}(object, mpm, newdata, draws, device = "cpu", link = NULL)
 }

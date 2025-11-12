@@ -38,7 +38,7 @@ get_adj_mats <- function(model){
 #' @param N Number of neurons in the first layer.
 #' @param N_u Number of neurons in the second layer.
 #' @param input_positions Positions of the neurons in the input layer.
-#' @param neuron_spacing How much space between the neurons. (do we need this?, seems like igraph overrides or smth)
+#' @param neuron_spacing How much space between the neurons. 
 #' @return Positions of the second layer. 
 assign_within_layer_pos<- function(N,N_u,input_positions,neuron_spacing){
   if(N %% 2 == 0 & N_u %% 2 == 0){ #if both layers have even number of neurons
@@ -131,10 +131,10 @@ assign_names<- function(model){#assign names to the nodes before plotting
 
 
 
-#' Function to plot an islab structure after removing weights in non-active paths.
+#' Function to plot an input skip structure after removing weights in non-active paths.
 #' @description Uses igraph to plot. Some issues related to the sizes and spacing.
 #' @param model A trained LBBNN model with input_skip. 
-#' @param layer_spacing Spacing inbetween layers.
+#' @param layer_spacing Spacing in between layers.
 #' @param neuron_spacing Spacing between neurons within a layer.
 #' @param vertex_size Size of the neurons. 
 #' @param label_size The size of the text within neurons. 

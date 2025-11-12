@@ -126,7 +126,7 @@ Get local explanations from some training data:
 coef(model_input_skip,dataset = train_loader,inds = c(2,3,4,5,6))
 ```
 
-Get predictions from the posteiror:
+Get predictions from the posterior:
 
 ```{r}
 predictions <- predict(model_input_skip,mpm = TRUE,newdata = test_loader,draws = 100)
