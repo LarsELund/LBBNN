@@ -2,21 +2,31 @@
 % Please edit documentation in R/overwrite_functions.R
 \name{plot.LBBNN_Net}
 \alias{plot.LBBNN_Net}
-\title{Plot LBBNN objects}
+\title{Plot \code{LBBNN_Net} objects}
 \usage{
 \method{plot}{LBBNN_Net}(x, type = c("global", "local"), data = NULL, num_samples = 100, ...)
 }
 \arguments{
-\item{x}{An instance of LBBNN_net.}
+\item{x}{An instance of \code{LBBNN_Net}.}
 
-\item{type}{'global' or 'local'.}
+\item{type}{Either \code{"global"} or \code{"local"}.}
 
-\item{data}{If local is chosen, one sample must be provided to obtain the explanation. Must be a torch_tensor of shape(1,p).}
+\item{data}{If local is chosen, one sample must be provided to obtain the explanation. Must be a \code{torch::torch_tensor} of shape \code{(1,p)}.}
 
-\item{num_samples}{How many samples to use for model averaging over the weights in case of local explanations.}
+\item{num_samples}{integer, how many samples to use for model averaging over the weights in case of local explanations.}
 
 \item{...}{further arguments passed to or from other methods.}
 }
+\value{
+No return value. Called for its side effects of producing a plot.
+}
 \description{
-Plot either the global structure or local explanations.
+Given a trained \code{LBBNN_Net} model, this function produces either:
+\itemize{
+\item \strong{Global plot}: a visualization of the network structure,
+showing only the active paths.
+\item \strong{Local explanation}: a plot of the local
+explanation for a single input sample, including error bars obtained
+from Monte Carlo sampling of the network weights.
+}
 }

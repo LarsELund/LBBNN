@@ -2,14 +2,12 @@
 % Please edit documentation in R/Layers.R
 \name{std_prior}
 \alias{std_prior}
-\title{Generate prior standard deviation probabilities}
+\title{Generate prior standard deviation for weights and biases of either linear or convolutional layers.}
 \usage{
-std_prior(x, device = "cpu")
+std_prior(x)
 }
 \arguments{
 \item{x}{A number greater than 0.}
-
-\item{device}{device to train on}
 }
 \value{
 a numeric to be added to either (out_shape,in_shape) in case of linear layers
@@ -17,9 +15,6 @@ or (out_channels,in_channels,kernel0,kernel1) in case of convolutional layers
 }
 \description{
 A function to generate prior standard deviations for
-each weight and bias in an LBBNN layer. Currently only the same value for
-each weight and bias is allowed.
+each weight and bias in an LBBNN layer.
 }
-\examples{
-std_prior(0.3)
-}
+\keyword{internal}

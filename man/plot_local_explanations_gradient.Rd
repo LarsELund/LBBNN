@@ -2,7 +2,7 @@
 % Please edit documentation in R/local_explanations.R
 \name{plot_local_explanations_gradient}
 \alias{plot_local_explanations_gradient}
-\title{Function to plot the local explanations}
+\title{Plot the gradient based local explanations for one sample with input-skip LBBNNs.}
 \usage{
 plot_local_explanations_gradient(
   model,
@@ -12,17 +12,16 @@ plot_local_explanations_gradient(
 )
 }
 \arguments{
-\item{model}{Input-skip model to explain. Not implemented for regular LBBNNs.}
+\item{model}{An instance of \code{LBBNN_Net} with input-skip enabled.}
 
 \item{input_data}{The data to be explained (one sample).}
 
-\item{num_samples}{How many sample to use to produce credible intervals.}
+\item{num_samples}{integer, how many sample to use to produce credible intervals.}
 
-\item{device}{the device to be trained on. Default is cpu.}
+\item{device}{character, the device to be trained on. Default is cpu. Can be 'mps' or 'gpu'.}
 }
 \value{
-a list containing the losses and accuracies (if classification) and density for each epoch during training.
-For comparisons sake we show the density with and without active paths.
+This function produces plots as a side effect and does not return a value.
 }
 \description{
 Plots the contribution of each covariate, and the prediction, with error bars.

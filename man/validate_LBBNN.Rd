@@ -2,26 +2,32 @@
 % Please edit documentation in R/Train_validate.R
 \name{validate_LBBNN}
 \alias{validate_LBBNN}
-\title{Function to validate a trained LBBNN model}
+\title{Validate a trained LBBNN model.}
 \usage{
 validate_LBBNN(LBBNN, num_samples, test_dl, device = "cpu")
 }
 \arguments{
-\item{LBBNN}{An instance of a trained LBBNN_net to be validated}
+\item{LBBNN}{An instance of a trained \code{LBBNN_Net} to be validated.}
 
-\item{num_samples}{The number of samples from the variational posterior to be used for model averaging}
+\item{num_samples}{integer, the number of samples from the variational posterior to be used for model averaging.}
 
-\item{test_dl}{An instance of torch dataloader, containing the validation data}
+\item{test_dl}{An instance of \code{torch::dataloader}, containing the validation data.}
 
-\item{device}{The device to to validate on. Default is cpu}
+\item{device}{The device to perform validation on. Default is 'cpu'; other options include 'gpu' and 'mps'.}
 }
 \value{
-A list containing accuracy if classification, or loss if regression. In both cases
-results are returned for both the full model, and the sparse model, only using weights with
-a posterior inclusion probability larger than 0.5. The density is also returned.
+A list containing the following elements:
+\describe{
+\item{accuracy_full_model}{Classification accuracy of the full (dense) model (if classification).}
+\item{accuracy_sparse}{Classification accuracy using only weights in active paths (if classification).}
+\item{validation_error}{Root mean squared error for the full model (if regression).}
+\item{validation_error_sparse}{Root mean squared error using only weights in active paths (if regression).}
+\item{density}{Proportion of weights with posterior inclusion probability > 0.5 in the whole network.}
+\item{density_active_path}{Proportion of weights with inclusion probability > 0.5 after removing weights not in active paths.}
+}
 }
 \description{
-Computing metrics for each-mini batch in the validation dataset,
-without computing gradients. Model averaging (i.e. num samples > 1) is encouraged
-for improved performance.
+Computes metrics on a validation dataset without computing gradients.
+Supports model averaging (recommended) by sampling from the variational posterior (\code{num_samples} > 1)
+to improve predictions. Returns metrics for both the full model and the sparse model.
 }

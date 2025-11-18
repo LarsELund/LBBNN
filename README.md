@@ -32,10 +32,10 @@ pak::pak("LarsELund/LBBNN")
 
 ## Example
 
-This is a basic example which shows you how to implement a simple feed
-forward LBBNN on the raisin dataset, both using the mean-field
-posterior, and normalizing flows. First we demonstrate how to preprocess
-the data so it can be used in the torch ecosystem
+This example demonstrates how to implement a simple feed forward LBBNN
+on the raisin dataset, using both the mean-field posterior and
+normalizing flows. We start by demonstrating how to preprocess the data
+so it can be used within the torch ecosystem.
 
 ``` r
 library(LBBNN)
@@ -50,21 +50,20 @@ train_loader <- loaders$train_loader
 test_loader <- loaders$test_loader
 ```
 
-To initialize the LBBNN, we need to define some hyperparameters. First,
-the user has to define what type of problem it is. This could be either
-binary classification (as in this case), multiclass classification (more
-than two classes), or regression (continuous output). In addition the
-user defines a size vector, where the first element is the number of
-variables in the dataset (7 in this case), the last element is the
-number of output neurons (1 in our case), and the elements in between
-define the number of neurons in the hidden layer(s). The user must
-define the prior inclusion probability for each weight matrix (where
-each weight will have the same prior probability). This is an important
-parameter, as it controls what prior knowledge the user may have about
-how dense they believe the network should be. In addition to this, the
-user defines the prior standard deviation for the weight and bias
-parameters. The user also defines the initialization of the inclusion
-parameters.
+To initialize the LBBNN, we need to define several hyperparameters.
+First, the user must define what type of problem they are facing. This
+could be either binary classification (as in this case), multiclass
+classification (more than two classes), or regression (continuous
+output). Next, the user needs to define a size vector. The first element
+in the vector is the number of variables in the dataset (7 in this
+case), the last element is the number of output neurons (1 here), and
+the elements in between represent the number of neurons in the hidden
+layer(s). Then, the user must define the prior inclusion probability for
+each weight matrix (all weights share the same prior). This parameter is
+important as it reflects prior beliefs about how dense the network
+should be. The user also needs to define the prior standard deviation
+for the weight and bias parameters. Lastly, the user must define the
+initialization of the inclusion parameters.
 
 ``` r
 problem <- 'binary classification'
@@ -75,8 +74,8 @@ inclusion_inits <- matrix(rep(c(-10,15),3),nrow = 2,ncol = 3) #one low and high 
 device <- 'cpu' #can also be mps or gpu.
 ```
 
-We are now ready to define the models, here we show one with the
-mean-field posterior, and one with normalizing flows:
+We are now ready to define the models. Here we define two models: one
+with the mean-field posterior and one with normalizing flows:
 
 ``` r
 torch_manual_seed(0)
@@ -88,21 +87,21 @@ model_LBBNN <- LBBNN_Net(problem_type = problem,sizes = sizes,prior = inclusion_
                    flow = FALSE,device = device)
 ```
 
-To train the models, we have a function called train_LBBNN, which takes
-as arguments the number of epochs to train for, the model to train, the
-learning rate, and the data to train on:
+To train the models, one can use the function train_LBBNN. The function
+takes number of epochs, model to train, learning rate, and training data
+as arguments:
 
 ``` r
 #model_input_skip$local_explanation = TRUE #to make sure we are using RELU
-results_input_skip <- train_LBBNN(epochs = 800,LBBNN = model_input_skip, lr = 0.005,train_dl = train_loader,device = device)
+results_input_skip <- suppressMessages(train_LBBNN(epochs = 800,LBBNN = model_input_skip, lr = 0.005,train_dl = train_loader,device = device))
 #save the model 
-torch::torch_save(model_input_skip$state_dict(), 
-paste(getwd(),'/R/saved_models/README_input_skip_example_model.pth',sep = ''))
+#torch::torch_save(model_input_skip$state_dict(), 
+#paste(getwd(),'/R/saved_models/README_input_skip_example_model.pth',sep = ''))
 ```
 
-To check the results on the validation data, we use the function
-Validate_LBBNN, which takes as input a model, the number of samples for
-model averaging, and the validation data.
+To evaluate performance on the validation data, one can use the function
+Validate_LBBNN. This function takes a model, number of samples for model
+averaging, and the validation data as input.
 
 ``` r
 validate_LBBNN(LBBNN = model_input_skip,num_samples = 100,test_dl = test_loader,device)
@@ -128,8 +127,8 @@ plot(model_input_skip,type = 'global',vertex_size = 13,edge_width = 0.6,label_si
 
 <img src="man/figures/README-unnamed-chunk-6-1.png" width="100%" />
 
-Note that only 3 of the 7 input variables are used, with one of them
-just a linear connection.
+Note that only 3 of the 7 input variables are used, where one of them
+only has a linear connection.
 
 This can also be seen using the summary function:
 
@@ -151,9 +150,12 @@ summary(model_input_skip)
 #> x4  0  0  0 0.321 0.575 0.124 0.419
 #> x5  0  0  0 0.098 0.438 0.137 0.256
 #> x6  1  0  1 0.300 0.244 0.997 0.338
+#> -----------------------------------
+#> The model took 11.864 seconds to train, using cpu
 ```
 
-Can also plot the explanation of some sample using plot():
+The user can also plot local explanations for each input variable
+related to a prediction using plot():
 
 ``` r
 x <- train_loader$dataset$tensors[[1]] #grab the dataset
@@ -176,17 +178,17 @@ Get local explanations from some training data:
 
 ``` r
 coef(model_input_skip,dataset = train_loader,inds = c(2,3,4,5,6))
-#>    lower.2.5%       mean upper.97.5%
-#> x0  0.0000000  0.0000000   0.0000000
-#> x1  0.0000000  0.0000000   0.0000000
-#> x2 -0.1718342 -0.1708280  -0.1694423
-#> x3 -0.6384742 -0.6348897  -0.6288301
-#> x4  0.0000000  0.0000000   0.0000000
-#> x5  0.0000000  0.0000000   0.0000000
-#> x6 -2.2649529 -2.2543384  -2.2471136
+#>         lower       mean      upper
+#> x0  0.0000000  0.0000000  0.0000000
+#> x1  0.0000000  0.0000000  0.0000000
+#> x2 -0.1718342 -0.1708280 -0.1694423
+#> x3 -0.6384742 -0.6348897 -0.6288301
+#> x4  0.0000000  0.0000000  0.0000000
+#> x5  0.0000000  0.0000000  0.0000000
+#> x6 -2.2649529 -2.2543384 -2.2471136
 ```
 
-Get predictions from the posteiror:
+Get predictions from the posterior:
 
 ``` r
 predictions <- predict(model_input_skip,mpm = TRUE,newdata = test_loader,draws = 100)

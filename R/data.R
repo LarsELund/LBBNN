@@ -37,3 +37,17 @@
 #' @source \url{https://pmc.ncbi.nlm.nih.gov/articles/PMC11309733/#T2}
 "Gallstone_Dataset"
 
+
+#' Auto MPG daataset
+#' @description Taken from the UCI machine learning repository.
+#' @format  This dataset has 398 rows and 24 columns.
+#' @source \url{https://archive.ics.uci.edu/dataset/9/auto+mpg}
+"mgp_dataset"
+
+#' Internal dataset for testing
+#' @keywords internal
+"Wine_quality"
+
+#' Internal dataset for testing
+#' @keywords internal
+"Wine_quality_dataset"

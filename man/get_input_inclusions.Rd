@@ -2,12 +2,12 @@
 % Please edit documentation in R/overwrite_functions.R
 \name{get_input_inclusions}
 \alias{get_input_inclusions}
-\title{Function that checks how many times inputs are included, and from which layer}
+\title{Function that checks how many times inputs are included, and from which layer. Used in summary function.}
 \usage{
 get_input_inclusions(model)
 }
 \arguments{
-\item{model}{A trained LBBNN model with input_skip.}
+\item{model}{An instance of \code{LBBNN_Net} where \code{input_skip = TRUE}.}
 }
 \value{
 A matrix of shape (p, L-1) where p is the number of input variables
@@ -18,3 +18,4 @@ or 0 if not included.
 Useful when the number of inputs and/or hidden neurons are very
 large, and direct visualization of the network is difficult.
 }
+\keyword{internal}

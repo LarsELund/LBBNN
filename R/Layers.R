@@ -1,47 +1,39 @@
 library(torch)
 
 
-#' Generate prior inclusion probabilities for a LBBNN layer
+#' @title Generate prior inclusion probabilities for the weights of a LBBNN layer (linear or convolutional).
 #' @description A function to generate prior probability values for 
-#' each weight in an LBBNN layer. Currently only the same probability for each
-#' weight in a layer is allowed. 
+#' each weight in an LBBNN layer. The same probability is applied to all weights within a layer.
 #' @param x A number between 0 and 1.
-#' @param device The device to be trained on
 #' @return a numeric to be added to either (out_shape,in_shape) in case of linear layers
-#' or (out_channels,in_channels,kernel0,kernel1) in case of convolutional layers
-#' @examples
-#' alpha_prior(0.25)
-#' @export
-alpha_prior <- function(x,device = 'cpu') {
+#' or (out_channels,in_channels,kernel0,kernel1) in case of convolutional layers.
+#' @keywords internal
+alpha_prior <- function(x) {
   if (!is.numeric(x) )
-    stop("invalid_class:", " alpha must be numeric")
+    stop("invalid_class:", " x must be numeric")
   if (x <=0 | x>=1)
-    stop("invalid_value:", " alpha must be between 0 and 1")
+    stop("invalid_value:", " x must be between 0 and 1")
   
   
   if (length(x) != 1)
-    stop("only one value of alpha allowed per layer")
+    stop("only one value of x allowed per layer")
   
   return(x)
   
 }
 
-#' Generate prior standard deviation probabilities
+#' @title Generate prior standard deviation for weights and biases of either linear or convolutional layers.
 #' @description A function to generate prior standard deviations for 
-#' each weight and bias in an LBBNN layer. Currently only the same value for
-#' each weight and bias is allowed. 
+#' each weight and bias in an LBBNN layer.
 #' @param x A number greater than 0.
-#' @param device device to train on
 #' @return a numeric to be added to either (out_shape,in_shape) in case of linear layers
 #' or (out_channels,in_channels,kernel0,kernel1) in case of convolutional layers
-#' @examples
-#' std_prior(0.3)
-#' @export
-std_prior <- function(x,device = 'cpu') {
+#' @keywords internal
+std_prior <- function(x) {
   if (!is.numeric(x) )
-    stop("invalid_class:", " alpha must be numeric")
+    stop("invalid_class:", "x must be numeric")
   if (x<=0)
-    stop("invalid_value:", " standard deviation must be > 0")
+    stop("invalid_value:", "x must be > 0")
   
   
   if (length(x) != 1)
@@ -51,19 +43,15 @@ std_prior <- function(x,device = 'cpu') {
   
 }
 
-#' Function to get initialization values for the inclusion parameters
-#' @description Generate initialization for the inclusion parameters.
-#' This will control the initial density of the network, and thus an important tuning
+#' @title Generate initializations for the inclusion parameters. 
+#' @description Controls the initial density of the network, and thus an important tuning
 #' parameter. The initialization parameters are sampled from 1/(1+exp(-U)),
-#' with U ~ Uniform(lower,upper) 
-#' @param lower a number
-#' @param upper a number, greater than lower
-#' @param device device to train on
-#' @return A vector of size two c(lower,upper)
-#' @examples
-#' density_initialization(0,1)
-#' @export
-density_initialization <- function(lower,upper,device = 'cpu') {
+#' with U ~ Uniform(lower,upper). 
+#' @param lower numeric scalar.
+#' @param upper numeric scalar, must be greater than 
+#' @return A numeric vector of length 2: \code{c(lower,upper)}
+#' @keywords internal
+density_initialization <- function(lower,upper) {
   if (!is.numeric(lower) )
     stop("invalid_class:", " lower must be numeric")
   if (!is.numeric(upper) )
@@ -84,20 +72,26 @@ density_initialization <- function(lower,upper,device = 'cpu') {
 
 
 
-#' Class to generate an LBBNN feed forward layer
-#' @param in_features number of input neurons.
-#' @param out_features number of output neurons.
-#' @param prior_inclusion Prior inclusion probability for each weight in the layer.
-#' @param standard_prior prior standard deviation for weights and biases.
-#' @param density_init A vector of size two c(lower,upper) used to initialize the inclusion parameters.
-#' @param flow determines whether normalizing flow should be used. TRUE or FALSE
-#' @param num_transforms Number of transformations for the flow. Default is 2.
-#' @param hidden_dims Dimension of the hidden layer(s) in the neural networks of the RNVP transform.
+#' @title Class to generate an LBBNN feed forward layer
+#' @description This module implements a fully connected LBBNN layer.
+#' It supports:
+#' \itemize{
+#'   \item Prior inclusion probabilities for weights and biases in each layer.
+#'   \item Standard deviation priors for weights and biases in each layer.
+#'   \item Optional normalizing flows (RNVP) for a more flexible variational posterior.
+#'   \item Forward pass using either the full model or the Median Probability Model (MPM).
+#'   \item Computation of the KL-divergence.
+#' }
+#' @param in_features integer, number of input neurons.
+#' @param out_features integer, number of output neurons.
+#' @param prior_inclusion numeric scalar, prior inclusion probability for each weight and bias in the layer.
+#' @param standard_prior numeric scalar, prior standard deviation for weights and biases in each layer.
+#' @param density_init A numeric of size 2, used to initialize the inclusion parameters, one for each layer.
+#' @param flow logical, whether to use normalizing flows
+#' @param num_transforms integer, number of transformations for \code{flow}. Default is 2.
+#' @param hidden_dims numeric vector, dimension of the hidden layer(s) in the neural networks of the RNVP transform.
 #' @param device The device to be used. Default is CPU.
-#' @param bias_inclusion_prob determines whether the bias should be as associated with inclusion probabilities. TRUE or FALSE  
-#' @description Includes function for forward pass, where one can
-#' either use the full model, or the medium probability model (MPM).
-#' Also contains method to initialize parameters and compute KL-divergence.
+#' @param bias_inclusion_prob logical, determines whether the bias should be as associated with inclusion probabilities. 
 #' @examples
 #' \donttest{
 #' l1 <- LBBNN_Linear(in_features = 10,out_features = 5,prior_inclusion = 0.25,
@@ -106,6 +100,13 @@ density_initialization <- function(lower,upper,device = 'cpu') {
 #' output <- l1(x,MPM = FALSE) #the forward pass, output has shape (20,5)
 #' print(l1$kl_div()$item()) #compute KL-divergence after the forward pass
 #' }
+#' @return A \code{torch::nn_module} object representing a fully connected LBBNN layer. 
+#' The module has the following methods:
+#'   - \code{forward(input, MPM = FALSE)}: Computes activation (using the LRT at training time) of a batch of inputs. 
+#'   - \code{kl_div()}: Computes the KL-divergence.
+#'   - \code{sample_z()}: Samples from the flow if \code{flow = TRUE}, in addition returns the log-determinant of the Jacobian
+#'  of the transformation.
+
 #' @export
 LBBNN_Linear <- torch::nn_module(
   "LBBNN_Linear",
@@ -145,7 +146,7 @@ LBBNN_Linear <- torch::nn_module(
     self$alpha_active_path <- torch::torch_empty(out_features, in_features,device = device) #used to store alpha in active paths
 
     #define priors. For now, the user is only allowed to define the inclusion prior themselves
-    self$alpha_prior <- torch::torch_zeros(out_features, in_features, device=device) + alpha_prior(prior_inclusion,device = device)
+    self$alpha_prior <- torch::torch_zeros(out_features, in_features, device=device) + alpha_prior(prior_inclusion)
 
 
     if(self$bias_inclusion_prob){
@@ -154,14 +155,14 @@ LBBNN_Linear <- torch::nn_module(
     self$bias_alpha <- torch::torch_empty(out_features, device = device)
 
     #define priors for bias. For now, the user is only allowed to define the inclusion prior themselves
-    self$bias_alpha_prior <- torch::torch_zeros(out_features, device=device) + alpha_prior(prior_inclusion,device = device)
+    self$bias_alpha_prior <- torch::torch_zeros(out_features, device=device) + alpha_prior(prior_inclusion)
     }
     
     #standard normal prior on the weights and biases
     self$weight_mean_prior <- torch::torch_zeros(out_features, in_features, device=device)
-    self$weight_sigma_prior <- torch::torch_zeros(out_features, in_features, device=device) + std_prior(standard_prior,device = device)
+    self$weight_sigma_prior <- torch::torch_zeros(out_features, in_features, device=device) + std_prior(standard_prior)
     self$bias_mean_prior <- torch::torch_zeros(out_features, device=device)
-    self$bias_sigma_prior <- torch::torch_zeros(out_features, device=device) + std_prior(standard_prior,device = device)
+    self$bias_sigma_prior <- torch::torch_zeros(out_features, device=device) + std_prior(standard_prior)
     
     #flow parameters
     if(self$flow){
@@ -304,20 +305,26 @@ LBBNN_Linear <- torch::nn_module(
   
 )
 
-#' Class to generate an LBBNN convolutional layer
-#' @param in_channels number of input channels.
-#' @param out_channels number of output channels.
-#' @param prior_inclusion Prior inclusion probability for each weight.
-#' @param standard_prior Prior standard deviation for each weight and bias. 
-#' @param kernel_size Size of the convolving kernel.
-#' @param density_init A vector of size two c(lower,upper) used to initialize the inclusion parameters.
-#' @param flow determines whether normalizing flow should be used. TRUE or FALSE
-#' @param num_transforms Number of transformations for the flow. Default is 2.
-#' @param hidden_dims Dimension of the hidden layer(s) in the neural networks of the RNVP transform.
+#' @title Class to generate an LBBNN convolutional layer.
+#' @description
+#'  It supports:
+#' \itemize{
+#'   \item Prior inclusion probabilities for weights and biases in each layer.
+#'   \item Standard deviation priors for weights and biases in each layer.
+#'   \item Optional normalizing flows (RNVP) for a more flexible variational posterior.
+#'   \item Forward pass using either the full model or the Median Probability Model (MPM).
+#'   \item Computation of the KL-divergence.
+#' }
+#' @param in_channels integer, number of input channels.
+#' @param out_channels integer, number of output channels.
+#' @param kernel_size size of the convolving kernel.
+#' @param prior_inclusion numeric scalar, prior inclusion probability for each weight and bias in the layer.
+#' @param standard_prior numeric scalar, prior standard deviation for weights and biases in each layer.
+#' @param density_init A numeric of size 2, used to initialize the inclusion parameters, one for each layer.
+#' @param flow logical, whether to use normalizing flows
+#' @param num_transforms integer, number of transformations for \code{flow}. Default is 2.
+#' @param hidden_dims numeric vector, dimension of the hidden layer(s) in the neural networks of the RNVP transform.
 #' @param device The device to be used. Default is CPU.
-#' @description Includes function for forward pass, where one can
-#' either use the full model, or the medium probability model (MPM).
-#' Also contains method to initialize parameters and compute KL-divergence.
 #' @examples
 #' \donttest{
 #'layer <- LBBNN_Conv2d(in_channels = 1,out_channels = 32,kernel_size = c(3,3),
@@ -327,6 +334,13 @@ LBBNN_Linear <- torch::nn_module(
 #'print(dim(out))
 #'}
 #' @importFrom torch torch_empty torch_long torch_zeros torch_zeros_like with_no_grad torch_rand torch_randn torch_exp
+#' @return A \code{torch::nn_module} object representing a convolutional LBBNN layer. 
+#' The module has the following methods:
+#'   - \code{forward(input, MPM = FALSE)}: Computes activation (using the LRT at training time) of a batch of inputs. 
+#'   - \code{kl_div()}: Computes the KL-divergence.
+#'   - \code{sample_z()}: Samples from the flow if \code{flow = TRUE}, in addition returns the log-determinant of the Jacobian
+#'  of the transformation.
+
 #' @export
 LBBNN_Conv2d <- torch::nn_module(
   "LBBNN_Conv2d",
@@ -367,13 +381,13 @@ LBBNN_Conv2d <- torch::nn_module(
     self$alpha <- torch::torch_empty(out_channels, in_channels,kernel[1],kernel[2],device = device)
     
     #define priors. For now, the user is only allowed to define the inclusion prior themselves
-    self$alpha_prior <- torch::torch_zeros_like(self$alpha,device = self$device) + alpha_prior(prior_inclusion,device = device)
+    self$alpha_prior <- torch::torch_zeros_like(self$alpha,device = self$device) + alpha_prior(prior_inclusion)
     
     #standard normal prior on the weights and biases
     self$weight_mean_prior <- torch::torch_zeros_like(self$weight_mean, device=self$device)
-    self$weight_sigma_prior <- torch::torch_zeros_like(self$weight_sigma,device = self$device) + std_prior(standard_prior,device =device)
+    self$weight_sigma_prior <- torch::torch_zeros_like(self$weight_sigma,device = self$device) + std_prior(standard_prior)
     self$bias_mean_prior <- torch::torch_zeros_like(self$bias_mean,device = self$device)
-    self$bias_sigma_prior <- torch::torch_zeros_like(self$bias_sigma,device = self$device) + std_prior(standard_prior,device =device)
+    self$bias_sigma_prior <- torch::torch_zeros_like(self$bias_sigma,device = self$device) + std_prior(standard_prior)
     
     #flow parameters
     if(self$flow){
@@ -427,7 +441,7 @@ LBBNN_Conv2d <- torch::nn_module(
       #delta[delta<= 0] = 0 +1e-20 
       eps <- torch::torch_randn(size=(dim(delta)), device=self$device)
       activations <- psi + torch::torch_sqrt(delta) * eps
-    }else {#only sample from weights with inclusion prob > 0.5 aka the mediaan probability model 
+    }else {#only sample from weights with inclusion prob > 0.5 aka the median probability model 
       gamma <-(self$alpha$clone()$detach()> 0.5) * 1.
       w <- torch::torch_normal(self$weight_mean*z_k$view(c(-1,1,1,1)), self$weight_sigma)
       bias <- torch::torch_normal(self$bias_mean, self$bias_sigma)

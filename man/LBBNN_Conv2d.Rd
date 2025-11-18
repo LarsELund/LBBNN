@@ -2,7 +2,7 @@
 % Please edit documentation in R/Layers.R
 \name{LBBNN_Conv2d}
 \alias{LBBNN_Conv2d}
-\title{Class to generate an LBBNN convolutional layer}
+\title{Class to generate an LBBNN convolutional layer.}
 \usage{
 LBBNN_Conv2d(
   in_channels,
@@ -18,30 +18,45 @@ LBBNN_Conv2d(
 )
 }
 \arguments{
-\item{in_channels}{number of input channels.}
+\item{in_channels}{integer, number of input channels.}
 
-\item{out_channels}{number of output channels.}
+\item{out_channels}{integer, number of output channels.}
 
-\item{kernel_size}{Size of the convolving kernel.}
+\item{kernel_size}{size of the convolving kernel.}
 
-\item{prior_inclusion}{Prior inclusion probability for each weight.}
+\item{prior_inclusion}{numeric scalar, prior inclusion probability for each weight and bias in the layer.}
 
-\item{standard_prior}{Prior standard deviation for each weight and bias.}
+\item{standard_prior}{numeric scalar, prior standard deviation for weights and biases in each layer.}
 
-\item{density_init}{A vector of size two c(lower,upper) used to initialize the inclusion parameters.}
+\item{density_init}{A numeric of size 2, used to initialize the inclusion parameters, one for each layer.}
 
-\item{flow}{determines whether normalizing flow should be used. TRUE or FALSE}
+\item{flow}{logical, whether to use normalizing flows}
 
-\item{num_transforms}{Number of transformations for the flow. Default is 2.}
+\item{num_transforms}{integer, number of transformations for \code{flow}. Default is 2.}
 
-\item{hidden_dims}{Dimension of the hidden layer(s) in the neural networks of the RNVP transform.}
+\item{hidden_dims}{numeric vector, dimension of the hidden layer(s) in the neural networks of the RNVP transform.}
 
 \item{device}{The device to be used. Default is CPU.}
 }
+\value{
+A \code{torch::nn_module} object representing a convolutional LBBNN layer.
+The module has the following methods:
+\itemize{
+\item \code{forward(input, MPM = FALSE)}: Computes activation (using the LRT at training time) of a batch of inputs.
+\item \code{kl_div()}: Computes the KL-divergence.
+\item \code{sample_z()}: Samples from the flow if \code{flow = TRUE}, in addition returns the log-determinant of the Jacobian
+of the transformation.
+}
+}
 \description{
-Includes function for forward pass, where one can
-either use the full model, or the medium probability model (MPM).
-Also contains method to initialize parameters and compute KL-divergence.
+It supports:
+\itemize{
+\item Prior inclusion probabilities for weights and biases in each layer.
+\item Standard deviation priors for weights and biases in each layer.
+\item Optional normalizing flows (RNVP) for a more flexible variational posterior.
+\item Forward pass using either the full model or the Median Probability Model (MPM).
+\item Computation of the KL-divergence.
+}
 }
 \examples{
 \donttest{

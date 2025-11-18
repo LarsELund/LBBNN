@@ -1,25 +1,34 @@
 library(torch)
 
-#' Class to generate a LBBNN network
-#' @description Generates a LBBNN composed of feed forward layers defined by LBBNN_Linear
-#' e.g sizes = c(20,200,200,5) generates an LBBNN with 20 input variables,
-#' two hidden layers with 200 neurons each, and an output layer of 5 neurons.
-#' LBBNN_net also contains functions to compute kl-divergence and the density of the entire network.
-#' @param problem_type 'binary classification', 'multiclass classification' or 'regression'. 
-#' @param sizes a vector containing the sizes of layers of the network, where the first element is the input size, and the last the output size.
-#' @param prior a vector containing the prior inclusion probabilities for each layer in the network. Length must be ONE less than sizes.
-#' @param std  a vector containing the prior standard deviation for each layer in the network. Length must be ONE less than sizes.
-#' @param inclusion_inits a matrix of size (2,number of weight matrices). One upper and one lower bound for each layer.
-#' @param input_skip TRUE or FALSE
-#' @param flow whether to use normalizing flows. TRUE or FALSE.
-#' @param num_transforms how many transformations to use in the flow.
-#' @param dims hidden dimension for the neural network in the RNVP transform.
+#' @title Feed-forward Latent Binary Bayesian Neural Network (LBBNN)
+#' @description
+#' Each layer is defined by \code{LBBNN_Linear}. 
+#' For example, \code{sizes = c(20, 200, 200, 5)} generates a network with:
+#' \itemize{
+#'   \item 20 input features,
+#'   \item two hidden layers of 200 neurons each,
+#'   \item an output layer with 5 neurons.
+#'}
+#' @param problem_type character, one of:
+#' \code{'binary classification'}, \code{'multiclass classification'}, \code{'regression'}, or \code{'custom'}.
+#' @param sizes Integer vector specifying the layer sizes of the network. The first element is the input size,
+#' the last is the output size, and the intermediate integers represent hidden layers.
+#' @param prior numeric vector of prior inclusion probabilities for each weight matrix.
+#' length must be \code{length(sizes) - 1}.
+#' @param std numeric vector of prior standard deviation for each weight matrix.
+#' length must be \code{length(sizes) - 1}.
+#' @param inclusion_inits numeric matrix of shape (2, number of weight matrices) 
+#' specifying the lower and upper bounds for initializations of the inclusion parameters.
+#' @param input_skip logical, whether to include input_skip.
+#' @param flow logical, whether to use normalizing flows.
+#' @param num_transforms integer, how many transformations to use in the flow.
+#' @param dims numeric vector, hidden dimension for the neural network in the RNVP transform.
 #' @param device the device to be trained on. Can be 'cpu', 'gpu' or 'mps'. Default is cpu.
-#' @param raw_output If set to TRUE, the network skips the last sigmoid/softmax layer to compute local explanations.
-#' @param custom_act Allows the user to submit their own activation function. E.g. a different one per neuron.
-#' @param link User can define their own link function (not implemented yet)
-#' @param nll User can define their own likelihood function (not implemented yet)
-#' @param bias_inclusion_prob determines whether the bias should be as associated with inclusion probabilities. TRUE or FALSE  
+#' @param raw_output logical, whether the network skips the last sigmoid/softmax layer to compute local explanations.
+#' @param custom_act Allows the user to submit their own customized activation function.
+#' @param link User can define their own link function (not implemented yet).
+#' @param nll User can define their own likelihood function (not implemented yet).
+#' @param bias_inclusion_prob logical, determines whether the bias should be as associated with inclusion probabilities.
 #' @examples
 #' \donttest{
 #' layers <- c(20,200,200,5) #Two hidden layers 
@@ -35,6 +44,18 @@ library(torch)
 #' net$kl_div()$item() #get KL-divergence
 #' net$density() #get the density of the network
 #' }
+#' @return A \code{torch::nn_module} object representing the LBBNN. 
+#'   It includes the following methods:
+#'   \itemize{
+#'     \item \code{forward(x, MPM = FALSE)}: Performs a forward pass through the whole network.
+#'     \item \code{kl_div()}: Returns the KL divergence of the network.
+#'     \item \code{density()}: Returns the density of the whole network, i.e. the proportion of weights
+#'     with inclusion probabilities greater than 0.5.
+#'     \item \code{compute_paths()}: Computes active paths through the network without input-skip. 
+#'     \item \code{compute_paths_input_skip()}: Computes active paths with  input-skip enabled. 
+#'     \item \code{density_active_path()}: Returns network density after removing inactive paths.
+#'   }
+#'
 #' @export
 LBBNN_Net <- torch::nn_module(
   "LBBNN_Net",
@@ -133,7 +154,7 @@ LBBNN_Net <- torch::nn_module(
     x <- self$layers$children$`0`(x_input,MPM) #first layer
     j <- 1
     for(l in self$layers$children){
-      if(j > 1){#skip the first layer when iterating. Probably a more elegant way to do so.
+      if(j > 1){#skip the first layer when iterating.
         x <- l(torch::torch_cat(c(x,x_input),dim = 2),MPM)
       }
       j <- j + 1
@@ -159,7 +180,7 @@ LBBNN_Net <- torch::nn_module(
   compute_paths = function(){
     
     if(self$input_skip == TRUE){
-      stop('self$input_skip must be FALSE to use this funciton')
+      stop('self$input_skip must be FALSE to use this function')
     }
     self$computed_paths <- TRUE
     #sending a random input through the network of alpha matrices (0 and 1)

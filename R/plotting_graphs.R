@@ -2,13 +2,12 @@ library(igraph)
 library(Matrix)
 require(graphics)
 
-#' Function to obtain adjacency matrices to be used with igraph plotting
-#' @description Given a trained LBBNN model with input-skip, this 
-#' function takes the alpha active path matrices for each layer and converts
+#' @title Obtain adjacency matrices for \code{igraph} plotting
+#' @description Takes the alpha active path matrices for each layer of the LBBNN and converts
 #' them to adjacency matrices so that they can be plotted with igraph.
-#' @param model A trained LBBNN model with input-skip. 
-#' @return The adjacency matrices. 
-#' @export
+#' @param model An instance of \code{LBBNN_Net} with input_skip enabled. 
+#' @return A list of adjacency matrices, one for each hidden layer and the output layer. 
+#' @keywords internal
 get_adj_mats <- function(model){
   mats_out <-list()
   i <- 1
@@ -32,14 +31,15 @@ get_adj_mats <- function(model){
   return(mats_out)
 }
 
-#' Function for plotting nodes in the network between two layers. 
+#' @title Function for plotting nodes in the network between two layers. 
 #' @description Takes care of the three possible cases. Both layers have even
 #' number of neurons, both layers have odd numbers, or one of each. 
-#' @param N Number of neurons in the first layer.
-#' @param N_u Number of neurons in the second layer.
+#' @param N integer, number of neurons in the first layer.
+#' @param N_u integer, number of neurons in the second layer.
 #' @param input_positions Positions of the neurons in the input layer.
 #' @param neuron_spacing How much space between the neurons. 
 #' @return Positions of the second layer. 
+#' @keywords internal
 assign_within_layer_pos<- function(N,N_u,input_positions,neuron_spacing){
   if(N %% 2 == 0 & N_u %% 2 == 0){ #if both layers have even number of neurons
     N_u_center <- stats::median(input_positions)
@@ -70,7 +70,11 @@ assign_within_layer_pos<- function(N,N_u,input_positions,neuron_spacing){
 }
 
 
-
+#' @title Assign names to nodes.
+#' @description Internal helper function to assign descriptive names to nodes used for plotting.
+#' @param model A trained \code{LBBNN_Net} model with input-skip.
+#' @return A list of adjacency matrices with the correct names.
+#' @keywords internal
 assign_names<- function(model){#assign names to the nodes before plotting
   alphas <- get_adj_mats(model)
   sizes <- model$sizes
@@ -131,14 +135,14 @@ assign_names<- function(model){#assign names to the nodes before plotting
 
 
 
-#' Function to plot an input skip structure after removing weights in non-active paths.
-#' @description Uses igraph to plot. Some issues related to the sizes and spacing.
-#' @param model A trained LBBNN model with input_skip. 
-#' @param layer_spacing Spacing in between layers.
-#' @param neuron_spacing Spacing between neurons within a layer.
-#' @param vertex_size Size of the neurons. 
-#' @param label_size The size of the text within neurons. 
-#' @param edge_width Width of the edges connecting neurons.
+#' @title Function to plot an input skip structure after removing weights in non-active paths.
+#' @description Uses igraph to plot.
+#' @param model A trained \code{LBBNN_Net} model with input_skip enabled. 
+#' @param layer_spacing numeric, spacing in between layers.
+#' @param neuron_spacing numeric, spacing between neurons within a layer.
+#' @param vertex_size numeric, size of the neurons. 
+#' @param label_size numeric, size of the text within neurons. 
+#' @param edge_width numeric, width of the edges connecting neurons.
 #' @examples
 #' \donttest{
 #' sizes <- c(2,3,3,2)
@@ -155,6 +159,7 @@ assign_names<- function(model){#assign names to the nodes before plotting
 #' model$compute_paths_input_skip()
 #' LBBNN_plot(model, 1, 1, 14, 1)
 #' }
+#' @return This function produces plots as a side effect and does not return a value.
 #' @export
 LBBNN_plot <- function(model,layer_spacing = 1,neuron_spacing = 1,vertex_size = 10,label_size = 0.5,edge_width = 0.5){
   graph <- assign_names(model) #the graph with names neurons, given some model with alpha matrices

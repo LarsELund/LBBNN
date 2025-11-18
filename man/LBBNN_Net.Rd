@@ -2,7 +2,7 @@
 % Please edit documentation in R/LBBNN_Model.R
 \name{LBBNN_Net}
 \alias{LBBNN_Net}
-\title{Class to generate a LBBNN network}
+\title{Feed-forward Latent Binary Bayesian Neural Network (LBBNN)}
 \usage{
 LBBNN_Net(
   problem_type,
@@ -23,41 +23,62 @@ LBBNN_Net(
 )
 }
 \arguments{
-\item{problem_type}{'binary classification', 'multiclass classification' or 'regression'.}
+\item{problem_type}{character, one of:
+\code{'binary classification'}, \code{'multiclass classification'}, \code{'regression'}, or \code{'custom'}.}
 
-\item{sizes}{a vector containing the sizes of layers of the network, where the first element is the input size, and the last the output size.}
+\item{sizes}{Integer vector specifying the layer sizes of the network. The first element is the input size,
+the last is the output size, and the intermediate integers represent hidden layers.}
 
-\item{prior}{a vector containing the prior inclusion probabilities for each layer in the network. Length must be ONE less than sizes.}
+\item{prior}{numeric vector of prior inclusion probabilities for each weight matrix.
+length must be \code{length(sizes) - 1}.}
 
-\item{std}{a vector containing the prior standard deviation for each layer in the network. Length must be ONE less than sizes.}
+\item{std}{numeric vector of prior standard deviation for each weight matrix.
+length must be \code{length(sizes) - 1}.}
 
-\item{inclusion_inits}{a matrix of size (2,number of weight matrices). One upper and one lower bound for each layer.}
+\item{inclusion_inits}{numeric matrix of shape (2, number of weight matrices)
+specifying the lower and upper bounds for initializations of the inclusion parameters.}
 
-\item{input_skip}{TRUE or FALSE}
+\item{input_skip}{logical, whether to include input_skip.}
 
-\item{flow}{whether to use normalizing flows. TRUE or FALSE.}
+\item{flow}{logical, whether to use normalizing flows.}
 
-\item{num_transforms}{how many transformations to use in the flow.}
+\item{num_transforms}{integer, how many transformations to use in the flow.}
 
-\item{dims}{hidden dimension for the neural network in the RNVP transform.}
+\item{dims}{numeric vector, hidden dimension for the neural network in the RNVP transform.}
 
 \item{device}{the device to be trained on. Can be 'cpu', 'gpu' or 'mps'. Default is cpu.}
 
-\item{raw_output}{If set to TRUE, the network skips the last sigmoid/softmax layer to compute local explanations.}
+\item{raw_output}{logical, whether the network skips the last sigmoid/softmax layer to compute local explanations.}
 
-\item{custom_act}{Allows the user to submit their own activation function. E.g. a different one per neuron.}
+\item{custom_act}{Allows the user to submit their own customized activation function.}
 
-\item{link}{User can define their own link function (not implemented yet)}
+\item{link}{User can define their own link function (not implemented yet).}
 
-\item{nll}{User can define their own likelihood function (not implemented yet)}
+\item{nll}{User can define their own likelihood function (not implemented yet).}
 
-\item{bias_inclusion_prob}{determines whether the bias should be as associated with inclusion probabilities. TRUE or FALSE}
+\item{bias_inclusion_prob}{logical, determines whether the bias should be as associated with inclusion probabilities.}
+}
+\value{
+A \code{torch::nn_module} object representing the LBBNN.
+It includes the following methods:
+\itemize{
+\item \code{forward(x, MPM = FALSE)}: Performs a forward pass through the whole network.
+\item \code{kl_div()}: Returns the KL divergence of the network.
+\item \code{density()}: Returns the density of the whole network, i.e. the proportion of weights
+with inclusion probabilities greater than 0.5.
+\item \code{compute_paths()}: Computes active paths through the network without input-skip.
+\item \code{compute_paths_input_skip()}: Computes active paths with  input-skip enabled.
+\item \code{density_active_path()}: Returns network density after removing inactive paths.
+}
 }
 \description{
-Generates a LBBNN composed of feed forward layers defined by LBBNN_Linear
-e.g sizes = c(20,200,200,5) generates an LBBNN with 20 input variables,
-two hidden layers with 200 neurons each, and an output layer of 5 neurons.
-LBBNN_net also contains functions to compute kl-divergence and the density of the entire network.
+Each layer is defined by \code{LBBNN_Linear}.
+For example, \code{sizes = c(20, 200, 200, 5)} generates a network with:
+\itemize{
+\item 20 input features,
+\item two hidden layers of 200 neurons each,
+\item an output layer with 5 neurons.
+}
 }
 \examples{
 \donttest{
