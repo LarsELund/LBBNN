@@ -2,24 +2,19 @@
 % Please edit documentation in R/Layers.R
 \name{alpha_prior}
 \alias{alpha_prior}
-\title{Generate prior inclusion probabilities for a LBBNN layer}
+\title{Generate prior inclusion probabilities for the weights of a LBBNN layer (linear or convolutional).}
 \usage{
-alpha_prior(x, device = "cpu")
+alpha_prior(x)
 }
 \arguments{
 \item{x}{A number between 0 and 1.}
-
-\item{device}{The device to be trained on}
 }
 \value{
 a numeric to be added to either (out_shape,in_shape) in case of linear layers
-or (out_channels,in_channels,kernel0,kernel1) in case of convolutional layers
+or (out_channels,in_channels,kernel0,kernel1) in case of convolutional layers.
 }
 \description{
 A function to generate prior probability values for
-each weight in an LBBNN layer. Currently only the same probability for each
-weight in a layer is allowed.
+each weight in an LBBNN layer. The same probability is applied to all weights within a layer.
 }
-\examples{
-alpha_prior(0.25)
-}
+\keyword{internal}

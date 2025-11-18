@@ -1,17 +1,15 @@
-#' Class to generate a multi-layer perceptron, used in RNVP transforms. 
-#' @param hidden_sizes A vector of integers. The first is the dimensionality of the vector,
-#' to be transformed by RNVP. The subsequent are hidden dimensions in the MLP.
-#' @param device The device to be used. Default is CPU.
-#' @description As of now, each hidden layer (except the last) is followed
-#' by a non-linear transformation. 
-#' @examples
-#' \donttest{
-#'net <- MLP(c(50,100,200,400))
-#'x <- torch::torch_rand(50)
-#'out <- net(x)
-#'print(dim(out))
-#'}
-#' @export
+#' @title Multi layer-perceptron
+#' @description Generate a multi-layer perceptron, used in RNVP transforms. 
+#' @keywords internal 
+#' @return Returns a \code{torch::nn_module} representing the MLP.
+#' The module has the following method:
+#' \describe{
+#'   \item{\code{forward(x)}}{
+#'     Applies each linear layer in \code{hidden_sizes} followed by a LeakyReLU activation (except after
+#'     the final layer). Returns a \code{torch::torch_tensor} whose last dimension equals the
+#'     last element of \code{hidden_sizes}.
+#'   }
+#' }
 MLP <- torch::nn_module(
   "MLP",
   
@@ -36,25 +34,32 @@ MLP <- torch::nn_module(
 )
 
 
-#' Class to generate one RNVP transform layer. 
+#' @title Single RNVP transform layer. 
 #' @param hidden_sizes A vector of integers. The first is the dimensionality of the vector,
 #' to be transformed by RNVP. The subsequent are hidden dimensions in the MLP.
 #' @param device The device to be used. Default is CPU.
 #' @description Affine half flow aka Real Non-Volume Preserving (x = z * exp(s) + t),
 #' where a randomly selected half z1 of the dimensions in z are transformed as an
-#'Affine function of the other half z2, i.e. scaled by s(z2) and shifted by t(z2).
-#'From "Density estimation using Real NVP", Dinh et al. (May 2016)
-#'https://arxiv.org/abs/1605.08803
-#'This implementation uses the numerically stable updates introduced by IAF:
-# 'https://arxiv.org/abs/1606.04934
+#' Affine function of the other half z2, i.e. scaled by s(z2) and shifted by t(z2).
+#' From "Density estimation using Real NVP", Dinh et al. (May 2016)
+#' https://arxiv.org/abs/1605.08803
+#' This implementation uses the numerically stable updates introduced by IAF:
+#' https://arxiv.org/abs/1606.04934
+#' @return 
+#' A \code{torch::nn_module} object representing a single RNVP layer. The module has the following methods:
+#' \describe{
+#'   \item{\code{forward(z)}}{Applies the RNVP transformation. Returns a \code{torch::torch_tensor} with the
+#'   same shape as z.}
+#'   \item{\code{log_det()}}{A scalar \code{torch::torch_tensor} giving the log-determinant of the Jacobian of the transformation.}
+#' }
 #' @examples
 #' \donttest{
-#'z <- torch::torch_rand(200)
-#'layer <- RNVP_layer(c(200,50,100))
-#'out <- layer(z)
-#'print(dim(out))
-#'print(layer$log_det())
-#'}
+#' z <- torch::torch_rand(200)
+#' layer <- RNVP_layer(c(200,50,100))
+#' out <- layer(z)
+#' print(dim(out))
+#' print(layer$log_det())
+#' }
 #' @export
 RNVP_layer <- torch::nn_module(
   "RNVP_layer",
@@ -72,7 +77,7 @@ RNVP_layer <- torch::nn_module(
     shift <- self$t(out)
     scale <- self$s(out)
     self$gate <- torch::torch_sigmoid(scale)
-    x = z1 * (self$gate + (1 - self$gate) * shift) + z2
+    x <- z1 * (self$gate + (1 - self$gate) * shift) + z2
     return(x)
   },
   log_det = function(){

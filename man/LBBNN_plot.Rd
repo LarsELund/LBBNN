@@ -14,20 +14,23 @@ LBBNN_plot(
 )
 }
 \arguments{
-\item{model}{A trained LBBNN model with input_skip.}
+\item{model}{A trained \code{LBBNN_Net} model with input_skip enabled.}
 
-\item{layer_spacing}{Spacing in between layers.}
+\item{layer_spacing}{numeric, spacing in between layers.}
 
-\item{neuron_spacing}{Spacing between neurons within a layer.}
+\item{neuron_spacing}{numeric, spacing between neurons within a layer.}
 
-\item{vertex_size}{Size of the neurons.}
+\item{vertex_size}{numeric, size of the neurons.}
 
-\item{label_size}{The size of the text within neurons.}
+\item{label_size}{numeric, size of the text within neurons.}
 
-\item{edge_width}{Width of the edges connecting neurons.}
+\item{edge_width}{numeric, width of the edges connecting neurons.}
+}
+\value{
+This function produces plots as a side effect and does not return a value.
 }
 \description{
-Uses igraph to plot. Some issues related to the sizes and spacing.
+Uses igraph to plot.
 }
 \examples{
 \donttest{

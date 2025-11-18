@@ -2,18 +2,18 @@
 % Please edit documentation in R/plotting_graphs.R
 \name{get_adj_mats}
 \alias{get_adj_mats}
-\title{Function to obtain adjacency matrices to be used with igraph plotting}
+\title{Obtain adjacency matrices for \code{igraph} plotting}
 \usage{
 get_adj_mats(model)
 }
 \arguments{
-\item{model}{A trained LBBNN model with input-skip.}
+\item{model}{An instance of \code{LBBNN_Net} with input_skip enabled.}
 }
 \value{
-The adjacency matrices.
+A list of adjacency matrices, one for each hidden layer and the output layer.
 }
 \description{
-Given a trained LBBNN model with input-skip, this
-function takes the alpha active path matrices for each layer and converts
+Takes the alpha active path matrices for each layer of the LBBNN and converts
 them to adjacency matrices so that they can be plotted with igraph.
 }
+\keyword{internal}

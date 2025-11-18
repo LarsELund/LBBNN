@@ -42,13 +42,18 @@ stds <- c(1,1,1) #prior standard deviation for each layer.
 
 
 inclusion_inits <- matrix(rep(c(-5,10),3),nrow = 2,ncol = 3) #one low and high for each layer
-device <- 'cpu' #can also be mps or gpu.
+device <- "cpu"
+
+
 
 
 
 model_input_skip <- LBBNN_Net(problem_type = problem,sizes = sizes,prior = inclusion_priors,
                               inclusion_inits = inclusion_inits,input_skip = TRUE,std = stds,
                               flow = TRUE,device = device)
+
+
+
 
 
 
@@ -69,7 +74,7 @@ plot(model_input_skip,type = 'local',data = data)
 
 plot(model_input_skip,type = 'global',vertex_size = 5,edge_width = 0.4,label_size = 0.3)
 
+summary(model_input_skip)
 
 
-
-
+a <- coef(model_input_skip,train_loader,4)

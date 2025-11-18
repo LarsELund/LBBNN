@@ -2,7 +2,7 @@
 % Please edit documentation in R/overwrite_functions.R
 \name{coef.LBBNN_Net}
 \alias{coef.LBBNN_Net}
-\title{Get model coefficients (local explanations) of an LBBNN_Net object}
+\title{Get model coefficients (local explanations) of an \code{LBBNN_Net} object}
 \usage{
 \method{coef}{LBBNN_Net}(
   object,
@@ -15,22 +15,29 @@
 )
 }
 \arguments{
-\item{object}{an object of class LBBNN_Net.}
+\item{object}{an object of class \code{LBBNN_Net}.}
 
-\item{dataset}{Either a train_loader object or a torch_tensor object. In the latter case, the user can supply their own data.}
+\item{dataset}{Either a \code{torch::dataloader} object, or a \code{torch::torch_tensor} object.
+The former is assumed to be the same \code{torch::dataloader} used for training or testing.
+The latter can be any user-defined data.}
 
-\item{inds}{a numeric vector of indices indicating which samples in the dataset to be used for local explanations.}
+\item{inds}{Optional integer vector of row indices in the dataset to compute explanations for.}
 
-\item{output_neuron}{Which class to explain. In the case where we have more than one output neuron, each one has to be explained separately.}
+\item{output_neuron}{integer, which output neuron to explain (default = 1).}
 
-\item{num_data}{If no indices are chosen, the first num_data of the dataset are automatically used for explanations.}
+\item{num_data}{integer, if no indices are chosen, the first \code{num_data} of \code{dataset} are automatically used for explanations.}
 
-\item{num_samples}{how many samples to use for model averaging when sampling the weights in the active paths.}
+\item{num_samples}{integer, how many samples to use for model averaging when sampling the weights in the active paths.}
 
 \item{...}{further arguments passed to or from other methods.}
 }
 \value{
-The mean coefficients and 95\% CI.
+A data frame with rows corresponding to input variables and the following columns:
+\itemize{
+\item \code{lower}: lower bound of the 95\% confidence interval
+\item \code{mean}: mean contribution of the variable
+\item \code{upper}: upper bound of the 95\% confidence interval
+}
 }
 \description{
 Given an input sample x_1,... x_j (with j the number of variables), the local explanation is found by
@@ -39,6 +46,17 @@ linear function, so the contribution for x_j is just the sum of the weights asso
 The contributions are found by taking the gradient wrt x.
 }
 \details{
-If num_data = 1 (or the user only supplies one sample), the confidence interval is taken around the mean explanation of that sample, using model averaging
-of the weights. If num_data > 1, then the confidence interval is obtained wrt all the mean explanations of each individual sample.
+\itemize{
+\item If \code{num_data = 1}, confidence intervals are computed using model averaging over \code{num_samples} weight samples.
+\item If \code{num_data > 1}, confidence intervals are computed across the mean explanations for each sample.
+\item The output is a data frame with row names as input variables
+(\code{x0}, \code{x1}, \code{x2}, ...) and columns giving mean and 95\% confidence intervals for each variable.
+}
+}
+\examples{
+\donttest{
+# Example (not run): compute local explanations for first 5 samples
+# model <- train_LBBNN(...)
+# coef(model, dataset, num_data = 5)
+}
 }

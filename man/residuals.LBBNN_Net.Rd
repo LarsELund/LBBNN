@@ -7,15 +7,21 @@
 \method{residuals}{LBBNN_Net}(object, type = c("response"), ...)
 }
 \arguments{
-\item{object}{An object of class LBBNN_Net.}
+\item{object}{An object of class \code{LBBNN_Net}.}
 
 \item{type}{Currently only 'response' is implemented i.e. y_true - y_predicted.}
 
 \item{...}{further arguments passed to or from other methods.}
 }
 \value{
-The response residuals.
+A numeric vector of residuals (\code{y_true - y_predicted})
 }
 \description{
-Residuals from an object of the LBBNN_Net class.
+Residuals from an object of the \code{LBBNN_Net} class.
+}
+\examples{
+\donttest{
+# model <- train_LBBNN(...)  # train or load a model
+# residuals(model)
+}
 }

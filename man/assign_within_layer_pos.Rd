@@ -7,9 +7,9 @@
 assign_within_layer_pos(N, N_u, input_positions, neuron_spacing)
 }
 \arguments{
-\item{N}{Number of neurons in the first layer.}
+\item{N}{integer, number of neurons in the first layer.}
 
-\item{N_u}{Number of neurons in the second layer.}
+\item{N_u}{integer, number of neurons in the second layer.}
 
 \item{input_positions}{Positions of the neurons in the input layer.}
 
@@ -22,3 +22,4 @@ Positions of the second layer.
 Takes care of the three possible cases. Both layers have even
 number of neurons, both layers have odd numbers, or one of each.
 }
+\keyword{internal}

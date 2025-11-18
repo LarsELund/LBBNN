@@ -2,26 +2,21 @@
 % Please edit documentation in R/Layers.R
 \name{density_initialization}
 \alias{density_initialization}
-\title{Function to get initialization values for the inclusion parameters}
+\title{Generate initializations for the inclusion parameters.}
 \usage{
-density_initialization(lower, upper, device = "cpu")
+density_initialization(lower, upper)
 }
 \arguments{
-\item{lower}{a number}
+\item{lower}{numeric scalar.}
 
-\item{upper}{a number, greater than lower}
-
-\item{device}{device to train on}
+\item{upper}{numeric scalar, must be greater than}
 }
 \value{
-A vector of size two c(lower,upper)
+A numeric vector of length 2: \code{c(lower,upper)}
 }
 \description{
-Generate initialization for the inclusion parameters.
-This will control the initial density of the network, and thus an important tuning
+Controls the initial density of the network, and thus an important tuning
 parameter. The initialization parameters are sampled from 1/(1+exp(-U)),
-with U ~ Uniform(lower,upper)
+with U ~ Uniform(lower,upper).
 }
-\examples{
-density_initialization(0,1)
-}
+\keyword{internal}

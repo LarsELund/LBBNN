@@ -2,7 +2,7 @@
 % Please edit documentation in R/dataloader.R
 \name{get_dataloaders}
 \alias{get_dataloaders}
-\title{Wrapper around torch dataloader}
+\title{Wrapper around \code{torch::dataloader}}
 \usage{
 get_dataloaders(
   dataset,
@@ -16,29 +16,29 @@ get_dataloaders(
 )
 }
 \arguments{
-\item{dataset}{Some dataset. Must be a data.frame, where the last column is y, the dependent variable.}
+\item{dataset}{A \code{data.frame}. The last column is assumed to be the dependent variable.}
 
-\item{train_proportion}{A number between 0 and 1, giving the proportion of data to be used for training.
-Usually a large number e.g. 0.8, but could also be smaller than 0.5 even though this is uncommon.}
+\item{train_proportion}{numeric, between 0 and 1. Proportion of data to be used for training.}
 
-\item{train_batch_size}{How many samples in each batch in the train dataloader.}
+\item{train_batch_size}{integer, number of samples per batch in the training dataloader.}
 
-\item{test_batch_size}{How many samples in each batch in the test dataloader.}
+\item{test_batch_size}{integer, number of sampels per batch in the testing dataloader.}
 
-\item{standardize}{default is TRUE. Usually an advantage for gradient based optimization.}
+\item{standardize}{logical, whether to standardize input-features, default is TRUE.}
 
-\item{shuffle_train}{default is TRUE. Ensures data is randomly shuffled before each iteration.}
+\item{shuffle_train}{logical, whether to shuffle the training data each epoch. default is TRUE}
 
-\item{shuffle_test}{default is FALSE, as there is no need to shuffle the test data, as the order of the data is irrelevant.}
+\item{shuffle_test}{logical, shuffle test data, default is FALSE. Usually not needed.}
 
-\item{seed}{The seed used in splitting train/test. Important if one wants to compare to other algorithms that
-do not need to use torch dataloaders.}
+\item{seed}{integer. Used for reproducibility purposes in the train/test split.}
 }
 \value{
-A list containing a train_loader and a test_loader object.
+A list containing:
+\describe{
+\item{train_loader}{A \code{torch::dataloader} for the training data.}
+\item{test_loader}{A \code{torch::dataloader} for the test data.}
+}
 }
 \description{
-Takes a dataset and returns both torch train and test dataloaders,
-needed for subsequent optimization. Avoids the user having to define these dataloaders
-themselves.
+Avoids users having to manually define their own dataloaders.
 }

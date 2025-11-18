@@ -2,7 +2,7 @@
 % Please edit documentation in R/local_explanations.R
 \name{get_local_explanations_gradient}
 \alias{get_local_explanations_gradient}
-\title{Function to get gradient based local explanations.}
+\title{Function to get gradient based local explanations for input-skip LBBNNs.}
 \usage{
 get_local_explanations_gradient(
   model,
@@ -14,11 +14,11 @@ get_local_explanations_gradient(
 )
 }
 \arguments{
-\item{model}{Input-skip model to explain. Not implemented for regular LBBNNs.}
+\item{model}{A \code{LBBNN_Net} with input-skip}
 
 \item{input_data}{The data to be explained (one sample).}
 
-\item{num_samples}{How many sample to use to produce credible intervals.}
+\item{num_samples}{integer, how many samples to use to produce credible intervals.}
 
 \item{magnitude}{If TRUE, only return explanations. If FALSE, multiply by input values.}
 
@@ -26,10 +26,15 @@ get_local_explanations_gradient(
 we assume that the contribution is negative (good/bad that it is not included)
 if FALSE, just removes zero covariates.}
 
-\item{device}{the device to be trained on. Default is cpu.}
+\item{device}{character, the device to be trained on. Default is 'cpu', can be 'mps' or 'gpu'.}
 }
 \value{
-A list of the local explanations
+A list with the following elements:
+\describe{
+\item{explanations}{A \code{torch::tensor} of shape (num_samples, p, num_classes).}
+\item{p}{integer, the number of input features.}
+\item{predictions}{A \code{torch::tensor} of shape (num_samples, num_classes).}
+}
 }
 \description{
 Works by computing the gradient wrt to input, given we have

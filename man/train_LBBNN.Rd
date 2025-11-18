@@ -2,7 +2,7 @@
 % Please edit documentation in R/Train_validate.R
 \name{train_LBBNN}
 \alias{train_LBBNN}
-\title{Function to train an instance of LBBNN_Net}
+\title{Train an instance of \code{LBBNN_Net}.}
 \usage{
 train_LBBNN(
   epochs,
@@ -15,23 +15,32 @@ train_LBBNN(
 )
 }
 \arguments{
-\item{epochs}{Total number of epochs to train for, where one epoch is a pass through the entire training dataset (all mini batches).}
+\item{epochs}{integer, total number of epochs to train for, where one epoch is a pass through the entire training dataset (all mini batches).}
 
-\item{LBBNN}{An instance of the LBBNN_Net class, to be trained.}
+\item{LBBNN}{An instance of  \code{LBBNN_Net}, to be trained.}
 
-\item{lr}{The learning rate to be used in the Adam optimizer.}
+\item{lr}{numeric, the learning rate to be used in the Adam optimizer.}
 
-\item{train_dl}{An instance of torch dataloader, containing the data to be trained.}
+\item{train_dl}{An instance of \code{torch::dataloader} consisting of a tensor dataset
+with features and targets.}
 
-\item{device}{the device to be trained on. Default is cpu.}
+\item{device}{the device to be trained on. Default is 'cpu', also accepts 'gpu' or 'mps'.}
 
-\item{scheduler}{A torch learning rate scheduler object. Can be used to decay learning rate for better convergence.}
+\item{scheduler}{A torch learning rate scheduler object. Can be used to decay learning rate for better convergence,
+currently only supports 'step'.}
 
-\item{sch_step_size}{Where to decay if using torch::lr_step. E.g. 1000 means learning rate is decayed every 1000 epochs.}
+\item{sch_step_size}{Where to decay if using \code{torch::lr_step}. E.g. 1000 means learning rate is decayed every 1000 epochs.}
 }
 \value{
 a list containing the losses and accuracy (if classification) and density for each epoch during training.
 For comparisons sake we show the density with and without active paths.
+
+A list with elements (returned invisibly):
+\describe{
+\item{accs}{Vector of accuracy per epoch (classification only).}
+\item{loss}{Vector of average loss per epoch.}
+\item{density}{Vector of network densities per epoch.}
+}
 }
 \description{
 Function that for each epoch iterates through each mini-batch, computing

@@ -7,18 +7,30 @@
 \method{summary}{LBBNN_Net}(object, ...)
 }
 \arguments{
-\item{object}{An object of class LBBNN_Net.}
+\item{object}{An object of class \code{LBBNN_Net}.}
 
 \item{...}{further arguments passed to or from other methods.}
 }
 \value{
-The table of the summary values.
+A \code{data.frame} containing the above information. The function prints a formatted summary to the console.
+The returned \code{data.frame} is invisible.
 }
 \description{
-Summary method for objects of the LBBNN_Net class. Note that this function only applies to objects trained with input-skip.
+Summary method for objects of the \code{LBBNN_Net} class.
+Only applies to objects trained with \code{input_skip = TRUE}.
 }
 \details{
-For each layer (aside from the output), the summary contains a column showing the number of connections (paths) for each variable from that layer.
-In addition, each layer has a column showing the average inclusion probability associated with each variable. The final column shows the average inclusion probability
-across all layers.
+The returned table combines two types of information:
+\itemize{
+\item Number of times each input variable is included in the active paths from each layer
+(obtained from \code{get_input_inclusions()}).
+\item Average inclusion probabilities for each input variable from each layer, including a final
+column showing the average across all layers.
+}
+}
+\examples{
+\donttest{
+# model <- train_LBBNN(...)  # train or load a model
+# summary(model)
+}
 }

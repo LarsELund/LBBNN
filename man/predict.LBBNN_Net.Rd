@@ -2,29 +2,35 @@
 % Please edit documentation in R/overwrite_functions.R
 \name{predict.LBBNN_Net}
 \alias{predict.LBBNN_Net}
-\title{Obtain predictions based on the variational posterior distribution of an LBBNN object.}
+\title{Obtain predictions from the variational posterior of an \code{LBBNN model}}
 \usage{
 \method{predict}{LBBNN_Net}(object, mpm, newdata, draws, device = "cpu", link = NULL, ...)
 }
 \arguments{
-\item{object}{An instance of a trained LBBNN_net.}
+\item{object}{A trained \code{LBBNN_Net} object}
 
-\item{mpm}{To use the median probability model or not.}
+\item{mpm}{logical, whether to use the median probability model.}
 
-\item{newdata}{A torch dataloader containing the variables with which to predict.}
+\item{newdata}{A \code{torch::dataloader} object containing the data with which to predict.}
 
-\item{draws}{The number of times to sample from the variational posterior.}
+\item{draws}{integer, the number of samples to draw from the posterior.}
 
-\item{device}{The device to perform the operations on. Default is cpu.}
+\item{device}{character, device for computation (default = \code{"cpu"}).}
 
-\item{link}{Link function to apply to the output of the network.}
+\item{link}{Optional link function to apply to the network output. Currently not implemented.}
 
 \item{...}{further arguments passed to or from other methods.}
 }
 \value{
-A matrix of size (draws,N,C), where N is the number of data points in the test_loader,
-and C the number of classes. (1 for regression).
+A \code{torch::torch_tensor}  of shape \code{(draws,N,C)} where \code{N} is the number of samples in \code{newdata}, and \code{C} the number of outputs.
 }
 \description{
-Draw from the (variational) posterior predictive distribution.
+Draw from the (variational) posterior distribution of a trained \code{LBBNN_Net} object.
+}
+\examples{
+\donttest{
+# Assume a trained model and a dataloader
+# predictions <- predict(model, mpm = TRUE, newdata = test_loader, draws = 10)
+}
+
 }

@@ -1,18 +1,23 @@
 library(torch)
 library(ggplot2)
 
-#' Function to get gradient based local explanations.
+#' @title Function to get gradient based local explanations for input-skip LBBNNs.
 #' @description Works by computing the gradient wrt to input, given we have
 #' relu activation functions.
-#' @param model Input-skip model to explain. Not implemented for regular LBBNNs.
+#' @param model A \code{LBBNN_Net} with input-skip
 #' @param input_data The data to be explained (one sample).
-#' @param num_samples How many sample to use to produce credible intervals.
+#' @param num_samples integer, how many samples to use to produce credible intervals.
 #' @param magnitude If TRUE, only return explanations. If FALSE, multiply by input values.
 #' @param include_potential_contribution IF TRUE, If covariate=0, 
 #' we assume that the contribution is negative (good/bad that it is not included)
 #' if FALSE, just removes zero covariates.
-#' @param device the device to be trained on. Default is cpu.
-#' @return A list of the local explanations 
+#' @param device character, the device to be trained on. Default is 'cpu', can be 'mps' or 'gpu'. 
+#' @return A list with the following elements:
+#'   \describe{
+#'     \item{explanations}{A \code{torch::tensor} of shape (num_samples, p, num_classes).}
+#'     \item{p}{integer, the number of input features.}
+#'     \item{predictions}{A \code{torch::tensor} of shape (num_samples, num_classes).}
+#'   }
 #' @export
 get_local_explanations_gradient <- function(model,input_data, 
                                             num_samples = 1,magnitude = TRUE,
@@ -69,12 +74,12 @@ get_local_explanations_gradient <- function(model,input_data,
 
 
 
-# next is to plot the contributions with error bars
 
-#' Function to obtain empirical 95% confidence interval, including the median
+
+#' @title Function to obtain empirical 95% confidence interval, including the mean
 #' @description Using the built in quantile function to return 95% confidence interval
 #' @param x numeric vector whose sample quantiles is desired.
-#' @return The quantiles
+#' @return The quantiles in addition to the mean.
 #' @export
 quants <- function(x){ #maybe should allow for something other than 95% CI
   out <- c(
@@ -82,18 +87,17 @@ quants <- function(x){ #maybe should allow for something other than 95% CI
     mean  = mean(x),
     upper = stats::quantile(x, 0.975)
   )
-  return(out) #95% CI and median
+  return(out) 
 }
 
 
-#' Function to plot the local explanations
+#' @title Plot the gradient based local explanations for one sample with input-skip LBBNNs.
 #' @description Plots the contribution of each covariate, and the prediction, with error bars. 
-#' @param model Input-skip model to explain. Not implemented for regular LBBNNs.
+#' @param model An instance of \code{LBBNN_Net} with input-skip enabled.
 #' @param input_data The data to be explained (one sample).
-#' @param num_samples How many sample to use to produce credible intervals.
-#' @param device the device to be trained on. Default is cpu.
-#' @return a list containing the losses and accuracies (if classification) and density for each epoch during training.
-#' For comparisons sake we show the density with and without active paths.
+#' @param num_samples integer, how many sample to use to produce credible intervals.
+#' @param device character, the device to be trained on. Default is cpu. Can be 'mps' or 'gpu'.
+#' @return This function produces plots as a side effect and does not return a value.
 #' @export
 plot_local_explanations_gradient <- function(model,input_data,num_samples,device = 'cpu'){
   outputs <- get_local_explanations_gradient(model = model,input_data = input_data,num_samples
