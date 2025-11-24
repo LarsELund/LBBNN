@@ -1,5 +1,6 @@
 library(torch)
 library(ggplot2)
+library(svglite)
 
 #' @title Function to get gradient based local explanations for input-skip LBBNNs.
 #' @description Works by computing the gradient wrt to input, given we have
@@ -23,6 +24,7 @@ get_local_explanations_gradient <- function(model,input_data,
                                             num_samples = 1,magnitude = TRUE,
                                             include_potential_contribution = FALSE,device = 'cpu'){
   if(model$input_skip == FALSE)(stop('This function is only implemented for input-skip'))
+  
   #need to make sure input_data comes in shape (1,p) where p is #input variables
   num_classes <- model$sizes[length(model$sizes)]
   if(input_data$dim() == 4){ #in the case of MNIST or other image data
@@ -97,16 +99,21 @@ quants <- function(x){ #maybe should allow for something other than 95% CI
 #' @param input_data The data to be explained (one sample).
 #' @param num_samples integer, how many sample to use to produce credible intervals.
 #' @param device character, the device to be trained on. Default is cpu. Can be 'mps' or 'gpu'.
+#' @param save_svg the path where the plot will be saved as svg, if save_svg is not NULL.
 #' @return This function produces plots as a side effect and does not return a value.
 #' @export
-plot_local_explanations_gradient <- function(model,input_data,num_samples,device = 'cpu'){
+plot_local_explanations_gradient <- function(model,input_data,num_samples,device = 'cpu',save_svg = NULL){
   outputs <- get_local_explanations_gradient(model = model,input_data = input_data,num_samples
                                              =num_samples,device = device)
   
   preds<- as.matrix(outputs$predictions) #shape (num_samples,num_classes)
   expl <- as.array(outputs$explanations) #shape (num_samples,p,num_classes)
+
+
   
   for(cls in 1:model$sizes[length(model$sizes)]){ #loop over each class and compute quantiles
+    
+    
     expl_class <- expl[,,cls]
     expl_quantiles <-apply(expl_class,2,quants)
    
@@ -137,14 +144,25 @@ plot_local_explanations_gradient <- function(model,input_data,num_samples,device
     )
    
    
-    print(ggplot2::ggplot(data <- data,ggplot2::aes(x=factor(name,levels = name),
+    plt <- ggplot2::ggplot(data <- data,ggplot2::aes(x=factor(name,levels = name),
                             y=contribution,
                             fill=factor(ifelse(name=="out","out","input variables")))) +
       ggplot2::geom_bar(stat="identity") +
       ggplot2::scale_fill_manual(name = paste("Output neuron",cls), values=c("#D5E8D4",'#F8CECC')) +
       ggplot2::geom_errorbar(ggplot2::aes(x=name,ymin=min, ymax=max), width=0.6, colour="black", alpha=0.9, size=0.5) +
-      ggplot2::xlab("")+ggplot2::ylab('Contribution')+ggplot2::ggtitle('Local explanation, with 95% empirical confidence bars')) 
-      
+      ggplot2::xlab("")+ggplot2::ylab('Contribution')+ggplot2::ggtitle('Local explanation, with 95% empirical confidence bars')
+    print(plt)
+    if(!is.null(save_svg)){
+      new_file <- file.path(
+        dirname(save_svg),
+        paste0(sub("\\.[^.]*$", "", basename(save_svg)), "_class_", cls, ".svg") #check how this works
+      )
+      svglite::svglite(new_file, width=8, height=6)
+      print(plt)
+      grDevices::dev.off()
+      message("SVG saved to: ",new_file)
+    } 
+    
     
     
     

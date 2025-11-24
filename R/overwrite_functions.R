@@ -105,8 +105,10 @@ summary.LBBNN_Net <- function(object, ...) {
   cat("The final column shows the average inclusion probability across all layers\n")
   cat("-----------------------------------\n")
   print(summary_out)
-  cat("-----------------------------------\n")
   cat(paste('The model took',object$elapsed_time,'seconds to train, using',object$device)) #should return this as well in a list with summary_out? and update docs..
+
+  #cat(paste('The model took',object$elapsed_time,'seconds to train, using',object$device))
+
   invisible(summary_out)
 
 }
@@ -396,7 +398,7 @@ plot.LBBNN_Net <- function(x,type = c('global','local'),data = NULL,num_samples 
   }
   else{
     if(is.null(data))stop('data must contain a sample to explain')
-    plot_local_explanations_gradient(x,input_data = data,num_samples = num_samples,device = x$device)
+    plot_local_explanations_gradient(x,input_data = data,num_samples = num_samples,device = x$device,...)
     
   }
   

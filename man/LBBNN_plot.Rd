@@ -10,7 +10,8 @@ LBBNN_plot(
   neuron_spacing = 1,
   vertex_size = 10,
   label_size = 0.5,
-  edge_width = 0.5
+  edge_width = 0.5,
+  save_svg = NULL
 )
 }
 \arguments{
@@ -25,6 +26,8 @@ LBBNN_plot(
 \item{label_size}{numeric, size of the text within neurons.}
 
 \item{edge_width}{numeric, width of the edges connecting neurons.}
+
+\item{save_svg}{the path where the plot will be saved if save_svg is not null.}
 }
 \value{
 This function produces plots as a side effect and does not return a value.

@@ -8,7 +8,8 @@ plot_local_explanations_gradient(
   model,
   input_data,
   num_samples,
-  device = "cpu"
+  device = "cpu",
+  save_svg = NULL
 )
 }
 \arguments{
@@ -19,6 +20,8 @@ plot_local_explanations_gradient(
 \item{num_samples}{integer, how many sample to use to produce credible intervals.}
 
 \item{device}{character, the device to be trained on. Default is cpu. Can be 'mps' or 'gpu'.}
+
+\item{save_svg}{the path where the plot will be saved as svg, if save_svg is not NULL.}
 }
 \value{
 This function produces plots as a side effect and does not return a value.

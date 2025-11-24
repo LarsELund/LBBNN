@@ -1,6 +1,8 @@
 library(igraph)
 library(Matrix)
 require(graphics)
+library(svglite)
+
 
 #' @title Obtain adjacency matrices for \code{igraph} plotting
 #' @description Takes the alpha active path matrices for each layer of the LBBNN and converts
@@ -143,6 +145,7 @@ assign_names<- function(model){#assign names to the nodes before plotting
 #' @param vertex_size numeric, size of the neurons. 
 #' @param label_size numeric, size of the text within neurons. 
 #' @param edge_width numeric, width of the edges connecting neurons.
+#' @param save_svg the path where the plot will be saved if save_svg is not null.
 #' @examples
 #' \donttest{
 #' sizes <- c(2,3,3,2)
@@ -161,7 +164,13 @@ assign_names<- function(model){#assign names to the nodes before plotting
 #' }
 #' @return This function produces plots as a side effect and does not return a value.
 #' @export
-LBBNN_plot <- function(model,layer_spacing = 1,neuron_spacing = 1,vertex_size = 10,label_size = 0.5,edge_width = 0.5){
+LBBNN_plot <- function(model,layer_spacing = 1,neuron_spacing = 1,vertex_size = 10,label_size = 0.5,edge_width = 0.5,save_svg = NULL){
+  
+  if (!is.null(save_svg)) {
+    # Open SVG device
+    svglite::svglite(save_svg, width = 8, height = 6)
+  }
+  
   graph <- assign_names(model) #the graph with names neurons, given some model with alpha matrices
   g <- igraph::make_empty_graph(n = 0) #initialize empty graph
   for(L in 1:length(graph)){
@@ -230,7 +239,10 @@ LBBNN_plot <- function(model,layer_spacing = 1,neuron_spacing = 1,vertex_size = 
        edge.color = 'black',vertex.label.color='black',
        edge.width = edge_width, layout = -plot_points[,2:1],edge.arrow.mode = '-',margin = 0.0)
  
-
+  if(!is.null(save_svg)) {
+    message(paste("Plot saved as", save_svg))
+    on.exit(grDevices::dev.off()) # ensures the device closes even if an error occurs
+  }
   
 }
 
