@@ -168,7 +168,7 @@ LBBNN_plot <- function(model,layer_spacing = 1,neuron_spacing = 1,vertex_size = 
   
   if (!is.null(save_svg)) {
     # Open SVG device
-    svglite::svglite(save_svg, width = 8, height = 6)
+    svglite::svglite(save_svg, width = 5, height = 4)
   }
   
   graph <- assign_names(model) #the graph with names neurons, given some model with alpha matrices
@@ -237,7 +237,7 @@ LBBNN_plot <- function(model,layer_spacing = 1,neuron_spacing = 1,vertex_size = 
   
   plot(g,vertex.size = vertex_size,vertex.label.cex = label_size, 
        edge.color = 'black',vertex.label.color='black',
-       edge.width = edge_width, layout = -plot_points[,2:1],edge.arrow.mode = '-',margin = 0.0)
+       edge.width = edge_width, layout = -plot_points[,2:1],edge.arrow.mode = '-',margin = 0.0,asp = 0)
  
   if(!is.null(save_svg)) {
     message(paste("Plot saved as", save_svg))

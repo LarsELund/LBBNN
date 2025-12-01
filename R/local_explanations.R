@@ -24,7 +24,9 @@ get_local_explanations_gradient <- function(model,input_data,
                                             num_samples = 1,magnitude = TRUE,
                                             include_potential_contribution = FALSE,device = 'cpu'){
   if(model$input_skip == FALSE)(stop('This function is only implemented for input-skip'))
-  
+  if(model$computed_paths == FALSE){
+    model$compute_paths_input_skip() #need this before computing explanations
+  }
   #need to make sure input_data comes in shape (1,p) where p is #input variables
   num_classes <- model$sizes[length(model$sizes)]
   if(input_data$dim() == 4){ #in the case of MNIST or other image data

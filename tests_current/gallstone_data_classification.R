@@ -72,9 +72,7 @@ output <- y[ind]
 print(output$item())
 plot(model_input_skip,type = 'local',data = data)
 
-plot(model_input_skip,type = 'global',vertex_size = 5,edge_width = 0.4,label_size = 0.3)
+plot(model_input_skip,type = 'global',vertex_size = 5,edge_width = 0.1,label_size = 0.2)
 
 summary(model_input_skip)
-
-
-a <- coef(model_input_skip,train_loader,4)
+coef(model_input_skip,train_loader)

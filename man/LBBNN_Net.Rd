@@ -82,17 +82,16 @@ For example, \code{sizes = c(20, 200, 200, 5)} generates a network with:
 }
 \examples{
 \donttest{
-layers <- c(20,200,200,5) #Two hidden layers 
-alpha <- c(0.3,0.5,0.9)  # One prior inclusion probability for each weight matrix 
-stds <- c(1.0,1.0,1.0)  # One prior inclusion probability for each weight matrix 
-inclusion_inits <- matrix(rep(c(-10,10),3),nrow = 2,ncol = 3)
+layers <- c(10,2,5) 
+alpha <- c(0.3,0.9)   
+stds <- c(1.0,1.0)   
+inclusion_inits <- matrix(rep(c(-10,10),2),nrow = 2,ncol = 2)
 prob <- 'multiclass classification'
 net <- LBBNN_Net(problem_type = prob, sizes = layers, prior = alpha,std = stds
 ,inclusion_inits = inclusion_inits,input_skip = FALSE,flow = FALSE,device = 'cpu')
-print(net)
-x <- torch::torch_rand(100,20,requires_grad = FALSE) #generate some dummy data
-output <- net(x) #forward pass
-net$kl_div()$item() #get KL-divergence
-net$density() #get the density of the network
+x <- torch::torch_rand(20,10,requires_grad = FALSE)
+output <- net(x) 
+net$kl_div()$item() 
+net$density() 
 }
 }

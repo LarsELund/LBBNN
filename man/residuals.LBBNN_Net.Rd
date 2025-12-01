@@ -20,8 +20,20 @@ A numeric vector of residuals (\code{y_true - y_predicted})
 Residuals from an object of the \code{LBBNN_Net} class.
 }
 \examples{
-\donttest{
-# model <- train_LBBNN(...)  # train or load a model
-# residuals(model)
+\donttest{ 
+x<-torch::torch_randn(3,2) 
+b <- torch::torch_rand(2)
+y <- torch::torch_matmul(x,b)
+train_data <- torch::tensor_dataset(x,y)
+train_loader <- torch::dataloader(train_data,batch_size = 3,shuffle=FALSE)
+problem<-'regression'
+sizes <- c(2,1,1) 
+inclusion_priors <-c(0.9,0.2) 
+inclusion_inits <- matrix(rep(c(-10,10),2),nrow = 2,ncol = 2)
+stds <- c(1.0,1.0)
+model <- LBBNN_Net(problem,sizes,inclusion_priors,stds,inclusion_inits,flow = FALSE,
+input_skip = TRUE)
+train_LBBNN(epochs = 1,LBBNN = model, lr = 0.01,train_dl = train_loader)
+residuals(model)
 }
 }

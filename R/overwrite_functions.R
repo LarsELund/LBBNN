@@ -60,10 +60,22 @@ get_input_inclusions <- function(model){
 #' @return A \code{data.frame} containing the above information. The function prints a formatted summary to the console. 
 #'   The returned \code{data.frame} is invisible.
 #' @examples
-#' \donttest{
-#'# model <- train_LBBNN(...)  # train or load a model
-#'# summary(model)
-#' }
+#' \donttest{ 
+#'x<-torch::torch_randn(3,2) 
+#'b <- torch::torch_rand(2)
+#'y <- torch::torch_matmul(x,b)
+#'train_data <- torch::tensor_dataset(x,y)
+#'train_loader <- torch::dataloader(train_data,batch_size = 3,shuffle=FALSE)
+#'problem<-'regression'
+#'sizes <- c(2,1,1) 
+#'inclusion_priors <-c(0.9,0.2) 
+#'inclusion_inits <- matrix(rep(c(-10,10),2),nrow = 2,ncol = 2)
+#'stds <- c(1.0,1.0)
+#'model <- LBBNN_Net(problem,sizes,inclusion_priors,stds,inclusion_inits,flow = FALSE,
+#'input_skip = TRUE)
+#'train_LBBNN(epochs = 1,LBBNN = model, lr = 0.01,train_dl = train_loader)
+#'summary(model)
+#'}
 #' @export
 summary.LBBNN_Net <- function(object, ...) {
 
@@ -106,9 +118,6 @@ summary.LBBNN_Net <- function(object, ...) {
   cat("-----------------------------------\n")
   print(summary_out)
   cat(paste('The model took',object$elapsed_time,'seconds to train, using',object$device)) #should return this as well in a list with summary_out? and update docs..
-
-  #cat(paste('The model took',object$elapsed_time,'seconds to train, using',object$device))
-
   invisible(summary_out)
 
 }
@@ -121,10 +130,22 @@ summary.LBBNN_Net <- function(object, ...) {
 #' @param ... further arguments passed to or from other methods.
 #' @return A numeric vector of residuals (\code{y_true - y_predicted})
 #' @examples
-#' \donttest{
-#'# model <- train_LBBNN(...)  # train or load a model
-#'# residuals(model)
-#' }
+#' \donttest{ 
+#'x<-torch::torch_randn(3,2) 
+#'b <- torch::torch_rand(2)
+#'y <- torch::torch_matmul(x,b)
+#'train_data <- torch::tensor_dataset(x,y)
+#'train_loader <- torch::dataloader(train_data,batch_size = 3,shuffle=FALSE)
+#'problem<-'regression'
+#'sizes <- c(2,1,1) 
+#'inclusion_priors <-c(0.9,0.2) 
+#'inclusion_inits <- matrix(rep(c(-10,10),2),nrow = 2,ncol = 2)
+#'stds <- c(1.0,1.0)
+#'model <- LBBNN_Net(problem,sizes,inclusion_priors,stds,inclusion_inits,flow = FALSE,
+#'input_skip = TRUE)
+#'train_LBBNN(epochs = 1,LBBNN = model, lr = 0.01,train_dl = train_loader)
+#'residuals(model)
+#'}
 #' @export
 residuals.LBBNN_Net <- function(object,type = c('response'), ...) {
   y_true <- object$y
@@ -168,11 +189,22 @@ residuals.LBBNN_Net <- function(object,type = c('response'), ...) {
 #' }
 #' 
 #' @examples
-#' \donttest{
-#' # Example (not run): compute local explanations for first 5 samples
-#' # model <- train_LBBNN(...)
-#' # coef(model, dataset, num_data = 5)
-#' }
+#' \donttest{ 
+#'x<-torch::torch_randn(3,2) 
+#'b <- torch::torch_rand(2)
+#'y <- torch::torch_matmul(x,b)
+#'train_data <- torch::tensor_dataset(x,y)
+#'train_loader <- torch::dataloader(train_data,batch_size = 3,shuffle=FALSE)
+#'problem<-'regression'
+#'sizes <- c(2,1,1) 
+#'inclusion_priors <-c(0.9,0.2) 
+#'inclusion_inits <- matrix(rep(c(-10,10),2),nrow = 2,ncol = 2)
+#'stds <- c(1.0,1.0)
+#'model <- LBBNN_Net(problem,sizes,inclusion_priors,stds,inclusion_inits,flow = FALSE,
+#'input_skip = TRUE)
+#'train_LBBNN(epochs = 1,LBBNN = model, lr = 0.01,train_dl = train_loader)
+#'coef(model,dataset = x, num_data = 1)
+#'}
 #' @export
 coef.LBBNN_Net <- function(object,dataset,inds = NULL,output_neuron = 1,num_data = 1,num_samples = 10, ...) {
   if(output_neuron > object$sizes[length(object$sizes)])stop(paste('output_neuron =',output_neuron, 'can not be greater than' ,object$sizes[length(object$sizes)]))
@@ -269,11 +301,22 @@ coef.LBBNN_Net <- function(object,dataset,inds = NULL,output_neuron = 1,num_data
 #'@param ... further arguments passed to or from other methods.
 #'@return A \code{torch::torch_tensor}  of shape \code{(draws,N,C)} where \code{N} is the number of samples in \code{newdata}, and \code{C} the number of outputs.
 #' @examples
-#' \donttest{
-#' # Assume a trained model and a dataloader
-#' # predictions <- predict(model, mpm = TRUE, newdata = test_loader, draws = 10)
-#' }
-#' 
+#' \donttest{ 
+#'x<-torch::torch_randn(3,2) 
+#'b <- torch::torch_rand(2)
+#'y <- torch::torch_matmul(x,b)
+#'train_data <- torch::tensor_dataset(x,y)
+#'train_loader <- torch::dataloader(train_data,batch_size = 3,shuffle=FALSE)
+#'problem<-'regression'
+#'sizes <- c(2,1,1) 
+#'inclusion_priors <-c(0.9,0.2) 
+#'inclusion_inits <- matrix(rep(c(-10,10),2),nrow = 2,ncol = 2)
+#'stds <- c(1.0,1.0)
+#'model <- LBBNN_Net(problem,sizes,inclusion_priors,stds,inclusion_inits,flow = FALSE,
+#'input_skip = TRUE)
+#'train_LBBNN(epochs = 1,LBBNN = model, lr = 0.01,train_dl = train_loader)
+#'predict(model,mpm = FALSE,newdata = train_loader,draws = 1)
+#'}
 #' @export
 predict.LBBNN_Net <- function(object,mpm,newdata,draws,device = 'cpu',link = NULL,...){#should newdata be a dataloader or a dataset?
   object$eval()
@@ -281,7 +324,7 @@ predict.LBBNN_Net <- function(object,mpm,newdata,draws,device = 'cpu',link = NUL
   if(! object$computed_paths){
     if(object$input_skip){object$compute_paths_input_skip()} #need this to get active paths to compute mpm
     else(object$compute_paths)
-    object$computed_paths <- TRUE
+   
     
   }
   if(class(newdata)[[1]] != 'dataloader')stop('Currently only torch::dataloader objects are supported for newdata')
@@ -312,6 +355,22 @@ predict.LBBNN_Net <- function(object,mpm,newdata,draws,device = 'cpu',link = NUL
 #' @param x An object of class \code{LBBNN_Net}.
 #' @param ... Further arguments passed to or from other methods.
 #' @return Invisibly returns the input \code{x}.
+#' @examples
+#' \donttest{ 
+#'x<-torch::torch_randn(3,2) 
+#'b <- torch::torch_rand(2)
+#'y <- torch::torch_matmul(x,b)
+#'train_data <- torch::tensor_dataset(x,y)
+#'train_loader <- torch::dataloader(train_data,batch_size = 3,shuffle=FALSE)
+#'problem<-'regression'
+#'sizes <- c(2,1,1) 
+#'inclusion_priors <-c(0.9,0.2) 
+#'inclusion_inits <- matrix(rep(c(-10,10),2),nrow = 2,ncol = 2)
+#'stds <- c(1.0,1.0)
+#'model <- LBBNN_Net(problem,sizes,inclusion_priors,stds,inclusion_inits,flow = FALSE,
+#'input_skip = TRUE)
+#'print(model)
+#'}
 #' @export
 print.LBBNN_Net <- function(x, ...) {
   
@@ -391,7 +450,6 @@ print.LBBNN_Net <- function(x, ...) {
 plot.LBBNN_Net <- function(x,type = c('global','local'),data = NULL,num_samples = 100, ...) {
   if(x$input_skip == FALSE)(stop('Plotting currently only implemented for input-skip'))
   if(x$computed_paths == FALSE){x$compute_paths_input_skip()}
-  x$computed_paths <- TRUE
   d <- match.arg(type)
   if(d == 'global'){
     LBBNN_plot(x,...)
