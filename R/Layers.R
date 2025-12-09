@@ -92,6 +92,7 @@ density_initialization <- function(lower,upper) {
 #' @param hidden_dims numeric vector, dimension of the hidden layer(s) in the neural networks of the RNVP transform.
 #' @param device The device to be used. Default is CPU.
 #' @param bias_inclusion_prob logical, determines whether the bias should be as associated with inclusion probabilities. 
+#' @param conv_net logical, whether the layer is to be used in a convolutional net. 
 #' @examples
 #' \donttest{
 #' l1 <- LBBNN_Linear(in_features = 10,out_features = 5,prior_inclusion = 0.25,
@@ -120,12 +121,14 @@ LBBNN_Linear <- torch::nn_module(
     num_transforms = 2,
     hidden_dims = c(200,200),
     device = 'cpu',
-    bias_inclusion_prob = FALSE) {
+    bias_inclusion_prob = FALSE,
+    conv_net = FALSE) {
     self$in_features  <- in_features
     self$out_features <- out_features
     self$device <- device
     self$flow <- flow #true or false
     self$bias_inclusion_prob <- bias_inclusion_prob # true or false
+    self$conv_net <- conv_net
     self$num_transforms <- num_transforms
     self$hidden_dims <- hidden_dims
     self$density_init = density_initialization(density_init[1],density_init[2])
@@ -235,6 +238,13 @@ LBBNN_Linear <- torch::nn_module(
       w <- torch::torch_normal(self$weight_mean * self$z_k, self$weight_sigma)
       bias <- torch::torch_normal(self$bias_mean, self$bias_sigma)
       weight <- w * self$alpha_active_path
+      
+      #need the below if we are running a convolutional net without active paths
+      if(self$conv_net){
+        gamma <-(self$alpha$clone()$detach()> 0.5) * 1.
+        weight <- w * gamma
+      }
+      
       if(self$bias_inclusion_prob){
       bias <- bias * (self$bias_alpha>0.5)
       }

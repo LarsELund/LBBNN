@@ -51,7 +51,8 @@ train_LBBNN(epochs = 1500,LBBNN = model_input_skip,
 validate_LBBNN(LBBNN = model_input_skip,num_samples = 100,test_dl = test_loader,device)
 
 
-plot(model_input_skip,type = 'global',vertex_size = 10,edge_width = 0.4,label_size = 0.3)
+plot(model_input_skip,type = 'global',vertex_size = 10,
+     edge_width = 0.4,label_size = 0.3)
 
 
 

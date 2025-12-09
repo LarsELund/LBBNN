@@ -76,3 +76,7 @@ plot(model_input_skip,type = 'global',vertex_size = 5,edge_width = 0.1,label_siz
 
 summary(model_input_skip)
 coef(model_input_skip,train_loader)
+
+predictions <- predict(model_input_skip, newdata = test_loader,
+                       draws = 100,mpm = TRUE)
+

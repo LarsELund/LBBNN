@@ -29,5 +29,6 @@ Imports:
     torch,
     igraph,
     coro,
-    svglite
+    svglite,
+    torchvision
  

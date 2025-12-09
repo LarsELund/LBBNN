@@ -4,14 +4,22 @@
 \alias{predict.LBBNN_Net}
 \title{Obtain predictions from the variational posterior of an \code{LBBNN model}}
 \usage{
-\method{predict}{LBBNN_Net}(object, mpm, newdata, draws, device = "cpu", link = NULL, ...)
+\method{predict}{LBBNN_Net}(
+  object,
+  newdata,
+  mpm = FALSE,
+  draws = 10,
+  device = "cpu",
+  link = NULL,
+  ...
+)
 }
 \arguments{
 \item{object}{A trained \code{LBBNN_Net} object}
 
-\item{mpm}{logical, whether to use the median probability model.}
-
 \item{newdata}{A \code{torch::dataloader} object containing the data with which to predict.}
+
+\item{mpm}{logical, whether to use the median probability model.}
 
 \item{draws}{integer, the number of samples to draw from the posterior.}
 

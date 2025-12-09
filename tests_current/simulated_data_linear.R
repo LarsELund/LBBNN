@@ -1,4 +1,3 @@
-library(torch)
 #the first tutorial in the article
 
 i = 1000
@@ -37,17 +36,23 @@ incl_inits <- matrix(rep(c(-10,10),3),nrow = 2,ncol = 3) #inclusion inits
 device <- 'cpu' #can also be 'gpu' or 'mps'
 
 
-model_input_skip <- LBBNN_Net(problem_type = problem,sizes = sizes,prior = incl_priors,
-                              inclusion_inits = incl_inits,input_skip = TRUE,std = stds,
-                              flow = FALSE,device = device)
+model_input_skip <- LBBNN_Net(problem_type = problem,sizes = sizes,
+                              prior = incl_priors,inclusion_inits = incl_inits,
+                              std = stds, input_skip = TRUE,flow = FALSE,
+                              num_transforms = 2,dims = c(2,2),
+                              raw_output = FALSE,custom_act = NULL,
+                              link = NULL,nll = NULL,
+                              bias_inclusion_prob = FALSE,device = device)
 
 
 
 train_LBBNN(epochs = 2000,LBBNN = model_input_skip,
             lr = 0.01,train_dl = train_loader,device = device)
-validate_LBBNN(LBBNN = model_input_skip,num_samples = 10,test_dl = test_loader,device)
+validate_LBBNN(LBBNN = model_input_skip,num_samples = 10,test_dl = test_loader,
+              device = device)
 
-coef(model_input_skip,dataset = train_loader,inds = c(1,2,3,4,5))
+coef(model_input_skip,dataset = train_loader,inds = c(1,2,5,10,20),
+     output_neuron = 1, num_data = 5, num_samples = 10)
 
 
 

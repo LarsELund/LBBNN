@@ -61,7 +61,8 @@ LBBNN_Net <- torch::nn_module(
   
   initialize = function(problem_type,sizes,prior,std,inclusion_inits,input_skip = FALSE,flow = FALSE,
                         num_transforms = 2, dims = c(200,200),
-                        device = 'cpu',raw_output = FALSE,custom_act = NULL,link = NULL, nll = NULL, bias_inclusion_prob = FALSE) {
+                        device = 'cpu',raw_output = FALSE,custom_act = NULL,
+                        link = NULL, nll = NULL, bias_inclusion_prob = FALSE) {
     self$device <- device
     self$layers <- torch::nn_module_list()
     self$problem_type <- problem_type

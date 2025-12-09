@@ -14,7 +14,8 @@ LBBNN_Linear(
   num_transforms = 2,
   hidden_dims = c(200, 200),
   device = "cpu",
-  bias_inclusion_prob = FALSE
+  bias_inclusion_prob = FALSE,
+  conv_net = FALSE
 )
 }
 \arguments{
@@ -37,6 +38,8 @@ LBBNN_Linear(
 \item{device}{The device to be used. Default is CPU.}
 
 \item{bias_inclusion_prob}{logical, determines whether the bias should be as associated with inclusion probabilities.}
+
+\item{conv_net}{logical, whether the layer is to be used in a convolutional net.}
 }
 \value{
 A \code{torch::nn_module} object representing a fully connected LBBNN layer.
