@@ -57,3 +57,5 @@ output <- y[ind]
 print(output$item())
 plot(model_input_skip,type = 'local',data = data)
 
+summary(model_input_skip)
+

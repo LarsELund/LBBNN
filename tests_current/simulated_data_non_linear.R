@@ -59,5 +59,3 @@ plot(model_input_skip,type = 'global',vertex_size = 10,
 
 
 
-
-
