@@ -1,26 +1,19 @@
-#the first tutorial in the article
+library(LBBNN)
+
+#### Tutorial 1: simulated data with linear effects
 
 i = 1000
 j = 15
-
-
 
 set.seed(42)
 torch::torch_manual_seed(42)
 #generate some data
 X <- matrix(rnorm(i*j,mean = 0,sd = 1), ncol = j)
-bias <- 0
-rho <- 0.0
-X[,3] <- rho * X[,1] + (1 - rho) * X[,3]
 #make some X relevant for prediction
 y_base <- c()
-y_base <-  bias + 0.6* X[,1] - 0.4*X[,2] + 0.5 * X[,3] +rnorm(n = i,sd = 0.1)
-hist(y_base)
+y_base <-  0.6* X[,1] - 0.4*X[,2] + 0.5 * X[,3] +rnorm(n = i,sd = 0.1)
 sim_data <- as.data.frame(X)
 sim_data <-cbind(sim_data,y_base)
-
-
-
 
 loaders <- get_dataloaders(sim_data,train_proportion = 0.9,
                            train_batch_size = 450,test_batch_size = 100,
@@ -62,8 +55,5 @@ ind <- 42
 data <- x[42,] #plot this specific data-point
 output <- y[ind]
 print(output$item())
-
-
 plot(model_input_skip,type = 'local',data = data)
-
 
