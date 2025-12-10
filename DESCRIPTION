@@ -1,6 +1,6 @@
 Package: LBBNN
 Title: Latent Binary Bayesian Neural Networks Using 'torch'
-Version: 0.1.1
+Version: 0.1.2
 Authors@R: c(person("Lars", "Skaaret-Lund", email = "lars.skaaret-lund@nmbu.no", role = c("aut", "cre")), person("Aliaksandr", "Hubin", email = "aliaksandr.hubin@nmbu.no", role = c("aut")), person("Eirik", "Høyheim", email = "eirik.hoyheim@ffi.no", role = "aut"))
 Maintainer: Lars Skaaret-Lund <lars.skaaret-lund@nmbu.no>
 Description: Latent binary Bayesian neural networks (LBBNNs) are implemented using 
@@ -18,7 +18,8 @@ Language: en-US
 Suggests: 
     testthat (>= 3.0.0),
     knitr,
-    rmarkdown
+    rmarkdown,
+    torchvision
 Config/testthat/edition: 3
 Depends: 
     R (>= 3.5)
