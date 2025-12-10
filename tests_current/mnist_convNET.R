@@ -1,4 +1,7 @@
-dir <- "./dataset/kmnist"
+### this example needs the torchvision package to download the KMNIST dataset
+### install.packages("torchvision") 
+
+dir <- "./dataset/kmnist"   #directory to install dataset
 train_ds <- torchvision::kmnist_dataset(
   dir,
   download = TRUE,
@@ -101,5 +104,4 @@ train_LBBNN(epochs = 20,LBBNN = model, lr = 0.001,train_dl = train_loader,
             device = device)
 
 validate_LBBNN(model,num_samples = 10,test_dl = test_loader,device = device)
-
-
+print(model)
