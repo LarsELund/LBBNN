@@ -204,6 +204,7 @@ dim(predictions)
 print(predictions)
 
 ################# Tutorial 4: : Convolutional architecture #####################
+rm(list = ls())
 library(LBBNN)
 
 ### This example needs the torchvision package to download data
@@ -230,7 +231,7 @@ test_loader <- torch::dataloader(test_ds, batch_size = 100)
 
 ### create the convolutional network for MNIST 
 
-device <- 'mps'
+device <- 'cpu'
 torch::torch_manual_seed(42)
 
 conv_layer_1 <- LBBNN_Conv2d(in_channels = 1, out_channels = 32, kernel_size = 5,
