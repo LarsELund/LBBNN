@@ -66,18 +66,21 @@ LBBNN_ConvNet <- torch::nn_module(
     self$pool <- torch::nn_max_pool2d(2)
     self$act <- torch::nn_leaky_relu()
     self$out <- torch::nn_log_softmax(dim = 2)
+    self$pout <- torch::nn_softmax(dim = 2)
     self$loss_fn <- torch::nn_nll_loss(reduction='sum')
   },
   
-  forward = function(x,MPM=FALSE) {
+  forward = function(x,MPM=FALSE, predict = FALSE) {
     x = self$act(self$conv1(x,MPM))
     x = self$pool(x)
     x = self$act(self$conv2(x,MPM))
     x = self$pool(x)
     x = torch::torch_flatten(x,start_dim = 2)
     x = self$act(self$fc1(x,MPM))
-    x = self$out(self$fc2(x,MPM))
-    
+    if(!predict)
+      x = self$out(self$fc2(x,MPM))
+    else
+      x = self$pout(self$fc2(x,MPM))
   },
   kl_div = function(){
     kl <- self$conv1$kl_div() + self$conv2$kl_div() +
@@ -104,8 +107,33 @@ model <- LBBNN_ConvNet(conv_layer_1,conv_layer_2,
                        linear_layer_1,linear_layer_2,device)
 model$to(device = device)
 
-train_LBBNN(epochs = 20,LBBNN = model, lr = 0.001,train_dl = train_loader,
+train_LBBNN(epochs = 1,LBBNN = model, lr = 0.001,train_dl = train_loader,
             device = device)
 
 validate_LBBNN(model,num_samples = 10,test_dl = test_loader,device = device)
 print(model)
+
+
+draws <- 20 # how many samples from posterior to use
+out_dim <- 10 # dimensionality of the output
+mpm <- TRUE # if to use the MPM
+model$eval() # to avoid gradient computations
+predictions <- NULL
+torch::with_no_grad({ 
+  coro::loop(for (b in test_loader)# go through all data
+    { 
+    outputs <- torch::torch_zeros(draws,dim(b[[1]])[1],out_dim)$to(device=device)
+    for(i in 1:draws)# go through all draws 
+    {
+      data <- b[[1]]$to(device = device)
+      outputs[i]<- model(data,MPM=mpm,predict = TRUE)
+    }
+    predictions <- torch::torch_cat(c(predictions,outputs),dim = 2) #combine all
+    
+  })  
+})
+
+dim(predictions)
+
+print(predictions[,1,])
+
