@@ -59,3 +59,5 @@ predictions <- predict(model_input_skip, newdata = test_loader,
                        draws = 100,mpm = TRUE)
 
 dim(predictions)
+
+print(predictions)
