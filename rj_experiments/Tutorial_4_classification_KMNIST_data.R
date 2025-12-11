@@ -107,7 +107,7 @@ model <- LBBNN_ConvNet(conv_layer_1,conv_layer_2,
                        linear_layer_1,linear_layer_2,device)
 model$to(device = device)
 
-train_LBBNN(epochs = 1,LBBNN = model, lr = 0.001,train_dl = train_loader,
+train_LBBNN(epochs = 20,LBBNN = model, lr = 0.001,train_dl = train_loader,
             device = device)
 
 validate_LBBNN(model,num_samples = 10,test_dl = test_loader,device = device)
