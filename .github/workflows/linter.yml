@@ -41,10 +41,10 @@ jobs:
             library(lintr)
             style_rules <- list(
               brace_linter(), todo_comment_linter(), equals_na_linter(),
-              function_left_parentheses_linter(), no_tab_linter(),
+              function_left_parentheses_linter(), whitespace_linter(),
               absolute_path_linter(), nonportable_path_linter(),
               pipe_continuation_linter(), semicolon_linter(),
-              single_quotes_linter(), trailing_blank_lines_linter(), trailing_whitespace_linter(),
+              quotes_linter(), trailing_blank_lines_linter(), trailing_whitespace_linter(),
               undesirable_function_linter(), undesirable_operator_linter()
             ) # TODO: expand style rules as package matures
             lint_package(linters = style_rules)
