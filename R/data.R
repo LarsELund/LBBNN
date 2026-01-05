@@ -22,13 +22,6 @@
 #' @source \url{https://archive.ics.uci.edu/dataset/850/raisin}
 "Raisin_Dataset"
 
-
-#' Mice Dataset
-#' @description Only used for internal testing for now.
-#' @format  This dataset has 1080 rows and  78 columns.
-#' @source \url{https://pubmed.ncbi.nlm.nih.gov/26111164/}
-"Mice_Dataset"
-
 #' Gallstone Dataset
 #' @description Taken from the UCI machine learning repository. The task is 
 #' to classify whether the patient had gallstones or not. It contains a mix
@@ -38,16 +31,4 @@
 "Gallstone_Dataset"
 
 
-#' Auto MPG daataset
-#' @description Taken from the UCI machine learning repository.
-#' @format  This dataset has 398 rows and 24 columns.
-#' @source \url{https://archive.ics.uci.edu/dataset/9/auto+mpg}
-"mgp_dataset"
 
-#' Internal dataset for testing
-#' @keywords internal
-"Wine_quality"
-
-#' Internal dataset for testing
-#' @keywords internal
-"Wine_quality_dataset"

@@ -40,16 +40,16 @@ test_that("Smoke: tiny model trains one epoch", {
   device <- 'cpu' #can also be 'gpu' or 'mps'
   
   
-  model_input_skip <- LBBNN_Net(problem_type = problem,sizes = sizes,prior = incl_priors,
+  model_input_skip <- lbbnn_net(problem_type = problem,sizes = sizes,prior = incl_priors,
                                 inclusion_inits = incl_inits,input_skip = TRUE,std = stds,
                                 flow = TRUE,device = device)
   
   
   
-  res <- train_LBBNN(epochs = 1,LBBNN = model_input_skip,
+  res <- train_lbbnn(epochs = 1,LBBNN = model_input_skip,
               lr = 0.005,train_dl = train_loader,device = device)
   
-  validate_LBBNN(LBBNN = model_input_skip,num_samples = 1,test_dl = test_loader,device)
+  validate_lbbnn(LBBNN = model_input_skip,num_samples = 1,test_dl = test_loader,device)
   
   expect_true(length(res$loss) == 1)
   expect_true(is.numeric(res$density[1]))
