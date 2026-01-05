@@ -103,7 +103,6 @@ quants <- function(x){ #maybe should allow for something other than 95% CI
 #' @param device character, the device to be trained on. Default is cpu. Can be 'mps' or 'gpu'.
 #' @param save_svg the path where the plot will be saved as svg, if save_svg is not NULL.
 #' @return This function produces plots as a side effect and does not return a value.
-#' @export
 plot_local_explanations_gradient <- function(model,input_data,num_samples,device = 'cpu',save_svg = NULL){
   outputs <- get_local_explanations_gradient(model = model,input_data = input_data,num_samples
                                              =num_samples,device = device)

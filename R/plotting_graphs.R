@@ -160,10 +160,9 @@ assign_names<- function(model){#assign names to the nodes before plotting
 #'                    input_skip = TRUE, std = std_priors, flow = FALSE,
 #'                    num_transforms = 2, dims = c(200,200), device = device)
 #' model$compute_paths_input_skip()
-#' plot_active_paths(model, 1, 1, 14, 1)
+#' LBBNN:::plot_active_paths(model, 1, 1, 14, 1)
 #' }
 #' @return This function produces plots as a side effect and does not return a value.
-#' @export
 plot_active_paths <- function(model,layer_spacing = 1,neuron_spacing = 1,vertex_size = 10,label_size = 0.5,edge_width = 0.5,save_svg = NULL){
   
   if (!is.null(save_svg)) {

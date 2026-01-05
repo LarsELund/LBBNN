@@ -49,6 +49,6 @@ model <- lbbnn_net(problem_type = problem, sizes = sizes,
                    input_skip = TRUE, std = std_priors, flow = FALSE,
                    num_transforms = 2, dims = c(200,200), device = device)
 model$compute_paths_input_skip()
-plot_active_paths(model, 1, 1, 14, 1)
+LBBNN:::plot_active_paths(model, 1, 1, 14, 1)
 }
 }
