@@ -7,7 +7,7 @@
 get_input_inclusions(model)
 }
 \arguments{
-\item{model}{An instance of \code{LBBNN_Net} where \code{input_skip = TRUE}.}
+\item{model}{An instance of \code{lbbnn_net} where \code{input_skip = TRUE}.}
 }
 \value{
 A matrix of shape (p, L-1) where p is the number of input variables

@@ -1,7 +1,7 @@
 #' @title Multi layer-perceptron
 #' @description Generate a multi-layer perceptron, used in RNVP transforms. 
 #' @keywords internal 
-#' @return Returns a \code{torch::nn_module} representing the MLP.
+#' @return Returns a \code{torch::nn_module} representing the mlp.
 #' The module has the following method:
 #' \describe{
 #'   \item{\code{forward(x)}}{
@@ -10,8 +10,8 @@
 #'     last element of \code{hidden_sizes}.
 #'   }
 #' }
-MLP <- torch::nn_module(
-  "MLP",
+mlp <- torch::nn_module(
+  "mlp",
   
   initialize = function(hidden_sizes,device = 'cpu') {
     self$lay <- torch::nn_module_list() 
@@ -36,7 +36,7 @@ MLP <- torch::nn_module(
 
 #' @title Single RNVP transform layer. 
 #' @param hidden_sizes A vector of integers. The first is the dimensionality of the vector,
-#' to be transformed by RNVP. The subsequent are hidden dimensions in the MLP.
+#' to be transformed by RNVP. The subsequent are hidden dimensions in the mlp.
 #' @param device The device to be used. Default is CPU.
 #' @description Affine half flow aka Real Non-Volume Preserving (x = z * exp(s) + t),
 #' where a randomly selected half z1 of the dimensions in z are transformed as an
@@ -55,17 +55,17 @@ MLP <- torch::nn_module(
 #' @examples
 #' \donttest{
 #' z <- torch::torch_rand(200)
-#' layer <- RNVP_layer(c(200,50,100))
+#' layer <- rnvp_layer(c(200,50,100))
 #' out <- layer(z)
 #' print(dim(out))
 #' print(layer$log_det())
 #' }
 #' @export
-RNVP_layer <- torch::nn_module(
-  "RNVP_layer",
+rnvp_layer <- torch::nn_module(
+  "rnvp_layer",
   
   initialize = function(hidden_sizes,device = 'cpu') {
-    self$net <- MLP(hidden_sizes,device)
+    self$net <- mlp(hidden_sizes,device)
     self$t <- torch::nn_linear(hidden_sizes[length(hidden_sizes)],hidden_sizes[1])
     self$s <- torch::nn_linear(hidden_sizes[length(hidden_sizes)],hidden_sizes[1])
   },

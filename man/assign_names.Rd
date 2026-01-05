@@ -7,7 +7,7 @@
 assign_names(model)
 }
 \arguments{
-\item{model}{A trained \code{LBBNN_Net} model with input-skip.}
+\item{model}{A trained \code{lbbnn_net} model with input-skip.}
 }
 \value{
 A list of adjacency matrices with the correct names.

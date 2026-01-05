@@ -2,7 +2,7 @@ library(torch)
 
 #' @title Feed-forward Latent Binary Bayesian Neural Network (LBBNN)
 #' @description
-#' Each layer is defined by \code{LBBNN_Linear}. 
+#' Each layer is defined by \code{lbbnn_linear}. 
 #' For example, \code{sizes = c(20, 200, 200, 5)} generates a network with:
 #' \itemize{
 #'   \item 20 input features,
@@ -36,7 +36,7 @@ library(torch)
 #' stds <- c(1.0,1.0)   
 #' inclusion_inits <- matrix(rep(c(-10,10),2),nrow = 2,ncol = 2)
 #' prob <- 'multiclass classification'
-#' net <- LBBNN_Net(problem_type = prob, sizes = layers, prior = alpha,std = stds
+#' net <- lbbnn_net(problem_type = prob, sizes = layers, prior = alpha,std = stds
 #' ,inclusion_inits = inclusion_inits,input_skip = FALSE,flow = FALSE,device = 'cpu')
 #' x <- torch::torch_rand(20,10,requires_grad = FALSE)
 #' output <- net(x) 
@@ -56,8 +56,8 @@ library(torch)
 #'   }
 #'
 #' @export
-LBBNN_Net <- torch::nn_module(
-  "LBBNN_Net",
+lbbnn_net <- torch::nn_module(
+  "lbbnn_net",
   
   initialize = function(problem_type,sizes,prior,std,inclusion_inits,input_skip = FALSE,flow = FALSE,
                         num_transforms = 2, dims = c(200,200),
@@ -91,7 +91,7 @@ LBBNN_Net <- torch::nn_module(
      for(i in 1:(length(sizes)-2)){
       if(i == 1 || input_skip == FALSE){in_shape <- sizes[i]} #no input skip on the first layer or with std LBBNNs
       else(in_shape <- sizes[i] + sizes[1])
-      self$layers$append(LBBNN_Linear(
+      self$layers$append(lbbnn_linear(
         in_shape,
         sizes[i+1],
         prior_inclusion = prior[i],
@@ -105,7 +105,7 @@ LBBNN_Net <- torch::nn_module(
     }
     if(input_skip){out_size <- sizes[length(sizes) - 1] + sizes[1]
     }else{out_size <- sizes[length(sizes) - 1]}
-    self$out_layer <- (LBBNN_Linear(
+    self$out_layer <- (lbbnn_linear(
       out_size,
       sizes[length(sizes)],
       prior_inclusion = prior[length(prior)],

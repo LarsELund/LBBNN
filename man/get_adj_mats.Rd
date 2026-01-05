@@ -7,7 +7,7 @@
 get_adj_mats(model)
 }
 \arguments{
-\item{model}{An instance of \code{LBBNN_Net} with input_skip enabled.}
+\item{model}{An instance of \code{lbbnn_net} with input_skip enabled.}
 }
 \value{
 A list of adjacency matrices, one for each hidden layer and the output layer.

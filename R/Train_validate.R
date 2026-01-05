@@ -1,10 +1,10 @@
 library(torch)
 
-#' @title Train an instance of \code{LBBNN_Net}.
+#' @title Train an instance of \code{lbbnn_net}.
 #' @description Function that for each epoch iterates through each mini-batch, computing
 #' the loss and using back-propagation to update the network parameters.
 #' @param epochs integer, total number of epochs to train for, where one epoch is a pass through the entire training dataset (all mini batches).
-#' @param LBBNN An instance of  \code{LBBNN_Net}, to be trained.
+#' @param LBBNN An instance of  \code{lbbnn_net}, to be trained.
 #' @param lr numeric, the learning rate to be used in the Adam optimizer.
 #' @param train_dl An instance of \code{torch::dataloader} consisting of a tensor dataset
 #' with features and targets.
@@ -26,8 +26,8 @@ library(torch)
 #'inclusion_priors <-c(0.9,0.2) 
 #'inclusion_inits <- matrix(rep(c(-10,10),2),nrow = 2,ncol = 2)
 #'stds <- c(1.0,1.0)
-#'model <- LBBNN_Net(problem,sizes,inclusion_priors,stds,inclusion_inits,flow = FALSE)
-#'output <- train_LBBNN(epochs = 1,LBBNN = model, lr = 0.01,train_dl = train_loader)
+#'model <- lbbnn_net(problem,sizes,inclusion_priors,stds,inclusion_inits,flow = FALSE)
+#'output <- train_lbbnn(epochs = 1,LBBNN = model, lr = 0.01,train_dl = train_loader)
 #'}
 #' @return A list with elements (returned invisibly):
 #'   \describe{
@@ -36,7 +36,7 @@ library(torch)
 #'     \item{density}{Vector of network densities per epoch.}
 #'   }
 #'@export
-train_LBBNN <- function(epochs,LBBNN,lr,train_dl,device = 'cpu',scheduler = NULL,sch_step_size = NULL){
+train_lbbnn <- function(epochs,LBBNN,lr,train_dl,device = 'cpu',scheduler = NULL,sch_step_size = NULL){
   opt <- torch::optim_adam(LBBNN$parameters,lr = lr)
   accs <- c()
   losses <-c()
@@ -156,7 +156,7 @@ train_LBBNN <- function(epochs,LBBNN,lr,train_dl,device = 'cpu',scheduler = NULL
 #' @description Computes metrics on a validation dataset without computing gradients.
 #' Supports model averaging (recommended) by sampling from the variational posterior (\code{num_samples} > 1) 
 #' to improve predictions. Returns metrics for both the full model and the sparse model. 
-#' @param LBBNN An instance of a trained \code{LBBNN_Net} to be validated.
+#' @param LBBNN An instance of a trained \code{lbbnn_net} to be validated.
 #' @param num_samples integer, the number of samples from the variational posterior to be used for model averaging.
 #' @param test_dl An instance of \code{torch::dataloader}, containing the validation data.
 #' @param device The device to perform validation on. Default is 'cpu'; other options include 'gpu' and 'mps'.
@@ -170,7 +170,7 @@ train_LBBNN <- function(epochs,LBBNN,lr,train_dl,device = 'cpu',scheduler = NULL
 #'     \item{density_active_path}{Proportion of weights with inclusion probability > 0.5 after removing weights not in active paths.}
 #'   }     
 #' @export
-validate_LBBNN <- function(LBBNN,num_samples,test_dl,device = 'cpu'){
+validate_lbbnn <- function(LBBNN,num_samples,test_dl,device = 'cpu'){
   LBBNN$eval()
   corrects <- 0
   corrects_sparse <-0

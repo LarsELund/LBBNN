@@ -95,7 +95,7 @@ density_initialization <- function(lower,upper) {
 #' @param conv_net logical, whether the layer is to be used in a convolutional net. 
 #' @examples
 #' \donttest{
-#' l1 <- LBBNN_Linear(in_features = 10,out_features = 5,prior_inclusion = 0.25,
+#' l1 <- lbbnn_linear(in_features = 10,out_features = 5,prior_inclusion = 0.25,
 #' standard_prior = 1,density_init = c(0,1),flow = FALSE)
 #' x <- torch::torch_rand(20,10,requires_grad = FALSE)
 #' output <- l1(x,MPM = FALSE) #the forward pass, output has shape (20,5)
@@ -109,8 +109,8 @@ density_initialization <- function(lower,upper) {
 #'  of the transformation.
 
 #' @export
-LBBNN_Linear <- torch::nn_module(
-  "LBBNN_Linear",
+lbbnn_linear <- torch::nn_module(
+  "lbbnn_linear",
   initialize = function(
     in_features, 
     out_features,
@@ -176,7 +176,7 @@ LBBNN_Linear <- torch::nn_module(
       self$b2 <- torch::nn_parameter(torch::torch_empty(in_features,device = device))
       
       
-      self$RNVP_flow <- FLOW(c(in_features,hidden_dims),'RNVP',self$num_transforms)
+      self$RNVP_flow <- normalizing_flow(c(in_features,hidden_dims),'RNVP',self$num_transforms)
       self$RNVP_flow$to(device = device)
     }
     
@@ -337,7 +337,7 @@ LBBNN_Linear <- torch::nn_module(
 #' @param device The device to be used. Default is CPU.
 #' @examples
 #' \donttest{
-#'layer <- LBBNN_Conv2d(in_channels = 1,out_channels = 32,kernel_size = c(3,3),
+#'layer <- lbbnn_conv2d(in_channels = 1,out_channels = 32,kernel_size = c(3,3),
 #'prior_inclusion = 0.2,standard_prior = 1,density_init = c(-10,10),device = 'cpu')
 #'x <-torch::torch_randn(100,1,28,28)
 #'out <-layer(x)
@@ -352,8 +352,8 @@ LBBNN_Linear <- torch::nn_module(
 #'  of the transformation.
 
 #' @export
-LBBNN_Conv2d <- torch::nn_module(
-  "LBBNN_Conv2d",
+lbbnn_conv2d <- torch::nn_module(
+  "lbbnn_conv2d",
   initialize = function(in_channels, out_channels,kernel_size,prior_inclusion,
                         standard_prior,density_init,
                         flow = FALSE,num_transforms = 2, hidden_dims = c(200,200),device = 'cpu') {
@@ -408,7 +408,7 @@ LBBNN_Conv2d <- torch::nn_module(
       self$b2 <- torch::nn_parameter(torch::torch_empty(out_channels,device = device))
       
       
-      self$RNVP_flow <- FLOW(c(out_channels,hidden_dims),'RNVP',self$num_transforms)
+      self$RNVP_flow <- normalizing_flow(c(out_channels,hidden_dims),'RNVP',self$num_transforms)
       self$RNVP_flow$to(device = device)
     }
     

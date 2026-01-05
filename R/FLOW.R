@@ -28,7 +28,7 @@ library(torch)
 #' }
 #' @examples
 #' \donttest{
-#'flow <- FLOW(c(200,100,100),transform_type = 'RNVP',num_transforms = 3)
+#'flow <- normalizing_flow(c(200,100,100),transform_type = 'RNVP',num_transforms = 3)
 #'flow$to(device = 'cpu')
 #'x <- torch::torch_rand(200,device = 'cpu')
 #'output <- flow(x)
@@ -38,14 +38,14 @@ library(torch)
 #'print(log_det)
 #' }
 #' @export
-FLOW <- torch::nn_module(
-  "FLOW",
+normalizing_flow <- torch::nn_module(
+  "normalizing_flow",
   
   initialize = function(input_dim,transform_type,num_transforms) {
     self$layers <- torch::nn_module_list() 
     if(transform_type == 'RNVP'){
       for(l in 1:num_transforms){
-        self$layers$append(RNVP_layer(input_dim))
+        self$layers$append(rnvp_layer(input_dim))
       }
     }
     else stop(paste("transform type", transform_type, "not implemented, try 'RNVP' instead"))

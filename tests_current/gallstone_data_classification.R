@@ -48,7 +48,7 @@ device <- "cpu"
 
 
 
-model_input_skip <- LBBNN_Net(problem_type = problem,sizes = sizes,prior = inclusion_priors,
+model_input_skip <- lbbnn_net(problem_type = problem,sizes = sizes,prior = inclusion_priors,
                               inclusion_inits = inclusion_inits,input_skip = TRUE,std = stds,
                               flow = TRUE,device = device)
 
@@ -57,11 +57,11 @@ model_input_skip <- LBBNN_Net(problem_type = problem,sizes = sizes,prior = inclu
 
 
 
-results_input_skip <- train_LBBNN(epochs = 1000,LBBNN = model_input_skip,
+results_input_skip <- train_lbbnn(epochs = 1000,LBBNN = model_input_skip,
                                   lr = 0.005,train_dl = train_loader,device = device,
                                   scheduler = 'step',sch_step_size = 1000)
 
-validate_LBBNN(LBBNN = model_input_skip,num_samples = 100,test_dl = test_loader,device)
+validate_lbbnn(LBBNN = model_input_skip,num_samples = 100,test_dl = test_loader,device)
 
 
 x <- train_loader$dataset$tensors[[1]] #grab the dataset

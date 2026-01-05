@@ -79,21 +79,21 @@ with the mean-field posterior and one with normalizing flows:
 
 ``` r
 torch_manual_seed(0)
-model_input_skip <- LBBNN_Net(problem_type = problem,sizes = sizes,prior = inclusion_priors,
+model_input_skip <- lbbnn_net(problem_type = problem,sizes = sizes,prior = inclusion_priors,
                       inclusion_inits = inclusion_inits,input_skip = TRUE,std = stds,
                    flow = FALSE,device = device)
-model_LBBNN <- LBBNN_Net(problem_type = problem,sizes = sizes,prior = inclusion_priors,
+model_LBBNN <- lbbnn_net(problem_type = problem,sizes = sizes,prior = inclusion_priors,
                    inclusion_inits = inclusion_inits,input_skip = FALSE,std = stds,
                    flow = FALSE,device = device)
 ```
 
-To train the models, one can use the function train_LBBNN. The function
+To train the models, one can use the function train_lbbnn. The function
 takes number of epochs, model to train, learning rate, and training data
 as arguments:
 
 ``` r
 #model_input_skip$local_explanation = TRUE #to make sure we are using RELU
-results_input_skip <- suppressMessages(train_LBBNN(epochs = 800,LBBNN = model_input_skip, lr = 0.005,train_dl = train_loader,device = device))
+results_input_skip <- suppressMessages(train_lbbnn(epochs = 800,LBBNN = model_input_skip, lr = 0.005,train_dl = train_loader,device = device))
 #save the model 
 #torch::torch_save(model_input_skip$state_dict(), 
 #paste(getwd(),'/R/saved_models/README_input_skip_example_model.pth',sep = ''))
@@ -104,7 +104,7 @@ Validate_LBBNN. This function takes a model, number of samples for model
 averaging, and the validation data as input.
 
 ``` r
-validate_LBBNN(LBBNN = model_input_skip,num_samples = 100,test_dl = test_loader,device)
+validate_lbbnn(LBBNN = model_input_skip,num_samples = 100,test_dl = test_loader,device)
 #> $accuracy_full_model
 #> [1] 0.8722222
 #> 
@@ -116,7 +116,7 @@ validate_LBBNN(LBBNN = model_input_skip,num_samples = 100,test_dl = test_loader,
 #> 
 #> $density_active_path
 #> [1] 0.09345794
-#validate_LBBNN(LBBNN = model_flows,num_samples = 1000,test_dl = test_loader,device)
+#validate_lbbnn(LBBNN = model_flows,num_samples = 1000,test_dl = test_loader,device)
 ```
 
 Plot the global structure of the given model:
@@ -134,7 +134,7 @@ This can also be seen using the summary function:
 
 ``` r
 summary(model_input_skip)
-#> Summary of LBBNN_Net object:
+#> Summary of lbbnn_net object:
 #> -----------------------------------
 #> Shows the number of times each variable was included from each layer
 #> -----------------------------------
@@ -150,8 +150,7 @@ summary(model_input_skip)
 #> x4  0  0  0 0.321 0.575 0.124 0.419
 #> x5  0  0  0 0.098 0.438 0.137 0.256
 #> x6  1  0  1 0.300 0.244 0.997 0.338
-#> -----------------------------------
-#> The model took 11.864 seconds to train, using cpu
+#> The model took 11.263 seconds to train, using cpu
 ```
 
 The user can also plot local explanations for each input variable
@@ -210,10 +209,10 @@ print(model_input_skip)
 #> 
 #> ---------------- Submodules ----------------
 #>   - layers               : nn_module_list  # 305 parameters
-#>   - layers.0             : LBBNN_Linear    # 115 parameters
-#>   - layers.1             : LBBNN_Linear    # 190 parameters
+#>   - layers.0             : lbbnn_linear    # 115 parameters
+#>   - layers.1             : lbbnn_linear    # 190 parameters
 #>   - act                  : nn_leaky_relu   # 0 parameters
-#>   - out_layer            : LBBNN_Linear    # 38 parameters
+#>   - out_layer            : lbbnn_linear    # 38 parameters
 #>   - out                  : nn_sigmoid      # 0 parameters
 #>   - loss_fn              : nn_bce_loss     # 0 parameters
 #> 

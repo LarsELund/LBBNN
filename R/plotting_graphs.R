@@ -7,7 +7,7 @@ library(svglite)
 #' @title Obtain adjacency matrices for \code{igraph} plotting
 #' @description Takes the alpha active path matrices for each layer of the LBBNN and converts
 #' them to adjacency matrices so that they can be plotted with igraph.
-#' @param model An instance of \code{LBBNN_Net} with input_skip enabled. 
+#' @param model An instance of \code{lbbnn_net} with input_skip enabled. 
 #' @return A list of adjacency matrices, one for each hidden layer and the output layer. 
 #' @keywords internal
 get_adj_mats <- function(model){
@@ -74,7 +74,7 @@ assign_within_layer_pos<- function(N,N_u,input_positions,neuron_spacing){
 
 #' @title Assign names to nodes.
 #' @description Internal helper function to assign descriptive names to nodes used for plotting.
-#' @param model A trained \code{LBBNN_Net} model with input-skip.
+#' @param model A trained \code{lbbnn_net} model with input-skip.
 #' @return A list of adjacency matrices with the correct names.
 #' @keywords internal
 assign_names<- function(model){#assign names to the nodes before plotting
@@ -139,7 +139,7 @@ assign_names<- function(model){#assign names to the nodes before plotting
 
 #' @title Function to plot an input skip structure after removing weights in non-active paths.
 #' @description Uses igraph to plot.
-#' @param model A trained \code{LBBNN_Net} model with input_skip enabled. 
+#' @param model A trained \code{lbbnn_net} model with input_skip enabled. 
 #' @param layer_spacing numeric, spacing in between layers.
 #' @param neuron_spacing numeric, spacing between neurons within a layer.
 #' @param vertex_size numeric, size of the neurons. 
@@ -155,16 +155,16 @@ assign_names<- function(model){#assign names to the nodes before plotting
 #' inclusion_inits <- matrix(rep(c(-10,10),3), nrow = 2, ncol = 3)
 #' device <- 'cpu'
 #' torch::torch_manual_seed(0)
-#' model <- LBBNN_Net(problem_type = problem, sizes = sizes,
+#' model <- lbbnn_net(problem_type = problem, sizes = sizes,
 #'                    prior = inclusion_priors, inclusion_inits = inclusion_inits,
 #'                    input_skip = TRUE, std = std_priors, flow = FALSE,
 #'                    num_transforms = 2, dims = c(200,200), device = device)
 #' model$compute_paths_input_skip()
-#' LBBNN_plot(model, 1, 1, 14, 1)
+#' plot_active_paths(model, 1, 1, 14, 1)
 #' }
 #' @return This function produces plots as a side effect and does not return a value.
 #' @export
-LBBNN_plot <- function(model,layer_spacing = 1,neuron_spacing = 1,vertex_size = 10,label_size = 0.5,edge_width = 0.5,save_svg = NULL){
+plot_active_paths <- function(model,layer_spacing = 1,neuron_spacing = 1,vertex_size = 10,label_size = 0.5,edge_width = 0.5,save_svg = NULL){
   
   if (!is.null(save_svg)) {
     # Open SVG device

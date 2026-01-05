@@ -65,20 +65,20 @@ We are now ready to define the models. Here we define two models: one with the m
 
 ```{r}
 torch_manual_seed(0)
-model_input_skip <- LBBNN_Net(problem_type = problem,sizes = sizes,prior = inclusion_priors,
+model_input_skip <- lbbnn_net(problem_type = problem,sizes = sizes,prior = inclusion_priors,
                       inclusion_inits = inclusion_inits,input_skip = TRUE,std = stds,
                    flow = FALSE,device = device)
-model_LBBNN <- LBBNN_Net(problem_type = problem,sizes = sizes,prior = inclusion_priors,
+model_LBBNN <- lbbnn_net(problem_type = problem,sizes = sizes,prior = inclusion_priors,
                    inclusion_inits = inclusion_inits,input_skip = FALSE,std = stds,
                    flow = FALSE,device = device)
 
 ```
 
-To train the models, one can use the function train_LBBNN. The function takes number of epochs, model to train, learning rate, and training data as arguments:
+To train the models, one can use the function train_lbbnn. The function takes number of epochs, model to train, learning rate, and training data as arguments:
 
 ```{r,results='hide'}
 #model_input_skip$local_explanation = TRUE #to make sure we are using RELU
-results_input_skip <- suppressMessages(train_LBBNN(epochs = 800,LBBNN = model_input_skip, lr = 0.005,train_dl = train_loader,device = device))
+results_input_skip <- suppressMessages(train_lbbnn(epochs = 800,LBBNN = model_input_skip, lr = 0.005,train_dl = train_loader,device = device))
 #save the model 
 #torch::torch_save(model_input_skip$state_dict(), 
 #paste(getwd(),'/R/saved_models/README_input_skip_example_model.pth',sep = ''))
@@ -87,8 +87,8 @@ results_input_skip <- suppressMessages(train_LBBNN(epochs = 800,LBBNN = model_in
 To evaluate performance on the validation data, one can use the function Validate_LBBNN. This function takes a model, number of samples for model averaging, and the validation data as input.
 
 ```{r}
-validate_LBBNN(LBBNN = model_input_skip,num_samples = 100,test_dl = test_loader,device)
-#validate_LBBNN(LBBNN = model_flows,num_samples = 1000,test_dl = test_loader,device)
+validate_lbbnn(LBBNN = model_input_skip,num_samples = 100,test_dl = test_loader,device)
+#validate_lbbnn(LBBNN = model_flows,num_samples = 1000,test_dl = test_loader,device)
 ```
 
 Plot the global structure of the given model:

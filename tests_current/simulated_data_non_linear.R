@@ -39,16 +39,16 @@ incl_inits <- matrix(rep(c(-10,10),3),nrow = 2,ncol = 3) #initializations for in
 device <- 'cpu' #can also be 'gpu' or 'mps'
 
 
-model_input_skip <- LBBNN_Net(problem_type = problem,sizes = sizes,prior = incl_priors,
+model_input_skip <- lbbnn_net(problem_type = problem,sizes = sizes,prior = incl_priors,
                               inclusion_inits = incl_inits,input_skip = TRUE,std = stds,
                               flow = TRUE,device = device,bias_inclusion_prob = F)
 
 
 
-train_LBBNN(epochs = 1500,LBBNN = model_input_skip,
+train_lbbnn(epochs = 1500,LBBNN = model_input_skip,
             lr = 0.005,train_dl = train_loader,device = device)
 
-validate_LBBNN(LBBNN = model_input_skip,num_samples = 100,test_dl = test_loader,device)
+validate_lbbnn(LBBNN = model_input_skip,num_samples = 100,test_dl = test_loader,device)
 
 
 plot(model_input_skip,type = 'global',vertex_size = 10,

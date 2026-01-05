@@ -21,20 +21,20 @@ test_loader <- torch::dataloader(test_ds, batch_size = 100)
 device <- 'mps'
 torch::torch_manual_seed(42)
 
-conv_layer_1 <- LBBNN_Conv2d(in_channels = 1, out_channels = 32, kernel_size = 5,
+conv_layer_1 <- lbbnn_conv2d(in_channels = 1, out_channels = 32, kernel_size = 5,
                            prior_inclusion = 0.5,standard_prior = 1,density_init = c(-10,10),
                            num_transforms = 2,flow = FALSE,hidden_dims = c(200,200),device = device)
-conv_layer_2 <- LBBNN_Conv2d(in_channels = 32, out_channels = 64, kernel_size = 5,
+conv_layer_2 <- lbbnn_conv2d(in_channels = 32, out_channels = 64, kernel_size = 5,
                            prior_inclusion = 0.5,standard_prior = 1,density_init = c(-10,15),
                            num_transforms = 2,flow = FALSE,hidden_dims = c(200,200),device = device)
 
-linear_layer_1 <- LBBNN_Linear(in_features = 1024, out_features = 300,
+linear_layer_1 <- lbbnn_linear(in_features = 1024, out_features = 300,
                          prior_inclusion = 0.5,standard_prior = 1,
                          density_init = c(-10,10),num_transforms = 2,
                          flow = FALSE,hidden_dims = c(200,200),device = device,
                          bias_inclusion_prob = FALSE,conv_net = TRUE)
 
-linear_layer_2 <- LBBNN_Linear(in_features = 300,out_features = 10,
+linear_layer_2 <- lbbnn_linear(in_features = 300,out_features = 10,
                          prior_inclusion = 0.5,standard_prior = 1,
                          density_init = c(-5,15),num_transforms = 2,
                          flow = FALSE,hidden_dims = c(200,200),device = device,
