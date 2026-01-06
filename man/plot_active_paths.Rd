@@ -2,7 +2,8 @@
 % Please edit documentation in R/plotting_graphs.R
 \name{plot_active_paths}
 \alias{plot_active_paths}
-\title{Function to plot an input skip structure after removing weights in non-active paths.}
+\title{Function to plot an input skip structure after removing weights
+in non-active paths.}
 \usage{
 plot_active_paths(
   model,
@@ -27,7 +28,7 @@ plot_active_paths(
 
 \item{edge_width}{numeric, width of the edges connecting neurons.}
 
-\item{save_svg}{the path where the plot will be saved if save_svg is not null.}
+\item{save_svg}{the path where the plot will be saved.}
 }
 \value{
 This function produces plots as a side effect and does not return a value.
@@ -45,9 +46,9 @@ inclusion_inits <- matrix(rep(c(-10,10),3), nrow = 2, ncol = 3)
 device <- 'cpu'
 torch::torch_manual_seed(0)
 model <- lbbnn_net(problem_type = problem, sizes = sizes,
-                   prior = inclusion_priors, inclusion_inits = inclusion_inits,
-                   input_skip = TRUE, std = std_priors, flow = FALSE,
-                   num_transforms = 2, dims = c(200,200), device = device)
+                 prior = inclusion_priors, inclusion_inits = inclusion_inits,
+                  input_skip = TRUE, std = std_priors, flow = FALSE,
+                  num_transforms = 2, dims = c(200,200), device = device)
 model$compute_paths_input_skip()
 LBBNN:::plot_active_paths(model, 1, 1, 14, 1)
 }

@@ -15,7 +15,7 @@ density_initialization(lower, upper)
 A numeric vector of length 2: \code{c(lower,upper)}
 }
 \description{
-Controls the initial density of the network, and thus an important tuning
+Controls the initial density of the network, an important tuning
 parameter. The initialization parameters are sampled from 1/(1+exp(-U)),
 with U ~ Uniform(lower,upper).
 }

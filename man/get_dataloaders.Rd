@@ -16,21 +16,23 @@ get_dataloaders(
 )
 }
 \arguments{
-\item{dataset}{A \code{data.frame}. The last column is assumed to be the dependent variable.}
+\item{dataset}{A \code{data.frame}.
+The last column is assumed to be the dependent variable.}
 
-\item{train_proportion}{numeric, between 0 and 1. Proportion of data to be used for training.}
+\item{train_proportion}{numeric, between 0 and 1.
+Proportion of data to be used for training.}
 
-\item{train_batch_size}{integer, number of samples per batch in the training dataloader.}
+\item{train_batch_size}{integer, samples per batch in the train dataloader.}
 
-\item{test_batch_size}{integer, number of sampels per batch in the testing dataloader.}
+\item{test_batch_size}{integer, samples per batch in the test dataloader.}
 
-\item{standardize}{logical, whether to standardize input-features, default is TRUE.}
+\item{standardize}{logical, standardize input-features, default is TRUE.}
 
-\item{shuffle_train}{logical, whether to shuffle the training data each epoch. default is TRUE}
+\item{shuffle_train}{logical, shuffle training data each epoch. default TRUE}
 
-\item{shuffle_test}{logical, shuffle test data, default is FALSE. Usually not needed.}
+\item{shuffle_test}{logical, shuffle test data, default is FALSE.}
 
-\item{seed}{integer. Used for reproducibility purposes in the train/test split.}
+\item{seed}{integer. Used for reproducibility in the train/test split.}
 }
 \value{
 A list containing:

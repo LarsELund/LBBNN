@@ -15,24 +15,29 @@ train_lbbnn(
 )
 }
 \arguments{
-\item{epochs}{integer, total number of epochs to train for, where one epoch is a pass through the entire training dataset (all mini batches).}
+\item{epochs}{integer, total number of epochs to train for, where one epoch
+is a pass through the entire training dataset (all mini batches).}
 
 \item{LBBNN}{An instance of  \code{lbbnn_net}, to be trained.}
 
 \item{lr}{numeric, the learning rate to be used in the Adam optimizer.}
 
-\item{train_dl}{An instance of \code{torch::dataloader} consisting of a tensor dataset
-with features and targets.}
+\item{train_dl}{An instance of \code{torch::dataloader}
+consisting of a tensor dataset with features and targets.}
 
-\item{device}{the device to be trained on. Default is 'cpu', also accepts 'gpu' or 'mps'.}
+\item{device}{the device to be trained on. Default is 'cpu',
+also accepts 'gpu' or 'mps'.}
 
-\item{scheduler}{A torch learning rate scheduler object. Can be used to decay learning rate for better convergence,
+\item{scheduler}{A torch learning rate scheduler object.
+Can be used to decay learning rate for better convergence,
 currently only supports 'step'.}
 
-\item{sch_step_size}{Where to decay if using \code{torch::lr_step}. E.g. 1000 means learning rate is decayed every 1000 epochs.}
+\item{sch_step_size}{Where to decay if using \code{torch::lr_step}.
+E.g. 1000 means learning rate is decayed every 1000 epochs.}
 }
 \value{
-a list containing the losses and accuracy (if classification) and density for each epoch during training.
+a list containing the losses and accuracy (if classification)
+and density for each epoch during training.
 For comparisons sake we show the density with and without active paths.
 
 A list with elements (returned invisibly):
@@ -43,22 +48,24 @@ A list with elements (returned invisibly):
 }
 }
 \description{
-Function that for each epoch iterates through each mini-batch, computing
-the loss and using back-propagation to update the network parameters.
+Function that for each epoch iterates through each mini-batch,
+computing the loss and using back-propagation to update network parameters.
 }
 \examples{
-\donttest{ 
-x<-torch::torch_randn(3,2) 
+\donttest{
+x<-torch::torch_randn(3,2)
 b <- torch::torch_rand(2)
 y <- torch::torch_matmul(x,b)
 train_data <- torch::tensor_dataset(x,y)
 train_loader <- torch::dataloader(train_data,batch_size = 3,shuffle=FALSE)
 problem<-'regression'
-sizes <- c(2,1,1) 
-inclusion_priors <-c(0.9,0.2) 
+sizes <- c(2,1,1)
+inclusion_priors <-c(0.9,0.2)
 inclusion_inits <- matrix(rep(c(-10,10),2),nrow = 2,ncol = 2)
 stds <- c(1.0,1.0)
-model <- lbbnn_net(problem,sizes,inclusion_priors,stds,inclusion_inits,flow = FALSE)
-output <- train_lbbnn(epochs = 1,LBBNN = model, lr = 0.01,train_dl = train_loader)
+model <- lbbnn_net(problem,sizes,inclusion_priors,stds,inclusion_inits,
+flow = FALSE)
+output <- train_lbbnn(epochs = 1,LBBNN = model, lr = 0.01,
+train_dl = train_loader)
 }
 }

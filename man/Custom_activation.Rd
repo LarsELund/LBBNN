@@ -7,9 +7,10 @@
 custom_activation()
 }
 \value{
-Returns a `\code{torch::nn_module} that can be used in an \code{LBBNN_Net}
+Returns a `\code{torch::nn_module}, can be used in \code{lbbnn_net}
 }
 \description{
 The first 3 entries are customized
-in order to see if we can learn that structure. The rest will be relu as usual
+in order to see if we can learn that structure. The rest will be relu.
+this function is only for experimental purposes so far.
 }

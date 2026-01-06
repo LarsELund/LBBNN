@@ -24,27 +24,35 @@ lbbnn_conv2d(
 
 \item{kernel_size}{size of the convolving kernel.}
 
-\item{prior_inclusion}{numeric scalar, prior inclusion probability for each weight and bias in the layer.}
+\item{prior_inclusion}{numeric scalar, prior inclusion probability for
+each weight and bias in the layer.}
 
-\item{standard_prior}{numeric scalar, prior standard deviation for weights and biases in each layer.}
+\item{standard_prior}{numeric scalar, prior standard deviation for
+weights and biases in each layer.}
 
-\item{density_init}{A numeric of size 2, used to initialize the inclusion parameters, one for each layer.}
+\item{density_init}{A numeric of size 2, used to initialize the
+inclusion parameters, one for each layer.}
 
 \item{flow}{logical, whether to use normalizing flows}
 
-\item{num_transforms}{integer, number of transformations for \code{flow}. Default is 2.}
+\item{num_transforms}{integer, number of transformations for \code{flow}.
+Default is 2.}
 
-\item{hidden_dims}{numeric vector, dimension of the hidden layer(s) in the neural networks of the RNVP transform.}
+\item{hidden_dims}{numeric vector, dimension of the hidden layer(s)
+in the neural networks of the RNVP transform.}
 
 \item{device}{The device to be used. Default is CPU.}
 }
 \value{
-A \code{torch::nn_module} object representing a convolutional LBBNN layer.
+A \code{torch::nn_module} object representing a convolutional
+LBBNN layer.
 The module has the following methods:
 \itemize{
-\item \code{forward(input, MPM = FALSE)}: Computes activation (using the LRT at training time) of a batch of inputs.
+\item \code{forward(input, MPM = FALSE)}: Computes activation
+(using the LRT at training time) of a batch of inputs.
 \item \code{kl_div()}: Computes the KL-divergence.
-\item \code{sample_z()}: Samples from the flow if \code{flow = TRUE}, in addition returns the log-determinant of the Jacobian
+\item \code{sample_z()}: Samples from the flow if \code{flow = TRUE},
+in addition returns the log-determinant of the Jacobian
 of the transformation.
 }
 }
@@ -53,15 +61,16 @@ It supports:
 \itemize{
 \item Prior inclusion probabilities for weights and biases in each layer.
 \item Standard deviation priors for weights and biases in each layer.
-\item Optional normalizing flows (RNVP) for a more flexible variational posterior.
-\item Forward pass using either the full model or the Median Probability Model (MPM).
+\item Optional normalizing flows (RNVP) for a more flexible posterior.
+\item Forward pass using either the full model or the
+Median Probability Model (MPM).
 \item Computation of the KL-divergence.
 }
 }
 \examples{
 \donttest{
 layer <- lbbnn_conv2d(in_channels = 1,out_channels = 32,kernel_size = c(3,3),
-prior_inclusion = 0.2,standard_prior = 1,density_init = c(-10,10),device = 'cpu')
+prior_inclusion = 0.2,standard_prior = 1,density_init = c(0,1),device = 'cpu')
 x <-torch::torch_randn(100,1,28,28)
 out <-layer(x)
 print(dim(out))

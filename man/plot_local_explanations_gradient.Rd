@@ -2,7 +2,7 @@
 % Please edit documentation in R/local_explanations.R
 \name{plot_local_explanations_gradient}
 \alias{plot_local_explanations_gradient}
-\title{Plot the gradient based local explanations for one sample with input-skip LBBNNs.}
+\title{Plot the gradient based local explanations for one sample.}
 \usage{
 plot_local_explanations_gradient(
   model,
@@ -17,15 +17,19 @@ plot_local_explanations_gradient(
 
 \item{input_data}{The data to be explained (one sample).}
 
-\item{num_samples}{integer, how many sample to use to produce credible intervals.}
+\item{num_samples}{integer, samples to use to produce credible intervals.}
 
-\item{device}{character, the device to be trained on. Default is cpu. Can be 'mps' or 'gpu'.}
+\item{device}{character, the device to be trained on. Default is cpu.
+Can be 'mps' or 'gpu'.}
 
-\item{save_svg}{the path where the plot will be saved as svg, if save_svg is not NULL.}
+\item{save_svg}{the path where the plot will be saved as svg,
+if save_svg is not NULL.}
 }
 \value{
-This function produces plots as a side effect and does not return a value.
+This function produces plots as a side
+effect and does not return a value.
 }
 \description{
-Plots the contribution of each covariate, and the prediction, with error bars.
+Plots the contribution of each covariate,
+and the prediction, with error bars.
 }

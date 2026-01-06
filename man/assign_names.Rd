@@ -13,6 +13,7 @@ assign_names(model)
 A list of adjacency matrices with the correct names.
 }
 \description{
-Internal helper function to assign descriptive names to nodes used for plotting.
+Internal helper function to assign descriptive names to
+nodes used for plotting.
 }
 \keyword{internal}

@@ -11,9 +11,11 @@
 
 \item{type}{Either \code{"global"} or \code{"local"}.}
 
-\item{data}{If local is chosen, one sample must be provided to obtain the explanation. Must be a \code{torch::torch_tensor} of shape \code{(1,p)}.}
+\item{data}{If local is chosen, one sample must be provided to obtain
+the explanation. Must be a \code{torch::torch_tensor} of shape \code{(1,p)}.}
 
-\item{num_samples}{integer, how many samples to use for model averaging over the weights in case of local explanations.}
+\item{num_samples}{integer, how many samples to use for model averaging
+over the weights in case of local explanations.}
 
 \item{...}{further arguments passed to or from other methods.}
 }

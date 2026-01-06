@@ -10,10 +10,11 @@ get_adj_mats(model)
 \item{model}{An instance of \code{lbbnn_net} with input_skip enabled.}
 }
 \value{
-A list of adjacency matrices, one for each hidden layer and the output layer.
+A list of adjacency matrices, one for each hidden layer and output.
 }
 \description{
-Takes the alpha active path matrices for each layer of the LBBNN and converts
-them to adjacency matrices so that they can be plotted with igraph.
+Takes the alpha active path matrices for each layer of the
+LBBNN and converts them to adjacency matrices so that they can be plotted
+with igraph.
 }
 \keyword{internal}

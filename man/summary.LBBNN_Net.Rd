@@ -12,7 +12,8 @@
 \item{...}{further arguments passed to or from other methods.}
 }
 \value{
-A \code{data.frame} containing the above information. The function prints a formatted summary to the console.
+A \code{data.frame} containing the above information.
+The function prints a formatted summary to the console.
 The returned \code{data.frame} is invisible.
 }
 \description{
@@ -22,26 +23,27 @@ Only applies to objects trained with \code{input_skip = TRUE}.
 \details{
 The returned table combines two types of information:
 \itemize{
-\item Number of times each input variable is included in the active paths from each layer
+\item Number of times each input variable is included
+in the active paths from each layer
 (obtained from \code{get_input_inclusions()}).
-\item Average inclusion probabilities for each input variable from each layer, including a final
-column showing the average across all layers.
+\item Average inclusion probabilities for each input variable from each layer,
+.        including a final column showing the average across all layers.
 }
 }
 \examples{
-\donttest{ 
-x<-torch::torch_randn(3,2) 
+\donttest{
+x<-torch::torch_randn(3,2)
 b <- torch::torch_rand(2)
 y <- torch::torch_matmul(x,b)
 train_data <- torch::tensor_dataset(x,y)
 train_loader <- torch::dataloader(train_data,batch_size = 3,shuffle=FALSE)
 problem<-'regression'
-sizes <- c(2,1,1) 
-inclusion_priors <-c(0.9,0.2) 
+sizes <- c(2,1,1)
+inclusion_priors <-c(0.9,0.2)
 inclusion_inits <- matrix(rep(c(-10,10),2),nrow = 2,ncol = 2)
 stds <- c(1.0,1.0)
-model <- lbbnn_net(problem,sizes,inclusion_priors,stds,inclusion_inits,flow = FALSE,
-input_skip = TRUE)
+model <- lbbnn_net(problem, sizes, inclusion_priors, stds, inclusion_inits,
+flow = FALSE, input_skip = TRUE)
 train_lbbnn(epochs = 1,LBBNN = model, lr = 0.01,train_dl = train_loader)
 summary(model)
 }

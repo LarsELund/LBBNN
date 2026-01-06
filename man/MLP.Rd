@@ -11,8 +11,10 @@ Returns a \code{torch::nn_module} representing the mlp.
 The module has the following method:
 \describe{
 \item{\code{forward(x)}}{
-Applies each linear layer in \code{hidden_sizes} followed by a LeakyReLU activation (except after
-the final layer). Returns a \code{torch::torch_tensor} whose last dimension equals the
+Applies each linear layer in \code{hidden_sizes} followed by a LeakyReLU
+activation (except after
+the final layer). Returns a \code{torch::torch_tensor}
+whose last dimension equals the
 last element of \code{hidden_sizes}.
 }
 }

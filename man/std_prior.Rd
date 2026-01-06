@@ -2,7 +2,8 @@
 % Please edit documentation in R/Layers.R
 \name{std_prior}
 \alias{std_prior}
-\title{Generate prior standard deviation for weights and biases of either linear or convolutional layers.}
+\title{Generate prior standard deviation for weights and biases of either
+linear or convolutional layers.}
 \usage{
 std_prior(x)
 }
@@ -10,8 +11,9 @@ std_prior(x)
 \item{x}{A number greater than 0.}
 }
 \value{
-a numeric to be added to either (out_shape,in_shape) in case of linear layers
-or (out_channels,in_channels,kernel0,kernel1) in case of convolutional layers
+a numeric to be added to either (out_shape,in_shape)
+in case of linear layers or (out_channels,in_channels,kernel0,kernel1)
+in case of convolutional layers.
 }
 \description{
 A function to generate prior standard deviations for

@@ -24,19 +24,23 @@ lbbnn_net(
 }
 \arguments{
 \item{problem_type}{character, one of:
-\code{'binary classification'}, \code{'multiclass classification'}, \code{'regression'}, or \code{'custom'}.}
+\code{'binary classification'}, \code{'multiclass classification'},
+\code{'regression'}, or \code{'custom'}.}
 
-\item{sizes}{Integer vector specifying the layer sizes of the network. The first element is the input size,
-the last is the output size, and the intermediate integers represent hidden layers.}
+\item{sizes}{Integer vector specifying the layer sizes of the network.
+The first element is the input size,
+the last is the output size,
+and the intermediate integers represent hidden layers.}
 
-\item{prior}{numeric vector of prior inclusion probabilities for each weight matrix.
-length must be \code{length(sizes) - 1}.}
+\item{prior}{numeric vector of prior inclusion probabilities for
+each weight matrix. length must be \code{length(sizes) - 1}.}
 
 \item{std}{numeric vector of prior standard deviation for each weight matrix.
 length must be \code{length(sizes) - 1}.}
 
 \item{inclusion_inits}{numeric matrix of shape (2, number of weight matrices)
-specifying the lower and upper bounds for initializations of the inclusion parameters.}
+specifying the lower and upper bounds for initializations
+of the inclusion parameters.}
 
 \item{input_skip}{logical, whether to include input_skip.}
 
@@ -44,31 +48,41 @@ specifying the lower and upper bounds for initializations of the inclusion param
 
 \item{num_transforms}{integer, how many transformations to use in the flow.}
 
-\item{dims}{numeric vector, hidden dimension for the neural network in the RNVP transform.}
+\item{dims}{numeric vector, hidden dimension for the neural network
+in the RNVP transform.}
 
-\item{device}{the device to be trained on. Can be 'cpu', 'gpu' or 'mps'. Default is cpu.}
+\item{device}{the device to be trained on. Can be 'cpu', 'gpu' or 'mps'.
+Default is cpu.}
 
-\item{raw_output}{logical, whether the network skips the last sigmoid/softmax layer to compute local explanations.}
+\item{raw_output}{logical, whether the network skips the last sigmoid/softmax
+layer to compute local explanations.}
 
-\item{custom_act}{Allows the user to submit their own customized activation function.}
+\item{custom_act}{Allows the user to submit their own customized
+activation function.}
 
-\item{link}{User can define their own link function (not implemented yet).}
+\item{link}{User can define their own link function (not implemented).}
 
-\item{nll}{User can define their own likelihood function (not implemented yet).}
+\item{nll}{User can define their own likelihood function (not implemented).}
 
-\item{bias_inclusion_prob}{logical, determines whether the bias should be as associated with inclusion probabilities.}
+\item{bias_inclusion_prob}{logical, determines whether the bias should
+be as associated with inclusion probabilities.}
 }
 \value{
 A \code{torch::nn_module} object representing the LBBNN.
 It includes the following methods:
 \itemize{
-\item \code{forward(x, MPM = FALSE)}: Performs a forward pass through the whole network.
+\item \code{forward(x, MPM = FALSE)}: Performs a forward pass
+through the whole network.
 \item \code{kl_div()}: Returns the KL divergence of the network.
-\item \code{density()}: Returns the density of the whole network, i.e. the proportion of weights
+\item \code{density()}: Returns the density of the whole network,
+i.e. the proportion of weights
 with inclusion probabilities greater than 0.5.
-\item \code{compute_paths()}: Computes active paths through the network without input-skip.
-\item \code{compute_paths_input_skip()}: Computes active paths with  input-skip enabled.
-\item \code{density_active_path()}: Returns network density after removing inactive paths.
+\item \code{compute_paths()}: Computes active paths through the network
+without input-skip.
+\item \code{compute_paths_input_skip()}: Computes active paths with
+input-skip enabled.
+\item \code{density_active_path()}: Returns network density after
+removing inactive paths.
 }
 }
 \description{
@@ -82,16 +96,17 @@ For example, \code{sizes = c(20, 200, 200, 5)} generates a network with:
 }
 \examples{
 \donttest{
-layers <- c(10,2,5) 
-alpha <- c(0.3,0.9)   
-stds <- c(1.0,1.0)   
+layers <- c(10,2,5)
+alpha <- c(0.3,0.9)
+stds <- c(1.0,1.0)
 inclusion_inits <- matrix(rep(c(-10,10),2),nrow = 2,ncol = 2)
 prob <- 'multiclass classification'
-net <- lbbnn_net(problem_type = prob, sizes = layers, prior = alpha,std = stds
-,inclusion_inits = inclusion_inits,input_skip = FALSE,flow = FALSE,device = 'cpu')
+net <- lbbnn_net(problem_type = prob, sizes = layers, prior = alpha,
+std = stds, inclusion_inits = inclusion_inits,input_skip = FALSE,
+flow = FALSE,device = 'cpu')
 x <- torch::torch_rand(20,10,requires_grad = FALSE)
-output <- net(x) 
-net$kl_div()$item() 
-net$density() 
+output <- net(x)
+net$kl_div()$item()
+net$density()
 }
 }

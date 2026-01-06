@@ -2,7 +2,7 @@
 % Please edit documentation in R/overwrite_functions.R
 \name{predict.lbbnn_net}
 \alias{predict.lbbnn_net}
-\title{Obtain predictions from the variational posterior of an \code{LBBNN model}}
+\title{Obtain predictions from the posterior of an \code{LBBNN model}}
 \usage{
 \method{predict}{lbbnn_net}(
   object,
@@ -17,7 +17,8 @@
 \arguments{
 \item{object}{A trained \code{lbbnn_net} object}
 
-\item{newdata}{A \code{torch::dataloader} object containing the data with which to predict.}
+\item{newdata}{A \code{torch::dataloader}
+object containing the data with which to predict.}
 
 \item{mpm}{logical, whether to use the median probability model.}
 
@@ -25,30 +26,32 @@
 
 \item{device}{character, device for computation (default = \code{"cpu"}).}
 
-\item{link}{Optional link function to apply to the network output. Currently not implemented.}
+\item{link}{Optional link function to apply to the network output.}
 
 \item{...}{further arguments passed to or from other methods.}
 }
 \value{
-A \code{torch::torch_tensor}  of shape \code{(draws,N,C)} where \code{N} is the number of samples in \code{newdata}, and \code{C} the number of outputs.
+A \code{torch::torch_tensor}  of shape \code{(draws,N,C)}
+where \code{N} is the number of samples in \code{newdata},
+and \code{C} the number of outputs.
 }
 \description{
-Draw from the (variational) posterior distribution of a trained \code{lbbnn_net} object.
+Draw from the posterior of a trained \code{lbbnn_net} object.
 }
 \examples{
-\donttest{ 
-x<-torch::torch_randn(3,2) 
+\donttest{
+x<-torch::torch_randn(3,2)
 b <- torch::torch_rand(2)
 y <- torch::torch_matmul(x,b)
 train_data <- torch::tensor_dataset(x,y)
 train_loader <- torch::dataloader(train_data,batch_size = 3,shuffle=FALSE)
 problem<-'regression'
-sizes <- c(2,1,1) 
-inclusion_priors <-c(0.9,0.2) 
+sizes <- c(2,1,1)
+inclusion_priors <-c(0.9,0.2)
 inclusion_inits <- matrix(rep(c(-10,10),2),nrow = 2,ncol = 2)
 stds <- c(1.0,1.0)
-model <- lbbnn_net(problem,sizes,inclusion_priors,stds,inclusion_inits,flow = FALSE,
-input_skip = TRUE)
+model <- lbbnn_net(problem,sizes,inclusion_priors,stds,inclusion_inits,
+flow = FALSE,input_skip = TRUE)
 train_lbbnn(epochs = 1,LBBNN = model, lr = 0.01,train_dl = train_loader)
 predict(model,mpm = FALSE,newdata = train_loader,draws = 1)
 }

@@ -2,7 +2,8 @@
 % Please edit documentation in R/Layers.R
 \name{alpha_prior}
 \alias{alpha_prior}
-\title{Generate prior inclusion probabilities for the weights of a LBBNN layer (linear or convolutional).}
+\title{Generate prior inclusion probabilities for the weights of a
+LBBNN layer (linear or convolutional).}
 \usage{
 alpha_prior(x)
 }
@@ -10,11 +11,13 @@ alpha_prior(x)
 \item{x}{A number between 0 and 1.}
 }
 \value{
-a numeric to be added to either (out_shape,in_shape) in case of linear layers
-or (out_channels,in_channels,kernel0,kernel1) in case of convolutional layers.
+a numeric to be added to either (out_shape,in_shape)
+in case of linear layers, or (out_channels,in_channels,kernel0,kernel1)
+in case of convolutional layers.
 }
 \description{
 A function to generate prior probability values for
-each weight in an LBBNN layer. The same probability is applied to all weights within a layer.
+each weight in an LBBNN layer.
+The same probability is applied to all weights within a layer.
 }
 \keyword{internal}

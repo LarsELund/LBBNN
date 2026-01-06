@@ -9,7 +9,7 @@
 \arguments{
 \item{object}{An object of class \code{lbbnn_net}.}
 
-\item{type}{Currently only 'response' is implemented i.e. y_true - y_predicted.}
+\item{type}{Only 'response' is implemented i.e. y_true - y_predicted.}
 
 \item{...}{further arguments passed to or from other methods.}
 }
@@ -20,19 +20,19 @@ A numeric vector of residuals (\code{y_true - y_predicted})
 Residuals from an object of the \code{lbbnn_net} class.
 }
 \examples{
-\donttest{ 
-x<-torch::torch_randn(3,2) 
+\donttest{
+x<-torch::torch_randn(3,2)
 b <- torch::torch_rand(2)
 y <- torch::torch_matmul(x,b)
 train_data <- torch::tensor_dataset(x,y)
 train_loader <- torch::dataloader(train_data,batch_size = 3,shuffle=FALSE)
 problem<-'regression'
-sizes <- c(2,1,1) 
-inclusion_priors <-c(0.9,0.2) 
+sizes <- c(2,1,1)
+inclusion_priors <-c(0.9,0.2)
 inclusion_inits <- matrix(rep(c(-10,10),2),nrow = 2,ncol = 2)
 stds <- c(1.0,1.0)
-model <- lbbnn_net(problem,sizes,inclusion_priors,stds,inclusion_inits,flow = FALSE,
-input_skip = TRUE)
+model <- lbbnn_net(problem,sizes, inclusion_priors, stds ,inclusion_inits,
+flow = FALSE, input_skip = TRUE)
 train_lbbnn(epochs = 1,LBBNN = model, lr = 0.01,train_dl = train_loader)
 residuals(model)
 }

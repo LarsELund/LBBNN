@@ -2,7 +2,7 @@
 % Please edit documentation in R/overwrite_functions.R
 \name{coef.lbbnn_net}
 \alias{coef.lbbnn_net}
-\title{Get model coefficients (local explanations) of an \code{lbbnn_net} object}
+\title{Get model coefficients (local explanations) of \code{lbbnn_net} object}
 \usage{
 \method{coef}{lbbnn_net}(
   object,
@@ -17,22 +17,27 @@
 \arguments{
 \item{object}{an object of class \code{lbbnn_net}.}
 
-\item{dataset}{Either a \code{torch::dataloader} object, or a \code{torch::torch_tensor} object.
-The former is assumed to be the same \code{torch::dataloader} used for training or testing.
+\item{dataset}{Either a \code{torch::dataloader} object,
+or a \code{torch::torch_tensor} object.
+The former is assumed to be the same \code{torch::dataloader}
+used for training or testing.
 The latter can be any user-defined data.}
 
 \item{inds}{Optional integer vector of row indices in the dataset to compute explanations for.}
 
 \item{output_neuron}{integer, which output neuron to explain (default = 1).}
 
-\item{num_data}{integer, if no indices are chosen, the first \code{num_data} of \code{dataset} are automatically used for explanations.}
+\item{num_data}{integer, if no indices are chosen,
+the first \code{num_data} of \code{dataset} are automatically used for explanations.}
 
-\item{num_samples}{integer, how many samples to use for model averaging when sampling the weights in the active paths.}
+\item{num_samples}{integer, how many samples to use for model averaging
+when sampling the weights in the active paths.}
 
 \item{...}{further arguments passed to or from other methods.}
 }
 \value{
-A data frame with rows corresponding to input variables and the following columns:
+A data frame with rows corresponding to input variables
+and the following columns:
 \itemize{
 \item \code{lower}: lower bound of the 95\% confidence interval
 \item \code{mean}: mean contribution of the variable
@@ -40,29 +45,34 @@ A data frame with rows corresponding to input variables and the following column
 }
 }
 \description{
-Given an input sample x_1,... x_j (with j the number of variables), the local explanation is found by
-considering active paths. If relu activation functions are assumed, each path is a piecewise
-linear function, so the contribution for x_j is just the sum of the weights associated with the paths connecting x_j to the output.
+Given an input sample x_1,... x_j (with j the number of inputs,
+the local explanation is found by considering active paths.
+If relu activation functions are assumed, each path is a piecewise
+linear function, so the contribution for x_j is just the sum of the weights
+associated with the paths connecting x_j to the output.
 The contributions are found by taking the gradient wrt x.
 }
 \details{
 \itemize{
-\item If \code{num_data = 1}, confidence intervals are computed using model averaging over \code{num_samples} weight samples.
-\item If \code{num_data > 1}, confidence intervals are computed across the mean explanations for each sample.
+\item If \code{num_data = 1}, confidence intervals are computed using
+model averaging over \code{num_samples} weight samples.
+\item If \code{num_data > 1}, confidence intervals are computed across
+.         the mean explanations for each sample.
 \item The output is a data frame with row names as input variables
-(\code{x0}, \code{x1}, \code{x2}, ...) and columns giving mean and 95\% confidence intervals for each variable.
+(\code{x0}, \code{x1}, \code{x2}, ...) and columns giving mean
+and 95\% confidence intervals for each variable.
 }
 }
 \examples{
-\donttest{ 
-x<-torch::torch_randn(3,2) 
+\donttest{
+x<-torch::torch_randn(3,2)
 b <- torch::torch_rand(2)
 y <- torch::torch_matmul(x,b)
 train_data <- torch::tensor_dataset(x,y)
 train_loader <- torch::dataloader(train_data,batch_size = 3,shuffle=FALSE)
 problem<-'regression'
-sizes <- c(2,1,1) 
-inclusion_priors <-c(0.9,0.2) 
+sizes <- c(2,1,1)
+inclusion_priors <-c(0.9,0.2)
 inclusion_inits <- matrix(rep(c(-10,10),2),nrow = 2,ncol = 2)
 stds <- c(1.0,1.0)
 model <- lbbnn_net(problem,sizes,inclusion_priors,stds,inclusion_inits,flow = FALSE,

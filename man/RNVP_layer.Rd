@@ -7,23 +7,28 @@
 rnvp_layer(hidden_sizes, device = "cpu")
 }
 \arguments{
-\item{hidden_sizes}{A vector of integers. The first is the dimensionality of the vector,
+\item{hidden_sizes}{A vector of integers.
+The first is the dimensionality of the vector,
 to be transformed by RNVP. The subsequent are hidden dimensions in the mlp.}
 
 \item{device}{The device to be used. Default is CPU.}
 }
 \value{
-A \code{torch::nn_module} object representing a single RNVP layer. The module has the following methods:
+A \code{torch::nn_module} object representing a single RNVP layer.
+The module has the following methods:
 \describe{
-\item{\code{forward(z)}}{Applies the RNVP transformation. Returns a \code{torch::torch_tensor} with the
+\item{\code{forward(z)}}{Applies the RNVP transformation.
+Returns a \code{torch::torch_tensor} with the
 same shape as z.}
-\item{\code{log_det()}}{A scalar \code{torch::torch_tensor} giving the log-determinant of the Jacobian of the transformation.}
+\item{\code{log_det()}}{A scalar \code{torch::torch_tensor}
+giving the log-determinant of the Jacobian of the transformation.}
 }
 }
 \description{
-Affine half flow aka Real Non-Volume Preserving (x = z * exp(s) + t),
-where a randomly selected half z1 of the dimensions in z are transformed as an
-Affine function of the other half z2, i.e. scaled by s(z2) and shifted by t(z2).
+Affine half flow aka Real Non-Volume Preserving
+(x = z * exp(s) + t), where a randomly selected half z1 of the dimensions
+in z are transformed as an Affine function of the other half z2,
+i.e. scaled by s(z2) and shifted by t(z2).
 From "Density estimation using Real NVP", Dinh et al. (May 2016)
 https://arxiv.org/abs/1605.08803
 This implementation uses the numerically stable updates introduced by IAF:

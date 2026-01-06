@@ -1,33 +1,38 @@
-library(torch)
-
 #' @title Train an instance of \code{lbbnn_net}.
-#' @description Function that for each epoch iterates through each mini-batch, computing
-#' the loss and using back-propagation to update the network parameters.
-#' @param epochs integer, total number of epochs to train for, where one epoch is a pass through the entire training dataset (all mini batches).
+#' @description Function that for each epoch iterates through each mini-batch,
+#' computing the loss and using back-propagation to update network parameters.
+#' @param epochs integer, total number of epochs to train for, where one epoch
+#' is a pass through the entire training dataset (all mini batches).
 #' @param LBBNN An instance of  \code{lbbnn_net}, to be trained.
 #' @param lr numeric, the learning rate to be used in the Adam optimizer.
-#' @param train_dl An instance of \code{torch::dataloader} consisting of a tensor dataset
-#' with features and targets.
-#' @param device the device to be trained on. Default is 'cpu', also accepts 'gpu' or 'mps'.
-#' @param scheduler A torch learning rate scheduler object. Can be used to decay learning rate for better convergence, 
+#' @param train_dl An instance of \code{torch::dataloader}
+#' consisting of a tensor dataset with features and targets.
+#' @param device the device to be trained on. Default is 'cpu',
+#' also accepts 'gpu' or 'mps'.
+#' @param scheduler A torch learning rate scheduler object.
+#' Can be used to decay learning rate for better convergence,
 #' currently only supports 'step'.
-#' @param sch_step_size Where to decay if using \code{torch::lr_step}. E.g. 1000 means learning rate is decayed every 1000 epochs.
-#' @return a list containing the losses and accuracy (if classification) and density for each epoch during training.
+#' @param sch_step_size Where to decay if using \code{torch::lr_step}.
+#'  E.g. 1000 means learning rate is decayed every 1000 epochs.
+#' @return a list containing the losses and accuracy (if classification)
+#' and density for each epoch during training.
 #' For comparisons sake we show the density with and without active paths.
 #' @examples
-#' \donttest{ 
-#'x<-torch::torch_randn(3,2) 
+#' \donttest{
+#'x<-torch::torch_randn(3,2)
 #'b <- torch::torch_rand(2)
 #'y <- torch::torch_matmul(x,b)
 #'train_data <- torch::tensor_dataset(x,y)
 #'train_loader <- torch::dataloader(train_data,batch_size = 3,shuffle=FALSE)
 #'problem<-'regression'
-#'sizes <- c(2,1,1) 
-#'inclusion_priors <-c(0.9,0.2) 
+#'sizes <- c(2,1,1)
+#'inclusion_priors <-c(0.9,0.2)
 #'inclusion_inits <- matrix(rep(c(-10,10),2),nrow = 2,ncol = 2)
 #'stds <- c(1.0,1.0)
-#'model <- lbbnn_net(problem,sizes,inclusion_priors,stds,inclusion_inits,flow = FALSE)
-#'output <- train_lbbnn(epochs = 1,LBBNN = model, lr = 0.01,train_dl = train_loader)
+#'model <- lbbnn_net(problem,sizes,inclusion_priors,stds,inclusion_inits,
+#'flow = FALSE)
+#'output <- train_lbbnn(epochs = 1,LBBNN = model, lr = 0.01,
+#'train_dl = train_loader)
 #'}
 #' @return A list with elements (returned invisibly):
 #'   \describe{
@@ -36,16 +41,17 @@ library(torch)
 #'     \item{density}{Vector of network densities per epoch.}
 #'   }
 #'@export
-train_lbbnn <- function(epochs,LBBNN,lr,train_dl,device = 'cpu',scheduler = NULL,sch_step_size = NULL){
-  opt <- torch::optim_adam(LBBNN$parameters,lr = lr)
+train_lbbnn <- function(epochs, LBBNN, lr, train_dl, device = "cpu",
+                        scheduler = NULL, sch_step_size = NULL) {
+  opt <- torch::optim_adam(LBBNN$parameters, lr = lr)
   accs <- c()
-  losses <-c()
+  losses <- c()
   density <- c()
   out_layer_density <- c()
-  active_path_dens <-c()
-  if(! is.null(scheduler)){
-    if(scheduler == 'step'){
-      sl <- torch::lr_step(opt,step_size = sch_step_size,gamma = 0.1)
+  active_path_dens <- c()
+  if (!is.null(scheduler)) {
+    if (scheduler == "step") {
+      sl <- torch::lr_step(opt, step_size = sch_step_size, gamma = 0.1)
     }
   }
   LBBNN$elapsed_time <- 0
@@ -53,11 +59,10 @@ train_lbbnn <- function(epochs,LBBNN,lr,train_dl,device = 'cpu',scheduler = NULL
   for (epoch in 1:epochs) {
   #  if(LBBNN$input_skip){LBBNN$compute_paths_input_skip()}
   #  else(LBBNN$compute_paths)
-    if(epoch == epochs){ #only need these at the last epoch for residuals
+    if (epoch == epochs) { #only need these at the last epoch for residuals
      LBBNN$y <- c()
-    LBBNN$r <- c()}
- 
-    
+     LBBNN$r <- c()
+    }
     LBBNN$train()
     corrects <- 0
     totals <- 0
@@ -67,188 +72,170 @@ train_lbbnn <- function(epochs,LBBNN,lr,train_dl,device = 'cpu',scheduler = NULL
 
       opt$zero_grad()
       data <- b[[1]]$to(device = device)
-      output <- LBBNN(data,MPM=FALSE)
-      target <- b[[2]]$to(device=device)
-      if(epoch == epochs){ #add the targets and outputs to y and r
+      output <- LBBNN(data, MPM = FALSE)
+      target <- b[[2]]$to(device = device)
+      if (epoch == epochs) { #add the targets and outputs to y and r
         LBBNN$y <- c(LBBNN$y, as.numeric(target$clone()$detach()$cpu()))
-        LBBNN$r <- c(LBBNN$r,as.numeric(output$clone()$detach()$squeeze()$cpu()))}
-      
-      
- 
-      if(LBBNN$problem_type == 'multiclass classification'| LBBNN$problem_type == 'MNIST'){ #nll loss needs float tensors but bce loss needs long tensors 
-        target <- torch::torch_tensor(target,dtype = torch::torch_long())
+        LBBNN$r <- c(LBBNN$r, as.numeric(output$clone()$detach()$squeeze()$cpu()))
+        }
+      if (LBBNN$problem_type == "multiclass classification" | LBBNN$problem_type == "MNIST") { #nll loss needs float tensors but bce loss needs long tensors
+        target <- torch::torch_tensor(target, dtype = torch::torch_long())
       }
-      else(output <- output$squeeze()) #remove last dimension from binary classifiction or regression
-      
+      else (output <- output$squeeze()) #remove last dimension from binary classifiction or regression
       loss <- LBBNN$loss_fn(output, target) + LBBNN$kl_div() / length(train_dl)
-    
-      
-      if(LBBNN$problem_type == 'multiclass classification' | LBBNN$problem_type == 'MNIST'){
-        prediction <-max.col(output)
+
+      if (LBBNN$problem_type == "multiclass classification" | LBBNN$problem_type == "MNIST") {
+        prediction <- max.col(output)
         corrects <- corrects + sum(prediction == target)
         totals <- totals + length(target)
-        train_loss <- c(train_loss,loss$item())
-    
-        
-        
-        
+        train_loss <- c(train_loss, loss$item())
       }
-      else if(LBBNN$problem_type == 'binary classification'){
-        corrects<-corrects + sum((output > 0.5) == target)
+
+      else if (LBBNN$problem_type == "binary classification") {
+        corrects <- corrects + sum((output > 0.5) == target)
         totals <- totals + length(target)
-        train_loss <- c(train_loss,loss$item())
-        
-        
-        
-        
+        train_loss <- c(train_loss, loss$item())
+
       }
-      else if(LBBNN$problem_type == 'custom')
-      {
-        train_loss <- c(train_loss,loss$item())
+      else if (LBBNN$problem_type == "custom") {
+        train_loss <- c(train_loss, loss$item())
       }
-      else{#for regression
-        train_loss <- c(train_loss,loss$item())
-        
+      else {#for regression
+        train_loss <- c(train_loss, loss$item())
+
       }
       loss$backward()
       opt$step()
-      
-      
-      
+
     })
-    if ( !is.null(scheduler)){sl$step()}
-  
+    if (!is.null(scheduler)) {
+      sl$step()
+      }
+
     train_acc <- corrects / totals
-    if(LBBNN$problem_type != 'regression'){
+    if (LBBNN$problem_type != "regression") {
       message(sprintf(
         "\nEpoch %d, training: loss = %3.5f, acc = %3.5f, density = %3.5f",
-        epoch, mean(train_loss), train_acc,LBBNN$density()
+        epoch, mean(train_loss), train_acc, LBBNN$density()
       ))
-      
-      
-      accs <- c(accs,train_acc$item())
-      losses <- c(losses,mean(train_loss))
+      accs <- c(accs, train_acc$item())
+      losses <- c(losses, mean(train_loss))
     }
-    if(LBBNN$problem_type == 'regression'){
+    if (LBBNN$problem_type == "regression") {
       message(sprintf(
         "\nEpoch %d, training: loss = %3.5f, density = %3.5f \n",
         epoch, mean(train_loss), LBBNN$density()
       ))
-      
-      losses <- c(losses,mean(train_loss))
+      losses <- c(losses, mean(train_loss))
     }
-    density <- c(density,LBBNN$density())
-
-
-    
+    density <- c(density, LBBNN$density())
   }
-  l = list('accs' = accs,'loss' = losses,'density' = density)
-  time <- base::proc.time() - start 
+  l <- list("accs" = accs, "loss" = losses, "density" = density)
+  time <- base::proc.time() - start
   LBBNN$elapsed_time <- time[[3]]
   invisible(l)
 }
 
 
-
-
-
 #' @title Validate a trained LBBNN model.
 #' @description Computes metrics on a validation dataset without computing gradients.
-#' Supports model averaging (recommended) by sampling from the variational posterior (\code{num_samples} > 1) 
-#' to improve predictions. Returns metrics for both the full model and the sparse model. 
+#' Supports model averaging (recommended) by
+#' sampling from the variational posterior (\code{num_samples} > 1)
+#' to improve predictions. Returns metrics for both the full model
+#' and the sparse model.
 #' @param LBBNN An instance of a trained \code{lbbnn_net} to be validated.
-#' @param num_samples integer, the number of samples from the variational posterior to be used for model averaging.
-#' @param test_dl An instance of \code{torch::dataloader}, containing the validation data.
-#' @param device The device to perform validation on. Default is 'cpu'; other options include 'gpu' and 'mps'.
+#' @param num_samples integer, the number of samples from the variational
+#' posterior to be used for model averaging.
+#' @param test_dl An instance of \code{torch::dataloader},
+#' containing the validation data.
+#' @param device The device to perform validation on.
+#' Default is 'cpu'; other options include 'gpu' and 'mps'.
 #' @return A list containing the following elements:
 #'   \describe{
-#'     \item{accuracy_full_model}{Classification accuracy of the full (dense) model (if classification).}
-#'     \item{accuracy_sparse}{Classification accuracy using only weights in active paths (if classification).}
-#'     \item{validation_error}{Root mean squared error for the full model (if regression).}
-#'     \item{validation_error_sparse}{Root mean squared error using only weights in active paths (if regression).}
-#'     \item{density}{Proportion of weights with posterior inclusion probability > 0.5 in the whole network.}
-#'     \item{density_active_path}{Proportion of weights with inclusion probability > 0.5 after removing weights not in active paths.}
-#'   }     
+#'     \item{accuracy_full_model}{Classification accuracy of the
+#'     full (dense) model (if classification).}
+#'     \item{accuracy_sparse}{Classification accuracy using only
+#'     weights in active paths (if classification).}
+#'     \item{validation_error}{Root mean squared error
+#'     for the full model (if regression).}
+#'     \item{validation_error_sparse}{Root mean squared error
+#'     using only weights in active paths (if regression).}
+#'     \item{density}{Proportion of weights with posterior
+#'     inclusion probability > 0.5 in the whole network.}
+#'     \item{density_active_path}{Proportion of weights
+#'.    with inclusion probability > 0.5 after removing weights not in
+#'.    active paths.}
+#'   }
 #' @export
-validate_lbbnn <- function(LBBNN,num_samples,test_dl,device = 'cpu'){
+validate_lbbnn <- function(LBBNN, num_samples, test_dl, device = "cpu") {
   LBBNN$eval()
   corrects <- 0
-  corrects_sparse <-0
-  totals <- 0 
+  corrects_sparse <- 0
+  totals <- 0
   val_loss <- c()
-  val_loss_mpm <-c()
-  val_loss_mpm2<-c()
+  val_loss_mpm <- c()
+  val_loss_mpm2 <- c()
   out_shape <- 1 #if binary classification or regression
-  if(LBBNN$input_skip){LBBNN$compute_paths_input_skip()} #need this to get active paths to compute mpm
-  else(LBBNN$compute_paths)
+  if (LBBNN$input_skip) {
+    LBBNN$compute_paths_input_skip()
+    }
+  else (LBBNN$compute_paths)
   LBBNN$computed_paths <- TRUE
-  torch::with_no_grad({ 
+  torch::with_no_grad({
     coro::loop(for (b in test_dl){
-      target <- b[[2]]$to(device=device)
-      if(LBBNN$problem_type == 'multiclass classification'| LBBNN$problem_type == 'MNIST'){ #nll loss needs float tensors but bce loss needs long tensors 
-        target <- torch::torch_tensor(target,dtype = torch::torch_long())
+      target <- b[[2]]$to(device = device)
+      if (LBBNN$problem_type == "multiclass classification" | LBBNN$problem_type == "MNIST") { #nll loss needs float tensors but bce loss needs long tensors 
+        target <- torch::torch_tensor(target, dtype = torch::torch_long())
         out_shape <- max(target)$item()
       }
-      outputs <- torch::torch_zeros(num_samples,dim(b[[1]])[1],out_shape)$to(device=device)
+      outputs <- torch::torch_zeros(num_samples, dim(b[[1]])[1],
+                                    out_shape)$to(device = device)
       output_mpm <- torch::torch_zeros_like(outputs)
-      for(i in 1:num_samples){
+      for (i in 1:num_samples) {
         data <- b[[1]]$to(device = device)
-        outputs[i]<- LBBNN(data,MPM=FALSE)
-        output_mpm[i] <- LBBNN(data,MPM=TRUE)
-        
+        outputs[i] <- LBBNN(data, MPM = FALSE)
+        output_mpm[i] <- LBBNN(data, MPM = TRUE)
       }
-      out_full <-outputs$mean(1) #average over num_samples dimension
-      out_mpm <-output_mpm$mean(1)
-      
-      if(LBBNN$problem_type == 'multiclass classification' | LBBNN$problem_type == 'MNIST'){
-        prediction <-max.col(out_full)
+      out_full <- outputs$mean(1) #average over num_samples dimension
+      out_mpm <- output_mpm$mean(1)
+      if (LBBNN$problem_type == "multiclass classification" | LBBNN$problem_type == "MNIST") {
+        prediction <- max.col(out_full)
         corrects <- corrects + sum(prediction == target)
         totals <- totals + length(target)
-        
         #prediction using only weights in active paths
-        prediction_mpm <-max.col(out_mpm)
+        prediction_mpm <- max.col(out_mpm)
         corrects_sparse <- corrects_sparse + sum(prediction_mpm == target)
-        
-        
       }
-      
-      else if(LBBNN$problem_type == 'binary classification'){
+      else if (LBBNN$problem_type == "binary classification") {
         out_full <- out_full$squeeze()
-        out_mpm <-out_mpm$squeeze()
-        corrects<-corrects + sum((out_full > 0.5) == target)
-        corrects_sparse<-corrects_sparse + sum((out_mpm > 0.5) == target)
+        out_mpm <- out_mpm$squeeze()
+        corrects <- corrects + sum((out_full > 0.5) == target)
+        corrects_sparse <- corrects_sparse + sum((out_mpm > 0.5) == target)
         totals <- totals + length(target)
       }
-      else{#for regression
+      else {#for regression
         out_full <- out_full$squeeze()
-        out_mpm <-out_mpm$squeeze()
-        
+        out_mpm <- out_mpm$squeeze()
         loss <- torch::torch_sqrt(torch::nnf_mse_loss(out_full, target))
         loss_mpm <- torch::torch_sqrt(torch::nnf_mse_loss(out_mpm, target))
-        val_loss <- c(val_loss,loss$item())
-        val_loss_mpm <- c(val_loss_mpm,loss_mpm$item())
+        val_loss <- c(val_loss, loss$item())
+        val_loss_mpm <- c(val_loss_mpm, loss_mpm$item())
       }
-      
-      
-      
-      
-    })  
+    })
   })
-  acc_full<- corrects / totals
+  acc_full <- corrects / totals
   acc_sparse <- corrects_sparse / totals
-  
   density <- LBBNN$density()
   density2 <- LBBNN$density_active_path()
-  if(LBBNN$problem_type!='regression'){
-    l = list('accuracy_full_model' = acc_full$item(),'accuracy_sparse' = acc_sparse$item(),'density'=density,'density_active_path'=density2)
+  if (LBBNN$problem_type != "regression") {
+    l <- list("accuracy_full_model" = acc_full$item(), "accuracy_sparse" =
+                acc_sparse$item(), "density" = density,
+              "density_active_path" = density2)
   }
-  else{
-    l = list('validation_error'=mean(val_loss),'validation_error_sparse' = mean(val_loss_mpm),'density'=density,'density_active_path'=density2)
+  else {
+    l <- list("validation_error" = mean(val_loss),
+              "validation_error_sparse" = mean(val_loss_mpm), "density" =
+                density, "density_active_path" = density2)
   }
   return(l)
 }
-
-
-
-
-

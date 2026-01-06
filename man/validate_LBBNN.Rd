@@ -9,25 +9,37 @@ validate_lbbnn(LBBNN, num_samples, test_dl, device = "cpu")
 \arguments{
 \item{LBBNN}{An instance of a trained \code{lbbnn_net} to be validated.}
 
-\item{num_samples}{integer, the number of samples from the variational posterior to be used for model averaging.}
+\item{num_samples}{integer, the number of samples from the variational
+posterior to be used for model averaging.}
 
-\item{test_dl}{An instance of \code{torch::dataloader}, containing the validation data.}
+\item{test_dl}{An instance of \code{torch::dataloader},
+containing the validation data.}
 
-\item{device}{The device to perform validation on. Default is 'cpu'; other options include 'gpu' and 'mps'.}
+\item{device}{The device to perform validation on.
+Default is 'cpu'; other options include 'gpu' and 'mps'.}
 }
 \value{
 A list containing the following elements:
 \describe{
-\item{accuracy_full_model}{Classification accuracy of the full (dense) model (if classification).}
-\item{accuracy_sparse}{Classification accuracy using only weights in active paths (if classification).}
-\item{validation_error}{Root mean squared error for the full model (if regression).}
-\item{validation_error_sparse}{Root mean squared error using only weights in active paths (if regression).}
-\item{density}{Proportion of weights with posterior inclusion probability > 0.5 in the whole network.}
-\item{density_active_path}{Proportion of weights with inclusion probability > 0.5 after removing weights not in active paths.}
+\item{accuracy_full_model}{Classification accuracy of the
+full (dense) model (if classification).}
+\item{accuracy_sparse}{Classification accuracy using only
+weights in active paths (if classification).}
+\item{validation_error}{Root mean squared error
+for the full model (if regression).}
+\item{validation_error_sparse}{Root mean squared error
+using only weights in active paths (if regression).}
+\item{density}{Proportion of weights with posterior
+inclusion probability > 0.5 in the whole network.}
+\item{density_active_path}{Proportion of weights
+.    with inclusion probability > 0.5 after removing weights not in
+.    active paths.}
 }
 }
 \description{
 Computes metrics on a validation dataset without computing gradients.
-Supports model averaging (recommended) by sampling from the variational posterior (\code{num_samples} > 1)
-to improve predictions. Returns metrics for both the full model and the sparse model.
+Supports model averaging (recommended) by
+sampling from the variational posterior (\code{num_samples} > 1)
+to improve predictions. Returns metrics for both the full model
+and the sparse model.
 }

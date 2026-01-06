@@ -2,7 +2,8 @@
 % Please edit documentation in R/overwrite_functions.R
 \name{get_input_inclusions}
 \alias{get_input_inclusions}
-\title{Function that checks how many times inputs are included, and from which layer. Used in summary function.}
+\title{Function that checks how many times inputs are included,
+and from which layer. Used in summary function.}
 \usage{
 get_input_inclusions(model)
 }
@@ -11,8 +12,8 @@ get_input_inclusions(model)
 }
 \value{
 A matrix of shape (p, L-1) where p is the number of input variables
-and L the total number of layers (including input and output), with each element being 1 if the variable is included
-or 0 if not included.
+and L the total number of layers (including input and output),
+with each element being 1 if the variable is included or 0 if not included.
 }
 \description{
 Useful when the number of inputs and/or hidden neurons are very
