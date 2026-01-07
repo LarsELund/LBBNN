@@ -1,7 +1,3 @@
-library(torch)
-
-### this is the version used in the tutorial  in the paper
-
 i <- 1000
 j <- 15
 

@@ -1,8 +1,4 @@
-library(gbm)
-
 #code for example two in the overleaf article
-
-
 seed <- 42
 torch::torch_manual_seed(seed)
 loaders <- get_dataloaders(gallstone_dataset, train_proportion = 0.70,
@@ -11,28 +7,8 @@ loaders <- get_dataloaders(gallstone_dataset, train_proportion = 0.70,
 train_loader <- loaders$train_loader
 test_loader <- loaders$test_loader
 
-#the paper reports approx 85% accuracy
+#this paper reports approx 85% accuracy using gradient boosting
 #https://pmc.ncbi.nlm.nih.gov/articles/PMC11309733/#T2
-
-
-
-set.seed(seed)
-sample <- sample.int(n = nrow(gallstone_dataset),
-                  size = floor(0.7 * nrow(gallstone_dataset)), replace = FALSE)
-train  <- gallstone_dataset[sample, ]
-test   <- gallstone_dataset[-sample, ]
-gbm_model <- gbm(outcome ~ ., data = train,
-                 distribution = "bernoulli",
-                 n.trees = 10000,
-                 interaction.depth = 3,
-                 shrinkage = 0.01,
-                 cv.folds = 5)
-
-predictions <- predict(gbm_model, newdata = test, type = "response")
-ground_truth <- test$outcome
-acc <- mean(((predictions > 0.5) == ground_truth))
-print(paste("GBM accuracy =", acc))
-
 
 
 problem <- "binary classification"
@@ -76,4 +52,4 @@ predictions <- predict(model_input_skip, newdata = test_loader,
                        draws = 100, mpm = TRUE)
 
 dim(predictions)
-print(predictions)
+
