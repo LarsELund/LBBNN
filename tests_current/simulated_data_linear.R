@@ -41,7 +41,9 @@ train_lbbnn(epochs = 2000, LBBNN = model_input_skip,
 validate_lbbnn(LBBNN = model_input_skip, num_samples = 10, test_dl = test_loader,
               device = device)
 
-coef(model_input_skip, dataset = train_loader, inds = c(1, 2, 5, 10, 20),
+summary(model_input_skip)
+
+coef(model_input_skip, dataset = train_loader, inds = NULL,
      output_neuron = 1, num_data = 5, num_samples = 10)
 
 x <- train_loader$dataset$tensors[[1]] #grab the dataset
