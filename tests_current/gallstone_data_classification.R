@@ -1,4 +1,11 @@
-#code for example two in the overleaf article
+#Tutorial 3: Real data classification experiment
+
+#check if the package is already installed.
+if (!requireNamespace("LBBNN", quietly = TRUE)) {
+  install.packages("LBBNN")
+}
+library(LBBNN)
+
 seed <- 42
 torch::torch_manual_seed(seed)
 loaders <- get_dataloaders(gallstone_dataset, train_proportion = 0.70,

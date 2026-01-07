@@ -1,3 +1,17 @@
+### Tutorial 4: extending the LBBNN to a convolutional architecture
+
+#check if the package is already installed.
+if (!requireNamespace("LBBNN", quietly = TRUE)) {
+  install.packages("LBBNN")
+}
+library(LBBNN)
+
+library(torch)  # initialize torch and its backend
+
+#install torchvision in order to download KMNIST dataset
+if(!requireNamespace("torchvision"))
+  install.packages("torchvision")
+
 torch::torch_manual_seed(42)
 dir <- "./dataset/kmnist"
 train_ds <- torchvision::kmnist_dataset(

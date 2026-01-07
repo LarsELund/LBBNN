@@ -1,6 +1,10 @@
-library(LBBNN)
+### Tutorial 1: Simulation study with linear effects
 
-#### Tutorial 1: simulated data with linear effects
+#check if the package is already installed.
+if (!requireNamespace("LBBNN", quietly = TRUE)) {
+  install.packages("LBBNN")
+}
+library(LBBNN)
 
 i <- 1000
 j <- 15
