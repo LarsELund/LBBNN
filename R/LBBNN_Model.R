@@ -168,11 +168,11 @@ lbbnn_net <- torch::nn_module(
       x <- self$out(self$out_layer(x, MPM))
     }
     else {x_input <- x$view(c(-1, self$sizes[1]))
-    x <- self$layers$children$`0`(x_input, MPM) #first layer
+    x <- self$act(self$layers$children$`0`(x_input, MPM)) #first layer
     j <- 1
     for (l in self$layers$children) {
       if (j > 1) {#skip the first layer when iterating.
-        x <- l(torch::torch_cat(c(x, x_input), dim = 2), MPM)
+        x <- self$act(l(torch::torch_cat(c(x, x_input), dim = 2), MPM))
       }
       j <- j + 1
     }
