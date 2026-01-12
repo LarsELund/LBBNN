@@ -43,14 +43,14 @@ device <- "cpu" #can also be 'gpu' or 'mps'
 model_input_skip <- lbbnn_net(problem_type = problem, sizes = sizes,
                               prior = incl_priors,
                               inclusion_inits = incl_inits, input_skip = TRUE,
-                              std = stds, flow = TRUE, device = device,
-                              bias_inclusion_prob = FALSE)
+                              std = stds, flow = TRUE,dims = c(10,10,10),
+                              device = device, bias_inclusion_prob = FALSE)
 
-train_lbbnn(epochs = 1500, LBBNN = model_input_skip,
-            lr = 0.005, train_dl = train_loader, device = device)
+train_lbbnn(epochs = 300, LBBNN = model_input_skip,
+            lr = 0.01, train_dl = train_loader, device = device)
 
 validate_lbbnn(LBBNN = model_input_skip, num_samples = 100, test_dl = test_loader,
                device)
 
-plot(model_input_skip, type = "global", vertex_size = 10,
-     edge_width = 0.4, label_size = 0.3)
+plot(model_input_skip, type = "global", vertex_size = 7,
+     edge_width = 0.4, label_size = 0.4)

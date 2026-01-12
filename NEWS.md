@@ -8,7 +8,11 @@
 * Added default values to mpm and draws in predict() function.
 
 # LBBNN 0.1.3 (minor cosmetic changes)
-* Changed  some function names to be consistent with CRAN guidelines.
+* Changed some function names to be consistent with CRAN guidelines.
 * Removed export of function that is only used internally.
 * Changed assignment operator to be consistent everywhere. 
-* Removed datasets not used in RJ article submission. 
+* Removed datasets not used in RJ article submission.
+
+# LBBNN 0.1.4 (minor bug fix)
+* Added relu to input-skip layers. Updated experiments.
+

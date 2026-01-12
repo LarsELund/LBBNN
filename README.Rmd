@@ -44,7 +44,8 @@ library(torch)
 #the get_dataloaders function takes a data.frame dataset as input, then splits the data
 #in a training and validation set based on train_proportion, and returns torch dataloader 
 #objects.
-loaders <- get_dataloaders(Raisin_Dataset,train_proportion = 0.8,train_batch_size = 720,test_batch_size = 180)
+loaders <- get_dataloaders(raisin_dataset, train_proportion = 0.8, 
+                           train_batch_size = 720, test_batch_size = 180)
 train_loader <- loaders$train_loader
 test_loader <- loaders$test_loader
 
@@ -54,10 +55,10 @@ To initialize the LBBNN, we need to define several hyperparameters. First, the u
 
 ```{r}
 problem <- 'binary classification'
-sizes <- c(7,5,5,1) #7 input variables, one hidden layer of 100 neurons, 1 output neuron.
-inclusion_priors <-c(0.5,0.5,0.5) #one prior probability per weight matrix.
-stds <- c(1,1,1) #prior standard deviation for each layer.
-inclusion_inits <- matrix(rep(c(-10,15),3),nrow = 2,ncol = 3) #one low and high for each layer
+sizes <- c(7, 5, 5, 1) #7 input variables, one hidden layer of 100 neurons, 1 output neuron.
+inclusion_priors <-c(0.5, 0.5, 0.5) #one prior probability per weight matrix.
+stds <- c(1, 1, 1) #prior standard deviation for each layer.
+inclusion_inits <- matrix(rep(c(-10, 15), 3),nrow = 2, ncol = 3) #one low and high for each layer
 device <- 'cpu' #can also be mps or gpu.
 ```
 
@@ -78,7 +79,7 @@ To train the models, one can use the function train_lbbnn. The function takes nu
 
 ```{r,results='hide'}
 #model_input_skip$local_explanation = TRUE #to make sure we are using RELU
-results_input_skip <- suppressMessages(train_lbbnn(epochs = 800,LBBNN = model_input_skip, lr = 0.005,train_dl = train_loader,device = device))
+results_input_skip <- suppressMessages(train_lbbnn(epochs = 800,LBBNN = model_input_skip, lr = 0.01,train_dl = train_loader,device = device))
 #save the model 
 #torch::torch_save(model_input_skip$state_dict(), 
 #paste(getwd(),'/R/saved_models/README_input_skip_example_model.pth',sep = ''))
@@ -97,7 +98,7 @@ Plot the global structure of the given model:
 plot(model_input_skip,type = 'global',vertex_size = 13,edge_width = 0.6,label_size = 0.6)
 ```
 
-Note that only 3 of the 7 input variables are used, where one of them only has a linear connection.
+Note that only 4 of the 7 input variables are used.
 
 This can also be seen using the summary function:
 

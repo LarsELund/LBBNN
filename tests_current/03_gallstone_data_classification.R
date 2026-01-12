@@ -9,8 +9,8 @@ library(LBBNN)
 seed <- 42
 torch::torch_manual_seed(seed)
 loaders <- get_dataloaders(gallstone_dataset, train_proportion = 0.70,
-                  train_batch_size = 223, test_batch_size = 96,
-                  standardize = TRUE, seed = seed)
+                           train_batch_size = 223, test_batch_size = 96,
+                           standardize = TRUE, seed = seed)
 train_loader <- loaders$train_loader
 test_loader <- loaders$test_loader
 
@@ -32,7 +32,7 @@ model_input_skip <- lbbnn_net(problem_type = problem, sizes = sizes,
                               prior = inclusion_priors,
                               inclusion_inits = inclusion_inits,
                               input_skip = TRUE, std = stds, flow = TRUE,
-                              device = device)
+                              dims = c(10, 10 ,10, 10), device = device)
 
 
 results_input_skip <- train_lbbnn(epochs = 1000, LBBNN = model_input_skip,
@@ -59,4 +59,4 @@ predictions <- predict(model_input_skip, newdata = test_loader,
                        draws = 100, mpm = TRUE)
 
 dim(predictions)
-
+print(predictions)

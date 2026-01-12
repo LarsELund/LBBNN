@@ -40,8 +40,8 @@ model_input_skip <- lbbnn_net(problem_type = problem, sizes = sizes,
                               link = NULL, nll = NULL,
                               bias_inclusion_prob = FALSE, device = device)
 
-train_lbbnn(epochs = 2000, LBBNN = model_input_skip,
-            lr = 0.01, train_dl = train_loader, device = device)
+train_lbbnn(epochs = 300, LBBNN = model_input_skip,
+            lr = 0.05, train_dl = train_loader, device = device)
 validate_lbbnn(LBBNN = model_input_skip, num_samples = 10, test_dl = test_loader,
               device = device)
 
@@ -57,3 +57,5 @@ data <- x[42, ] #plot this specific data-point
 output <- y[ind]
 print(output$item())
 plot(model_input_skip, type = "local", data = data)
+plot(model_input_skip, type = "global", vertex_size = 7,
+     edge_width = 0.4, label_size = 0.4)

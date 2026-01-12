@@ -45,7 +45,8 @@ library(torch)
 #the get_dataloaders function takes a data.frame dataset as input, then splits the data
 #in a training and validation set based on train_proportion, and returns torch dataloader 
 #objects.
-loaders <- get_dataloaders(Raisin_Dataset,train_proportion = 0.8,train_batch_size = 720,test_batch_size = 180)
+loaders <- get_dataloaders(raisin_dataset, train_proportion = 0.8, 
+                           train_batch_size = 720, test_batch_size = 180)
 train_loader <- loaders$train_loader
 test_loader <- loaders$test_loader
 ```
@@ -67,10 +68,10 @@ initialization of the inclusion parameters.
 
 ``` r
 problem <- 'binary classification'
-sizes <- c(7,5,5,1) #7 input variables, one hidden layer of 100 neurons, 1 output neuron.
-inclusion_priors <-c(0.5,0.5,0.5) #one prior probability per weight matrix.
-stds <- c(1,1,1) #prior standard deviation for each layer.
-inclusion_inits <- matrix(rep(c(-10,15),3),nrow = 2,ncol = 3) #one low and high for each layer
+sizes <- c(7, 5, 5, 1) #7 input variables, one hidden layer of 100 neurons, 1 output neuron.
+inclusion_priors <-c(0.5, 0.5, 0.5) #one prior probability per weight matrix.
+stds <- c(1, 1, 1) #prior standard deviation for each layer.
+inclusion_inits <- matrix(rep(c(-10, 15), 3),nrow = 2, ncol = 3) #one low and high for each layer
 device <- 'cpu' #can also be mps or gpu.
 ```
 
@@ -93,7 +94,7 @@ as arguments:
 
 ``` r
 #model_input_skip$local_explanation = TRUE #to make sure we are using RELU
-results_input_skip <- suppressMessages(train_lbbnn(epochs = 800,LBBNN = model_input_skip, lr = 0.005,train_dl = train_loader,device = device))
+results_input_skip <- suppressMessages(train_lbbnn(epochs = 800,LBBNN = model_input_skip, lr = 0.01,train_dl = train_loader,device = device))
 #save the model 
 #torch::torch_save(model_input_skip$state_dict(), 
 #paste(getwd(),'/R/saved_models/README_input_skip_example_model.pth',sep = ''))
@@ -106,16 +107,16 @@ averaging, and the validation data as input.
 ``` r
 validate_lbbnn(LBBNN = model_input_skip,num_samples = 100,test_dl = test_loader,device)
 #> $accuracy_full_model
-#> [1] 0.8722222
-#> 
-#> $accuracy_sparse
 #> [1] 0.8666667
 #> 
+#> $accuracy_sparse
+#> [1] 0.8888889
+#> 
 #> $density
-#> [1] 0.2523364
+#> [1] 0.1308411
 #> 
 #> $density_active_path
-#> [1] 0.09345794
+#> [1] 0.1028037
 #validate_lbbnn(LBBNN = model_flows,num_samples = 1000,test_dl = test_loader,device)
 ```
 
@@ -127,8 +128,7 @@ plot(model_input_skip,type = 'global',vertex_size = 13,edge_width = 0.6,label_si
 
 <img src="man/figures/README-unnamed-chunk-6-1.png" width="100%" />
 
-Note that only 3 of the 7 input variables are used, where one of them
-only has a linear connection.
+Note that only 4 of the 7 input variables are used.
 
 This can also be seen using the summary function:
 
@@ -143,14 +143,14 @@ summary(model_input_skip)
 #> The final column shows the average inclusion probability across all layers
 #> -----------------------------------
 #>    L0 L1 L2    a0    a1    a2 a_avg
-#> x0  0  0  0 0.175 0.219 0.006 0.180
-#> x1  0  0  0 0.343 0.109 0.005 0.206
-#> x2  0  0  1 0.135 0.344 0.863 0.296
-#> x3  1  1  1 0.539 0.330 0.991 0.485
-#> x4  0  0  0 0.321 0.575 0.124 0.419
-#> x5  0  0  0 0.098 0.438 0.137 0.256
-#> x6  1  0  1 0.300 0.244 0.997 0.338
-#> The model took 11.263 seconds to train, using cpu
+#> x0  0  0  0 0.138 0.069 0.036 0.097
+#> x1  0  0  0 0.326 0.059 0.152 0.189
+#> x2  0  1  0 0.077 0.335 0.079 0.195
+#> x3  1  0  1 0.427 0.267 0.994 0.406
+#> x4  1  1  0 0.327 0.351 0.058 0.313
+#> x5  0  0  0 0.143 0.250 0.218 0.198
+#> x6  1  0  1 0.232 0.202 0.986 0.287
+#> The model took 10.89 seconds to train, using cpu
 ```
 
 The user can also plot local explanations for each input variable
@@ -169,22 +169,22 @@ Compute residuals: y_true - y_predicted
 
 ``` r
 residuals(model_input_skip)[1:10]
-#>  [1] -0.47491318  0.46904647 -0.14563666  0.40983611 -0.05854724  0.19214028
-#>  [7] -0.08140449 -0.28510988 -0.12890983 -0.04447413
+#>  [1] -0.42256758  0.25760156 -0.06397691  0.41818994 -0.04891150  0.37335026
+#>  [7] -0.07111212 -0.06033467 -0.12792712 -0.03229851
 ```
 
 Get local explanations from some training data:
 
 ``` r
 coef(model_input_skip,dataset = train_loader,inds = c(2,3,4,5,6))
-#>         lower       mean      upper
-#> x0  0.0000000  0.0000000  0.0000000
-#> x1  0.0000000  0.0000000  0.0000000
-#> x2 -0.1718342 -0.1708280 -0.1694423
-#> x3 -0.6384742 -0.6348897 -0.6288301
-#> x4  0.0000000  0.0000000  0.0000000
-#> x5  0.0000000  0.0000000  0.0000000
-#> x6 -2.2649529 -2.2543384 -2.2471136
+#>         lower        mean      upper
+#> x0  0.0000000  0.00000000  0.0000000
+#> x1  0.0000000  0.00000000  0.0000000
+#> x2 -1.1450108 -0.85363343 -0.1005854
+#> x3 -2.7260612 -1.36945037 -0.4463915
+#> x4 -0.7780398 -0.04011143  0.8547966
+#> x5  0.0000000  0.00000000  0.0000000
+#> x6 -2.4800578 -1.11293317 -0.5610269
 ```
 
 Get predictions from the posterior:
