@@ -167,6 +167,7 @@ lbbnn_net <- torch::nn_module(
       }
       x <- self$out(self$out_layer(x, MPM))
     }
+    #with input-skip
     else {x_input <- x$view(c(-1, self$sizes[1]))
     x <- self$act(self$layers$children$`0`(x_input, MPM)) #first layer
     j <- 1

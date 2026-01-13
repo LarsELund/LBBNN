@@ -51,7 +51,7 @@ output <- y[ind]
 print(output$item())
 
 plot(model_input_skip, type = "local", data = data)
-plot(model_input_skip, type = "global", vertex_size = 5,
+plot(model_input_skip, type = "global", vertex_size = 4,
      edge_width = 0.1, label_size = 0.2)
 summary(model_input_skip)
 coef(model_input_skip, train_loader)

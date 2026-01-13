@@ -35,7 +35,7 @@ device <- "cpu" #can also be 'gpu' or 'mps'
 model_input_skip <- lbbnn_net(problem_type = problem, sizes = sizes,
                               prior = incl_priors, inclusion_inits = incl_inits,
                               std = stds, input_skip = TRUE, flow = FALSE,
-                              num_transforms = 2, dims = c(2, 2),
+                              num_transforms = 2, dims = c(10, 10, 10),
                               raw_output = FALSE, custom_act = NULL,
                               link = NULL, nll = NULL,
                               bias_inclusion_prob = FALSE, device = device)
