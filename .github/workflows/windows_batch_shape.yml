@@ -1,0 +1,37 @@
+name: Windows Batch Shape Test
+
+on:
+  workflow_dispatch:  # allows manual triggering
+
+jobs:
+  windows-test:
+    runs-on: windows-latest
+
+    steps:
+      # 1. Checkout your repo
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # 2. Set up R
+      - name: Setup R
+        uses: r-lib/actions/setup-r@v2
+
+      # 3. Install package dependencies
+      - name: Install package dependencies
+        run: |
+          install.packages("remotes")
+          remotes::install_deps(dependencies = TRUE)
+
+      # 4. Install torch and torchvision
+      - name: Install torch
+        run: |
+          install.packages("torch")
+          library(torch)
+          torch::install_torch()
+          install.packages("torchvision")
+      
+      # 5. Run only the batch shape test
+      - name: Run batch shape test
+        run: |
+          library(testthat)
+          testthat::test_file("tests/testthat/test_windows_batch_shape.R")
