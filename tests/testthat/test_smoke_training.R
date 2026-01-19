@@ -3,10 +3,8 @@ test_that("Smoke: tiny model trains one epoch", {
   if (!requireNamespace("torch", quietly = TRUE)) {
     testthat::skip("torch not available")
   }
-
   i <- 5000
   j <- 15
-
   set.seed(2)
   torch::torch_manual_seed(2)
   #generate some data
