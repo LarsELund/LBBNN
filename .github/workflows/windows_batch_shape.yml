@@ -30,10 +30,11 @@ jobs:
         Rscript -e "install.packages('torchvision', repos='https://cloud.r-project.org')"
         Rscript -e "torch::install_torch()"
     
-    - name: Install LBBNN
+    - name: Install LBBNN from local source
       shell: pwsh
       run: |
-        Rscript -e "install.packages('LBBNN', repos='https://cloud.r-project.org')
+        Rscript -e "remotes::install_local('.', dependencies = TRUE)"
+
 
     - name: Run Windows batch shape test
       shell: pwsh
