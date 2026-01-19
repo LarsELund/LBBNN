@@ -29,6 +29,11 @@ jobs:
         Rscript -e "install.packages('torch', repos='https://cloud.r-project.org')"
         Rscript -e "install.packages('torchvision', repos='https://cloud.r-project.org')"
         Rscript -e "torch::install_torch()"
+    
+    - name: Install LBBNN
+      shell: pwsh
+      run: |
+        Rscript -e "install.packages('LBBNN', repos='https://cloud.r-project.org')
 
     - name: Run Windows batch shape test
       shell: pwsh
