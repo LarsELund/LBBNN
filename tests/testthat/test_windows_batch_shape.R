@@ -11,6 +11,10 @@ test_that("KMNIST batch has correct shape", {
   # Transform function to ensure channel dimension exists
   kmnist_transform <- function(x) {
     x <- torchvision::transform_to_tensor(x)
+    # Ensure [C, H, W]
+    if (length(dim(x)) == 2) {
+      x <- x$unsqueeze(1)
+    }
     x
   }
   
