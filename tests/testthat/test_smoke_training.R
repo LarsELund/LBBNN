@@ -1,4 +1,4 @@
-test_that("Smoke: tiny model trains one epoch", {
+test_that("Smoke: tiny model trains for one epoch", {
   testthat::skip_on_cran()
   if (!requireNamespace("torch", quietly = TRUE)) {
     testthat::skip("torch not available")
