@@ -5,6 +5,8 @@ library(LBBNN)
 
 test_that("KMNIST batch has correct shape", {
   
+
+  
   batch_size <- 100
   dir <- "./dataset/kmnist"
   
@@ -12,13 +14,13 @@ test_that("KMNIST batch has correct shape", {
   kmnist_transform <- function(x) {
     print("before transform:")
     print(dim(x))
+    d <- dim(x)
+    if (length(d) == 3 && d[3] > 1 && d[1] == d[2]) {#if shape [28,28,batch] as on windows and linux(?)
+      x <- x[, , 1, drop = TRUE] #get it to be the same shape as Mac OS
+    }
     x <- torchvision::transform_to_tensor(x)
     print("after transform:")
     print(dim(x))
-   
-    if (length(dim(x)) == 2) {
-      x <- x$unsqueeze(1)
-    }
     print("after fix:")
     print(dim(x))
     x
