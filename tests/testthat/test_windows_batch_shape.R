@@ -21,8 +21,6 @@ test_that("KMNIST batch has correct shape", {
     x <- torchvision::transform_to_tensor(x)
     print("after transform:")
     print(dim(x))
-    print("after fix:")
-    print(dim(x))
     x
   }
   
