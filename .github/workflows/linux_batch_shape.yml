@@ -14,25 +14,38 @@ jobs:
       with:
         r-version: '4.3'
 
+    # ✅ REQUIRED system libraries
     - name: Install system dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y libcurl4-openssl-dev libssl-dev libxml2-dev
+        sudo apt-get install -y \
+          libcurl4-openssl-dev \
+          libssl-dev \
+          libxml2-dev \
+          libfontconfig1-dev \
+          libfreetype6-dev \
+          libpng-dev \
+          libjpeg-dev \
+          libtiff5-dev \
+          pkg-config
 
-    - name: Install R dependencies
+    # Install remotes
+    - name: Install remotes
       run: |
         Rscript -e "install.packages('remotes', repos='https://cloud.r-project.org')"
-        Rscript -e "remotes::install_deps(dependencies = TRUE)"
 
+    # Install torch + torchvision FIRST
     - name: Install torch and torchvision
       run: |
         Rscript -e "install.packages(c('torch', 'torchvision'), repos='https://cloud.r-project.org')"
         Rscript -e "torch::install_torch()"
 
-    - name: Install LBBNN from local source
+    # Install package dependencies + package itself ONCE
+    - name: Install LBBNN
       run: |
         Rscript -e "remotes::install_local('.', dependencies = TRUE)"
 
+    # Run tests
     - name: Run batch shape test
       run: |
         Rscript -e "library(testthat); test_file('tests/testthat/test_windows_batch_shape.R')"
