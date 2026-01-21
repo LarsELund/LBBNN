@@ -18,7 +18,7 @@ jobs:
       with:
         r-version: '4.3'
 
-    # 🔧 Required for svglite / textshaping
+    # 🔧 System dependencies for svglite, textshaping, torch / torchvision
     - name: Install system dependencies
       run: |
         sudo apt-get update
@@ -31,7 +31,9 @@ jobs:
           libfontconfig1-dev \
           libssl-dev \
           libcurl4-openssl-dev \
-          libxml2-dev
+          libxml2-dev \
+          libjpeg-dev \
+          libtiff-dev
 
     - name: Install R dependencies
       run: |
@@ -40,7 +42,8 @@ jobs:
 
     - name: Install torch and torchvision
       run: |
-        Rscript -e "install.packages(c('torch', 'torchvision'), repos='https://cloud.r-project.org')"
+        Rscript -e "install.packages('torch', repos='https://cloud.r-project.org')"
+        Rscript -e "install.packages('torchvision', repos='https://cloud.r-project.org')"
         Rscript -e "torch::install_torch()"
 
     - name: Install LBBNN from local source
