@@ -1,51 +1,52 @@
-name: Linux R Check
+name: Ubuntu R Check
 
 on:
   workflow_dispatch:
+  push:
+  pull_request:
 
 jobs:
-  linux-check:
+  ubuntu-check:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - name: Checkout repository
+      uses: actions/checkout@v4
 
-    - uses: r-lib/actions/setup-r@v2
+    - name: Setup R
+      uses: r-lib/actions/setup-r@v2
       with:
         r-version: '4.3'
 
-    # ✅ REQUIRED system libraries
+    # 🔧 Required for svglite / textshaping
     - name: Install system dependencies
       run: |
         sudo apt-get update
         sudo apt-get install -y \
-          libcurl4-openssl-dev \
-          libssl-dev \
-          libxml2-dev \
-          libfontconfig1-dev \
+          libharfbuzz-dev \
+          libfribidi-dev \
           libfreetype6-dev \
           libpng-dev \
-          libjpeg-dev \
-          libtiff5-dev \
-          pkg-config
+          libcairo2-dev \
+          libfontconfig1-dev \
+          libssl-dev \
+          libcurl4-openssl-dev \
+          libxml2-dev
 
-    # Install remotes
-    - name: Install remotes
+    - name: Install R dependencies
       run: |
         Rscript -e "install.packages('remotes', repos='https://cloud.r-project.org')"
+        Rscript -e "remotes::install_deps(dependencies = TRUE)"
 
-    # Install torch + torchvision FIRST
     - name: Install torch and torchvision
       run: |
         Rscript -e "install.packages(c('torch', 'torchvision'), repos='https://cloud.r-project.org')"
         Rscript -e "torch::install_torch()"
 
-    # Install package dependencies + package itself ONCE
-    - name: Install LBBNN
+    - name: Install LBBNN from local source
       run: |
         Rscript -e "remotes::install_local('.', dependencies = TRUE)"
 
-    # Run tests
     - name: Run batch shape test
       run: |
         Rscript -e "library(testthat); test_file('tests/testthat/test_windows_batch_shape.R')"
