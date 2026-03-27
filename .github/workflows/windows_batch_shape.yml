@@ -40,3 +40,4 @@ jobs:
       shell: pwsh
       run: |
         Rscript -e "library(testthat); test_file('tests/testthat/test_windows_batch_shape.R')"
+        Rscript -e "library(testthat); test_file('tests/testthat/test_lbbnn_predictions.R')"
