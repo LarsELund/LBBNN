@@ -36,8 +36,7 @@ jobs:
         Rscript -e "remotes::install_local('.', dependencies = TRUE)"
 
 
-    - name: Run Windows batch shape test
-      shell: pwsh
+    - name: Run tests
       run: |
-        Rscript -e 'options(timeout = 1800); test_file('tests/testthat/test_windows_batch_shape.R')"
-        Rscript -e 'options(timeout = 1800); test_file('tests/testthat/test_lbbnn_predictions.R')"
+        Rscript -e "options(timeout = 1800); test_file('tests/testthat/test_windows_batch_shape.R')"
+        Rscript -e "options(timeout = 1800); test_file('tests/testthat/test_lbbnn_predictions.R')"
