@@ -37,7 +37,7 @@ jobs:
 
     - name: Install R dependencies
       run: |
-        Rscript -e "install.packages('remotes', repos='https://cloud.r-project.org')"
+        Rscript -e "install.packages('remotes','testthat', repos='https://cloud.r-project.org')"
         Rscript -e "remotes::install_deps(dependencies = TRUE)"
 
     - name: Install torch and torchvision
