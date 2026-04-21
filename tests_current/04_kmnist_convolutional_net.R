@@ -14,18 +14,33 @@ if(!requireNamespace("torchvision"))
 
 torch::torch_manual_seed(42)
 dir <- "./dataset/kmnist"
+
+# Transform function to ensure channel dimension exists
+kmnist_transform <- function(x) {
+  d <- dim(x)
+  if (length(d) == 3 && d[3] > 1 && d[1] == d[2]) {#if shape [28,28,batch] as on windows and linux(?)
+    x <- torchvision::transform_to_tensor(x) #now shape should be [batch, 28,28]
+    x <- x$unsqueeze(2) #add the channel dimension - > [batch,1,28,28]
+  }
+  else{ #on mac, everything is fine and easy
+    x <- torchvision::transform_to_tensor(x)
+  }
+  return(x)
+}
+
+
 train_ds <- torchvision::kmnist_dataset(
   dir,
   download = TRUE,
-  transform = torchvision::transform_to_tensor)
+  transform = kmnist_transform)
 
 test_ds <- torchvision::kmnist_dataset(
   dir,
   train = FALSE,
-  transform = torchvision::transform_to_tensor)
+  transform = kmnist_transform)
 
-train_loader <- torch::dataloader(train_ds, batch_size = 100, shuffle = TRUE)
-test_loader <- torch::dataloader(test_ds, batch_size = 100)
+train_loader_kmnist <- torch::dataloader(train_ds, batch_size = 100, shuffle = TRUE)
+test_loader_kmnist <- torch::dataloader(test_ds, batch_size = 100)
 
 
 
@@ -35,27 +50,27 @@ test_loader <- torch::dataloader(test_ds, batch_size = 100)
 
 device <- "cpu"
 conv_layer_1 <- lbbnn_conv2d(in_channels = 1, out_channels = 32, kernel_size = 5,
-                           prior_inclusion = 0.5, standard_prior = 1,
-                           density_init = c(-10, 10), num_transforms = 2,
-                           flow = FALSE, hidden_dims = c(200, 200),
-                           device = device)
+                             prior_inclusion = 0.5, standard_prior = 1,
+                             density_init = c(-10, 10), num_transforms = 2,
+                             flow = FALSE, hidden_dims = c(200, 200),
+                             device = device)
 conv_layer_2 <- lbbnn_conv2d(in_channels = 32, out_channels = 64, kernel_size = 5,
-                           prior_inclusion = 0.5, standard_prior = 1,
-                           density_init = c(-10, 15), num_transforms = 2,
-                           flow = FALSE, hidden_dims = c(200, 200),
-                           device = device)
+                             prior_inclusion = 0.5, standard_prior = 1,
+                             density_init = c(-10, 15), num_transforms = 2,
+                             flow = FALSE, hidden_dims = c(200, 200),
+                             device = device)
 
 linear_layer_1 <- lbbnn_linear(in_features = 1024, out_features = 300,
-                         prior_inclusion = 0.5, standard_prior = 1,
-                         density_init = c(-10, 10), num_transforms = 2,
-                         flow = FALSE, hidden_dims = c(200, 200), device = device,
-                         bias_inclusion_prob = FALSE, conv_net = TRUE)
+                               prior_inclusion = 0.5, standard_prior = 1,
+                               density_init = c(-10, 10), num_transforms = 2,
+                               flow = FALSE, hidden_dims = c(200, 200), device = device,
+                               bias_inclusion_prob = FALSE, conv_net = TRUE)
 
 linear_layer_2 <- lbbnn_linear(in_features = 300, out_features = 10,
-                         prior_inclusion = 0.5, standard_prior = 1,
-                         density_init = c(-5, 15),num_transforms = 2,
-                         flow = FALSE, hidden_dims = c(200, 200), device = device,
-                         bias_inclusion_prob = FALSE, conv_net = TRUE)
+                               prior_inclusion = 0.5, standard_prior = 1,
+                               density_init = c(-5, 15),num_transforms = 2,
+                               flow = FALSE, hidden_dims = c(200, 200), device = device,
+                               bias_inclusion_prob = FALSE, conv_net = TRUE)
 
 LBBNN_ConvNet <- torch::nn_module(
   "LBBNN_ConvNet",
@@ -109,37 +124,40 @@ LBBNN_ConvNet <- torch::nn_module(
   }
 )
 
-model <- LBBNN_ConvNet(conv_layer_1, conv_layer_2, linear_layer_1,
+model_kmnist <- LBBNN_ConvNet(conv_layer_1, conv_layer_2, linear_layer_1,
                        linear_layer_2, device)
-model$to(device = device)
+model_kmnist$to(device = device)
 
-train_lbbnn(epochs = 20, LBBNN = model, lr = 0.001, train_dl = train_loader,
+train_lbbnn(epochs = 20, LBBNN = model_kmnist, lr = 0.001, train_dl = train_loader_kmnist,
             device = device)
 
-validate_lbbnn(model, num_samples = 10, test_dl = test_loader, device = device)
-print(model)
+validate_lbbnn(model_kmnist, num_samples = 10, test_dl = test_loader_kmnist, device = device)
+print(model_kmnist)
 
 
 draws <- 20 # how many samples from posterior to use
 out_dim <- 10 # dimensionality of the output
 mpm <- TRUE # if to use the MPM
-model$eval() # to avoid gradient computations
-predictions <- NULL
+model_kmnist$eval() # to avoid gradient computations
+predictions_kmnist <- NULL
 torch::with_no_grad({ 
-  coro::loop(for (b in test_loader)# go through all data
+  coro::loop(for (b in test_loader_kmnist)# go through all data
   { 
     outputs <- torch::torch_zeros(draws,dim(b[[1]])[1],out_dim)$to(device=device)
     for(i in 1:draws)# go through all draws 
     {
       data <- b[[1]]$to(device = device)
-      outputs[i]<- model(data, MPM = mpm, predict = TRUE)
+      outputs[i]<- model_kmnist(data, MPM = mpm, predict = TRUE)
     }
-    predictions <- torch::torch_cat(c(predictions, outputs), dim = 2) #combine all
+    predictions_kmnist <- torch::torch_cat(c(predictions_kmnist, outputs), dim = 2) #combine all
     
   })  
 })
 
-dim(predictions)
+dim(predictions_kmnist)
 
-print(torch::torch_round(predictions[1:5, 255, ], 4))
-print(torch::torch_round(predictions[1:5, 258, ], 4))
+idx1 <- min(255, dim(predictions_kmnist)[2])
+print(torch::torch_round(predictions_kmnist[1:5, idx1, ], 4))
+
+idx2 <- min(258, dim(predictions_kmnist)[2])
+print(torch::torch_round(predictions_kmnist[1:5, idx2, ], 4))

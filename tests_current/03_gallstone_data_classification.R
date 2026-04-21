@@ -8,11 +8,11 @@ library(LBBNN)
 
 seed <- 42
 torch::torch_manual_seed(seed)
-loaders <- get_dataloaders(gallstone_dataset, train_proportion = 0.70,
+loaders_gs <- get_dataloaders(gallstone_dataset, train_proportion = 0.70,
                            train_batch_size = 223, test_batch_size = 96,
                            standardize = TRUE, seed = seed)
-train_loader <- loaders$train_loader
-test_loader <- loaders$test_loader
+train_loader_gs <- loaders_gs$train_loader
+test_loader_gs <- loaders_gs$test_loader
 
 #this paper reports approx 85% accuracy using gradient boosting
 #https://pmc.ncbi.nlm.nih.gov/articles/PMC11309733/#T2
@@ -28,35 +28,35 @@ inclusion_inits <- matrix(rep(c(-5, 10), 3), nrow = 2, ncol = 3) #one low and hi
 device <- "cpu"
 
 
-model_input_skip <- lbbnn_net(problem_type = problem, sizes = sizes,
+model_gs <- lbbnn_net(problem_type = problem, sizes = sizes,
                               prior = inclusion_priors,
                               inclusion_inits = inclusion_inits,
                               input_skip = TRUE, std = stds, flow = TRUE,
                               dims = c(10, 10 ,10, 10), device = device)
 
 
-results_input_skip <- train_lbbnn(epochs = 1000, LBBNN = model_input_skip,
-                                  lr = 0.005, train_dl = train_loader,
+results_gs <- train_lbbnn(epochs = 1000, LBBNN = model_gs,
+                                  lr = 0.005, train_dl = train_loader_gs,
                                   device = device, scheduler = "step",
                                   sch_step_size = 1000)
 
-validate_lbbnn(LBBNN = model_input_skip, num_samples = 100,
-               test_dl = test_loader, device)
+validate_lbbnn(LBBNN = model_gs, num_samples = 100,
+               test_dl = test_loader_gs, device)
 
-x <- train_loader$dataset$tensors[[1]] #grab the dataset
-y <- train_loader$dataset$tensors[[2]]
+x_gs <- train_loader_gs$dataset$tensors[[1]] #grab the dataset
+y_gs <- train_loader_gs$dataset$tensors[[2]]
 ind <- 42
-data <- x[ind, ] #plot this specific data-point
-output <- y[ind]
+data <- x_gs[ind, ] #plot this specific data-point
+output <- y_gs[ind]
 print(output$item())
 
-plot(model_input_skip, type = "local", data = data)
-plot(model_input_skip, type = "global", vertex_size = 4,
+plot(model_gs, type = "local", data = data)
+plot(model_gs, type = "global", vertex_size = 4,
      edge_width = 0.1, label_size = 0.2)
-summary(model_input_skip)
-coef(model_input_skip, train_loader)
-predictions <- predict(model_input_skip, newdata = test_loader,
+summary(model_gs)
+coef(model_gs, train_loader_gs)
+predictions_gs <- predict(model_gs, newdata = test_loader_gs,
                        draws = 100, mpm = TRUE)
 
-dim(predictions)
-print(predictions)
+dim(predictions_gs)
+print(predictions_gs)

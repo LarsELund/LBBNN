@@ -32,7 +32,7 @@ stds <- c(1, 1, 1) #prior for the standard deviation of the weights
 incl_inits <- matrix(rep(c(-10, 10), 3), nrow = 2, ncol = 3) #inclusion inits
 device <- "cpu" #can also be 'gpu' or 'mps'
 
-model_input_skip <- lbbnn_net(problem_type = problem, sizes = sizes,
+model_linear <- lbbnn_net(problem_type = problem, sizes = sizes,
                               prior = incl_priors, inclusion_inits = incl_inits,
                               std = stds, input_skip = TRUE, flow = FALSE,
                               num_transforms = 2, dims = c(10, 10, 10),
@@ -40,14 +40,14 @@ model_input_skip <- lbbnn_net(problem_type = problem, sizes = sizes,
                               link = NULL, nll = NULL,
                               bias_inclusion_prob = FALSE, device = device)
 
-train_lbbnn(epochs = 300, LBBNN = model_input_skip,
+train_lbbnn(epochs = 300, LBBNN = model_linear,
             lr = 0.05, train_dl = train_loader, device = device)
-validate_lbbnn(LBBNN = model_input_skip, num_samples = 10, test_dl = test_loader,
+validate_lbbnn(LBBNN = model_linear, num_samples = 10, test_dl = test_loader,
               device = device)
 
-summary(model_input_skip)
+summary(model_linear)
 
-coef(model_input_skip, dataset = train_loader, inds = NULL,
+coef(model_linear, dataset = train_loader, inds = NULL,
      output_neuron = 1, num_data = 5, num_samples = 10)
 
 x <- train_loader$dataset$tensors[[1]] #grab the dataset
@@ -56,6 +56,6 @@ ind <- 42
 data <- x[42, ] #plot this specific data-point
 output <- y[ind]
 print(output$item())
-plot(model_input_skip, type = "local", data = data)
-plot(model_input_skip, type = "global", vertex_size = 7,
+plot(model_linear, type = "local", data = data)
+plot(model_linear, type = "global", vertex_size = 7,
      edge_width = 0.4, label_size = 0.4)
