@@ -33,7 +33,8 @@ jobs:
           libcurl4-openssl-dev \
           libxml2-dev \
           libjpeg-dev \
-          libtiff-dev
+          libtiff-dev \
+          libuv1-dev 
 
     - name: Install R dependencies
       run: |
