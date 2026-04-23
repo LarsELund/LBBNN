@@ -16,3 +16,8 @@
 # LBBNN 0.1.4 (minor bug fix)
 * Added relu to input-skip layers. Updated experiments.
 
+# LBBNN 0.1.5
+* All torch-dependent examples are now guarded by
+ `torch_available()` to ensure safe execution when torch or libtorch
+  is not available.
+
