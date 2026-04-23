@@ -93,11 +93,12 @@ density_initialization <- function(lower, upper) {
 #' @param conv_net logical, whether the layer is used in a convolutional net.
 #' @examples
 #' \donttest{
+#' if (torch_available()) {
 #' l1 <- lbbnn_linear(in_features = 10,out_features = 5,prior_inclusion = 0.25,
 #' standard_prior = 1,density_init = c(0,1),flow = FALSE)
 #' x <- torch::torch_rand(20,10,requires_grad = FALSE)
 #' output <- l1(x,MPM = FALSE) #the forward pass, output has shape (20,5)
-#' print(l1$kl_div()$item()) #compute KL-divergence after the forward pass
+#' print(l1$kl_div()$item())} #compute KL-divergence after the forward pass
 #' }
 #' @return A \code{torch::nn_module} object,
 #' representing a fully connected LBBNN layer.
@@ -375,11 +376,12 @@ lbbnn_linear <- torch::nn_module(
 #' @param device The device to be used. Default is CPU.
 #' @examples
 #' \donttest{
+#' if (torch_available()) {
 #'layer <- lbbnn_conv2d(in_channels = 1,out_channels = 32,kernel_size = c(3,3),
 #'prior_inclusion = 0.2,standard_prior = 1,density_init = c(0,1),device = 'cpu')
 #'x <-torch::torch_randn(100,1,28,28)
 #'out <-layer(x)
-#'print(dim(out))
+#'print(dim(out))}
 #'}
 #' @importFrom torch torch_empty torch_long torch_zeros torch_zeros_like
 #' with_no_grad torch_rand torch_randn torch_exp

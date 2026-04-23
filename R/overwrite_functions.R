@@ -61,6 +61,7 @@ get_input_inclusions <- function(model) {
 #'   The returned \code{data.frame} is invisible.
 #' @examples
 #' \donttest{
+#' if (torch_available()) {
 #'x<-torch::torch_randn(3,2)
 #'b <- torch::torch_rand(2)
 #'y <- torch::torch_matmul(x,b)
@@ -74,7 +75,7 @@ get_input_inclusions <- function(model) {
 #'model <- lbbnn_net(problem, sizes, inclusion_priors, stds, inclusion_inits,
 #'flow = FALSE, input_skip = TRUE)
 #'train_lbbnn(epochs = 1,LBBNN = model, lr = 0.01,train_dl = train_loader)
-#'summary(model)
+#'summary(model)}
 #'}
 #' @export
 summary.lbbnn_net <- function(object, ...) {
@@ -133,6 +134,7 @@ summary.lbbnn_net <- function(object, ...) {
 #' @return A numeric vector of residuals (\code{y_true - y_predicted})
 #' @examples
 #' \donttest{
+#' if (torch_available()) {
 #'x<-torch::torch_randn(3,2)
 #'b <- torch::torch_rand(2)
 #'y <- torch::torch_matmul(x,b)
@@ -146,7 +148,7 @@ summary.lbbnn_net <- function(object, ...) {
 #'model <- lbbnn_net(problem,sizes, inclusion_priors, stds ,inclusion_inits,
 #'flow = FALSE, input_skip = TRUE)
 #'train_lbbnn(epochs = 1,LBBNN = model, lr = 0.01,train_dl = train_loader)
-#'residuals(model)
+#'residuals(model)}
 #'}
 #' @export
 residuals.lbbnn_net <- function(object, type = c("response"), ...) {
@@ -199,6 +201,7 @@ residuals.lbbnn_net <- function(object, type = c("response"), ...) {
 #'
 #' @examples
 #' \donttest{
+#' if (torch_available()) {
 #'x<-torch::torch_randn(3,2)
 #'b <- torch::torch_rand(2)
 #'y <- torch::torch_matmul(x,b)
@@ -212,7 +215,7 @@ residuals.lbbnn_net <- function(object, type = c("response"), ...) {
 #'model <- lbbnn_net(problem,sizes,inclusion_priors,stds,inclusion_inits,flow = FALSE,
 #'input_skip = TRUE)
 #'train_lbbnn(epochs = 1,LBBNN = model, lr = 0.01,train_dl = train_loader)
-#'coef(model,dataset = x, num_data = 1)
+#'coef(model,dataset = x, num_data = 1)}
 #'}
 #' @export
 coef.lbbnn_net <- function(object, dataset, inds = NULL, output_neuron = 1,
@@ -310,6 +313,7 @@ coef.lbbnn_net <- function(object, dataset, inds = NULL, output_neuron = 1,
 #'and \code{C} the number of outputs.
 #' @examples
 #' \donttest{
+#' if (torch_available()) {
 #'x<-torch::torch_randn(3,2)
 #'b <- torch::torch_rand(2)
 #'y <- torch::torch_matmul(x,b)
@@ -323,7 +327,7 @@ coef.lbbnn_net <- function(object, dataset, inds = NULL, output_neuron = 1,
 #'model <- lbbnn_net(problem,sizes,inclusion_priors,stds,inclusion_inits,
 #'flow = FALSE,input_skip = TRUE)
 #'train_lbbnn(epochs = 1,LBBNN = model, lr = 0.01,train_dl = train_loader)
-#'predict(model,mpm = FALSE,newdata = train_loader,draws = 1)
+#'predict(model,mpm = FALSE,newdata = train_loader,draws = 1)}
 #'}
 #' @export
 predict.lbbnn_net <- function(object, newdata, mpm = FALSE, draws = 10,
@@ -365,6 +369,7 @@ predict.lbbnn_net <- function(object, newdata, mpm = FALSE, draws = 10,
 #' @return Invisibly returns the input \code{x}.
 #' @examples
 #' \donttest{
+#' if (torch_available()) {
 #'x<-torch::torch_randn(3,2)
 #'b <- torch::torch_rand(2)
 #'y <- torch::torch_matmul(x,b)
@@ -377,7 +382,7 @@ predict.lbbnn_net <- function(object, newdata, mpm = FALSE, draws = 10,
 #'stds <- c(1.0,1.0)
 #'model <- lbbnn_net(problem,sizes,inclusion_priors,stds,inclusion_inits,
 #'flow = FALSE, input_skip = TRUE)
-#'print(model)
+#'print(model)}
 #'}
 #' @export
 print.lbbnn_net <- function(x, ...) {

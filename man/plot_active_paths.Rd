@@ -38,6 +38,7 @@ Uses igraph to plot.
 }
 \examples{
 \donttest{
+if (torch_available()) {
 sizes <- c(2,3,3,2)
 problem <- 'multiclass classification'
 inclusion_priors <- c(0.1,0.1,0.1)
@@ -50,6 +51,6 @@ model <- lbbnn_net(problem_type = problem, sizes = sizes,
                   input_skip = TRUE, std = std_priors, flow = FALSE,
                   num_transforms = 2, dims = c(200,200), device = device)
 model$compute_paths_input_skip()
-LBBNN:::plot_active_paths(model, 1, 1, 14, 1)
+LBBNN:::plot_active_paths(model, 1, 1, 14, 1)}
 }
 }

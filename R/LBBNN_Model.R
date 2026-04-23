@@ -38,6 +38,7 @@
 #' be as associated with inclusion probabilities.
 #' @examples
 #' \donttest{
+#' if (torch_available()) {
 #' layers <- c(10,2,5)
 #' alpha <- c(0.3,0.9)
 #' stds <- c(1.0,1.0)
@@ -49,7 +50,7 @@
 #' x <- torch::torch_rand(20,10,requires_grad = FALSE)
 #' output <- net(x)
 #' net$kl_div()$item()
-#' net$density()
+#' net$density()}
 #' }
 #' @return A \code{torch::nn_module} object representing the LBBNN.
 #'   It includes the following methods:

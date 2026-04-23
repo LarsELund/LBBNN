@@ -1,8 +1,6 @@
-#' @keywords internal
+#' Check if torch/libtorch is available for examples 
+#' @export
 torch_available <- function() {
   requireNamespace("torch", quietly = TRUE) &&
-    isTRUE(tryCatch(
-      torch::torch_is_installed(),
-      error = function(e) FALSE
-    ))
+    torch::torch_is_installed() #without this, runtime operations will fail (missing libtorch)
 }

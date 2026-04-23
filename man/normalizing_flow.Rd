@@ -43,6 +43,7 @@ transformation, the sum of the log-determinants of the independent layers.
 }
 \examples{
 \donttest{
+if (torch_available()) {
 flow <- normalizing_flow(c(2,5,5), transform_type='RNVP', num_transforms = 3)
 flow$to(device = 'cpu')
 x <- torch::torch_rand(2, device = 'cpu')
@@ -50,6 +51,6 @@ output <- flow(x)
 z_out <- output$z
 print(dim(z_out))
 log_det <- output$logdet
-print(log_det)
+print(log_det)}
 }
 }

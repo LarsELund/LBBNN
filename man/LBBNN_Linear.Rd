@@ -74,10 +74,11 @@ or the Median Probability Model (MPM).
 }
 \examples{
 \donttest{
+if (torch_available()) {
 l1 <- lbbnn_linear(in_features = 10,out_features = 5,prior_inclusion = 0.25,
 standard_prior = 1,density_init = c(0,1),flow = FALSE)
 x <- torch::torch_rand(20,10,requires_grad = FALSE)
 output <- l1(x,MPM = FALSE) #the forward pass, output has shape (20,5)
-print(l1$kl_div()$item()) #compute KL-divergence after the forward pass
+print(l1$kl_div()$item())} #compute KL-divergence after the forward pass
 }
 }

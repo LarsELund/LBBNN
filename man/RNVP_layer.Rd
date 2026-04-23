@@ -36,10 +36,11 @@ https://arxiv.org/abs/1606.04934
 }
 \examples{
 \donttest{
+if (torch_available()) {
 z <- torch::torch_rand(200)
 layer <- rnvp_layer(c(200,50,100))
 out <- layer(z)
 print(dim(out))
-print(layer$log_det())
+print(layer$log_det())}
 }
 }

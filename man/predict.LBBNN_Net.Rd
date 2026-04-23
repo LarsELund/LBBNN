@@ -40,6 +40,7 @@ Draw from the posterior of a trained \code{lbbnn_net} object.
 }
 \examples{
 \donttest{
+if (torch_available()) {
 x<-torch::torch_randn(3,2)
 b <- torch::torch_rand(2)
 y <- torch::torch_matmul(x,b)
@@ -53,6 +54,6 @@ stds <- c(1.0,1.0)
 model <- lbbnn_net(problem,sizes,inclusion_priors,stds,inclusion_inits,
 flow = FALSE,input_skip = TRUE)
 train_lbbnn(epochs = 1,LBBNN = model, lr = 0.01,train_dl = train_loader)
-predict(model,mpm = FALSE,newdata = train_loader,draws = 1)
+predict(model,mpm = FALSE,newdata = train_loader,draws = 1)}
 }
 }

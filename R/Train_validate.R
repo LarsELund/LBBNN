@@ -19,6 +19,7 @@
 #' For comparisons sake we show the density with and without active paths.
 #' @examples
 #' \donttest{
+#' if (torch_available()) {
 #'x<-torch::torch_randn(3,2)
 #'b <- torch::torch_rand(2)
 #'y <- torch::torch_matmul(x,b)
@@ -32,7 +33,7 @@
 #'model <- lbbnn_net(problem,sizes,inclusion_priors,stds,inclusion_inits,
 #'flow = FALSE)
 #'output <- train_lbbnn(epochs = 1,LBBNN = model, lr = 0.01,
-#'train_dl = train_loader)
+#'train_dl = train_loader)}
 #'}
 #' @return A list with elements (returned invisibly):
 #'   \describe{

@@ -132,6 +132,7 @@ assign_names <- function(model) {#assign names to the nodes before plotting
 #' @param save_svg the path where the plot will be saved.
 #' @examples
 #' \donttest{
+#' if (torch_available()) {
 #' sizes <- c(2,3,3,2)
 #' problem <- 'multiclass classification'
 #' inclusion_priors <- c(0.1,0.1,0.1)
@@ -144,7 +145,7 @@ assign_names <- function(model) {#assign names to the nodes before plotting
 #'                   input_skip = TRUE, std = std_priors, flow = FALSE,
 #'                   num_transforms = 2, dims = c(200,200), device = device)
 #' model$compute_paths_input_skip()
-#' LBBNN:::plot_active_paths(model, 1, 1, 14, 1)
+#' LBBNN:::plot_active_paths(model, 1, 1, 14, 1)}
 #' }
 #' @return This function produces plots as a side effect and does not return a value.
 plot_active_paths <- function(model, layer_spacing = 1, neuron_spacing = 1,

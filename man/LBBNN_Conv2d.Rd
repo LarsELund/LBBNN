@@ -69,10 +69,11 @@ Median Probability Model (MPM).
 }
 \examples{
 \donttest{
+if (torch_available()) {
 layer <- lbbnn_conv2d(in_channels = 1,out_channels = 32,kernel_size = c(3,3),
 prior_inclusion = 0.2,standard_prior = 1,density_init = c(0,1),device = 'cpu')
 x <-torch::torch_randn(100,1,28,28)
 out <-layer(x)
-print(dim(out))
+print(dim(out))}
 }
 }

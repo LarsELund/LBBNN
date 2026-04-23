@@ -22,6 +22,7 @@ and prior variance and inclusion probabilities for the weights.
 }
 \examples{
 \donttest{
+if (torch_available()) {
 x<-torch::torch_randn(3,2)
 b <- torch::torch_rand(2)
 y <- torch::torch_matmul(x,b)
@@ -34,6 +35,6 @@ inclusion_inits <- matrix(rep(c(-10,10),2),nrow = 2,ncol = 2)
 stds <- c(1.0,1.0)
 model <- lbbnn_net(problem,sizes,inclusion_priors,stds,inclusion_inits,
 flow = FALSE, input_skip = TRUE)
-print(model)
+print(model)}
 }
 }
