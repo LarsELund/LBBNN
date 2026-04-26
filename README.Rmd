@@ -21,7 +21,7 @@ knitr::opts_chunk$set(
 
 <!-- badges: end -->
 
-The goal of LBBNN is to implement Latent Bayesian Binary Neural Networks (<https://openreview.net/pdf?id=d6kqUKzG3V>) in R, using the torch for R package. Currently, standard LBBNNs are implemented. In the future, we will also implement LBBNNs with input-skip (see <https://arxiv.org/abs/2503.10496>).
+The package implements LBBNN (Latent Binary Bayesian Neural Networks) (<https://openreview.net/pdf?id=d6kqUKzG3V>) in R using the LibTorch backend via the Torch package. Currently, standard LBBNNs are implemented, using the local reparametrization tricks and optionally normalizing flows. In addition, the input-skip architecture is also implemented. <https://arxiv.org/abs/2503.10496>).
 
 ## Installation
 
@@ -34,18 +34,18 @@ pak::pak("LarsELund/LBBNN")
 
 ## Example
 
-This example demonstrates how to implement a simple feed forward LBBNN on the raisin_dataset.
+This example demonstrates how to implement a simple feed forward LBBNN on a small dataset
+containing morphological features of two types of raisins. 
 
-First, data must be processed and moved to torch dataloaders, using the get_dataloaders() function:
+The get_dataloaders() function takes a data.frame object, and transforms it to 
+a tensor_dataset, which can be used in a torch_dataloader object. This enables 
+automatic mini-batching and parallel data loading. 
+
+The arguments define the proportion of data to be used for training vs validation
+in addition to the batch sizes for the respective dataloaders.
 
 ```{r example}
 library(LBBNN)
-library(ggplot2)
-library(torch)
-
-#the get_dataloaders function takes a data.frame dataset as input, then splits the data
-#in a training and validation set based on train_proportion, and returns torch dataloader 
-#objects.
 loaders <- get_dataloaders(raisin_dataset, train_proportion = 0.8, 
                            train_batch_size = 720, test_batch_size = 180)
 train_loader <- loaders$train_loader
@@ -53,27 +53,36 @@ test_loader <- loaders$test_loader
 
 ```
 
-To initialize the LBBNN, we first define some hyperparameters. First, the user must define what type of problem they are facing. This could be either binary classification (as in this case), multiclass classification (more than two classes), or regression (continuous output). Next, the user needs to define a size vector. The first element is the number of variables in the dataset (7 in this case), the last element is the number of output neurons (1 here), and the elements in between represent the number of neurons in the hidden layer(s). Then, the user must define the prior inclusion probability for each weight matrix. This parameter is important as it reflects prior beliefs about how dense the network should be. The user also needs to define the prior standard deviation for the weight and bias parameters. Lastly, the user must define the initialization of the inclusion parameters.
+Important hyperparameters include the size of the network, priors, and initializations.
+When defining an 'lbbnn_net' object, the sizes argument is a vector of integers, where the 
+first entry represents the number of features (7 in this case), the subsequent entries
+are the widths of the hidden layers, and the last entry the number of outputs.
+
+The prior argument defines the inclusion priors for each layer, whereas std refers
+to the standard deviation of the weight priors. inclusion_inits refers to the 
+initialization of the variationa linclusion parameters. It controls the initial
+density of the network.
 
 ```{r}
 problem <- 'binary classification'
-sizes <- c(7, 5, 5, 1) #7 input variables, two hidden layers of 5 neurons each, 1 output neuron.
-inclusion_priors <-c(0.5, 0.5, 0.5) #one prior probability per weight matrix.
-stds <- c(1, 1, 1) #prior standard deviation for each layer.
-inclusion_inits <- matrix(rep(c(-10, 15), 3),nrow = 2, ncol = 3) #one low and high for each layer.
+sizes <- c(7, 5, 5, 1) 
+inclusion_priors <-c(0.5, 0.5, 0.5) 
+stds <- c(1, 1, 1) 
+inclusion_inits <- matrix(rep(c(-10, 15), 3),nrow = 2, ncol = 3)
 device <- 'cpu' #can also be mps or gpu.
 ```
 
-We can now define the model. We use the mean-field posterior and input-skip.
+Below we define the model. We use the input_skip architecture in this case, but not normalizing flows.
 
 ```{r}
-torch_manual_seed(0)
+torch::torch_manual_seed(0)
 model_input_skip <- lbbnn_net(problem_type = problem,sizes = sizes,prior = inclusion_priors,
                       inclusion_inits = inclusion_inits,input_skip = TRUE,std = stds,
                    flow = FALSE,device = device)
 ```
 
-To train the model, the function train_lbbnn is used. 
+The function lbbnn_train is used to train the model. In this case for 800 epochs with a learning rate of 0.01.
+During training, the loss and accuracy can be displayed at each epoch.
 
 ```{r,results='hide'}
 results_input_skip <- suppressMessages(train_lbbnn(epochs = 800,LBBNN = model_input_skip, lr = 0.01,train_dl = train_loader,device = device))
@@ -82,29 +91,32 @@ results_input_skip <- suppressMessages(train_lbbnn(epochs = 800,LBBNN = model_in
 #paste(getwd(),'/R/saved_models/README_input_skip_example_model.pth',sep = ''))
 ```
 
-To evaluate performance on the validation data, the function validate_lbbnn is used. It takes a model, number of samples for model averaging, and the validation data as input.
-
+Below, validate_lbbnn is used to test the model on unseen data. We provide
+the test_loader, containing the data set aside.
 ```{r}
 validate_lbbnn(LBBNN = model_input_skip,num_samples = 100,test_dl = test_loader,device)
 #validate_lbbnn(LBBNN = model_flows,num_samples = 1000,test_dl = test_loader,device)
 ```
 
-Plot the global structure (explanation) for the given model:
+The package provides utilities for both global and local explanations. Global explanations
+describe how the models behaves overall across the entire dataset. The function plot, 
+with argument type = 'global' visualizes the structure of the network, when only weights within
+active paths are included, where an active path is a path from an input, to the output, either directly
+or through one or more hidden neurons.
 
 ```{r}
 plot(model_input_skip,type = 'global',vertex_size = 13,edge_width = 0.6,label_size = 0.6)
 ```
 
-Note that only 4 of the 7 input variables are used.
+We see that only 4 of the 7 input variables are included..
 
-This can also be seen using the summary function:
+The summary function provides further detail into inclusion probabilities from different layers.
 
 ```{r}
 summary(model_input_skip)
 ```
 
-Local explanations for a specific sample using plot():
-
+Local explanations aim to explain a model’s prediction for a specific observation by quantifying how each input feature influences that prediction. Below we show one example. Unlike other methods like SHAP and LIME, our local explanations are intrinsic, and we also get uncertainty around the explanations.
 ```{r}
 x <- train_loader$dataset$tensors[[1]] #grab the dataset
 ind <- 42
@@ -112,19 +124,19 @@ data <- x[ind,] #plot this specific data-point
 plot(model_input_skip,type = 'local',data = data,num_samples = 100)
 ```
 
-Compute residuals: y_true - y_predicted
+The residual function computes the residuals: y_true - y_predicted
 
 ```{r}
 residuals(model_input_skip)[1:10]
 ```
 
-Get local explanations using coef():
+coef gives the local explanations average over multiple samples:
 
 ```{r}
 coef(model_input_skip,dataset = train_loader,inds = c(2,3,4,5,6))
 ```
 
-Get posterior predictions:
+posterior predictions:
 
 ```{r}
 predictions <- predict(model_input_skip,mpm = TRUE,newdata = test_loader,draws = 100)
