@@ -35,7 +35,7 @@ pak::pak("LarsELund/LBBNN")
 ## Example
 
 This example demonstrates how to implement a simple feed forward LBBNN on a small dataset
-containing morphological features of two types of raisins. 
+containing morphological features of two types of raisins. The raisin dataset is included in the package. 
 
 The get_dataloaders() function takes a data.frame object, and transforms it to 
 a tensor_dataset, which can be used in a torch_dataloader object. This enables 
@@ -81,7 +81,7 @@ model_input_skip <- lbbnn_net(problem_type = problem,sizes = sizes,prior = inclu
                    flow = FALSE,device = device)
 ```
 
-The function lbbnn_train is used to train the model. In this case for 800 epochs with a learning rate of 0.01.
+The function lbbnn_train is used to train the model. In this case, for 800 epochs with a learning rate of 0.01.
 During training, the loss and accuracy can be displayed at each epoch.
 
 ```{r,results='hide'}
@@ -92,7 +92,7 @@ results_input_skip <- suppressMessages(train_lbbnn(epochs = 800,LBBNN = model_in
 ```
 
 Below, validate_lbbnn is used to test the model on unseen data. We provide
-the test_loader, containing the data set aside.
+the test_loader containing the data set aside during training.
 ```{r}
 validate_lbbnn(LBBNN = model_input_skip,num_samples = 100,test_dl = test_loader,device)
 #validate_lbbnn(LBBNN = model_flows,num_samples = 1000,test_dl = test_loader,device)
