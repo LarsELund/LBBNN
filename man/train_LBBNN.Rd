@@ -11,7 +11,8 @@ train_lbbnn(
   train_dl,
   device = "cpu",
   scheduler = NULL,
-  sch_step_size = NULL
+  sch_step_size = NULL,
+  min_density = NULL
 )
 }
 \arguments{

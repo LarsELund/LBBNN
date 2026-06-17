@@ -45,7 +45,37 @@ std_prior <- function(x) {
 #' @param upper numeric scalar, must be greater than
 #' @return A numeric vector of length 2: \code{c(lower,upper)}
 #' @keywords internal
-density_initialization <- function(lower, upper) {
+density_initialization <- function(lower, upper, type = NULL) {
+  if (!is.null(type)) {
+    if(type == 'polarized'){
+      return(c(-15,15))
+    }
+    else if(type == 'polarized_mild'){
+      return(c(-10,10))
+    }
+    else if(type == 'polarized_sparse'){
+      return(c(-10,5))
+    }
+    else if(type == 'polarized_dense'){
+      return(c(-5,10))
+    }
+    else if(type == 'dense'){
+      return(c(1.5,2.5))
+    }
+    else if(type == 'sparse'){
+      return(c(-2.5,-1.5))
+    }
+    else if(type == 'balanced'){
+      return(c(-1.0,1.0))
+    }
+
+    else {
+      stop(
+        "unknown type: ", type,
+        ". Allowed types are: u_shape, u_left, u_right, dense, sparse, flat_left, flat_right"
+      )
+    }
+  }
   if (!is.numeric(lower))
     stop("invalid_class:", " lower must be numeric")
   if (!is.numeric(upper))
@@ -132,8 +162,12 @@ lbbnn_linear <- torch::nn_module(
     self$conv_net <- conv_net
     self$num_transforms <- num_transforms
     self$hidden_dims <- hidden_dims
-    self$density_init <- density_initialization(density_init[1],
-                                                density_init[2])
+    if(class(density_init[1]) == 'character'){
+      self$density_init <- density_initialization(type = density_init)
+    }else{self$density_init <- density_initialization(density_init[1],
+                                                      density_init[2])
+    }
+
     #weight variational parameters
 
     self$weight_mean <- torch::nn_parameter(torch::torch_empty(out_features,

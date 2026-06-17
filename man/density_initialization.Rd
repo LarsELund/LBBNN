@@ -4,7 +4,7 @@
 \alias{density_initialization}
 \title{Generate initializations for the inclusion parameters.}
 \usage{
-density_initialization(lower, upper)
+density_initialization(lower, upper, type = NULL)
 }
 \arguments{
 \item{lower}{numeric scalar.}

@@ -43,7 +43,7 @@
 #'   }
 #'@export
 train_lbbnn <- function(epochs, LBBNN, lr, train_dl, device = "cpu",
-                        scheduler = NULL, sch_step_size = NULL) {
+                        scheduler = NULL, sch_step_size = NULL, min_density = NULL) {
   opt <- torch::optim_adam(LBBNN$parameters, lr = lr)
   accs <- c()
   losses <- c()
@@ -114,10 +114,19 @@ train_lbbnn <- function(epochs, LBBNN, lr, train_dl, device = "cpu",
       }
 
     train_acc <- corrects / totals
+  
+    dens <- LBBNN$density()
+  
+  #  if (LBBNN$input_skip) {
+   #   LBBNN$compute_paths_input_skip()
+  #    dens <- LBBNN$density_active_path()
+  #  }
+  
+    
     if (LBBNN$problem_type != "regression") {
       message(sprintf(
         "\nEpoch %d, training: loss = %3.5f, acc = %3.5f, density = %3.5f",
-        epoch, mean(train_loss), train_acc, LBBNN$density()
+        epoch, mean(train_loss), train_acc, dens
       ))
       accs <- c(accs, train_acc$item())
       losses <- c(losses, mean(train_loss))
@@ -125,11 +134,27 @@ train_lbbnn <- function(epochs, LBBNN, lr, train_dl, device = "cpu",
     if (LBBNN$problem_type == "regression") {
       message(sprintf(
         "\nEpoch %d, training: loss = %3.5f, density = %3.5f \n",
-        epoch, mean(train_loss), LBBNN$density()
+        epoch, mean(train_loss), dens
       ))
       losses <- c(losses, mean(train_loss))
     }
-    density <- c(density, LBBNN$density())
+    
+    density <- c(density, dens)
+    
+    if (!is.null(min_density) &&
+        dens <= min_density){
+      message(
+        sprintf(
+          "Early stopping: density %.4f reached minimum value %.4f",
+          dens,
+          min_density
+        )
+      )
+      break
+    }
+    
+
+    
   }
   l <- list("accs" = accs, "loss" = losses, "density" = density)
   time <- base::proc.time() - start

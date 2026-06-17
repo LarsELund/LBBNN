@@ -93,6 +93,11 @@ lbbnn_net <- torch::nn_module(
     self$raw_output <- raw_output # TRUE when we want local explanations
     self$act <- torch::nn_leaky_relu(0.00)
     self$computed_paths <- FALSE
+    
+    if(class(inclusion_inits[1]) == 'character'){ #for when the user provides a keyword
+      inclusion_inits <- matrix(inclusion_inits,ncol = length(sizes) - 1)
+    }
+    
     if (! is.null(custom_act)) {
       self$act <- custom_act
       }
@@ -255,7 +260,7 @@ lbbnn_net <- torch::nn_module(
     x0 <- torch::torch_tensor(a, dtype = torch::torch_float32(),
                               device = self$device)$unsqueeze(dim = 1)
     alpha_mats <- list() #initialize empty list to append network alphas
-    lamd_input <- self$layers$children$`0`$lambda_l
+    lamd_input <- self$layers$children$`0`$lambda_l$detach()
     alpha_input <- (torch::torch_sigmoid(lamd_input) > 0.5) * 1
     alpha_input$requires_grad <- TRUE
     alpha_mats <- append(alpha_mats, alpha_input)
