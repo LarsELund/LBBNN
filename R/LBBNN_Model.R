@@ -94,7 +94,7 @@ lbbnn_net <- torch::nn_module(
     self$act <- torch::nn_leaky_relu(0.00)
     self$computed_paths <- FALSE
     
-    if(class(inclusion_inits[1]) == 'character'){ #for when the user provides a keyword
+    if(is.character(inclusion_inits[1])){ #for when the user provides a keyword
       inclusion_inits <- matrix(inclusion_inits,ncol = length(sizes) - 1)
     }
     

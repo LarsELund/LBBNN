@@ -14,6 +14,9 @@
 #' currently only supports 'step'.
 #' @param sch_step_size Where to decay if using \code{torch::lr_step}.
 #'  E.g. 1000 means learning rate is decayed every 1000 epochs.
+#' @param min_density Optional argument to stop training if the density reaches 
+#' this value. Currently, this is the overall density, not density in active
+#' paths, as the latter is expensive to compute for each epoch.
 #' @return a list containing the losses and accuracy (if classification)
 #' and density for each epoch during training.
 #' For comparisons sake we show the density with and without active paths.
@@ -116,7 +119,7 @@ train_lbbnn <- function(epochs, LBBNN, lr, train_dl, device = "cpu",
     train_acc <- corrects / totals
   
     dens <- LBBNN$density()
-  
+  # the below is expensive to compute for each epoch
   #  if (LBBNN$input_skip) {
    #   LBBNN$compute_paths_input_skip()
   #    dens <- LBBNN$density_active_path()

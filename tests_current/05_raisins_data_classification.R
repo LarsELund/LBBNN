@@ -16,7 +16,7 @@ problem <- 'binary classification'
 sizes <- c(7, 5, 5, 1) 
 inclusion_priors <-c(0.5, 0.5, 0.5) 
 stds <- c(1, 1, 1) 
-
+#possible initializations: 
 #polarized, polarized_mild, polarized_dense, polarized_sparse, 
 #dense, sparse, balanced
 inclusion_inits <- 'balanced'

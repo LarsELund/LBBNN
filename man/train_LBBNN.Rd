@@ -35,6 +35,10 @@ currently only supports 'step'.}
 
 \item{sch_step_size}{Where to decay if using \code{torch::lr_step}.
 E.g. 1000 means learning rate is decayed every 1000 epochs.}
+
+\item{min_density}{Optional argument to stop training if the density reaches
+this value. Currently, this is the overall density, not density in active
+paths, as the latter is expensive to compute for each epoch.}
 }
 \value{
 a list containing the losses and accuracy (if classification)

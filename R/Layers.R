@@ -43,6 +43,7 @@ std_prior <- function(x) {
 #' with U ~ Uniform(lower,upper).
 #' @param lower numeric scalar.
 #' @param upper numeric scalar, must be greater than
+#' @param type user defined keywords such as polarized or sparse
 #' @return A numeric vector of length 2: \code{c(lower,upper)}
 #' @keywords internal
 density_initialization <- function(lower, upper, type = NULL) {
@@ -162,7 +163,7 @@ lbbnn_linear <- torch::nn_module(
     self$conv_net <- conv_net
     self$num_transforms <- num_transforms
     self$hidden_dims <- hidden_dims
-    if(class(density_init[1]) == 'character'){
+    if(is.character(density_init[1])){
       self$density_init <- density_initialization(type = density_init)
     }else{self$density_init <- density_initialization(density_init[1],
                                                       density_init[2])
