@@ -10,6 +10,8 @@ density_initialization(lower, upper, type = NULL)
 \item{lower}{numeric scalar.}
 
 \item{upper}{numeric scalar, must be greater than}
+
+\item{type}{user defined keywords such as polarized or sparse}
 }
 \value{
 A numeric vector of length 2: \code{c(lower,upper)}

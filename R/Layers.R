@@ -49,10 +49,10 @@ std_prior <- function(x) {
 density_initialization <- function(lower, upper, type = NULL) {
   if (!is.null(type)) {
     if(type == 'polarized'){
-      return(c(-15,15))
+      return(c(-10,10))
     }
     else if(type == 'polarized_mild'){
-      return(c(-10,10))
+      return(c(-3,3))
     }
     else if(type == 'polarized_sparse'){
       return(c(-10,5))
