@@ -12,7 +12,8 @@ train_lbbnn(
   device = "cpu",
   scheduler = NULL,
   sch_step_size = NULL,
-  min_density = NULL
+  min_density = NULL,
+  verbose = TRUE
 )
 }
 \arguments{
@@ -39,6 +40,8 @@ E.g. 1000 means learning rate is decayed every 1000 epochs.}
 \item{min_density}{Optional argument to stop training if the density reaches
 this value. Currently, this is the overall density, not density in active
 paths, as the latter is expensive to compute for each epoch.}
+
+\item{verbose}{Control whether metrics are printed to console.}
 }
 \value{
 a list containing the losses and accuracy (if classification)
