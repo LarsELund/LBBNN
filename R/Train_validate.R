@@ -17,6 +17,7 @@
 #' @param min_density Optional argument to stop training if the density reaches 
 #' this value. Currently, this is the overall density, not density in active
 #' paths, as the latter is expensive to compute for each epoch.
+#' @param verbose Control whether metrics are printed to console.
 #' @return a list containing the losses and accuracy (if classification)
 #' and density for each epoch during training.
 #' For comparisons sake we show the density with and without active paths.
@@ -46,7 +47,8 @@
 #'   }
 #'@export
 train_lbbnn <- function(epochs, LBBNN, lr, train_dl, device = "cpu",
-                        scheduler = NULL, sch_step_size = NULL, min_density = NULL) {
+                        scheduler = NULL, sch_step_size = NULL, 
+                        min_density = NULL, verbose = TRUE) {
   opt <- torch::optim_adam(LBBNN$parameters, lr = lr)
   accs <- c()
   losses <- c()
@@ -127,18 +129,18 @@ train_lbbnn <- function(epochs, LBBNN, lr, train_dl, device = "cpu",
   
     
     if (LBBNN$problem_type != "regression") {
-      message(sprintf(
+      if(verbose){message(sprintf(
         "\nEpoch %d, training: loss = %3.5f, acc = %3.5f, density = %3.5f",
         epoch, mean(train_loss), train_acc, dens
-      ))
+      ))}
       accs <- c(accs, train_acc$item())
       losses <- c(losses, mean(train_loss))
     }
     if (LBBNN$problem_type == "regression") {
-      message(sprintf(
+      if(verbose){message(sprintf(
         "\nEpoch %d, training: loss = %3.5f, density = %3.5f \n",
         epoch, mean(train_loss), dens
-      ))
+      ))}
       losses <- c(losses, mean(train_loss))
     }
     
@@ -146,13 +148,13 @@ train_lbbnn <- function(epochs, LBBNN, lr, train_dl, device = "cpu",
     
     if (!is.null(min_density) &&
         dens <= min_density){
-      message(
+      if(verbose){message(
         sprintf(
           "Early stopping: density %.4f reached minimum value %.4f",
           dens,
           min_density
         )
-      )
+      )}
       break
     }
     
