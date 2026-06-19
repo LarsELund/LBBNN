@@ -454,6 +454,12 @@ lbbnn_linear <- torch::nn_module(
 #' @param hidden_dims numeric vector, dimension of the hidden layer(s)
 #' in the neural networks of the RNVP transform.
 #' @param device The device to be used. Default is CPU.
+#' @param weight_init Controls how \code{weight_mean} is initialized.
+#' A string keyword or a numeric vector \code{c(lower, upper)} for custom
+#' uniform bounds. String options: \code{"uniform"} (default, small uniform),
+#' \code{"he"} / \code{"he_relu"} (Kaiming uniform for ReLU),
+#' \code{"he_tanh"} (Kaiming uniform for tanh),
+#' \code{"glorot"} / \code{"xavier"} (Xavier uniform).
 #' @examples
 #' \donttest{
 #' if (torch_available()) {
@@ -481,7 +487,8 @@ lbbnn_conv2d <- torch::nn_module(
   initialize = function(in_channels, out_channels, kernel_size, prior_inclusion,
                         standard_prior, density_init,
                         flow = FALSE, num_transforms = 2,
-                        hidden_dims = c(200, 200), device = "cpu") {
+                        hidden_dims = c(200, 200), device = "cpu",
+                        weight_init = "uniform") {
 
     if (length(kernel_size) == 1) {
       kernel <- c(kernel_size, kernel_size)
@@ -496,6 +503,7 @@ lbbnn_conv2d <- torch::nn_module(
     self$num_transforms <- num_transforms
     self$hidden_dims <- hidden_dims
     self$device <- device
+    self$weight_init <- weight_init
     self$density_init <- density_initialization(density_init[1],
                                                 density_init[2])
 
@@ -564,7 +572,8 @@ lbbnn_conv2d <- torch::nn_module(
     self$reset_parameters()
   },
   reset_parameters = function() {
-    torch::nn_init_uniform_(self$weight_mean, -0.2, 0.2)
+    init_weight_mean(self$weight_mean, self$weight_init,
+                     uniform_lower = -0.2, uniform_upper = 0.2)
     torch::nn_init_normal_(self$weight_rho, mean = -9, std = 0.1)
     torch::nn_init_uniform_(self$bias_mean, -0.2, 0.2)
     torch::nn_init_normal_(self$bias_rho, mean = -9, std = 0.1)
@@ -577,7 +586,6 @@ lbbnn_conv2d <- torch::nn_module(
       torch::nn_init_normal_(self$b1, mean = 0, std = 1)
       torch::nn_init_normal_(self$b2, mean = 0, std = 1)
     }
-
   },
   forward = function(input, MPM = FALSE) {
     self$alpha <- 1 / (1 + torch::torch_exp(- self$lambda_l))
