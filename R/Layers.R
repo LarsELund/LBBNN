@@ -90,6 +90,44 @@ density_initialization <- function(lower, upper, type = NULL) {
   return(c(lower, upper))
 }
 
+#' @title Apply weight_mean initialization to a tensor.
+#' @description Dispatches to the appropriate torch initializer based on
+#' \code{type}. Accepts a string keyword or a numeric vector of length 2
+#' for custom uniform bounds.
+#' @param tensor A torch parameter tensor to initialize in-place.
+#' @param type A string keyword or numeric vector of length 2.
+#'   String keywords: \code{"uniform"} (default small uniform),
+#'   \code{"he"} / \code{"he_relu"} (Kaiming uniform for ReLU),
+#'   \code{"he_tanh"} (Kaiming uniform for tanh),
+#'   \code{"glorot"} / \code{"xavier"} (Xavier uniform).
+#'   Numeric: treated as \code{c(lower, upper)} bounds for uniform sampling.
+#' @param uniform_lower numeric, lower bound used when \code{type = "uniform"}.
+#' @param uniform_upper numeric, upper bound used when \code{type = "uniform"}.
+#' @keywords internal
+init_weight_mean <- function(tensor, type,
+                             uniform_lower = -0.01, uniform_upper = 0.01) {
+  if (is.numeric(type)) {
+    if (length(type) != 2)
+      stop("weight_init as numeric must have exactly 2 values: c(lower, upper)")
+    if (type[1] >= type[2])
+      stop("weight_init lower bound must be less than upper bound")
+    torch::nn_init_uniform_(tensor, type[1], type[2])
+  } else if (is.character(type)) {
+    switch(type,
+      "uniform" = torch::nn_init_uniform_(tensor, uniform_lower, uniform_upper),
+      "he" = ,
+      "he_relu" = torch::nn_init_kaiming_uniform_(tensor, nonlinearity = "relu"),
+      "he_tanh" = torch::nn_init_kaiming_uniform_(tensor, nonlinearity = "tanh"),
+      "glorot" = ,
+      "xavier" = torch::nn_init_xavier_uniform_(tensor),
+      stop("unknown weight_init: '", type,
+           "'. Allowed: 'uniform', 'he', 'he_relu', 'he_tanh', 'glorot', 'xavier'")
+    )
+  } else {
+    stop("weight_init must be a string or a numeric vector of length 2")
+  }
+}
+
 
 
 
