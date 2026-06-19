@@ -149,8 +149,11 @@ init_weight_mean <- function(tensor, type,
 #' for each weight and bias in the layer.
 #' @param standard_prior numeric scalar, prior standard deviation
 #' for weights and biases in each layer.
-#' @param density_init A numeric of size 2,
-#' used to initialize the inclusion parameters, one for each layer.
+#' @param density_init Controls initialization of the inclusion parameters.
+#' A string keyword or a numeric vector \code{c(lower, upper)}.
+#' String options: \code{"polarized"}, \code{"polarized_mild"},
+#' \code{"polarized_sparse"}, \code{"polarized_dense"},
+#' \code{"dense"}, \code{"sparse"}, \code{"balanced"}.
 #' @param flow logical, whether to use normalizing flows
 #' @param num_transforms integer, number of transformations for \code{flow}.
 #' Default is 2.
@@ -446,8 +449,11 @@ lbbnn_linear <- torch::nn_module(
 #' each weight and bias in the layer.
 #' @param standard_prior numeric scalar, prior standard deviation for
 #' weights and biases in each layer.
-#' @param density_init A numeric of size 2, used to initialize the
-#' inclusion parameters, one for each layer.
+#' @param density_init Controls initialization of the inclusion parameters.
+#' A string keyword or a numeric vector \code{c(lower, upper)}.
+#' String options: \code{"polarized"}, \code{"polarized_mild"},
+#' \code{"polarized_sparse"}, \code{"polarized_dense"},
+#' \code{"dense"}, \code{"sparse"}, \code{"balanced"}.
 #' @param flow logical, whether to use normalizing flows
 #' @param num_transforms integer, number of transformations for \code{flow}.
 #'  Default is 2.
@@ -504,8 +510,11 @@ lbbnn_conv2d <- torch::nn_module(
     self$hidden_dims <- hidden_dims
     self$device <- device
     self$weight_init <- weight_init
-    self$density_init <- density_initialization(density_init[1],
-                                                density_init[2])
+    if(is.character(density_init[1])){
+      self$density_init <- density_initialization(type = density_init)
+    }else{self$density_init <- density_initialization(density_init[1],
+                                                      density_init[2])
+    }
 
     #weight variational parameters
     self$weight_mean <- torch::nn_parameter(torch_empty(out_channels,
