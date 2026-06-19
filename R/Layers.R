@@ -160,6 +160,12 @@ init_weight_mean <- function(tensor, type,
 #' @param bias_inclusion_prob logical, determines whether the bias
 #' should be as associated with inclusion probabilities.
 #' @param conv_net logical, whether the layer is used in a convolutional net.
+#' @param weight_init Controls how \code{weight_mean} is initialized.
+#' A string keyword or a numeric vector \code{c(lower, upper)} for custom
+#' uniform bounds. String options: \code{"uniform"} (default, small uniform),
+#' \code{"he"} / \code{"he_relu"} (Kaiming uniform for ReLU),
+#' \code{"he_tanh"} (Kaiming uniform for tanh),
+#' \code{"glorot"} / \code{"xavier"} (Xavier uniform).
 #' @examples
 #' \donttest{
 #' if (torch_available()) {
@@ -192,7 +198,8 @@ lbbnn_linear <- torch::nn_module(
     hidden_dims = c(200, 200),
     device = "cpu",
     bias_inclusion_prob = FALSE,
-    conv_net = FALSE) {
+    conv_net = FALSE,
+    weight_init = "uniform") {
     self$in_features  <- in_features
     self$out_features <- out_features
     self$device <- device
@@ -201,6 +208,7 @@ lbbnn_linear <- torch::nn_module(
     self$conv_net <- conv_net
     self$num_transforms <- num_transforms
     self$hidden_dims <- hidden_dims
+    self$weight_init <- weight_init
     if(is.character(density_init[1])){
       self$density_init <- density_initialization(type = density_init)
     }else{self$density_init <- density_initialization(density_init[1],
@@ -279,7 +287,8 @@ lbbnn_linear <- torch::nn_module(
     self$reset_parameters()
   },
   reset_parameters = function() {
-    torch::nn_init_uniform_(self$weight_mean, -0.01, 0.01)
+    init_weight_mean(self$weight_mean, self$weight_init,
+                     uniform_lower = -0.01, uniform_upper = 0.01)
     torch::nn_init_normal_(self$weight_rho, mean = -9, std = 1.0)
     torch::nn_init_uniform_(self$bias_mean, -0.2, 0.2)
     torch::nn_init_normal_(self$bias_rho, mean = -9, std = 1.0)
@@ -292,8 +301,6 @@ lbbnn_linear <- torch::nn_module(
       torch::nn_init_normal_(self$b1, mean = 0, std = 1)
       torch::nn_init_normal_(self$b2, mean = 0, std = 1)
     }
-
-
   },
   sample_z = function() {
     q0_std <- torch::torch_sqrt(torch::torch_exp(self$q0_logvar))
