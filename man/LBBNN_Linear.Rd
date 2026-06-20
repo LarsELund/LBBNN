@@ -30,9 +30,12 @@ for each weight and bias in the layer.}
 for weights and biases in each layer.}
 
 \item{density_init}{A numeric of size 2,
-used to initialize the inclusion parameters, one for each layer.}
+used to initialize the inclusion parameters, one for each layer.
+NOTE: Can also be given as a keyword with the
+following options: 'balanced', 'dense', 'polarized', 'polarized_dense',
+'polarized_mild', 'polarized_sparse', 'sparse'.}
 
-\item{flow}{logical, whether to use normalizing flows}
+\item{flow}{logical, whether to use normalizing flows.}
 
 \item{num_transforms}{integer, number of transformations for \code{flow}.
 Default is 2.}

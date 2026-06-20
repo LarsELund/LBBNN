@@ -43,7 +43,9 @@ std_prior <- function(x) {
 #' with U ~ Uniform(lower,upper).
 #' @param lower numeric scalar.
 #' @param upper numeric scalar, must be greater than
-#' @param type user defined keywords such as polarized or sparse
+#' @param type user defined keywords. Possible options are:
+#' 'polarized', 'polarized_mild', 'polarized_dense', 'polarized_sparse',
+#' 'dense', 'sparse', and 'balanced'
 #' @return A numeric vector of length 2: \code{c(lower,upper)}
 #' @keywords internal
 density_initialization <- function(lower, upper, type = NULL) {
@@ -73,7 +75,8 @@ density_initialization <- function(lower, upper, type = NULL) {
     else {
       stop(
         "unknown type: ", type,
-        ". Allowed types are: u_shape, u_left, u_right, dense, sparse, flat_left, flat_right"
+        ". Allowed types are: polarized, polarized_mild, polarized_sparse,
+        polarized_dense, dense, sparse, balanced"
       )
     }
   }
@@ -112,8 +115,11 @@ density_initialization <- function(lower, upper, type = NULL) {
 #' @param standard_prior numeric scalar, prior standard deviation
 #' for weights and biases in each layer.
 #' @param density_init A numeric of size 2,
-#' used to initialize the inclusion parameters, one for each layer.
-#' @param flow logical, whether to use normalizing flows
+#' used to initialize the inclusion parameters, one for each layer. 
+#' NOTE: Can also be given as a keyword with the 
+#' following options: 'balanced', 'dense', 'polarized', 'polarized_dense', 
+#' 'polarized_mild', 'polarized_sparse', 'sparse'.
+#' @param flow logical, whether to use normalizing flows.
 #' @param num_transforms integer, number of transformations for \code{flow}.
 #' Default is 2.
 #' @param hidden_dims numeric vector, dimension of the hidden layer(s)

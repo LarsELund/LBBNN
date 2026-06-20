@@ -40,7 +40,9 @@ length must be \code{length(sizes) - 1}.}
 
 \item{inclusion_inits}{numeric matrix of shape (2, number of weight matrices)
 specifying the lower and upper bounds for initializations
-of the inclusion parameters.}
+of the inclusion parameters. NOTE: Can also be given as a keyword with the
+following options: 'balanced', 'dense', 'polarized', 'polarized_dense',
+'polarized_mild', 'polarized_sparse', 'sparse'.}
 
 \item{input_skip}{logical, whether to include input_skip.}
 
