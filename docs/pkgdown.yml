@@ -1,0 +1,10 @@
+pandoc: '3.4'
+pkgdown: 2.2.0
+pkgdown_sha: ~
+articles:
+  convolutional_architecture: convolutional_architecture.html
+  getting_started: getting_started.html
+  small_dataset_classification: small_dataset_classification.html
+  variable_selection_linear_data: variable_selection_linear_data.html
+  variable_selection_non_linear_data: variable_selection_non_linear_data.html
+last_built: 2026-06-20T14:41Z
