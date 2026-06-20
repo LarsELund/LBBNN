@@ -15,7 +15,8 @@ lbbnn_linear(
   hidden_dims = c(200, 200),
   device = "cpu",
   bias_inclusion_prob = FALSE,
-  conv_net = FALSE
+  conv_net = FALSE,
+  weight_init = "uniform"
 )
 }
 \arguments{
@@ -29,8 +30,11 @@ for each weight and bias in the layer.}
 \item{standard_prior}{numeric scalar, prior standard deviation
 for weights and biases in each layer.}
 
-\item{density_init}{A numeric of size 2,
-used to initialize the inclusion parameters, one for each layer.}
+\item{density_init}{Controls initialization of the inclusion parameters.
+A string keyword or a numeric vector \code{c(lower, upper)}.
+String options: \code{"polarized"}, \code{"polarized_mild"},
+\code{"polarized_sparse"}, \code{"polarized_dense"},
+\code{"dense"}, \code{"sparse"}, \code{"balanced"}.}
 
 \item{flow}{logical, whether to use normalizing flows}
 
@@ -46,6 +50,13 @@ in the neural networks of the RNVP transform.}
 should be as associated with inclusion probabilities.}
 
 \item{conv_net}{logical, whether the layer is used in a convolutional net.}
+
+\item{weight_init}{Controls how \code{weight_mean} is initialized.
+A string keyword or a numeric vector \code{c(lower, upper)} for custom
+uniform bounds. String options: \code{"uniform"} (default, small uniform),
+\code{"he"} / \code{"he_relu"} (Kaiming uniform for ReLU),
+\code{"he_tanh"} (Kaiming uniform for tanh),
+\code{"glorot"} / \code{"xavier"} (Xavier uniform).}
 }
 \value{
 A \code{torch::nn_module} object,
