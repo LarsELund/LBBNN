@@ -43,7 +43,9 @@ std_prior <- function(x) {
 #' with U ~ Uniform(lower,upper).
 #' @param lower numeric scalar.
 #' @param upper numeric scalar, must be greater than
-#' @param type user defined keywords such as polarized or sparse
+#' @param type user defined keywords. Possible options are:
+#' 'polarized', 'polarized_mild', 'polarized_dense', 'polarized_sparse',
+#' 'dense', 'sparse', and 'balanced'
 #' @return A numeric vector of length 2: \code{c(lower,upper)}
 #' @keywords internal
 density_initialization <- function(lower, upper, type = NULL) {
@@ -73,7 +75,8 @@ density_initialization <- function(lower, upper, type = NULL) {
     else {
       stop(
         "unknown type: ", type,
-        ". Allowed types are: u_shape, u_left, u_right, dense, sparse, flat_left, flat_right"
+        ". Allowed types are: polarized, polarized_mild, polarized_sparse,
+        polarized_dense, dense, sparse, balanced"
       )
     }
   }

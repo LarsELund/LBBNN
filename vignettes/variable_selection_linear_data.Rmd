@@ -1,0 +1,91 @@
+---
+title: "Using LBBNNs with input-skip to recover data generating linear model"
+output: rmarkdown::html_vignette
+params:
+  eval: true
+vignette: >
+  %\VignetteIndexEntry{variable selection: linear-data}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Generate data
+
+We generate 1000 samples with 15 features, and make 3 of them relevant for the outcome. The goal is to see if we recover the 
+correct variables, and also their coefficients. The data preparation process follows the same steps as in the previous example.
+Note that the dataset must be a data.frame object before applying the get_dataloaders function.
+```{r}
+library(LBBNN)
+i <- 1000
+j <- 15
+set.seed(42)
+torch::torch_manual_seed(42)
+X <- matrix(rnorm(i * j, mean = 0, sd = 1), ncol = j)
+y_base <- c()
+y_base <-  0.6 * X[, 1] - 0.4 * X[, 2] + 0.5 * X[, 3] + rnorm(n = i, sd = 0.1)
+sim_data <- as.data.frame(X)
+sim_data <- cbind(sim_data, y_base)
+loaders <- get_dataloaders(sim_data, train_proportion = 0.9,
+                           train_batch_size = 450, test_batch_size = 100,
+                           standardize = FALSE)
+train_loader <- loaders$train_loader
+test_loader  <- loaders$test_loader
+```
+
+## Define hyperparameters and the model object
+
+Here we must use the "regression" keyword as we have a continuous outcome. We use 
+a relatively small network of 2 hidden layers with 5 neurons in each. 
+```{r}
+problem <- "regression"
+sizes <- c(j, 5, 5, 1) 
+incl_priors <- c(0.5, 0.5, 0.5) 
+stds <- c(1, 1, 1)
+incl_inits <- 'polarized'
+device <- "cpu" 
+model_linear <- lbbnn_net(problem_type = problem, sizes = sizes,
+                              prior = incl_priors, inclusion_inits = incl_inits,
+                              std = stds, input_skip = TRUE, flow = FALSE,
+                              num_transforms = 2, dims = c(10, 10, 10),
+                              raw_output = FALSE, custom_act = NULL,
+                              link = NULL, nll = NULL,
+                              bias_inclusion_prob = FALSE, device = device)
+```
+
+## Train and validate the model
+
+```{r}
+train_lbbnn(epochs = 300, LBBNN = model_linear,
+            lr = 0.05, train_dl = train_loader, device = device, verbose = FALSE)
+validate_lbbnn(LBBNN = model_linear, num_samples = 10, test_dl = test_loader,
+              device = device)
+```
+
+## Inspect the results using coef
+
+Here we have given the dataset as an argument instead of picking a specific sample,
+where the argument num_data controls how many samples from the dataset we use. Using inds = NULL,
+we select random samples from the dataset. Explanations are then averaged across these samples.
+```{r}
+coef(model_linear, dataset = train_loader, inds = NULL,
+     output_neuron = 1, num_data = 5, num_samples = 10)
+```
+We see that the coefficients match the data generating process, and that we only include the relevant features.
+
+## Global structure
+
+Using plot with type = 'global' gives us the global explanations, i.e. the features that affect predictions 
+in general.
+```{r,,fig.width=6, fig.height=6}
+plot(model_linear, type = "global", vertex_size = 7,
+     edge_width = 0.4, label_size = 0.4)
+```
+
+We see that everything has been pruned away aside from the linear connections from the relevant features.

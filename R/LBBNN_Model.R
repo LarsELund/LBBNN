@@ -20,7 +20,9 @@
 #' length must be \code{length(sizes) - 1}.
 #' @param inclusion_inits numeric matrix of shape (2, number of weight matrices)
 #' specifying the lower and upper bounds for initializations
-#' of the inclusion parameters.
+#' of the inclusion parameters. NOTE: Can also be given as a keyword with the 
+#' following options: 'balanced', 'dense', 'polarized', 'polarized_dense', 
+#' 'polarized_mild', 'polarized_sparse', 'sparse'.
 #' @param input_skip logical, whether to include input_skip.
 #' @param flow logical, whether to use normalizing flows.
 #' @param num_transforms integer, how many transformations to use in the flow.
@@ -319,9 +321,11 @@ lbbnn_net <- torch::nn_module(
   density = function() { #the standard density, without active paths
     alphas <- NULL
     for (l in self$layers$children) {
-      alphas <- c(alphas, as.numeric(l$alpha$clone()$detach()))
-      }
-    alphas <- c(alphas, as.numeric(self$out_layer$alpha$clone()$detach()))
+      lam <- l$lambda_l$clone()$detach()
+      alphas <- c(alphas, as.numeric(torch::torch_sigmoid(lam)))
+    }
+    lam_out <- self$out_layer$lambda_l$clone()$detach()
+    alphas <- c(alphas, as.numeric(torch::torch_sigmoid(lam_out)))
     return(mean(alphas > 0.5))
 
 
