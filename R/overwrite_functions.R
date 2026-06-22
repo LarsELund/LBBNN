@@ -81,9 +81,6 @@ get_input_inclusions <- function(model) {
 summary.lbbnn_net <- function(object, ...) {
   if (object$input_skip == FALSE)
   (stop("Summary only applies to objects with input-skip = TRUE"))
-  if (object$computed_paths == FALSE) {
-    object$compute_paths_input_skip()
-    }
   inclusions <- get_input_inclusions(object) #a matrix of size (p,L), with p # inputs, L # layers
 
   #now get the average inclusion probabilities of each layer
@@ -332,14 +329,18 @@ coef.lbbnn_net <- function(object, dataset, inds = NULL, output_neuron = 1,
 #' @export
 predict.lbbnn_net <- function(object, newdata, mpm = FALSE, draws = 10,
                               device = "cpu", link = NULL, ...) {
+  
+  trained <- object$training
+  raw_out <- object$raw_output
+  
+  on.exit({ object$raw_output <- raw_out 
+            if (trained) object$train() else object$eval()
+  
+  },add = TRUE)
+  
+  
   object$eval()
   object$raw_output <- TRUE #skip final sigmoid/softmax
-  if (!object$computed_paths) {
-    if (object$input_skip) {
-      object$compute_paths_input_skip()
-      }
-    else (object$compute_paths)
-  }
   if (class(newdata)[[1]] != "dataloader")
   stop("Currently only torch::dataloader objects are supported for newdata")
   out_shape <- object$sizes[length(object$sizes)] #number of output neurons
@@ -466,9 +467,6 @@ plot.lbbnn_net <- function(x, type = c("global", "local"), data = NULL,
                            num_samples = 100, ...) {
   if (x$input_skip == FALSE)
   (stop("Plotting currently only implemented for input-skip"))
-  if (x$computed_paths == FALSE)  {
-    x$compute_paths_input_skip()
-    }
   d <- match.arg(type)
   if (d == "global") {
     plot_active_paths(x, ...)

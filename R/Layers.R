@@ -514,7 +514,7 @@ lbbnn_conv2d <- torch::nn_module(
       self$b1 <- torch::nn_parameter(torch::torch_empty(out_channels,
                                                         device = device))
       self$b2 <- torch::nn_parameter(torch::torch_empty(out_channels,
-                                                        evice = device))
+                                                        device = device))
 
 
       self$RNVP_flow <- normalizing_flow(c(out_channels, hidden_dims), "RNVP",
@@ -554,7 +554,7 @@ lbbnn_conv2d <- torch::nn_module(
       e_w <- self$weight_mean * self$alpha * z_k$view(c(-1, 1, 1, 1))
       var_w <- self$alpha * (self$weight_sigma ^ 2 + (1 - self$alpha) *
                             self$weight_mean ^ 2 * z_k$view(c(-1, 1, 1, 1)) ^ 2)
-      psi <- torch::nnf_conv2d(input = input, weight = e_w, bias = self$bias_mu)
+      psi <- torch::nnf_conv2d(input = input, weight = e_w, bias = self$bias_mean)
       delta <- torch::nnf_conv2d(input = input ^ 2, weight = var_w,
                                  bias = self$bias_sigma ^ 2)
       #delta[delta<= 0] = 0 +1e-20

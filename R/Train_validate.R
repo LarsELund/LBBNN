@@ -63,8 +63,6 @@ train_lbbnn <- function(epochs, LBBNN, lr, train_dl, device = "cpu",
   LBBNN$elapsed_time <- 0
   start <- base::proc.time()
   for (epoch in 1:epochs) {
-  #  if(LBBNN$input_skip){LBBNN$compute_paths_input_skip()}
-  #  else(LBBNN$compute_paths)
     if (epoch == epochs) { #only need these at the last epoch for residuals
      LBBNN$y <- c()
      LBBNN$r <- c()
@@ -82,12 +80,12 @@ train_lbbnn <- function(epochs, LBBNN, lr, train_dl, device = "cpu",
       target <- b[[2]]$to(device = device)
       if (epoch == epochs) { #add the targets and outputs to y and r
         LBBNN$y <- c(LBBNN$y, as.numeric(target$clone()$detach()$cpu()))
-        LBBNN$r <- c(LBBNN$r, as.numeric(output$clone()$detach()$squeeze()$cpu()))
+        LBBNN$r <- c(LBBNN$r, as.numeric(output$clone()$detach()$view(-1)$cpu()))
         }
       if (LBBNN$problem_type == "multiclass classification" | LBBNN$problem_type == "MNIST") { #nll loss needs float tensors but bce loss needs long tensors
         target <- torch::torch_tensor(target, dtype = torch::torch_long())
       }
-      else (output <- output$squeeze()) #remove last dimension from binary classifiction or regression
+      else (output <- output$view(-1)) #remove last dimension from binary classifiction or regression
       loss <- LBBNN$loss_fn(output, target) + LBBNN$kl_div() / length(train_dl)
 
       if (LBBNN$problem_type == "multiclass classification" | LBBNN$problem_type == "MNIST") {
@@ -165,6 +163,11 @@ train_lbbnn <- function(epochs, LBBNN, lr, train_dl, device = "cpu",
   time <- base::proc.time() - start
   LBBNN$elapsed_time <- time[[3]]
   invisible(l)
+  #compute active paths at the end of training rather than in the validation function
+  if (LBBNN$input_skip) {
+    LBBNN$compute_paths_input_skip()
+  }
+  else (LBBNN$compute_paths())
 }
 
 
@@ -199,6 +202,11 @@ train_lbbnn <- function(epochs, LBBNN, lr, train_dl, device = "cpu",
 #'   }
 #' @export
 validate_lbbnn <- function(LBBNN, num_samples, test_dl, device = "cpu") {
+  trained <- LBBNN$training #check what state we are in when validate is called
+  on.exit({ #return to the same state when function finishes
+    if(trained) LBBNN$train() else LBBNN$eval()
+  }, add = TRUE)
+  
   LBBNN$eval()
   corrects <- 0
   corrects_sparse <- 0
@@ -207,11 +215,6 @@ validate_lbbnn <- function(LBBNN, num_samples, test_dl, device = "cpu") {
   val_loss_mpm <- c()
   val_loss_mpm2 <- c()
   out_shape <- 1 #if binary classification or regression
-  if (LBBNN$input_skip) {
-    LBBNN$compute_paths_input_skip()
-    }
-  else (LBBNN$compute_paths)
-  LBBNN$computed_paths <- TRUE
   torch::with_no_grad({
     coro::loop(for (b in test_dl){
       target <- b[[2]]$to(device = device)
@@ -238,15 +241,15 @@ validate_lbbnn <- function(LBBNN, num_samples, test_dl, device = "cpu") {
         corrects_sparse <- corrects_sparse + sum(prediction_mpm == target)
       }
       else if (LBBNN$problem_type == "binary classification") {
-        out_full <- out_full$squeeze()
-        out_mpm <- out_mpm$squeeze()
+        out_full <- out_full$view(-1)
+        out_mpm <- out_mpm$view(-1)
         corrects <- corrects + sum((out_full > 0.5) == target)
         corrects_sparse <- corrects_sparse + sum((out_mpm > 0.5) == target)
         totals <- totals + length(target)
       }
       else {#for regression
-        out_full <- out_full$squeeze()
-        out_mpm <- out_mpm$squeeze()
+        out_full <- out_full$view(-1)
+        out_mpm <- out_mpm$view(-1)
         loss <- torch::torch_sqrt(torch::nnf_mse_loss(out_full, target))
         loss_mpm <- torch::torch_sqrt(torch::nnf_mse_loss(out_mpm, target))
         val_loss <- c(val_loss, loss$item())
@@ -258,6 +261,9 @@ validate_lbbnn <- function(LBBNN, num_samples, test_dl, device = "cpu") {
   acc_sparse <- corrects_sparse / totals
   density <- LBBNN$density()
   density2 <- LBBNN$density_active_path()
+  print(LBBNN$input_skip)
+  print(density)
+  print(density2)
   if (LBBNN$problem_type != "regression") {
     l <- list("accuracy_full_model" = acc_full$item(), "accuracy_sparse" =
                 acc_sparse$item(), "density" = density,

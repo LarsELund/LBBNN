@@ -46,7 +46,7 @@ following options: 'balanced', 'dense', 'polarized', 'polarized_dense',
 
 \item{input_skip}{logical, whether to include input_skip.}
 
-\item{flow}{logical, whether to use normalizing flows.}
+\item{flow}{logical, to use normalizing flows.}
 
 \item{num_transforms}{integer, how many transformations to use in the flow.}
 
