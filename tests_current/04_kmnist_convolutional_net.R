@@ -15,7 +15,6 @@ if(!requireNamespace("torchvision"))
 torch::torch_manual_seed(42)
 dir <- "./dataset/kmnist"
 
-# Transform function to ensure channel dimension exists
 kmnist_transform <- function(x) {
   d <- dim(x)
   if (length(d) == 3 && d[3] > 1 && d[1] == d[2]) {#if shape [28,28,batch] as on windows and linux(?)

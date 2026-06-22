@@ -162,12 +162,12 @@ train_lbbnn <- function(epochs, LBBNN, lr, train_dl, device = "cpu",
   l <- list("accs" = accs, "loss" = losses, "density" = density)
   time <- base::proc.time() - start
   LBBNN$elapsed_time <- time[[3]]
-  invisible(l)
   #compute active paths at the end of training rather than in the validation function
   if (LBBNN$input_skip) {
     LBBNN$compute_paths_input_skip()
   }
   else (LBBNN$compute_paths())
+  invisible(l)
 }
 
 
@@ -261,9 +261,6 @@ validate_lbbnn <- function(LBBNN, num_samples, test_dl, device = "cpu") {
   acc_sparse <- corrects_sparse / totals
   density <- LBBNN$density()
   density2 <- LBBNN$density_active_path()
-  print(LBBNN$input_skip)
-  print(density)
-  print(density2)
   if (LBBNN$problem_type != "regression") {
     l <- list("accuracy_full_model" = acc_full$item(), "accuracy_sparse" =
                 acc_sparse$item(), "density" = density,
