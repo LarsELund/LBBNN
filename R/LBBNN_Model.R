@@ -38,6 +38,12 @@
 #' @param nll User can define their own likelihood function (not implemented).
 #' @param bias_inclusion_prob logical, determines whether the bias should
 #' be as associated with inclusion probabilities.
+#' @param weight_init Controls how \code{weight_mean} is initialized in each
+#' layer. A string keyword or a numeric vector \code{c(lower, upper)} for
+#' custom uniform bounds. String options: \code{"uniform"} (default),
+#' \code{"he"} / \code{"he_relu"} (Kaiming uniform for ReLU),
+#' \code{"he_tanh"} (Kaiming uniform for tanh),
+#' \code{"glorot"} / \code{"xavier"} (Xavier uniform).
 #' @examples
 #' \donttest{
 #' if (torch_available()) {
@@ -79,7 +85,7 @@ lbbnn_net <- torch::nn_module(
                         input_skip = FALSE, flow = FALSE, num_transforms = 2,
                         dims = c(200, 200), device = "cpu", raw_output = FALSE,
                         custom_act = NULL, link = NULL, nll = NULL,
-                        bias_inclusion_prob = FALSE) {
+                        bias_inclusion_prob = FALSE, weight_init = "uniform") {
     self$device <- device
     self$layers <- torch::nn_module_list()
     self$problem_type <- problem_type
@@ -93,6 +99,7 @@ lbbnn_net <- torch::nn_module(
     self$prior_std <- std
     self$elapsed_time <- 0 #to check how much time the model takes to train
     self$raw_output <- raw_output # TRUE when we want local explanations
+    self$weight_init <- weight_init
     self$act <- torch::nn_leaky_relu(0.00)
     
     if(is.character(inclusion_inits[1])){ #for when the user provides a keyword
@@ -124,7 +131,8 @@ lbbnn_net <- torch::nn_module(
         num_transforms = self$num_transforms,
         hidden_dims = self$dims,
         device = self$device,
-        bias_inclusion_prob = self$bias_inclusion_prob))
+        bias_inclusion_prob = self$bias_inclusion_prob,
+        weight_init = weight_init))
     }
     if (input_skip) {
       out_size <- sizes[length(sizes) - 1] + sizes[1]
@@ -141,7 +149,8 @@ lbbnn_net <- torch::nn_module(
       num_transforms = self$num_transforms,
       hidden_dims = self$dims,
       device = self$device,
-      bias_inclusion_prob = self$bias_inclusion_prob))
+      bias_inclusion_prob = self$bias_inclusion_prob,
+      weight_init = weight_init))
 
     if (problem_type == "binary classification") {
       self$out <- torch::nn_sigmoid()

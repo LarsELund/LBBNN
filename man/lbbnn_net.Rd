@@ -19,7 +19,8 @@ lbbnn_net(
   custom_act = NULL,
   link = NULL,
   nll = NULL,
-  bias_inclusion_prob = FALSE
+  bias_inclusion_prob = FALSE,
+  weight_init = "uniform"
 )
 }
 \arguments{
@@ -68,6 +69,13 @@ activation function.}
 
 \item{bias_inclusion_prob}{logical, determines whether the bias should
 be as associated with inclusion probabilities.}
+
+\item{weight_init}{Controls how \code{weight_mean} is initialized in each
+layer. A string keyword or a numeric vector \code{c(lower, upper)} for
+custom uniform bounds. String options: \code{"uniform"} (default),
+\code{"he"} / \code{"he_relu"} (Kaiming uniform for ReLU),
+\code{"he_tanh"} (Kaiming uniform for tanh),
+\code{"glorot"} / \code{"xavier"} (Xavier uniform).}
 }
 \value{
 A \code{torch::nn_module} object representing the LBBNN.
