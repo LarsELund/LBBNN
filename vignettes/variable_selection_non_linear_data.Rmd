@@ -64,10 +64,10 @@ model_nl <- lbbnn_net(problem_type = problem, sizes = sizes,
 ## Train and validate the model
 
 ```{r}
-train_lbbnn(epochs = 300, LBBNN = model_nl,
-            lr = 0.01, train_dl = train_loader_nl, device = device, verbose = FALSE)
+train_lbbnn(epochs = 20, LBBNN = model_nl,
+            lr = 0.2, train_dl = train_loader_nl, device = device, verbose = FALSE)
 
-validate_lbbnn(LBBNN = model_nl, num_samples = 100, test_dl = test_loader_nl,
+validate_lbbnn(LBBNN = model_nl, num_samples = 2, test_dl = test_loader_nl,
                device = device)
 ```
 
@@ -77,5 +77,3 @@ validate_lbbnn(LBBNN = model_nl, num_samples = 100, test_dl = test_loader_nl,
 plot(model_nl, type = "global", vertex_size = 7,
      edge_width = 0.4, label_size = 0.4)
 ```
-
-We see that the only the data generating features are included.
