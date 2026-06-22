@@ -162,11 +162,14 @@ train_lbbnn <- function(epochs, LBBNN, lr, train_dl, device = "cpu",
   l <- list("accs" = accs, "loss" = losses, "density" = density)
   time <- base::proc.time() - start
   LBBNN$elapsed_time <- time[[3]]
+  
   #compute active paths at the end of training rather than in the validation function
   if (LBBNN$input_skip) {
     LBBNN$compute_paths_input_skip()
   }
-  else (LBBNN$compute_paths())
+  else {LBBNN$compute_paths()
+    }
+  #return the metrics computed above
   invisible(l)
 }
 

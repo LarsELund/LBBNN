@@ -49,13 +49,13 @@
   </a>
   <ul class="dropdown-menu" role="menu">
 <li>
-      <a href="../articles/convolutional_architecture.html">Convolutional architecture on image dataset</a>
+      <a href="../articles/convolutional_architecture.html">classification: convolutional architecture</a>
     </li>
     <li>
       <a href="../articles/getting_started.html">Getting started with LBBNN</a>
     </li>
     <li>
-      <a href="../articles/small_dataset_classification.html">Classification on a small dataset</a>
+      <a href="../articles/small_dataset_classification.html">classification: gallstone dataset</a>
     </li>
     <li>
       <a href="../articles/variable_selection_linear_data.html">Using LBBNNs with input-skip to recover data generating linear model</a>
@@ -144,18 +144,18 @@ neurons in each.</p>
 <h2 id="train-and-validate-the-model">Train and validate the model<a class="anchor" aria-label="anchor" href="#train-and-validate-the-model"></a>
 </h2>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/train_lbbnn.html">train_lbbnn</a></span><span class="op">(</span>epochs <span class="op">=</span> <span class="fl">300</span>, LBBNN <span class="op">=</span> <span class="va">model_linear</span>,</span>
-<span>            lr <span class="op">=</span> <span class="fl">0.05</span>, train_dl <span class="op">=</span> <span class="va">train_loader</span>, device <span class="op">=</span> <span class="va">device</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
-<span><span class="fu"><a href="../reference/validate_lbbnn.html">validate_lbbnn</a></span><span class="op">(</span>LBBNN <span class="op">=</span> <span class="va">model_linear</span>, num_samples <span class="op">=</span> <span class="fl">10</span>, test_dl <span class="op">=</span> <span class="va">test_loader</span>,</span>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/train_lbbnn.html">train_lbbnn</a></span><span class="op">(</span>epochs <span class="op">=</span> <span class="fl">50</span>, LBBNN <span class="op">=</span> <span class="va">model_linear</span>,</span>
+<span>            lr <span class="op">=</span> <span class="fl">0.1</span>, train_dl <span class="op">=</span> <span class="va">train_loader</span>, device <span class="op">=</span> <span class="va">device</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/validate_lbbnn.html">validate_lbbnn</a></span><span class="op">(</span>LBBNN <span class="op">=</span> <span class="va">model_linear</span>, num_samples <span class="op">=</span> <span class="fl">2</span>, test_dl <span class="op">=</span> <span class="va">test_loader</span>,</span>
 <span>              device <span class="op">=</span> <span class="va">device</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $validation_error</span></span>
-<span><span class="co">#&gt; [1] 0.1127498</span></span>
+<span><span class="co">#&gt; [1] 0.1228187</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $validation_error_sparse</span></span>
-<span><span class="co">#&gt; [1] 0.1108399</span></span>
+<span><span class="co">#&gt; [1] 0.1267759</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $density</span></span>
-<span><span class="co">#&gt; [1] 0.04615385</span></span>
+<span><span class="co">#&gt; [1] 0.1230769</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $density_active_path</span></span>
 <span><span class="co">#&gt; [1] 0.01538462</span></span></code></pre></div>
@@ -172,9 +172,9 @@ samples.</p>
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">model_linear</span>, dataset <span class="op">=</span> <span class="va">train_loader</span>, inds <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>     output_neuron <span class="op">=</span> <span class="fl">1</span>, num_data <span class="op">=</span> <span class="fl">5</span>, num_samples <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
 <span><span class="co">#&gt;          lower       mean      upper</span></span>
-<span><span class="co">#&gt; x0   0.5947226  0.6046016  0.6130178</span></span>
-<span><span class="co">#&gt; x1  -0.4096843 -0.4018597 -0.3905376</span></span>
-<span><span class="co">#&gt; x2   0.4884034  0.4964451  0.5038068</span></span>
+<span><span class="co">#&gt; x0   0.5885950  0.5929495  0.5964277</span></span>
+<span><span class="co">#&gt; x1  -0.4201867 -0.4024738 -0.3904432</span></span>
+<span><span class="co">#&gt; x2   0.4973240  0.5028132  0.5122011</span></span>
 <span><span class="co">#&gt; x3   0.0000000  0.0000000  0.0000000</span></span>
 <span><span class="co">#&gt; x4   0.0000000  0.0000000  0.0000000</span></span>
 <span><span class="co">#&gt; x5   0.0000000  0.0000000  0.0000000</span></span>

@@ -13,5 +13,6 @@
 ^doc$
 ^dataset$
 ^Meta$
+^docs$
 ^CRAN-SUBMISSION$
 ^cran-comments\.md$

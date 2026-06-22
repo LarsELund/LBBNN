@@ -41,13 +41,13 @@ Computation of the KL-divergence.
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu"><li>
-      <a href="../articles/convolutional_architecture.html">Convolutional architecture on image dataset</a>
+      <a href="../articles/convolutional_architecture.html">classification: convolutional architecture</a>
     </li>
     <li>
       <a href="../articles/getting_started.html">Getting started with LBBNN</a>
     </li>
     <li>
-      <a href="../articles/small_dataset_classification.html">Classification on a small dataset</a>
+      <a href="../articles/small_dataset_classification.html">classification: gallstone dataset</a>
     </li>
     <li>
       <a href="../articles/variable_selection_linear_data.html">Using LBBNNs with input-skip to recover data generating linear model</a>
@@ -95,7 +95,8 @@ or the Median Probability Model (MPM).</p></li>
 <span>  hidden_dims <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">200</span>, <span class="fl">200</span><span class="op">)</span>,</span>
 <span>  device <span class="op">=</span> <span class="st">"cpu"</span>,</span>
 <span>  bias_inclusion_prob <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  conv_net <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  conv_net <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  weight_init <span class="op">=</span> <span class="st">"uniform"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -122,15 +123,15 @@ for weights and biases in each layer.</p></dd>
 
 
 <dt id="arg-density-init">density_init<a class="anchor" aria-label="anchor" href="#arg-density-init"></a></dt>
-<dd><p>A numeric of size 2,
-used to initialize the inclusion parameters, one for each layer.
-NOTE: Can also be given as a keyword with the
-following options: 'balanced', 'dense', 'polarized', 'polarized_dense',
-'polarized_mild', 'polarized_sparse', 'sparse'.</p></dd>
+<dd><p>Controls initialization of the inclusion parameters.
+A string keyword or a numeric vector <code>c(lower, upper)</code>.
+String options: <code>"polarized"</code>, <code>"polarized_mild"</code>,
+<code>"polarized_sparse"</code>, <code>"polarized_dense"</code>,
+<code>"dense"</code>, <code>"sparse"</code>, <code>"balanced"</code>.</p></dd>
 
 
 <dt id="arg-flow">flow<a class="anchor" aria-label="anchor" href="#arg-flow"></a></dt>
-<dd><p>logical, whether to use normalizing flows.</p></dd>
+<dd><p>logical, whether to use normalizing flows</p></dd>
 
 
 <dt id="arg-num-transforms">num_transforms<a class="anchor" aria-label="anchor" href="#arg-num-transforms"></a></dt>
@@ -155,6 +156,15 @@ should be as associated with inclusion probabilities.</p></dd>
 <dt id="arg-conv-net">conv_net<a class="anchor" aria-label="anchor" href="#arg-conv-net"></a></dt>
 <dd><p>logical, whether the layer is used in a convolutional net.</p></dd>
 
+
+<dt id="arg-weight-init">weight_init<a class="anchor" aria-label="anchor" href="#arg-weight-init"></a></dt>
+<dd><p>Controls how <code>weight_mean</code> is initialized.
+A string keyword or a numeric vector <code>c(lower, upper)</code> for custom
+uniform bounds. String options: <code>"uniform"</code> (default, small uniform),
+<code>"he"</code> / <code>"he_relu"</code> (Kaiming uniform for ReLU),
+<code>"he_tanh"</code> (Kaiming uniform for tanh),
+<code>"glorot"</code> / <code>"xavier"</code> (Xavier uniform).</p></dd>
+
 </dl></div>
     <div id="value">
     <h2>Value</h2>
@@ -177,7 +187,7 @@ of the transformation.</p></li>
 <span class="r-in"><span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu">torch</span><span class="fu">::</span><span class="fu"><a href="https://torch.mlverse.org/docs/reference/torch_rand.html" class="external-link">torch_rand</a></span><span class="op">(</span><span class="fl">20</span>,<span class="fl">10</span>,requires_grad <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">output</span> <span class="op">&lt;-</span> <span class="fu">l1</span><span class="op">(</span><span class="va">x</span>,MPM <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="co">#the forward pass, output has shape (20,5)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">l1</span><span class="op">$</span><span class="fu">kl_div</span><span class="op">(</span><span class="op">)</span><span class="op">$</span><span class="fu">item</span><span class="op">(</span><span class="op">)</span><span class="op">)</span><span class="op">}</span> <span class="co">#compute KL-divergence after the forward pass</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 328.6054</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 319.5908</span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
