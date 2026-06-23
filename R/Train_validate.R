@@ -224,29 +224,28 @@ validate_lbbnn <- function(LBBNN, num_samples, test_dl, device = "cpu") {
   val_loss <- c()
   val_loss_mpm <- c()
   val_loss_mpm2 <- c()
-  out_shape <- LBBNN$sizes[length(LBBNN$sizes)]
   torch::with_no_grad({
     coro::loop(for (b in test_dl){
       target <- b[[2]]$to(device = device)
       if (LBBNN$problem_type == "multiclass classification" | LBBNN$problem_type == "MNIST") { #nll loss needs float tensors but bce loss needs long tensors 
         target <- torch::torch_tensor(target, dtype = torch::torch_long())
       }
-      outputs <- torch::torch_zeros(num_samples, dim(b[[1]])[1],
-                                    out_shape)$to(device = device)
-      output_mpm <- torch::torch_zeros_like(outputs)
+      outputs <- list()
+      outputs_mpm <- list()
       for (i in 1:num_samples) {
         data <- b[[1]]$to(device = device)
-        outputs[i] <- LBBNN(data, MPM = FALSE)
-        output_mpm[i] <- LBBNN(data, MPM = TRUE)
+        outputs[[i]] <- LBBNN(data, MPM = FALSE)
+        outputs_mpm[[i]] <- LBBNN(data, MPM = TRUE)
       }
-      out_full <- outputs$mean(1) #average over num_samples dimension
-      out_mpm <- output_mpm$mean(1)
+      out_full <- torch::torch_stack(outputs)$mean(1) #average over num_samples dimension
+      out_mpm <- torch::torch_stack(outputs_mpm)$mean(1)
+      
       if (LBBNN$problem_type == "multiclass classification" | LBBNN$problem_type == "MNIST") {
-        prediction <- max.col(out_full)
+        prediction <- out_full$argmax(dim = 2)
         corrects <- corrects + sum(prediction == target)
         totals <- totals + length(target)
         #prediction using only weights in active paths
-        prediction_mpm <- max.col(out_mpm)
+        prediction_mpm <- out_mpm$argmax(dim = 2)
         corrects_sparse <- corrects_sparse + sum(prediction_mpm == target)
       }
       else if (LBBNN$problem_type == "binary classification") {
