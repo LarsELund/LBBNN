@@ -16,8 +16,8 @@ X_nl <- matrix(runif(i * j, 0, 0.5), ncol = j)
 
 #make some X relevant for prediction
 y_nl <- (- 3 +  0.1 * log(abs(X_nl[, 1])) + 3 * cos(X_nl[, 2]) 
-             + 2 * X_nl[, 3] * X_nl[, 4] + X_nl[, 5] - 
-               X_nl[, 6] ** 2 + rnorm(i, sd = 0.1))
+         + 2 * X_nl[, 3] * X_nl[, 4] + X_nl[, 5] - 
+           X_nl[, 6] ** 2 + rnorm(i, sd = 0.1))
 hist(y_nl)
 y <- c()
 # change y to 0 and 1
@@ -28,8 +28,8 @@ sim_data_nl <- as.data.frame(X_nl)
 sim_data_nl <- cbind(sim_data_nl, y)
 
 loaders_nl <- get_dataloaders(sim_data_nl, train_proportion = 0.9,
-                           train_batch_size = 450, test_batch_size = 100,
-                           standardize = FALSE)
+                              train_batch_size = 450, test_batch_size = 100,
+                              standardize = FALSE)
 train_loader_nl <- loaders_nl$train_loader
 test_loader_nl  <- loaders_nl$test_loader
 
@@ -42,10 +42,10 @@ device <- "cpu" #can also be 'gpu' or 'mps'
 
 
 model_nl <- lbbnn_net(problem_type = problem, sizes = sizes,
-                              prior = incl_priors,
-                              inclusion_inits = incl_inits, input_skip = TRUE,
-                              std = stds, flow = TRUE,dims = c(10, 10, 10),
-                              device = device, bias_inclusion_prob = FALSE)
+                      prior = incl_priors,
+                      inclusion_inits = incl_inits, input_skip = TRUE,
+                      std = stds, flow = TRUE,dims = c(10, 10, 10),
+                      device = device, bias_inclusion_prob = FALSE)
 
 train_lbbnn(epochs = 300, LBBNN = model_nl,
             lr = 0.01, train_dl = train_loader_nl, device = device)

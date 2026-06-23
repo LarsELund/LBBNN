@@ -27,9 +27,14 @@ get_local_explanations_gradient <- function(model, input_data, num_samples = 1,
                                         device = "cpu") {
   device <- resolve_device(device)
   if (model$input_skip == FALSE) (stop("This function is only implemented for input-skip"))
-  if (model$computed_paths == FALSE) {
-    model$compute_paths_input_skip() #need this before computing explanations
-  }
+
+  #restore raw_output to its previous state!
+  raw_out <- model$raw_output
+  
+  on.exit({ model$raw_output <- raw_out 
+  
+  },add = TRUE)
+  
   #need to make sure input_data comes in shape (1,p) where p is #input variables
   num_classes <- model$sizes[length(model$sizes)]
   if (input_data$dim() == 4) { #in the case of MNIST or other image data
@@ -42,6 +47,8 @@ get_local_explanations_gradient <- function(model, input_data, num_samples = 1,
   p <- input_data$shape[2] #number of variables
   explanations <- torch::torch_zeros(num_samples, p, num_classes)
   predictions <- torch::torch_zeros(num_samples, num_classes)
+  
+  
   model$raw_output <- TRUE #to skip last sigmoid/softmax layer
   for (b in 1:num_samples) {#for each sample, get explanations for each class
     input_data$requires_grad <- TRUE

@@ -65,8 +65,6 @@ train_lbbnn <- function(epochs, LBBNN, lr, train_dl, device = "cpu",
   LBBNN$elapsed_time <- 0
   start <- base::proc.time()
   for (epoch in 1:epochs) {
-  #  if(LBBNN$input_skip){LBBNN$compute_paths_input_skip()}
-  #  else(LBBNN$compute_paths)
     if (epoch == epochs) { #only need these at the last epoch for residuals
      LBBNN$y <- c()
      LBBNN$r <- c()
@@ -85,13 +83,20 @@ train_lbbnn <- function(epochs, LBBNN, lr, train_dl, device = "cpu",
       target <- b[[2]]$to(device = device)
       if (epoch == epochs) { #add the targets and outputs to y and r
         LBBNN$y <- c(LBBNN$y, as.numeric(target$clone()$detach()$cpu()))
-        LBBNN$r <- c(LBBNN$r, as.numeric(output$clone()$detach()$squeeze()$cpu()))
+        LBBNN$r <- c(LBBNN$r, as.numeric(output$clone()$detach()$view(-1)$cpu()))
         }
       if (LBBNN$problem_type == "multiclass classification" | LBBNN$problem_type == "MNIST") { #nll loss needs float tensors but bce loss needs long tensors
         target <- target$to(dtype = torch::torch_long())
       }
-      else (output <- output$squeeze()) #remove last dimension from binary classifiction or regression
+      else if (LBBNN$problem_type == 'binary classification') {
+        output <- output$view(-1)
+      }
+      else {
+        output <- output$view_as(target) #for regression
+       
+      } 
       loss <- LBBNN$loss_fn(output, target) + LBBNN$kl_div() / length(train_dl)
+    
 
       if (LBBNN$problem_type == "multiclass classification" | LBBNN$problem_type == "MNIST") {
         prediction <- output$argmax(dim = 2) #stays on device
@@ -159,6 +164,14 @@ train_lbbnn <- function(epochs, LBBNN, lr, train_dl, device = "cpu",
   l <- list("accs" = accs, "loss" = losses, "density" = density)
   time <- base::proc.time() - start
   LBBNN$elapsed_time <- time[[3]]
+  
+  #compute active paths at the end of training rather than in the validation function
+  if (LBBNN$input_skip) {
+    LBBNN$compute_paths_input_skip()
+  }
+  else {LBBNN$compute_paths()
+    }
+  #return the metrics computed above
   invisible(l)
 }
 
@@ -203,12 +216,6 @@ validate_lbbnn <- function(LBBNN, num_samples, test_dl, device = "cpu") {
   val_loss <- c()
   val_loss_mpm <- c()
   val_loss_mpm2 <- c()
-  out_shape <- 1 #if binary classification or regression
-  if (LBBNN$input_skip) {
-    LBBNN$compute_paths_input_skip()
-    }
-  else (LBBNN$compute_paths)
-  LBBNN$computed_paths <- TRUE
   torch::with_no_grad({
     coro::loop(for (b in test_dl){
       target <- b[[2]]$to(device = device)
@@ -216,16 +223,16 @@ validate_lbbnn <- function(LBBNN, num_samples, test_dl, device = "cpu") {
         target <- target$to(dtype = torch::torch_long())
         out_shape <- max(target)$item()
       }
-      outputs <- torch::torch_zeros(num_samples, dim(b[[1]])[1],
-                                    out_shape)$to(device = device)
-      output_mpm <- torch::torch_zeros_like(outputs)
+      outputs <- list()
+      outputs_mpm <- list()
       for (i in 1:num_samples) {
         data <- b[[1]]$to(device = device)
-        outputs[i] <- LBBNN(data, MPM = FALSE)
-        output_mpm[i] <- LBBNN(data, MPM = TRUE)
+        outputs[[i]] <- LBBNN(data, MPM = FALSE)
+        outputs_mpm[[i]] <- LBBNN(data, MPM = TRUE)
       }
-      out_full <- outputs$mean(1) #average over num_samples dimension
-      out_mpm <- output_mpm$mean(1)
+      out_full <- torch::torch_stack(outputs)$mean(1) #average over num_samples dimension
+      out_mpm <- torch::torch_stack(outputs_mpm)$mean(1)
+      
       if (LBBNN$problem_type == "multiclass classification" | LBBNN$problem_type == "MNIST") {
         prediction <- out_full$argmax(dim = 2) #stays on device
         corrects <- corrects + (prediction == target)$sum()
@@ -242,8 +249,8 @@ validate_lbbnn <- function(LBBNN, num_samples, test_dl, device = "cpu") {
         totals <- totals + target$numel()
       }
       else {#for regression
-        out_full <- out_full$squeeze()
-        out_mpm <- out_mpm$squeeze()
+        out_full <- out_full$view_as(target)
+        out_mpm <- out_mpm$view_as(target)
         loss <- torch::torch_sqrt(torch::nnf_mse_loss(out_full, target))
         loss_mpm <- torch::torch_sqrt(torch::nnf_mse_loss(out_mpm, target))
         val_loss <- c(val_loss, loss$item())

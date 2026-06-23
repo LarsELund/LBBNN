@@ -24,7 +24,7 @@
 #' following options: 'balanced', 'dense', 'polarized', 'polarized_dense', 
 #' 'polarized_mild', 'polarized_sparse', 'sparse'.
 #' @param input_skip logical, whether to include input_skip.
-#' @param flow logical, whether to use normalizing flows.
+#' @param flow logical, to use normalizing flows.
 #' @param num_transforms integer, how many transformations to use in the flow.
 #' @param dims numeric vector, hidden dimension for the neural network
 #' in the RNVP transform.
@@ -104,7 +104,6 @@ lbbnn_net <- torch::nn_module(
     self$raw_output <- raw_output # TRUE when we want local explanations
     self$weight_init <- weight_init
     self$act <- torch::nn_leaky_relu(0.00)
-    self$computed_paths <- FALSE
     
     if(is.character(inclusion_inits[1])){ #for when the user provides a keyword
       inclusion_inits <- matrix(inclusion_inits,ncol = length(sizes) - 1)
@@ -219,7 +218,6 @@ lbbnn_net <- torch::nn_module(
     if (self$input_skip == TRUE) {
       stop("self$input_skip must be FALSE to use this function")
     }
-    self$computed_paths <- TRUE
     #sending a random input through the network of alpha matrices (0 and 1)
     #and then backpropagating to find active paths
     a <- rnorm(n = self$layers$children$`0`$alpha$shape[2])
@@ -261,13 +259,12 @@ lbbnn_net <- torch::nn_module(
     alp_out[alp_out != 0] <- 1
     alpha_mats_out <- append(alpha_mats_out, alp_out$detach())
     self$out_layer$alpha_active_path <- alp_out$detach()
-    return(alpha_mats_out)
+    invisible(alpha_mats_out)
   },
   compute_paths_input_skip = function() {
     if (self$input_skip == FALSE) {
       stop("self$input_skip must be TRUE to use this funciton")
     }
-    self$computed_paths <- TRUE
     #sending a random input through the network of alpha matrices (0 and 1)
     #and then backpropagating to find active paths
     a <- rnorm(n = self$layers$children$`0`$alpha$shape[2])
@@ -318,7 +315,7 @@ lbbnn_net <- torch::nn_module(
     alp_out[alp_out != 0] <- 1
     alpha_mats_out <- append(alpha_mats_out, alp_out$detach())
     self$out_layer$alpha_active_path <- alp_out$detach()
-    return(alpha_mats_out)
+    invisible(alpha_mats_out)
   },
 
   density = function() { #the standard density, without active paths

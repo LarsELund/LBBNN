@@ -1,5 +1,5 @@
 ---
-title: "Classification on a small dataset"
+title: "classification: gallstone dataset"
 output: rmarkdown::html_vignette
 params:
   eval: true
@@ -18,7 +18,7 @@ knitr::opts_chunk$set(
 
 ## Prepare data
 
-We use the gallstone dataset, consisting of a mix of demographic, bioimpedance and laboratory features. It is a mix of binary and continuous features, with 40 in total after pre-processing the dataset. It is relatively small, with only 319 total samples, where we use 223 of those for training and the remaining 96 for validation.
+The gallstone dataset consists of a mix of demographic, bioimpedance and laboratory features. It is a mix of binary and continuous features, with 40 in total after pre-processing the dataset. It is relatively small, with only 319 total samples, where we use 223 of those for training and the remaining 96 for validation. This makes it potentially sensitive to initializations, or other hyperparameters such as the number of epochs to train for.
 ```{r}
 library(LBBNN)
 torch::torch_manual_seed(42)
@@ -29,99 +29,55 @@ train_loader_gs <- loaders_gs$train_loader
 test_loader_gs <- loaders_gs$test_loader
 ```
 
-## Define hyperparameters and model object
+## Define model
 
-A relatively large network consisting of 4 hidden layers with 16 neurons each is used in this example.  We also use normalizing flows for this example. We actually have over 30000 model parameters here when including all the flow parameters, which can be seen by using the print function.
-
+This 4 hidden layer model with normalizing flows has over 30000 parameters, which
+can be seen when using the print function.
 ```{r}
-problem <- "binary classification"
+ problem <- "binary classification"
 sizes <- c(40, 16, 16, 16, 16, 1)
 inclusion_priors <- c(0.5, 0.5, 0.5, 0.5, 0.5) 
 stds <- c(1, 1, 1, 1, 1) 
 inclusion_inits <- 'polarized_dense'
 device <- "cpu"
 model_gs <- lbbnn_net(problem_type = problem, sizes = sizes,
-                      prior = inclusion_priors,
-                      inclusion_inits = inclusion_inits,
-                      input_skip = TRUE, std = stds, flow = TRUE,
-                      dims = c(10, 10 ,10, 10), device = device)
+                     prior = inclusion_priors, flow = TRUE,
+                     dims = c(10, 10, 10, 10), 
+                     inclusion_inits = inclusion_inits,
+                     input_skip = TRUE, std = stds, device = device)
 #print(model_gs)
 ```
 
-## Train and validate 
+## Train and validate
 
-```{r}
-results_gs <- train_lbbnn(epochs = 1000, LBBNN = model_gs,
-                          lr = 0.005, train_dl = train_loader_gs,
-                          device = device, scheduler = "step",
-                          sch_step_size = 1000, verbose = FALSE)
+```{r, eval = FALSE}
+train_lbbnn(epochs = 1000, LBBNN = model_gs,
+            lr = 0.005, train_dl = train_loader_gs, device = device,
+            verbose = FALSE)
 
-validate_lbbnn(LBBNN = model_gs, num_samples = 100,
-               test_dl = test_loader_gs, device)
+validate_lbbnn(LBBNN = model_gs, num_samples = 10, test_dl = test_loader_gs,
+              device = device)
+
 ```
-We see that the accuracy is not great, especially on the sparse model. However, the density in active paths 
-is only 0.006, perhaps too small to obtain good performance. What if we try a smaller architecture? The below model
-has around 11000 parameters.
 
-```{r}
+The above results in a very sparse model, where accuracy around 73%. Instead, training can be 
+terminated at a specified minimum density using the argument "min_density" as follows:
+
+```{r,eval = FALSE}
 torch::torch_manual_seed(42)
-sizes <- c(40, 3, 3, 1)
-inclusion_priors <- c(0.5, 0.5, 0.5) 
-stds <- c(1, 1, 1) 
-inclusion_inits <- 'polarized_dense'
-device <- "cpu"
-model_smaller <- lbbnn_net(problem_type = problem, sizes = sizes,
-                      prior = inclusion_priors,
-                      inclusion_inits = inclusion_inits,
-                      input_skip = TRUE, std = stds, flow = TRUE,
-                      dims = c(10, 10 ,10, 10), device = device)
+model_2 <- lbbnn_net(problem_type = problem, sizes = sizes,
+                     prior = inclusion_priors, flow = TRUE,
+                     dims = c(10, 10, 10, 10), 
+                     inclusion_inits = inclusion_inits,
+                     input_skip = TRUE, std = stds, device = device)
+
+train_lbbnn(epochs = 1000, LBBNN = model_2,
+            lr = 0.005, train_dl = train_loader_gs, device = device,
+            verbose = FALSE, min_density = 0.1)
+
+validate_lbbnn(LBBNN = model_2, num_samples = 10, test_dl = test_loader_gs,
+              device = device)
 ```
-
-```{r}
-results_2 <- train_lbbnn(epochs = 1000, LBBNN = model_smaller,
-                          lr = 0.005, train_dl = train_loader_gs,
-                          device = device, scheduler = "step",
-                          sch_step_size = 1000, verbose = FALSE)
-
-validate_lbbnn(LBBNN = model_smaller, num_samples = 100,
-               test_dl = test_loader_gs, device)
-```
-In this case, accuracy is much better even though we still have a very sparse model.
-
-## Terminating training at a set density
-
-To avoid structures that are too sparse, it is possible to use the argument 'min_density' in the train_lbbnn function to stop 
-training when this density is reached. 
-
-```{r}
-torch::torch_manual_seed(42)
-sizes <- c(40, 16, 16, 16, 16, 1)
-inclusion_priors <- c(0.5, 0.5, 0.5, 0.5, 0.5) 
-stds <- c(1, 1, 1, 1, 1) 
-inclusion_inits <- 'polarized_dense'
-device <- "cpu"
-model_stopped <- lbbnn_net(problem_type = problem, sizes = sizes,
-                      prior = inclusion_priors,
-                      inclusion_inits = inclusion_inits,
-                      input_skip = TRUE, std = stds, flow = TRUE,
-                      dims = c(10, 10 ,10, 10), device = device)
-
-results_3 <- train_lbbnn(epochs = 1000, LBBNN = model_stopped,
-                          lr = 0.005, train_dl = train_loader_gs,
-                          device = device, scheduler = "step",
-                          sch_step_size = 1000, verbose = FALSE, min_density = 0.10)
-
-validate_lbbnn(LBBNN = model_stopped, num_samples = 100,
-               test_dl = test_loader_gs, device)
-
-```
-The accuracy is a little improved here. However, this dataset is in general quite sensitive to hyperparameters such as network architecture,
-number of training epochs and parameter initializations.
-
-
-
-
-
-
+Accuracy is now improved to around 79%.
 
 

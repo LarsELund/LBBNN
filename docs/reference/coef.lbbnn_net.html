@@ -37,13 +37,13 @@ The contributions are found by taking the gradient wrt x."><!-- mathjax --><scri
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu"><li>
-      <a href="../articles/convolutional_architecture.html">Convolutional architecture on image dataset</a>
+      <a href="../articles/convolutional_architecture.html">classification: convolutional architecture</a>
     </li>
     <li>
       <a href="../articles/getting_started.html">Getting started with LBBNN</a>
     </li>
     <li>
-      <a href="../articles/small_dataset_classification.html">Classification on a small dataset</a>
+      <a href="../articles/small_dataset_classification.html">classification: gallstone dataset</a>
     </li>
     <li>
       <a href="../articles/variable_selection_linear_data.html">Using LBBNNs with input-skip to recover data generating linear model</a>
@@ -167,10 +167,10 @@ and 95% confidence intervals for each variable.</p></li>
 <span class="r-in"><span><span class="fu"><a href="train_lbbnn.html">train_lbbnn</a></span><span class="op">(</span>epochs <span class="op">=</span> <span class="fl">1</span>,LBBNN <span class="op">=</span> <span class="va">model</span>, lr <span class="op">=</span> <span class="fl">0.01</span>,train_dl <span class="op">=</span> <span class="va">train_loader</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">model</span>,dataset <span class="op">=</span> <span class="va">x</span>, num_data <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">}</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Epoch 1, training: loss = 57.13098, density = 0.80000 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>            lower          mean         upper</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> x0 -2.405092e-05 -2.288921e-05 -0.0000222306</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> x1  1.567872e-02  1.626214e-02  0.0167831619</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Epoch 1, training: loss = 44.70573, density = 0.60000 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          lower        mean       upper</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> x0 0.002267447 0.002448246 0.002567593</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> x1 0.015169107 0.015222665 0.015309915</span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>

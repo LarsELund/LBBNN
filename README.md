@@ -69,7 +69,8 @@ problem <- 'binary classification'
 sizes <- c(7, 5, 5, 1) 
 inclusion_priors <-c(0.5, 0.5, 0.5) 
 stds <- c(1, 1, 1) 
-inclusion_inits <- matrix(rep(c(-10, 15), 3),nrow = 2, ncol = 3)
+#inclusion_inits <- matrix(rep(c(-10, 15), 3),nrow = 2, ncol = 3)
+inclusion_inits <- 'dense'
 device <- 'cpu' #can also be mps or gpu.
 ```
 
@@ -100,16 +101,16 @@ provide the test_loader containing the data set aside during training.
 ``` r
 validate_lbbnn(LBBNN = model_input_skip,num_samples = 100,test_dl = test_loader,device)
 #> $accuracy_full_model
-#> [1] 0.8666667
+#> [1] 0.8611111
 #> 
 #> $accuracy_sparse
-#> [1] 0.8555555
+#> [1] 0.8611111
 #> 
 #> $density
-#> [1] 0.1214953
+#> [1] 0.06542056
 #> 
 #> $density_active_path
-#> [1] 0.09345794
+#> [1] 0.06542056
 #validate_lbbnn(LBBNN = model_flows,num_samples = 1000,test_dl = test_loader,device)
 ```
 
@@ -142,14 +143,14 @@ summary(model_input_skip)
 #> The final column shows the average inclusion probability across all layers
 #> -----------------------------------
 #>    L0 L1 L2    a0    a1    a2 a_avg
-#> x0  0  0  0 0.136 0.077 0.035 0.100
-#> x1  0  0  0 0.325 0.064 0.149 0.190
-#> x2  0  1  0 0.076 0.336 0.080 0.194
-#> x3  1  0  1 0.425 0.267 0.999 0.406
-#> x4  1  1  0 0.327 0.352 0.058 0.314
-#> x5  0  1  0 0.140 0.280 0.230 0.212
-#> x6  0  0  1 0.058 0.256 0.988 0.232
-#> The model took 10.687 seconds to train, using cpu
+#> x0  0  0  0 0.073 0.064 0.053 0.067
+#> x1  0  1  0 0.074 0.225 0.066 0.142
+#> x2  0  0  0 0.071 0.068 0.051 0.068
+#> x3  0  1  0 0.089 0.207 0.106 0.144
+#> x4  0  0  0 0.061 0.076 0.044 0.066
+#> x5  0  1  0 0.060 0.204 0.195 0.138
+#> x6  0  1  1 0.069 0.277 0.992 0.247
+#> The model took 9.92 seconds to train, using cpu
 ```
 
 Local explanations aim to explain a model’s prediction for a specific
@@ -171,22 +172,22 @@ The residual function computes the residuals: y_true - y_predicted
 
 ``` r
 residuals(model_input_skip)[1:10]
-#>  [1] -0.23637275  0.05227208 -0.04005997  0.13478029  0.20345378 -0.09961643
-#>  [7]  0.05248320  0.14917880 -0.07054520  0.06071264
+#>  [1] -0.16605029  0.08027482 -0.06073312  0.06734884  0.11117309 -0.06302989
+#>  [7]  0.02952594  0.14954549 -0.06676923  0.03041196
 ```
 
 coef gives the local explanations average over multiple samples:
 
 ``` r
 coef(model_input_skip,dataset = train_loader,inds = c(2,3,4,5,6))
-#>         lower       mean      upper
-#> x0  0.0000000  0.0000000  0.0000000
-#> x1  0.0000000  0.0000000  0.0000000
-#> x2 -1.4081770 -1.0450520 -0.1182637
-#> x3 -3.0491267 -1.5438678 -0.5097757
-#> x4 -1.5836792 -0.5174002  0.8989937
-#> x5  0.0000000  0.3023412  0.5179587
-#> x6 -0.7162537 -0.6587479 -0.6052896
+#>         lower       mean       upper
+#> x0  0.0000000  0.0000000  0.00000000
+#> x1 -0.9935143 -0.6864897 -0.07549272
+#> x2  0.0000000  0.0000000  0.00000000
+#> x3 -0.3978343 -0.2250528  0.00000000
+#> x4  0.0000000  0.0000000  0.00000000
+#> x5  0.0000000  0.2754804  0.47322066
+#> x6 -2.8249421 -2.0773863 -1.00955870
 ```
 
 posterior predictions:

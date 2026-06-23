@@ -1,5 +1,5 @@
 ---
-title: "Convolutional architecture on image dataset"
+title: "classification: convolutional architecture"
 output: rmarkdown::html_vignette
 params:
   eval: true
@@ -15,15 +15,17 @@ knitr::opts_chunk$set(
   comment = "#>"
 )
 ```
-The KMNIST dataset consists of grayscale images of 28x28 pixels. Instead of digits as in the classic MNIST dataset,
-KMNIST consists of Japanese Hiragana characters. It has 70000 samples. Here, we will demonstrate how to apply 
-LBBNNs to a convolutional architecture. 
-
-
-## Install torchvision if needed and transform data to ensure it works on all platforms
+The goal of this vignette is to demonstrate how to use LBBNNs with a convolutional architecture.
+We will only use a dummy dataset here, but the torchvision package can be used to try it out
+on real datasets e.g. MNIST. 
 
 ```{r}
 library(LBBNN)
+```
+
+## Demonstration of how to download KMNIST using torchvision
+
+```{r,eval=FALSE}
 if(!requireNamespace("torchvision"))
   install.packages("torchvision")
 torch::torch_manual_seed(42)
@@ -34,16 +36,12 @@ kmnist_transform <- function(x) {
     x <- torchvision::transform_to_tensor(x) #now shape should be [batch, 28,28]
     x <- x$unsqueeze(2) #add the channel dimension - > [batch,1,28,28]
   }
-  else{ #on mac, everything is fine and easy
+  else{ #on mac, everything is fine 
     x <- torchvision::transform_to_tensor(x)
   }
   return(x)
 }
-```
-
-## Define dataloaders via the torchvision dataset
-
-```{r}
+#get datasets from torchvision and define training and test loaders
 train_ds <- torchvision::kmnist_dataset(
   dir,
   download = TRUE,
@@ -58,9 +56,20 @@ train_loader_kmnist <- torch::dataloader(train_ds, batch_size = 100, shuffle = T
 test_loader_kmnist <- torch::dataloader(test_ds, batch_size = 100)
 ```
 
+
+## Create dummy dataset with the same shape as KMNIST
+
+```{r}
+torch::torch_manual_seed(42)
+x <- torch::torch_randn(200, 1, 28, 28)
+y <- torch::torch_randint(1, 11, size = 200)
+dataset <- torch::tensor_dataset(x, y)
+train_loader <- torch::dataloader(dataset, batch_size = 100)
+```
+
 ## Create the layers that define the architecture of our convolutional network
 
-Here we have to manually define the layers, as we will use both convolutional and feed-forward layers.
+Here manually define the layers, as we will use both convolutional and feed-forward layers.
 They are defined as follows:
 ```{r}
 device <- "cpu"
@@ -143,20 +152,19 @@ LBBNN_ConvNet <- torch::nn_module(
   }
 )
 
-model_kmnist <- LBBNN_ConvNet(conv_layer_1, conv_layer_2, linear_layer_1,
+model_conv <- LBBNN_ConvNet(conv_layer_1, conv_layer_2, linear_layer_1,
                        linear_layer_2, device)
-model_kmnist$to(device = device)
+model_conv$to(device = device)
 ```
 
 ## Train and validate the model
 
-These functions work the same as with feed-forward architectures. It is recommended to train on
-GPU if one wants to obtain excellent performance on this dataset, as it will require a few hundred epochs
-of training, which will be very slow on CPU. 
+These functions work the same as with feed-forward architectures. Training can be accelerated on GPU where available. 
 ```{r}
-train_lbbnn(epochs = 2, LBBNN = model_kmnist, lr = 0.01, train_dl = train_loader_kmnist,
+train_lbbnn(epochs = 2, LBBNN = model_conv, lr = 0.01, train_dl = train_loader,
             device = device)
-validate_lbbnn(model_kmnist, num_samples = 10, test_dl = test_loader_kmnist, device = device)
+validate_lbbnn(model_conv, num_samples = 2, test_dl = train_loader, 
+               device = device)
 ```
 
 

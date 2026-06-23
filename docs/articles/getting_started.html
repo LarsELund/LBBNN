@@ -49,13 +49,13 @@
   </a>
   <ul class="dropdown-menu" role="menu">
 <li>
-      <a href="../articles/convolutional_architecture.html">Convolutional architecture on image dataset</a>
+      <a href="../articles/convolutional_architecture.html">classification: convolutional architecture</a>
     </li>
     <li>
       <a href="../articles/getting_started.html">Getting started with LBBNN</a>
     </li>
     <li>
-      <a href="../articles/small_dataset_classification.html">Classification on a small dataset</a>
+      <a href="../articles/small_dataset_classification.html">classification: gallstone dataset</a>
     </li>
     <li>
       <a href="../articles/variable_selection_linear_data.html">Using LBBNNs with input-skip to recover data generating linear model</a>
@@ -169,8 +169,8 @@ dataloader, and the device to train on. Optionally, performance metrics
 such as loss, accuracy and density can be printed to the console during
 training.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/train_lbbnn.html">train_lbbnn</a></span><span class="op">(</span>epochs <span class="op">=</span> <span class="fl">50</span>, LBBNN <span class="op">=</span> <span class="va">model</span>,</span>
-<span>            lr <span class="op">=</span> <span class="fl">0.01</span>, train_dl <span class="op">=</span> <span class="va">train_loader</span>,</span>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/train_lbbnn.html">train_lbbnn</a></span><span class="op">(</span>epochs <span class="op">=</span> <span class="fl">10</span>, LBBNN <span class="op">=</span> <span class="va">model</span>,</span>
+<span>            lr <span class="op">=</span> <span class="fl">0.05</span>, train_dl <span class="op">=</span> <span class="va">train_loader</span>,</span>
 <span>            device <span class="op">=</span> <span class="va">device</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
@@ -184,16 +184,16 @@ probability model, i.e. including weights that have a posterior
 inclusion probability &gt; 0.5. In addition, it returns the density, and
 the density within active paths.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/validate_lbbnn.html">validate_lbbnn</a></span><span class="op">(</span>LBBNN <span class="op">=</span> <span class="va">model</span>, num_samples <span class="op">=</span> <span class="fl">10</span>,</span>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/validate_lbbnn.html">validate_lbbnn</a></span><span class="op">(</span>LBBNN <span class="op">=</span> <span class="va">model</span>, num_samples <span class="op">=</span> <span class="fl">2</span>,</span>
 <span>               test_dl <span class="op">=</span> <span class="va">test_loader</span>, device <span class="op">=</span> <span class="va">device</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $accuracy_full_model</span></span>
-<span><span class="co">#&gt; [1] 0.8666667</span></span>
+<span><span class="co">#&gt; [1] 0.8555555</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $accuracy_sparse</span></span>
-<span><span class="co">#&gt; [1] 0.8666667</span></span>
+<span><span class="co">#&gt; [1] 0.85</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $density</span></span>
-<span><span class="co">#&gt; [1] 0.1962617</span></span>
+<span><span class="co">#&gt; [1] 0.1869159</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $density_active_path</span></span>
 <span><span class="co">#&gt; [1] 0.07476636</span></span></code></pre></div>
@@ -224,13 +224,13 @@ also provide the specific datapoint we want to explain.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">model</span>, <span class="va">data</span>,num_samples <span class="op">=</span> <span class="fl">10</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;         lower       mean      upper</span></span>
-<span><span class="co">#&gt; x0 -0.4351673 -0.4345348 -0.4341158</span></span>
-<span><span class="co">#&gt; x1 -0.3919319 -0.3917487 -0.3915151</span></span>
+<span><span class="co">#&gt; x0 -0.4679386 -0.4673928 -0.4669682</span></span>
+<span><span class="co">#&gt; x1 -0.4550755 -0.4547976 -0.4545650</span></span>
 <span><span class="co">#&gt; x2  0.0000000  0.0000000  0.0000000</span></span>
 <span><span class="co">#&gt; x3  0.0000000  0.0000000  0.0000000</span></span>
-<span><span class="co">#&gt; x4 -0.3809999 -0.3806574 -0.3801446</span></span>
+<span><span class="co">#&gt; x4 -0.4490815 -0.4486520 -0.4483100</span></span>
 <span><span class="co">#&gt; x5  0.0000000  0.0000000  0.0000000</span></span>
-<span><span class="co">#&gt; x6 -0.2149876 -0.2148254 -0.2145557</span></span></code></pre></div>
+<span><span class="co">#&gt; x6  0.0000000  0.0000000  0.0000000</span></span></code></pre></div>
 </div>
   </div>
 

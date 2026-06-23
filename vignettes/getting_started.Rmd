@@ -75,8 +75,8 @@ One epoch refers to one pass through the training dataset. Other keywords are th
 the learning rate for the optimizer, the dataloader, and the device to train on. Optionally,
 performance metrics such as loss, accuracy and density can be printed to the console during training.
 ```{r}
-train_lbbnn(epochs = 50, LBBNN = model,
-            lr = 0.01, train_dl = train_loader,
+train_lbbnn(epochs = 10, LBBNN = model,
+            lr = 0.05, train_dl = train_loader,
             device = device, verbose = FALSE)
 ```
 
@@ -87,7 +87,7 @@ It returns the accuracy for the full model, and for the sparse model, selected w
 probability model, i.e. including weights that have a posterior inclusion probability > 0.5. In addition,
 it returns the density, and the density within active paths. 
 ```{r}
-validate_lbbnn(LBBNN = model, num_samples = 10,
+validate_lbbnn(LBBNN = model, num_samples = 2,
                test_dl = test_loader, device = device)
 ```
 

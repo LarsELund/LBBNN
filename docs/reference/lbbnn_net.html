@@ -38,13 +38,13 @@ an output layer with 5 neurons.
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu"><li>
-      <a href="../articles/convolutional_architecture.html">Convolutional architecture on image dataset</a>
+      <a href="../articles/convolutional_architecture.html">classification: convolutional architecture</a>
     </li>
     <li>
       <a href="../articles/getting_started.html">Getting started with LBBNN</a>
     </li>
     <li>
-      <a href="../articles/small_dataset_classification.html">Classification on a small dataset</a>
+      <a href="../articles/small_dataset_classification.html">classification: gallstone dataset</a>
     </li>
     <li>
       <a href="../articles/variable_selection_linear_data.html">Using LBBNNs with input-skip to recover data generating linear model</a>
@@ -93,7 +93,8 @@ For example, <code>sizes = c(20, 200, 200, 5)</code> generates a network with:</
 <span>  custom_act <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  link <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  nll <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  bias_inclusion_prob <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  bias_inclusion_prob <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  weight_init <span class="op">=</span> <span class="st">"uniform"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -137,7 +138,7 @@ following options: 'balanced', 'dense', 'polarized', 'polarized_dense',
 
 
 <dt id="arg-flow">flow<a class="anchor" aria-label="anchor" href="#arg-flow"></a></dt>
-<dd><p>logical, whether to use normalizing flows.</p></dd>
+<dd><p>logical, to use normalizing flows.</p></dd>
 
 
 <dt id="arg-num-transforms">num_transforms<a class="anchor" aria-label="anchor" href="#arg-num-transforms"></a></dt>
@@ -175,6 +176,15 @@ activation function.</p></dd>
 <dt id="arg-bias-inclusion-prob">bias_inclusion_prob<a class="anchor" aria-label="anchor" href="#arg-bias-inclusion-prob"></a></dt>
 <dd><p>logical, determines whether the bias should
 be as associated with inclusion probabilities.</p></dd>
+
+
+<dt id="arg-weight-init">weight_init<a class="anchor" aria-label="anchor" href="#arg-weight-init"></a></dt>
+<dd><p>Controls how <code>weight_mean</code> is initialized in each
+layer. A string keyword or a numeric vector <code>c(lower, upper)</code> for
+custom uniform bounds. String options: <code>"uniform"</code> (default),
+<code>"he"</code> / <code>"he_relu"</code> (Kaiming uniform for ReLU),
+<code>"he_tanh"</code> (Kaiming uniform for tanh),
+<code>"glorot"</code> / <code>"xavier"</code> (Xavier uniform).</p></dd>
 
 </dl></div>
     <div id="value">

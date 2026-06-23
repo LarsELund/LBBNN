@@ -62,9 +62,9 @@ model_linear <- lbbnn_net(problem_type = problem, sizes = sizes,
 ## Train and validate the model
 
 ```{r}
-train_lbbnn(epochs = 300, LBBNN = model_linear,
-            lr = 0.05, train_dl = train_loader, device = device, verbose = FALSE)
-validate_lbbnn(LBBNN = model_linear, num_samples = 10, test_dl = test_loader,
+train_lbbnn(epochs = 50, LBBNN = model_linear,
+            lr = 0.1, train_dl = train_loader, device = device, verbose = FALSE)
+validate_lbbnn(LBBNN = model_linear, num_samples = 2, test_dl = test_loader,
               device = device)
 ```
 
