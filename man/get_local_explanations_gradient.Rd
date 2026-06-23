@@ -27,8 +27,9 @@ If FALSE, multiply by input values.}
 we assume that the contribution is negative
 (good/bad that it is not included) if FALSE, just removes zero covariates.}
 
-\item{device}{character, the device to be trained on.
-Default is 'cpu', can be 'mps' or 'gpu'.}
+\item{device}{character, the device to be used. One of \code{'cpu'}
+(default), \code{'gpu'} or \code{'cuda'} (both select a CUDA GPU), or
+\code{'mps'}. Requesting an accelerator that is not available raises an error.}
 }
 \value{
 A list with the following elements:

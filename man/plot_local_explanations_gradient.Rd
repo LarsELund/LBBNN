@@ -19,8 +19,9 @@ plot_local_explanations_gradient(
 
 \item{num_samples}{integer, samples to use to produce credible intervals.}
 
-\item{device}{character, the device to be trained on. Default is cpu.
-Can be 'mps' or 'gpu'.}
+\item{device}{character, the device to be used. One of \code{'cpu'}
+(default), \code{'gpu'} or \code{'cuda'} (both select a CUDA GPU), or
+\code{'mps'}. Requesting an accelerator that is not available raises an error.}
 
 \item{save_svg}{the path where the plot will be saved as svg,
 if save_svg is not NULL.}
