@@ -7,8 +7,9 @@
 #' @param lr numeric, the learning rate to be used in the Adam optimizer.
 #' @param train_dl An instance of \code{torch::dataloader}
 #' consisting of a tensor dataset with features and targets.
-#' @param device the device to be trained on. Default is 'cpu',
-#' also accepts 'gpu' or 'mps'.
+#' @param device the device to be used. One of \code{'cpu'} (default),
+#' \code{'gpu'} or \code{'cuda'} (both select a CUDA GPU), or \code{'mps'}.
+#' Requesting an accelerator that is not available raises an error.
 #' @param scheduler A torch learning rate scheduler object.
 #' Can be used to decay learning rate for better convergence,
 #' currently only supports 'step'.
@@ -49,6 +50,7 @@
 train_lbbnn <- function(epochs, LBBNN, lr, train_dl, device = "cpu",
                         scheduler = NULL, sch_step_size = NULL, 
                         min_density = NULL, verbose = TRUE) {
+  device <- resolve_device(device)
   opt <- torch::optim_adam(LBBNN$parameters, lr = lr)
   accs <- c()
   losses <- c()
@@ -179,8 +181,9 @@ train_lbbnn <- function(epochs, LBBNN, lr, train_dl, device = "cpu",
 #' posterior to be used for model averaging.
 #' @param test_dl An instance of \code{torch::dataloader},
 #' containing the validation data.
-#' @param device The device to perform validation on.
-#' Default is 'cpu'; other options include 'gpu' and 'mps'.
+#' @param device the device to perform validation on. One of \code{'cpu'}
+#' (default), \code{'gpu'} or \code{'cuda'} (both select a CUDA GPU), or
+#' \code{'mps'}. Requesting an accelerator that is not available raises an error.
 #' @return A list containing the following elements:
 #'   \describe{
 #'     \item{accuracy_full_model}{Classification accuracy of the
@@ -199,6 +202,7 @@ train_lbbnn <- function(epochs, LBBNN, lr, train_dl, device = "cpu",
 #'   }
 #' @export
 validate_lbbnn <- function(LBBNN, num_samples, test_dl, device = "cpu") {
+  device <- resolve_device(device)
   LBBNN$eval()
   corrects <- 0
   corrects_sparse <- 0

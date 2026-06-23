@@ -305,7 +305,9 @@ coef.lbbnn_net <- function(object, dataset, inds = NULL, output_neuron = 1,
 #'@param newdata A \code{torch::dataloader}
 #'object containing the data with which to predict.
 #'@param draws integer, the number of samples to draw from the posterior.
-#'@param device character, device for computation (default = \code{"cpu"}).
+#'@param device character, device for computation. One of \code{'cpu'}
+#'(default), \code{'gpu'} or \code{'cuda'} (both select a CUDA GPU), or
+#'\code{'mps'}. Requesting an accelerator that is not available raises an error.
 #'@param link Optional link function to apply to the network output.
 #'@param ... further arguments passed to or from other methods.
 #'@return A \code{torch::torch_tensor}  of shape \code{(draws,N,C)}
@@ -332,6 +334,7 @@ coef.lbbnn_net <- function(object, dataset, inds = NULL, output_neuron = 1,
 #' @export
 predict.lbbnn_net <- function(object, newdata, mpm = FALSE, draws = 10,
                               device = "cpu", link = NULL, ...) {
+  device <- resolve_device(device)
   object$eval()
   object$raw_output <- TRUE #skip final sigmoid/softmax
   if (!object$computed_paths) {
