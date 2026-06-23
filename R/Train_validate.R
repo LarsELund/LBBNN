@@ -85,8 +85,15 @@ train_lbbnn <- function(epochs, LBBNN, lr, train_dl, device = "cpu",
       if (LBBNN$problem_type == "multiclass classification" | LBBNN$problem_type == "MNIST") { #nll loss needs float tensors but bce loss needs long tensors
         target <- torch::torch_tensor(target, dtype = torch::torch_long())
       }
-      else (output <- output$view(-1)) #remove last dimension from binary classifiction or regression
+      else if (LBBNN$problem_type == 'binary classification') {
+        output <- output$view(-1)
+      }
+      else {
+        output <- output$view_as(target) #for regression
+       
+      } 
       loss <- LBBNN$loss_fn(output, target) + LBBNN$kl_div() / length(train_dl)
+    
 
       if (LBBNN$problem_type == "multiclass classification" | LBBNN$problem_type == "MNIST") {
         prediction <- max.col(output)
@@ -217,13 +224,12 @@ validate_lbbnn <- function(LBBNN, num_samples, test_dl, device = "cpu") {
   val_loss <- c()
   val_loss_mpm <- c()
   val_loss_mpm2 <- c()
-  out_shape <- 1 #if binary classification or regression
+  out_shape <- LBBNN$sizes[length(LBBNN$sizes)]
   torch::with_no_grad({
     coro::loop(for (b in test_dl){
       target <- b[[2]]$to(device = device)
       if (LBBNN$problem_type == "multiclass classification" | LBBNN$problem_type == "MNIST") { #nll loss needs float tensors but bce loss needs long tensors 
         target <- torch::torch_tensor(target, dtype = torch::torch_long())
-        out_shape <- max(target)$item()
       }
       outputs <- torch::torch_zeros(num_samples, dim(b[[1]])[1],
                                     out_shape)$to(device = device)
@@ -251,8 +257,8 @@ validate_lbbnn <- function(LBBNN, num_samples, test_dl, device = "cpu") {
         totals <- totals + length(target)
       }
       else {#for regression
-        out_full <- out_full$view(-1)
-        out_mpm <- out_mpm$view(-1)
+        out_full <- out_full$view_as(target)
+        out_mpm <- out_mpm$view_as(target)
         loss <- torch::torch_sqrt(torch::nnf_mse_loss(out_full, target))
         loss_mpm <- torch::torch_sqrt(torch::nnf_mse_loss(out_mpm, target))
         val_loss <- c(val_loss, loss$item())
