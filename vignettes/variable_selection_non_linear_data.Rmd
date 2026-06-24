@@ -14,14 +14,16 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
+library(LBBNN)
+has_torch <- requireNamespace("torch", quietly = TRUE) &&
+            torch::torch_is_installed()
 ```
 
 ## Generate data
 
 We again generate 1000 samples with 15 features, and make 6 of them relevant for the outcome. This is a more complicated problem
 than the previous, as we include some non-linear effects. This time we transform the outcome into a binary variable. 
-```{r}
-library(LBBNN)
+```{r, eval = has_torch}
 i <- 1000
 j <- 15
 set.seed(42)
@@ -47,7 +49,7 @@ test_loader_nl  <- loaders_nl$test_loader
 
 We use the same architecture as in the example with linear data. For this example, 
 we use normalizing flows in the variational distribution. 
-```{r}
+```{r, eval = has_torch}
 problem <- "binary classification"
 sizes <- c(j, 5, 5, 1) 
 incl_priors <- c(0.5, 0.5, 0.5) #
@@ -63,7 +65,7 @@ model_nl <- lbbnn_net(problem_type = problem, sizes = sizes,
 
 ## Train and validate the model
 
-```{r}
+```{r, eval = has_torch}
 train_lbbnn(epochs = 20, LBBNN = model_nl,
             lr = 0.2, train_dl = train_loader_nl, device = device, verbose = FALSE)
 
@@ -73,7 +75,7 @@ validate_lbbnn(LBBNN = model_nl, num_samples = 2, test_dl = test_loader_nl,
 
 ## Check the global explanations
 
-```{r,,fig.width=6, fig.height=6}
+```{r,,fig.width=6, fig.height=6, eval = has_torch}
 plot(model_nl, type = "global", vertex_size = 7,
      edge_width = 0.4, label_size = 0.4)
 ```

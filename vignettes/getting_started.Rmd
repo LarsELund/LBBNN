@@ -14,9 +14,11 @@ vignette: >
 ```{r, include=FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>",
-  eval = params$eval
+  comment = "#>"
 )
+library(LBBNN)
+has_torch <- requireNamespace("torch", quietly = TRUE) &&
+            torch::torch_is_installed()
 ```
 
 ## Introduction
@@ -36,8 +38,7 @@ a train_loader and test_loader object. These are PyTorch DataLoader objects, opt
 
 In this case we set aside 180 samples to validate performance. 
 
-```{r}
-library(LBBNN)
+```{r, eval = has_torch}
 torch::torch_manual_seed(42)
 loaders <- get_dataloaders(raisin_dataset, train_proportion = 0.8,
                            train_batch_size = 720, test_batch_size = 180)
@@ -55,7 +56,7 @@ Similarly, stds refers to the prior for the standard deviation of the weights.
 
 The inclusion_inits argument refers to how the probabilities of the inclusion parameters are initialized. This can determine the initial density of the network, and further how density evolves during training. There are several possible keywords that can be given, such as 'dense', where all the probabilities are initialized close to 1, or 'sparse', where they are close to 0. 'polarized' gives probabilities that are either close to 0 or 1. In this example, we use 'balanced', which results in probabilities in [0.27, 0.73]. Additionally, the flow and input_skip arguments controls whether to include normalizing flows in the variational distribution, and the input-skip architecture. 
 
-```{r}
+```{r, eval = has_torch}
 problem <- "binary classification"
 sizes <- c(7, 5, 5, 1)
 inclusion_priors <- c(0.5, 0.5, 0.5)
@@ -74,7 +75,7 @@ model <- lbbnn_net(problem_type = problem, sizes = sizes,
 One epoch refers to one pass through the training dataset. Other keywords are the model object,
 the learning rate for the optimizer, the dataloader, and the device to train on. Optionally,
 performance metrics such as loss, accuracy and density can be printed to the console during training.
-```{r}
+```{r, eval = has_torch}
 train_lbbnn(epochs = 10, LBBNN = model,
             lr = 0.05, train_dl = train_loader,
             device = device, verbose = FALSE)
@@ -86,7 +87,7 @@ that was set aside. num_samples refers to how many samples to use for model avea
 It returns the accuracy for the full model, and for the sparse model, selected with using the median 
 probability model, i.e. including weights that have a posterior inclusion probability > 0.5. In addition,
 it returns the density, and the density within active paths. 
-```{r}
+```{r, eval = has_torch}
 validate_lbbnn(LBBNN = model, num_samples = 2,
                test_dl = test_loader, device = device)
 ```
@@ -94,7 +95,7 @@ validate_lbbnn(LBBNN = model, num_samples = 2,
 ## Global explanation
 If we are interested in looking at which variables affect predictions in general, we can obtain local 
 explanations through the plot function: 
-```{r,fig.width=6, fig.height=6}
+```{r,fig.width=6, fig.height=6, eval = has_torch}
 plot(model, type = 'global', vertex_size = 10, edge_width = 0.6, label_size = 0.6)
 ```
 
@@ -104,14 +105,14 @@ We see that only 4 of the 7 features are used.
 If we instead want to get the explanations for specific sample, we can instead use the keyword 'local'
 within the plot function. We must also provide the specific datapoint we want to explain.
 
-```{r,fig.width=6, fig.height=6}
+```{r,fig.width=6, fig.height=6, eval = has_torch}
 x_data <- train_loader$dataset$tensors[[1]] 
 data <- x_data[42, ]
 plot(model, type = "local", data = data,num_samples = 10)
 ```
 
 Can also get the same information using coef:
-```{r}
+```{r, eval = has_torch}
 print(coef(model, data,num_samples = 10))
 ```
 

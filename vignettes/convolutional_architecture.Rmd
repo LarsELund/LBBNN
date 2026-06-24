@@ -14,14 +14,13 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
+library(LBBNN)
+has_torch <- requireNamespace("torch", quietly = TRUE) &&
+            torch::torch_is_installed()
 ```
 The goal of this vignette is to demonstrate how to use LBBNNs with a convolutional architecture.
 We will only use a dummy dataset here, but the torchvision package can be used to try it out
 on real datasets e.g. MNIST. 
-
-```{r}
-library(LBBNN)
-```
 
 ## Demonstration of how to download KMNIST using torchvision
 
@@ -59,7 +58,7 @@ test_loader_kmnist <- torch::dataloader(test_ds, batch_size = 100)
 
 ## Create dummy dataset with the same shape as KMNIST
 
-```{r}
+```{r, eval = has_torch}
 torch::torch_manual_seed(42)
 x <- torch::torch_randn(200, 1, 28, 28)
 y <- torch::torch_randint(1, 11, size = 200)
@@ -71,7 +70,7 @@ train_loader <- torch::dataloader(dataset, batch_size = 100)
 
 Here manually define the layers, as we will use both convolutional and feed-forward layers.
 They are defined as follows:
-```{r}
+```{r, eval = has_torch}
 device <- "cpu"
 conv_layer_1 <- lbbnn_conv2d(in_channels = 1, out_channels = 32, kernel_size = 5,
                              prior_inclusion = 0.5, standard_prior = 1,
@@ -101,7 +100,7 @@ linear_layer_2 <- lbbnn_linear(in_features = 300, out_features = 10,
 
 We include pooling layers between the convolutional layers.
 
-```{r}
+```{r, eval = has_torch}
 LBBNN_ConvNet <- torch::nn_module(
   "LBBNN_ConvNet",
   
@@ -160,7 +159,7 @@ model_conv$to(device = device)
 ## Train and validate the model
 
 These functions work the same as with feed-forward architectures. Training can be accelerated on GPU where available. 
-```{r}
+```{r, eval = has_torch}
 train_lbbnn(epochs = 2, LBBNN = model_conv, lr = 0.01, train_dl = train_loader,
             device = device)
 validate_lbbnn(model_conv, num_samples = 2, test_dl = train_loader, 

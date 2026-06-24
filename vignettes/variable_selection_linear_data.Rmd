@@ -14,6 +14,9 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
+library(LBBNN)
+has_torch <- requireNamespace("torch", quietly = TRUE) &&
+            torch::torch_is_installed()
 ```
 
 ## Generate data
@@ -21,8 +24,7 @@ knitr::opts_chunk$set(
 We generate 1000 samples with 15 features, and make 3 of them relevant for the outcome. The goal is to see if we recover the 
 correct variables, and also their coefficients. The data preparation process follows the same steps as in the previous example.
 Note that the dataset must be a data.frame object before applying the get_dataloaders function.
-```{r}
-library(LBBNN)
+```{r, eval = has_torch}
 i <- 1000
 j <- 15
 set.seed(42)
@@ -43,7 +45,7 @@ test_loader  <- loaders$test_loader
 
 Here we must use the "regression" keyword as we have a continuous outcome. We use 
 a relatively small network of 2 hidden layers with 5 neurons in each. 
-```{r}
+```{r, eval = has_torch}
 problem <- "regression"
 sizes <- c(j, 5, 5, 1) 
 incl_priors <- c(0.5, 0.5, 0.5) 
@@ -61,7 +63,7 @@ model_linear <- lbbnn_net(problem_type = problem, sizes = sizes,
 
 ## Train and validate the model
 
-```{r}
+```{r, eval = has_torch}
 train_lbbnn(epochs = 50, LBBNN = model_linear,
             lr = 0.1, train_dl = train_loader, device = device, verbose = FALSE)
 validate_lbbnn(LBBNN = model_linear, num_samples = 2, test_dl = test_loader,
@@ -73,7 +75,7 @@ validate_lbbnn(LBBNN = model_linear, num_samples = 2, test_dl = test_loader,
 Here we have given the dataset as an argument instead of picking a specific sample,
 where the argument num_data controls how many samples from the dataset we use. Using inds = NULL,
 we select random samples from the dataset. Explanations are then averaged across these samples.
-```{r}
+```{r, eval = has_torch}
 coef(model_linear, dataset = train_loader, inds = NULL,
      output_neuron = 1, num_data = 5, num_samples = 10)
 ```
@@ -83,7 +85,7 @@ We see that the coefficients match the data generating process, and that we only
 
 Using plot with type = 'global' gives us the global explanations, i.e. the features that affect predictions 
 in general.
-```{r,,fig.width=6, fig.height=6}
+```{r,,fig.width=6, fig.height=6, eval = has_torch}
 plot(model_linear, type = "global", vertex_size = 7,
      edge_width = 0.4, label_size = 0.4)
 ```

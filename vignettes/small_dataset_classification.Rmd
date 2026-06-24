@@ -14,13 +14,15 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
+library(LBBNN)
+has_torch <- requireNamespace("torch", quietly = TRUE) &&
+            torch::torch_is_installed()
 ```
 
 ## Prepare data
 
 The gallstone dataset consists of a mix of demographic, bioimpedance and laboratory features. It is a mix of binary and continuous features, with 40 in total after pre-processing the dataset. It is relatively small, with only 319 total samples, where we use 223 of those for training and the remaining 96 for validation. This makes it potentially sensitive to initializations, or other hyperparameters such as the number of epochs to train for.
-```{r}
-library(LBBNN)
+```{r, eval = has_torch}
 torch::torch_manual_seed(42)
 loaders_gs <- get_dataloaders(gallstone_dataset, train_proportion = 0.70,
                               train_batch_size = 223, test_batch_size = 96,
@@ -33,8 +35,8 @@ test_loader_gs <- loaders_gs$test_loader
 
 This 4 hidden layer model with normalizing flows has over 30000 parameters, which
 can be seen when using the print function.
-```{r}
- problem <- "binary classification"
+```{r, eval = has_torch}
+problem <- "binary classification"
 sizes <- c(40, 16, 16, 16, 16, 1)
 inclusion_priors <- c(0.5, 0.5, 0.5, 0.5, 0.5) 
 stds <- c(1, 1, 1, 1, 1) 
