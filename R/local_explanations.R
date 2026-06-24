@@ -9,8 +9,9 @@
 #' @param include_potential_contribution IF TRUE, If covariate=0,
 #' we assume that the contribution is negative
 #' (good/bad that it is not included) if FALSE, just removes zero covariates.
-#' @param device character, the device to be trained on.
-#' Default is 'cpu', can be 'mps' or 'gpu'.
+#' @param device character, the device to be used. One of \code{'cpu'}
+#' (default), \code{'gpu'} or \code{'cuda'} (both select a CUDA GPU), or
+#' \code{'mps'}. Requesting an accelerator that is not available raises an error.
 #' @return A list with the following elements:
 #'   \describe{
 #'     \item{explanations}{A \code{torch::tensor}
@@ -24,8 +25,9 @@ get_local_explanations_gradient <- function(model, input_data, num_samples = 1,
                                             magnitude = TRUE,
                                         include_potential_contribution = FALSE,
                                         device = "cpu") {
-  #if (model$input_skip == FALSE) (stop("This function is only implemented for input-skip"))
 
+
+  device <- resolve_device(device)
   #restore raw_output to its previous state!
   raw_out <- model$raw_output
   
@@ -100,8 +102,9 @@ quants <- function(x) { #maybe should allow for something other than 95% CI
 #' @param model An instance of \code{LBBNN_Net} with input-skip enabled.
 #' @param input_data The data to be explained (one sample).
 #' @param num_samples integer, samples to use to produce credible intervals.
-#' @param device character, the device to be trained on. Default is cpu.
-#' Can be 'mps' or 'gpu'.
+#' @param device character, the device to be used. One of \code{'cpu'}
+#' (default), \code{'gpu'} or \code{'cuda'} (both select a CUDA GPU), or
+#' \code{'mps'}. Requesting an accelerator that is not available raises an error.
 #' @param save_svg the path where the plot will be saved as svg,
 #' if save_svg is not NULL.
 #' @return This function produces plots as a side
