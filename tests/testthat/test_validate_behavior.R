@@ -1,12 +1,9 @@
 test_that("validate_lbbnn does not modify model state", {
   
-  library(LBBNN)
   testthat::skip_on_cran()
-  if (!requireNamespace("torch", quietly = TRUE)) {
-    testthat::skip("torch not available")
+  if (! torch_available()){
+    testthat::skip("torch or LibTorch is unavailable")
   }
-  
-  
   i <- 10
   j <- 2
   

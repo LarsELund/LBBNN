@@ -1,10 +1,12 @@
-library(testthat)
-library(torch)
-library(torchvision)
-library(LBBNN)
+
 
 test_that("KMNIST batch has correct shape", {
-  
+  library(torchvision)
+
+  testthat::skip_on_cran()
+  if (! torch_available()){
+    testthat::skip("torch or LibTorch is unavailable")
+  }
 
   
   batch_size <- 100

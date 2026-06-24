@@ -89,7 +89,7 @@ train_lbbnn <- function(epochs, LBBNN, lr, train_dl, device = "cpu",
         target <- target$to(dtype = torch::torch_long())
       }
       else if (LBBNN$problem_type == 'binary classification') {
-        output <- output$view(-1)
+        output <- output$view_as(target)
       }
       else {
         output <- output$view_as(target) #for regression
@@ -225,7 +225,6 @@ validate_lbbnn <- function(LBBNN, num_samples, test_dl, device = "cpu") {
       target <- b[[2]]$to(device = device)
       if (LBBNN$problem_type == "multiclass classification" | LBBNN$problem_type == "MNIST") { #nll loss needs float tensors but bce loss needs long tensors
         target <- target$to(dtype = torch::torch_long())
-        out_shape <- max(target)$item()
       }
       outputs <- list()
       outputs_mpm <- list()
@@ -246,8 +245,8 @@ validate_lbbnn <- function(LBBNN, num_samples, test_dl, device = "cpu") {
         corrects_sparse <- corrects_sparse + (prediction_mpm == target)$sum()
       }
       else if (LBBNN$problem_type == "binary classification") {
-        out_full <- out_full$squeeze()
-        out_mpm <- out_mpm$squeeze()
+        out_full <- out_full$view_as(target)
+        out_mpm <- out_mpm$view_as(target)
         corrects <- corrects + ((out_full > 0.5) == target)$sum()
         corrects_sparse <- corrects_sparse + ((out_mpm > 0.5) == target)$sum()
         totals <- totals + target$numel()

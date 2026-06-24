@@ -1,7 +1,7 @@
 test_that("Smoke: tiny model trained for one epoch", {
   testthat::skip_on_cran()
-  if (!requireNamespace("torch", quietly = TRUE)) {
-    testthat::skip("torch not available")
+  if (! torch_available()){
+    testthat::skip("torch or LibTorch is unavailable")
   }
   i <- 5000
   j <- 15
