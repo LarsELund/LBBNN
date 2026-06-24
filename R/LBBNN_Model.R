@@ -28,7 +28,9 @@
 #' @param num_transforms integer, how many transformations to use in the flow.
 #' @param dims numeric vector, hidden dimension for the neural network
 #' in the RNVP transform.
-#' @param device the device to be trained on. Can be 'cpu', 'gpu' or 'mps'.
+#' @param device the device to be used. One of \code{'cpu'} (default),
+#' \code{'gpu'} or \code{'cuda'} (both select a CUDA GPU), or \code{'mps'}.
+#' Requesting an accelerator that is not available raises an error.
 #' Default is cpu.
 #' @param raw_output logical, whether the network skips the last sigmoid/softmax
 #'  layer to compute local explanations.
@@ -86,6 +88,7 @@ lbbnn_net <- torch::nn_module(
                         dims = c(200, 200), device = "cpu", raw_output = FALSE,
                         custom_act = NULL, link = NULL, nll = NULL,
                         bias_inclusion_prob = FALSE, weight_init = "uniform") {
+    device <- resolve_device(device)
     self$device <- device
     self$layers <- torch::nn_module_list()
     self$problem_type <- problem_type
