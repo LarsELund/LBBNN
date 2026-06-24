@@ -11,8 +11,7 @@ require(graphics)
 #' with each element being 1 if the variable is included or 0 if not included.
 #' @keywords internal
 get_input_inclusions <- function(model) {
-  if (model$input_skip == FALSE)
-  (stop("This function is currently only implemented for input-skip"))
+  input_skip <- isTRUE(model$input_skip)
   x_names <- c()
   layer_names <- c()
   for (k in 1:model$sizes[1]) {
@@ -23,22 +22,43 @@ get_input_inclusions <- function(model) {
   }
   inclusion_matrix <- matrix(0, nrow = model$sizes[1],
                              ncol = length(model$sizes) - 1)
+  
   #add the names
   colnames(inclusion_matrix) <- layer_names
   rownames(inclusion_matrix) <- x_names
+  
+  #for non input-skip we only use the first layer
+  if( !input_skip){
+    inclusion_matrix <- matrix(0, nrow = model$sizes[1],
+                               ncol = 1)
+    rownames(inclusion_matrix) <- x_names
+    colnames(inclusion_matrix) <- layer_names[1]
+    
+  }
+  
   inp_size <- model$sizes[1]
   i <- 1
   for (l in model$layers$children) {
     alp <- l$alpha_active_path
-    incl <- as.numeric(torch::torch_sum(alp[, - inp_size:dim(alp)[2]], dim = 1))
+    if (input_skip) {
+      incl <- as.numeric(torch::torch_sum(alp[, - inp_size:dim(alp)[2]], dim = 1))
+      inclusion_matrix[, i] <- incl
+      i <- i + 1
+    }
+    else {
+      incl <- as.numeric(torch::torch_sum(alp, dim = 1))
+      inclusion_matrix[, i] <- incl
+      break #only need the first one when we are not using input-skip
+    }
+  }
+  if (input_skip) {
+    alp_out <- model$out_layer$alpha_active_path
+    incl <- as.numeric(torch::torch_sum(alp_out[, - inp_size:dim(alp_out)[2]],
+                                        dim = 1))
     inclusion_matrix[, i] <- incl
     i <- i + 1
   }
-  alp_out <- model$out_layer$alpha_active_path
-  incl <- as.numeric(torch::torch_sum(alp_out[, - inp_size:dim(alp_out)[2]],
-                                      dim = 1))
-  inclusion_matrix[, i] <- incl
-  i <- i + 1
+  
   return(inclusion_matrix)
 }
 
@@ -79,48 +99,64 @@ get_input_inclusions <- function(model) {
 #'}
 #' @export
 summary.lbbnn_net <- function(object, ...) {
-  if (object$input_skip == FALSE)
-  (stop("Summary only applies to objects with input-skip = TRUE"))
-  inclusions <- get_input_inclusions(object) #a matrix of size (p,L), with p # inputs, L # layers
-
-  #now get the average inclusion probabilities of each layer
-  p <- object$sizes[1] # number of inputs
-  L <- length(object$sizes) - 1 # number of layers
-  alpha_means <- matrix(nrow = p, ncol = L)
-  i <- 1
-  all_alphas <- c()
-  col_names <- c()
-  for (l in object$layers$children) {
-    alpha_l <- l$alpha$clone()$detach()$cpu()
-    aa <- alpha_l[, (dim(alpha_l)[2] - p + 1):dim(alpha_l)[2]] #only need last p corresponding to input, ignoring hidden layer alphas
-    alpha_means[, i] <- round(as.numeric(aa$mean(dim = 1)), 3)
-    all_alphas <- rbind(all_alphas, as.matrix(aa))
+  #first for input skip models
+  if (object$input_skip) {
+    inclusions <- get_input_inclusions(object) #a matrix of size (p,L), with p # inputs, L # layers
+    
+    #now get the average inclusion probabilities of each layer
+    p <- object$sizes[1] # number of inputs
+    L <- length(object$sizes) - 1 # number of layers
+    alpha_means <- matrix(nrow = p, ncol = L)
+    i <- 1
+    all_alphas <- c()
+    col_names <- c()
+    for (l in object$layers$children) {
+      alpha_l <- l$alpha$clone()$detach()$cpu()
+      aa <- alpha_l[, (dim(alpha_l)[2] - p + 1):dim(alpha_l)[2]] #only need last p corresponding to input, ignoring hidden layer alphas
+      alpha_means[, i] <- round(as.numeric(aa$mean(dim = 1)), 3)
+      all_alphas <- rbind(all_alphas, as.matrix(aa))
+      col_names <- c(col_names, paste("a", i - 1, sep = ""))
+      i <- i + 1
+    }
+    #now do the output layer
+    alpha_out <- object$out_layer$alpha$clone()$detach()
+    a_out <- alpha_out[, (dim(alpha_out)[2] - p + 1):dim(alpha_out)[2]]
+    all_alphas <- rbind(all_alphas, as.matrix(a_out))
     col_names <- c(col_names, paste("a", i - 1, sep = ""))
-    i <- i + 1
+    alpha_means[, i] <- round(as.numeric(a_out$mean(dim = 1)), 3)
+    a_avg <- round(colMeans(all_alphas), 3)
+    colnames(alpha_means) <- col_names
+    alpha_means <- cbind(alpha_means, a_avg)
+    summary_out <- as.data.frame(cbind(inclusions, alpha_means))
+    cat("Summary of lbbnn_net object:\n")
+    cat("-----------------------------------\n")
+    cat("Shows the number of times each variable was included from each layer\n")
+    cat("-----------------------------------\n")
+    cat("Then the average inclusion probability for each input from each layer\n")
+    cat("-----------------------------------\n")
+    cat("The final column shows the average inclusion probability across all layers\n")
+    cat("-----------------------------------\n")
+    print(summary_out)
+    cat(paste("The model took", object$elapsed_time,
+              "seconds to train, using", object$device))
+    invisible(summary_out)
   }
-  #now do the output layer
-  alpha_out <- object$out_layer$alpha$clone()$detach()
-  a_out <- alpha_out[, (dim(alpha_out)[2] - p + 1):dim(alpha_out)[2]]
-  all_alphas <- rbind(all_alphas, as.matrix(a_out))
-  col_names <- c(col_names, paste("a", i - 1, sep = ""))
-  alpha_means[, i] <- round(as.numeric(a_out$mean(dim = 1)), 3)
-  a_avg <- round(colMeans(all_alphas), 3)
-  colnames(alpha_means) <- col_names
-  alpha_means <- cbind(alpha_means, a_avg)
-  summary_out <- as.data.frame(cbind(inclusions, alpha_means))
-  cat("Summary of lbbnn_net object:\n")
-  cat("-----------------------------------\n")
-  cat("Shows the number of times each variable was included from each layer\n")
-  cat("-----------------------------------\n")
-  cat("Then the average inclusion probability for each input from each layer\n")
-  cat("-----------------------------------\n")
-  cat("The final column shows the average inclusion probability across all layers\n")
-  cat("-----------------------------------\n")
-  print(summary_out)
-  cat(paste("The model took", object$elapsed_time,
-            "seconds to train, using", object$device))
-  invisible(summary_out)
-
+  else{#for standard LBBNN without input-skip
+    inclusions <- get_input_inclusions(object)
+    alpha_inputs <- object$layers$children[[1]]$alpha$clone()$detach()
+    a0 <- round(as.numeric(alpha_inputs$mean(1)), 3)
+    summary_out <- as.data.frame(cbind(inclusions, a0))
+    summary_out <- as.data.frame(cbind(inclusions, a0))
+    cat("Summary of lbbnn_net object:\n")
+    cat("-----------------------------------\n")
+    cat("Shows the number of times each variable was included from the input layer\n")
+    cat("-----------------------------------\n")
+    cat("Then the average inclusion probability for each input in the input layer\n")
+    print(summary_out)
+    cat(paste("The model took", object$elapsed_time,
+              "seconds to train, using", object$device))
+    invisible(summary_out)
+  }
 }
 
 #' @title Residuals from LBBNN fit
