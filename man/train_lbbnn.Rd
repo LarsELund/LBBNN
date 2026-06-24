@@ -27,8 +27,9 @@ is a pass through the entire training dataset (all mini batches).}
 \item{train_dl}{An instance of \code{torch::dataloader}
 consisting of a tensor dataset with features and targets.}
 
-\item{device}{the device to be trained on. Default is 'cpu',
-also accepts 'gpu' or 'mps'.}
+\item{device}{the device to be used. One of \code{'cpu'} (default),
+\code{'gpu'} or \code{'cuda'} (both select a CUDA GPU), or \code{'mps'}.
+Requesting an accelerator that is not available raises an error.}
 
 \item{scheduler}{A torch learning rate scheduler object.
 Can be used to decay learning rate for better convergence,

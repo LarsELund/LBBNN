@@ -45,7 +45,9 @@ Default is 2.}
 \item{hidden_dims}{numeric vector, dimension of the hidden layer(s)
 in the neural networks of the RNVP transform.}
 
-\item{device}{The device to be used. Default is CPU.}
+\item{device}{the device to be used. One of \code{'cpu'} (default),
+\code{'gpu'} or \code{'cuda'} (both select a CUDA GPU), or \code{'mps'}.
+Requesting an accelerator that is not available raises an error.}
 
 \item{weight_init}{Controls how \code{weight_mean} is initialized.
 A string keyword or a numeric vector \code{c(lower, upper)} for custom

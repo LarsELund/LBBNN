@@ -54,7 +54,9 @@ following options: 'balanced', 'dense', 'polarized', 'polarized_dense',
 \item{dims}{numeric vector, hidden dimension for the neural network
 in the RNVP transform.}
 
-\item{device}{the device to be trained on. Can be 'cpu', 'gpu' or 'mps'.
+\item{device}{the device to be used. One of \code{'cpu'} (default),
+\code{'gpu'} or \code{'cuda'} (both select a CUDA GPU), or \code{'mps'}.
+Requesting an accelerator that is not available raises an error.
 Default is cpu.}
 
 \item{raw_output}{logical, whether the network skips the last sigmoid/softmax

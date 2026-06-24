@@ -24,7 +24,9 @@ object containing the data with which to predict.}
 
 \item{draws}{integer, the number of samples to draw from the posterior.}
 
-\item{device}{character, device for computation (default = \code{"cpu"}).}
+\item{device}{character, device for computation. One of \code{'cpu'}
+(default), \code{'gpu'} or \code{'cuda'} (both select a CUDA GPU), or
+\code{'mps'}. Requesting an accelerator that is not available raises an error.}
 
 \item{link}{Optional link function to apply to the network output.}
 

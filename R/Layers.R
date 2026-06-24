@@ -162,7 +162,9 @@ init_weight_mean <- function(tensor, type,
 #' Default is 2.
 #' @param hidden_dims numeric vector, dimension of the hidden layer(s)
 #' in the neural networks of the RNVP transform.
-#' @param device The device to be used. Default is CPU.
+#' @param device the device to be used. One of \code{'cpu'} (default),
+#' \code{'gpu'} or \code{'cuda'} (both select a CUDA GPU), or \code{'mps'}.
+#' Requesting an accelerator that is not available raises an error.
 #' @param bias_inclusion_prob logical, determines whether the bias
 #' should be as associated with inclusion probabilities.
 #' @param conv_net logical, whether the layer is used in a convolutional net.
@@ -206,6 +208,7 @@ lbbnn_linear <- torch::nn_module(
     bias_inclusion_prob = FALSE,
     conv_net = FALSE,
     weight_init = "uniform") {
+    device <- resolve_device(device)
     self$in_features  <- in_features
     self$out_features <- out_features
     self$device <- device
@@ -462,7 +465,9 @@ lbbnn_linear <- torch::nn_module(
 #'  Default is 2.
 #' @param hidden_dims numeric vector, dimension of the hidden layer(s)
 #' in the neural networks of the RNVP transform.
-#' @param device The device to be used. Default is CPU.
+#' @param device the device to be used. One of \code{'cpu'} (default),
+#' \code{'gpu'} or \code{'cuda'} (both select a CUDA GPU), or \code{'mps'}.
+#' Requesting an accelerator that is not available raises an error.
 #' @param weight_init Controls how \code{weight_mean} is initialized.
 #' A string keyword or a numeric vector \code{c(lower, upper)} for custom
 #' uniform bounds. String options: \code{"uniform"} (default, small uniform),
@@ -506,6 +511,7 @@ lbbnn_conv2d <- torch::nn_module(
       kernel <- kernel_size
     }else (stop("kernel_size must be of either length one or two."))
 
+    device <- resolve_device(device)
     self$in_channels  <- in_channels
     self$out_channels <- out_channels
     self$flow <- flow #true or false

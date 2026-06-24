@@ -15,8 +15,9 @@ posterior to be used for model averaging.}
 \item{test_dl}{An instance of \code{torch::dataloader},
 containing the validation data.}
 
-\item{device}{The device to perform validation on.
-Default is 'cpu'; other options include 'gpu' and 'mps'.}
+\item{device}{the device to perform validation on. One of \code{'cpu'}
+(default), \code{'gpu'} or \code{'cuda'} (both select a CUDA GPU), or
+\code{'mps'}. Requesting an accelerator that is not available raises an error.}
 }
 \value{
 A list containing the following elements:
