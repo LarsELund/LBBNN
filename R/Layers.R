@@ -664,8 +664,8 @@ lbbnn_conv2d <- torch::nn_module(
       W_mean <- self$weight_mean * self$alpha * z2$view(c(-1, 1, 1, 1))
       W_var <-  self$alpha * (self$weight_sigma ^ 2 + (1 - self$alpha) *
                             self$weight_mean ^ 2 * z2$view(c(-1, 1, 1, 1)) ^ 2)
-      act_mu <- torch::torch_matmul(W_mean$view(- 1, length(self$c1)), self$c1)
-      act_var <- torch::torch_matmul(W_mean$view(- 1, length(self$c1)),
+      act_mu <- torch::torch_matmul(W_mean$view(c(-1, length(self$c1))), self$c1)
+      act_var <- torch::torch_matmul(W_var$view(c(-1, length(self$c1))),
                                      self$c1 ^ 2)
 
       # For convolutional layers, linear mappings empirically work better than
