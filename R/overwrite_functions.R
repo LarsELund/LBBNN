@@ -465,8 +465,7 @@ print.lbbnn_net <- function(x, ...) {
 #' @export
 plot.lbbnn_net <- function(x, type = c("global", "local"), data = NULL,
                            num_samples = 100, ...) {
-  if (x$input_skip == FALSE)
-  (stop("Plotting currently only implemented for input-skip"))
+
   d <- match.arg(type)
   if (d == "global") {
     plot_active_paths(x, ...)

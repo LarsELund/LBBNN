@@ -57,9 +57,12 @@ test_that("compute active paths returns valid structure both with and without in
   paths <- model_test$compute_paths_input_skip()
   paths_std <- model_standard$compute_paths()
   
-  expect_type(paths,"list")
+  expect_type(paths,"list") 
   expect_true(length(paths) > 0)
   
   expect_type(paths_std,"list")
   expect_true(length(paths_std) > 0)
+  
+  expect_false(identical(paths, paths_std)) # input skip paths should be different from LBBNN paths
+  
   })

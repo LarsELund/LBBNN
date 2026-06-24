@@ -1,5 +1,5 @@
 ---
-title: "Using LBBNNs with input-skip to recover data generating linear model"
+title: "variable selection: linear-data"
 output: rmarkdown::html_vignette
 params:
   eval: true

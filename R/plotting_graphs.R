@@ -71,6 +71,7 @@ assign_within_layer_pos <- function(N, N_u, input_positions,neuron_spacing) {
 assign_names <- function(model) {#assign names to the nodes before plotting
   alphas <- get_adj_mats(model)
   sizes <- model$sizes
+  input_skip <- isTRUE(model$input_skip) 
   for (i in 1:length(alphas)) {
     mat_names <- c()
     if (i == 1) { #for the input layer
@@ -90,9 +91,11 @@ assign_names <- function(model) {#assign names to the nodes before plotting
         name <- paste("u", j - 1, "_", i - 1, sep = "")
         mat_names <- c(mat_names, name)
       }
-      for (j in 1:sizes[1]) {#the input skip x
-        name <- paste("x", j - 1, "_", i - 1, sep = "")
-        mat_names <- c(mat_names, name)
+      if(input_skip){
+        for (j in 1:sizes[1]) {#the input skip x
+          name <- paste("x", j - 1, "_", i - 1, sep = "")
+          mat_names <- c(mat_names, name)
+        }
       }
       for (j in 1:sizes[i + 1]) {#the hidden neurons for the next layer
         name <- paste("u", j - 1, "_", i, sep = "")
@@ -106,9 +109,11 @@ assign_names <- function(model) {#assign names to the nodes before plotting
         name <- paste("u", j - 1, "_", i - 1, sep = "")
         mat_names <- c(mat_names, name)
       }
-      for (j in 1:sizes[1]) {#the input skip x
-        name <- paste("x", j - 1, "_", i - 1, sep = "")
-        mat_names <- c(mat_names, name)
+      if(input_skip){
+        for (j in 1:sizes[1]) {#the input skip x
+          name <- paste("x", j - 1, "_", i - 1, sep = "")
+          mat_names <- c(mat_names, name)
+        }
       }
       for (j in 1:sizes[i + 1]){ #the hidden neurons for the next layer
         name <- paste("y", j - 1, sep = "")
@@ -156,6 +161,18 @@ plot_active_paths <- function(model, layer_spacing = 1, neuron_spacing = 1,
     # Open SVG device
     svglite::svglite(save_svg, width = 5, height = 4)
   }
+  
+  input_skip <- isTRUE(model$input_skip)
+  layer_width <- function(i) { #so that both input_skip and standard architectures can be plotted
+    if (input_skip) {
+      model$sizes[i] + model$sizes[1]
+    }
+    else{
+      model$sizes[i]
+    }
+  }
+  
+  
   graph <- assign_names(model) #the graph with names neurons, given some model with alpha matrices
   g <- igraph::make_empty_graph(n = 0) #initialize empty graph
   for (L in 1:length(graph)) {
@@ -175,14 +192,14 @@ plot_active_paths <- function(model, layer_spacing = 1, neuron_spacing = 1,
       plot_points[1:model$sizes[i], 1] <- dim_1_pos
     }
     else if (i < length(model$sizes)) {#all other layers except the last
-      plot_points[(index_start:(index_start + model$sizes[1] + model$sizes[i] - 1)), 2] <- layer_positions[i]
+      plot_points[(index_start:(index_start + layer_width(i) - 1)), 2] <- layer_positions[i]
       #N = size of prev layer #N_u size of current layer
       dim_1_pos <- assign_within_layer_pos(N = length(dim_1_pos),
-                                         N_u = model$sizes[1] + model$sizes[i],
+                                         N_u = layer_width(i),
                                           input_positions = dim_1_pos,
                                           neuron_spacing = neuron_spacing)
-      plot_points[(index_start:(index_start + model$sizes[1] + model$sizes[i] - 1)), 1] <- dim_1_pos
-      index_start <- index_start + model$sizes[1] + model$sizes[i]
+      plot_points[(index_start:(index_start + layer_width(i) - 1)), 1] <- dim_1_pos
+      index_start <- index_start + layer_width(i)
     }
     else { #output layer
       dim_1_pos <- assign_within_layer_pos(N = length(dim_1_pos),

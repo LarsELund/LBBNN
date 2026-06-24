@@ -1,5 +1,5 @@
 ---
-title: "Simulated data with non-linear effects"
+title: "variable selection: non-linear data"
 output: rmarkdown::html_vignette
 params:
   eval: true

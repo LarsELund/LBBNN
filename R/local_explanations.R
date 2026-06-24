@@ -24,7 +24,7 @@ get_local_explanations_gradient <- function(model, input_data, num_samples = 1,
                                             magnitude = TRUE,
                                         include_potential_contribution = FALSE,
                                         device = "cpu") {
-  if (model$input_skip == FALSE) (stop("This function is only implemented for input-skip"))
+  #if (model$input_skip == FALSE) (stop("This function is only implemented for input-skip"))
 
   #restore raw_output to its previous state!
   raw_out <- model$raw_output
