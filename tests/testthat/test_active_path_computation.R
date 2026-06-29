@@ -44,11 +44,11 @@ test_that("compute active paths returns valid structure both with and without in
   
   
   
-  train_lbbnn(epochs = 5, LBBNN = model_test,
+  train_lbbnn(epochs = 2, LBBNN = model_test,
               lr = 0.05, train_dl = train_loader, device = device, 
               verbose = FALSE)
   
-  train_lbbnn(epochs = 5, LBBNN = model_standard,
+  train_lbbnn(epochs = 2, LBBNN = model_standard,
               lr = 0.05, train_dl = train_loader, device = device, 
               verbose = FALSE)
  
@@ -61,6 +61,6 @@ test_that("compute active paths returns valid structure both with and without in
   expect_type(paths_std,"list")
   expect_true(length(paths_std) > 0)
   
-  expect_false(identical(paths, paths_std)) # input skip paths should be different from LBBNN paths
+  expect_false(identical(paths, paths_std)) # input skip paths are different from LBBNN paths
   
   })

@@ -47,7 +47,7 @@ test_loader_kmnist <- torch::dataloader(test_ds, batch_size = 100)
 
 ### create the convolutional network for MNIST
 
-device <- "cpu"
+device <- "mps"
 conv_layer_1 <- lbbnn_conv2d(in_channels = 1, out_channels = 32, kernel_size = 5,
                              prior_inclusion = 0.5, standard_prior = 1,
                              density_init = c(-10, 10), num_transforms = 2,
@@ -127,10 +127,18 @@ model_kmnist <- LBBNN_ConvNet(conv_layer_1, conv_layer_2, linear_layer_1,
                        linear_layer_2, device)
 model_kmnist$to(device = device)
 
-train_lbbnn(epochs = 20, LBBNN = model_kmnist, lr = 0.001, train_dl = train_loader_kmnist,
+t1 <- Sys.time()
+
+num_eps <- 2
+train_lbbnn(epochs = num_eps, LBBNN = model_kmnist, lr = 0.001, train_dl = train_loader_kmnist,
             device = device)
+train_time_ep <- (Sys.time() - t1) 
+print(train_time_ep)
 
 validate_lbbnn(model_kmnist, num_samples = 10, test_dl = test_loader_kmnist, device = device)
+
+
+
 print(model_kmnist)
 
 
@@ -160,3 +168,8 @@ print(torch::torch_round(predictions_kmnist[1:5, idx1, ], 4))
 
 idx2 <- min(258, dim(predictions_kmnist)[2])
 print(torch::torch_round(predictions_kmnist[1:5, idx2, ], 4))
+
+
+
+
+

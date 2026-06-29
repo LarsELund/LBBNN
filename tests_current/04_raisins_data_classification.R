@@ -20,7 +20,7 @@ stds <- c(1, 1, 1, 1)
 #possible initializations: 
 #polarized, polarized_mild, polarized_dense, polarized_sparse, 
 #dense, sparse, balanced
-inclusion_inits <- 'dense'
+inclusion_inits <- 'balanced'
 device <- 'cpu' #can also be mps or gpu.
 
 model_raisins <- lbbnn_net(problem_type = problem,sizes = sizes,
@@ -36,7 +36,7 @@ results_raisins <- train_lbbnn(epochs = 3000, LBBNN = model_raisins, lr = 0.005,
 val_raisins <- validate_lbbnn(LBBNN = model_raisins,num_samples = 100, 
                test_dl = test_loader_raisin, device)
 plot(model_raisins, type = 'global', 
-     vertex_size = 9, edge_width = 0.6, label_size = 0.7)
+     vertex_size = 6, edge_width = 0.2, label_size = 0.7)
 
 #compile results
 history <- data.frame(
