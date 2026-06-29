@@ -5,7 +5,6 @@ if (!requireNamespace("LBBNN", quietly = TRUE)) {
   install.packages("LBBNN")
 }
 library(LBBNN)
-
 library(torch)  # initialize torch and its backend
 
 #install torchvision in order to download KMNIST dataset
@@ -47,7 +46,7 @@ test_loader_kmnist <- torch::dataloader(test_ds, batch_size = 100)
 
 ### create the convolutional network for MNIST
 
-device <- "mps"
+device <- "cpu"
 conv_layer_1 <- lbbnn_conv2d(in_channels = 1, out_channels = 32, kernel_size = 5,
                              prior_inclusion = 0.5, standard_prior = 1,
                              density_init = c(-10, 10), num_transforms = 2,
@@ -109,11 +108,15 @@ LBBNN_ConvNet <- torch::nn_module(
   },
   density = function(){
     alphas <- NULL
-    alphas <- c(as.numeric(self$conv1$alpha), as.numeric(self$conv2$alpha)
-                ,as.numeric(self$fc1$alpha), as.numeric(self$fc2$alpha))
+    l1 <- self$conv1$lambda_l$clone()$detach()
+    l2 <- self$conv1$lambda_l$clone()$detach()
+    l3 <- self$fc1$lambda_l$clone()$detach()
+    l4 <- self$fc2$lambda_l$clone()$detach()
+    alphas <- c(as.numeric(torch::torch_sigmoid(l1)),
+                as.numeric(torch::torch_sigmoid(l2)),
+                as.numeric(torch::torch_sigmoid(l3)), 
+                as.numeric(torch::torch_sigmoid(l4)))
     return(mean(alphas > 0.5))
-    
-    
   },
   compute_paths = function(){
     NULL
@@ -127,17 +130,14 @@ model_kmnist <- LBBNN_ConvNet(conv_layer_1, conv_layer_2, linear_layer_1,
                        linear_layer_2, device)
 model_kmnist$to(device = device)
 
-t1 <- Sys.time()
 
-num_eps <- 2
-train_lbbnn(epochs = num_eps, LBBNN = model_kmnist, lr = 0.001, train_dl = train_loader_kmnist,
-            device = device)
-train_time_ep <- (Sys.time() - t1) 
-print(train_time_ep)
-
-validate_lbbnn(model_kmnist, num_samples = 10, test_dl = test_loader_kmnist, device = device)
+num_eps <- 20
+train_lbbnn(epochs = num_eps, LBBNN = model_kmnist, lr = 0.001, 
+            train_dl = train_loader_kmnist, device = device)
 
 
+validate_lbbnn(model_kmnist, num_samples = 10, test_dl = test_loader_kmnist, 
+               device = device)
 
 print(model_kmnist)
 
