@@ -68,7 +68,7 @@ train_loader <- torch::dataloader(dataset, batch_size = 100)
 
 ## Create the layers that define the architecture of our convolutional network
 
-Here manually define the layers, as we will use both convolutional and feed-forward layers.
+Here we manually define the layers, as we will use both convolutional and feed-forward layers.
 They are defined as follows:
 ```{r, eval = has_torch}
 device <- "cpu"

@@ -23,15 +23,15 @@ has_torch <- requireNamespace("torch", quietly = TRUE) &&
 
 ## Introduction
 
-LBBNN implements Latent Bayesian Binary Neural Networks in R using the torch package. An LBBNN is a Bayesian Neural Network, 
+LBBNN implements Latent Bayesian Binary Neural Networks in R using the torch package. An LBBNN is a Bayesian neural network, 
 where each weight is associated with a Bernoulli inclusion variable, allowing weights to be turned on or off and incorporating
 model uncertainty in addition to parameter uncertainty. 
 
 This vignette walks through basic usage on a simple dataset: data preparation, model definition, training, validation, and visualization.
 
 ## Prepare dataloaders
-For this example we use the raisin dataset, consisting of 900 sample of two different types of raisins, with 7 morphological features. 
-The paper that introduces the dataset report around 86% accuracy using a standard MLP. 
+For this example we use the raisin dataset, consisting of 900 samples of two different types of raisins, with 7 morphological features. 
+The paper that introduces the dataset reports around 86% accuracy using a standard MLP. 
 
 To start, we use the get_dataloaders function to divide the data into a training set and a test set. The function returns
 a train_loader and test_loader object. These are PyTorch DataLoader objects, optimized for automatic batch handling and parallel data loading. 
@@ -49,12 +49,12 @@ test_loader  <- loaders$test_loader
 ## Define the model
 The model depends on several key hyperparameters. The sizes argument determines the architecture of the network. It is a vector, where the 
 first element is the number of features and the last element the number of outputs. The intermediate value define the number of neurons 
-in the hidden layers. In this case, we have 7 features, 2 hidden layers conisting of 5 neurons each, and 1 output neuron. 
+in the hidden layers. In this case, we have 7 features, 2 hidden layers consisting of 5 neurons each, and 1 output neuron. 
 
-The incluion_priors argument determines the prior inclusion probability for each weight matrix. All the weights within each layer is given the same prior.
+The inclusion_priors argument determines the prior inclusion probability for each weight matrix. All the weights within each layer are given the same prior.
 Similarly, stds refers to the prior for the standard deviation of the weights. 
 
-The inclusion_inits argument refers to how the probabilities of the inclusion parameters are initialized. This can determine the initial density of the network, and further how density evolves during training. There are several possible keywords that can be given, such as 'dense', where all the probabilities are initialized close to 1, or 'sparse', where they are close to 0. 'polarized' gives probabilities that are either close to 0 or 1. In this example, we use 'balanced', which results in probabilities in [0.27, 0.73]. Additionally, the flow and input_skip arguments controls whether to include normalizing flows in the variational distribution, and the input-skip architecture. 
+The inclusion_inits argument refers to how the probabilities of the inclusion parameters are initialized. This can determine the initial density of the network, and further how density evolves during training. There are several possible keywords that can be given, such as 'dense', where all the probabilities are initialized close to 1, or 'sparse', where they are close to 0. 'polarized' gives probabilities that are either close to 0 or 1. In this example, we use 'balanced', which results in probabilities in [0.27, 0.73]. Additionally, the flow and input_skip arguments control whether to include normalizing flows in the variational distribution, and the input-skip architecture. 
 
 ```{r, eval = has_torch}
 problem <- "binary classification"
@@ -93,7 +93,7 @@ validate_lbbnn(LBBNN = model, num_samples = 2,
 ```
 
 ## Global explanation
-If we are interested in looking at which variables affect predictions in general, we can obtain local 
+If we are interested in looking at which variables affect predictions in general, we can obtain global 
 explanations through the plot function: 
 ```{r,fig.width=6, fig.height=6, eval = has_torch}
 plot(model, type = 'global', vertex_size = 10, edge_width = 0.6, label_size = 0.6)

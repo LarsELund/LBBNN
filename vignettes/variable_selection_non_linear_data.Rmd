@@ -52,7 +52,7 @@ we use normalizing flows in the variational distribution.
 ```{r, eval = has_torch}
 problem <- "binary classification"
 sizes <- c(j, 5, 5, 1) 
-incl_priors <- c(0.5, 0.5, 0.5) #
+incl_priors <- c(0.5, 0.5, 0.5) 
 stds <- c(1, 1, 1) 
 incl_inits <- 'polarized'
 device <- "cpu" 
@@ -79,3 +79,6 @@ validate_lbbnn(LBBNN = model_nl, num_samples = 2, test_dl = test_loader_nl,
 plot(model_nl, type = "global", vertex_size = 7,
      edge_width = 0.4, label_size = 0.4)
 ```
+
+All the relevant features are included. 
+

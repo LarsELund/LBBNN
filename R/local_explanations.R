@@ -28,11 +28,10 @@ get_local_explanations_gradient <- function(model, input_data, num_samples = 1,
 
 
   device <- resolve_device(device)
+  
   #restore raw_output to its previous state!
   raw_out <- model$raw_output
-  
   on.exit({ model$raw_output <- raw_out 
-  
   },add = TRUE)
   
   #need to make sure input_data comes in shape (1,p) where p is #input variables

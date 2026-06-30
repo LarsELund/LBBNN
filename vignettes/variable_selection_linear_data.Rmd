@@ -22,7 +22,7 @@ has_torch <- requireNamespace("torch", quietly = TRUE) &&
 ## Generate data
 
 We generate 1000 samples with 15 features, and make 3 of them relevant for the outcome. The goal is to see if we recover the 
-correct variables, and also their coefficients. The data preparation process follows the same steps as in the previous example.
+correct variables, and their coefficients. The data preparation process follows the same steps as in the previous example.
 Note that the dataset must be a data.frame object before applying the get_dataloaders function.
 ```{r, eval = has_torch}
 i <- 1000
@@ -79,7 +79,7 @@ we select random samples from the dataset. Explanations are then averaged across
 coef(model_linear, dataset = train_loader, inds = NULL,
      output_neuron = 1, num_data = 5, num_samples = 10)
 ```
-We see that the coefficients match the data generating process, and that we only include the relevant features.
+The coefficients match the data generating process.
 
 ## Global structure
 
@@ -90,4 +90,4 @@ plot(model_linear, type = "global", vertex_size = 7,
      edge_width = 0.4, label_size = 0.4)
 ```
 
-We see that everything has been pruned away aside from the linear connections from the relevant features.
+Everything has been pruned away aside from the linear connections from the relevant features.

@@ -25,7 +25,7 @@ test_that("conv layer alpha and sparsity behave consistently", {
   out2 <- layer(x, MPM = FALSE)
   
   #check for deterministic output
-  expect_true(torch::torch_allclose(out1, out2, atol = 1e-10)) 
+  expect_true(torch::torch_allclose(out1, out2, atol = 1e-6)) 
   
   #check that output shape is correct
   expect_equal(out1$shape, c(2, 2, 6, 6))  

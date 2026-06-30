@@ -21,7 +21,7 @@ has_torch <- requireNamespace("torch", quietly = TRUE) &&
 
 ## Prepare data
 
-The gallstone dataset consists of a mix of demographic, bioimpedance and laboratory features. It is a mix of binary and continuous features, with 40 in total after pre-processing the dataset. It is relatively small, with only 319 total samples, where we use 223 of those for training and the remaining 96 for validation. This makes it potentially sensitive to initializations, or other hyperparameters such as the number of epochs to train for.
+The gallstone dataset consists of a mix of demographic, bioimpedance and laboratory features. It is a mix of binary and continuous features, with 40 in total after pre-processing the dataset. It is relatively small, with only 319 total samples, where we use 223 of those for training and the remaining 96 for validation. This makes it potentially sensitive to initializations, or other hyperparameters such as the number of epochs to train.
 ```{r, eval = has_torch}
 torch::torch_manual_seed(42)
 loaders_gs <- get_dataloaders(gallstone_dataset, train_proportion = 0.70,

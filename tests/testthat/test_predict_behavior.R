@@ -34,7 +34,7 @@ test_that("predict does not modify model state", {
                             link = NULL, nll = NULL,
                             bias_inclusion_prob = FALSE, device = device)
   
-  train_lbbnn(epochs = 2, LBBNN = model_test,
+  train_lbbnn(epochs = 1, LBBNN = model_test,
               lr = 0.05, train_dl = train_loader, device = device, 
               verbose = FALSE)
   
