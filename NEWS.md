@@ -21,3 +21,15 @@
  `torch_available()` to ensure safe execution when torch or libtorch
   is not available.
 
+# LBBNN 0.1.6 (resubmission to R journal)
+* Added more vignettes, built pkgdown website.
+* More robust testing.
+* Bug fix in conv2d layer.
+* Small changes to make training on gpu more efficient. 
+* Added possibility to turn off printing to console during training.
+* Utility functions work with standard LBBNN architecture without input-skip.
+* predict() and validate_lbbnn() no longer change the model object.
+* fixed bug that compute_paths() was not being called for LBBNN models.
+* added initialization keywords such as 'dense' or 'balanced' for inclusion probabilities. 
+* added possibility for different weight initializations. 
+
