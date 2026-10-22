@@ -375,13 +375,28 @@ predict.lbbnn_net <- function(object, newdata, mpm = FALSE, draws = 10,
   on.exit({ object$raw_output <- raw_out 
             if (trained) object$train() else object$eval()
   
-  },add = TRUE)
-  
+  }, add = TRUE)
   
   object$eval()
   object$raw_output <- TRUE #skip final sigmoid/softmax
-  if (class(newdata)[[1]] != "dataloader")
-  stop("Currently only torch::dataloader objects are supported for newdata")
+
+  if (inherits(newdata, "torch_tensor")) {
+    newdata <- torch::dataloader(
+      torch::tensor_dataset(newdata),
+      batch_size = newdata$shape[1],
+      shuffle = FALSE
+    )
+  } else if (is.matrix(newdata) || is.data.frame(newdata)) {
+    tensor_x <- torch::torch_tensor(as.matrix(newdata), dtype = torch::torch_float32())
+    newdata <- torch::dataloader(
+      torch::tensor_dataset(tensor_x),
+      batch_size = tensor_x$shape[1],
+      shuffle = FALSE
+    )
+  } else if (!inherits(newdata, "dataloader")) {
+    stop("newdata must be a torch::dataloader, torch_tensor, matrix, or data.frame")
+  }
+
   out_shape <- object$sizes[length(object$sizes)] #number of output neurons
   all_outs <- NULL
   torch::with_no_grad({
@@ -395,6 +410,11 @@ predict.lbbnn_net <- function(object, newdata, mpm = FALSE, draws = 10,
       all_outs <- torch::torch_cat(c(all_outs, outputs), dim = 2) #add all the mini-batches together
     })
   })
+
+  if (!is.null(link)) {
+    all_outs <- link(all_outs)
+  }
+
   return(all_outs)
 }
 

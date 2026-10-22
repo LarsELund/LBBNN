@@ -36,8 +36,8 @@
 #'  layer to compute local explanations.
 #' @param custom_act Allows the user to submit their own customized
 #' activation function.
-#' @param link User can define their own link function (not implemented).
-#' @param nll User can define their own likelihood function (not implemented).
+#' @param link Optional link function or torch nn_module applied to the network output.
+#' @param nll Negative log-likelihood function or torch nn_module for computing loss.
 #' @param bias_inclusion_prob logical, determines whether the bias should
 #' be as associated with inclusion probabilities.
 #' @param weight_init Controls how \code{weight_mean} is initialized in each
@@ -86,7 +86,7 @@ lbbnn_net <- torch::nn_module(
   initialize = function(problem_type, sizes, prior, std, inclusion_inits,
                         input_skip = FALSE, flow = FALSE, num_transforms = 2,
                         dims = c(200, 200), device = "cpu", raw_output = FALSE,
-                        custom_act = NULL, link = NULL, nll = NULL,
+                        custom_act = NULL, link = NULL, nll = NULL, sigma = NULL,
                         bias_inclusion_prob = FALSE, weight_init = "uniform") {
     device <- resolve_device(device)
     self$device <- device
@@ -155,6 +155,9 @@ lbbnn_net <- torch::nn_module(
       bias_inclusion_prob = self$bias_inclusion_prob,
       weight_init = weight_init))
 
+    self$link <- link
+    self$nll <- nll
+
     if (problem_type == "binary classification") {
       self$out <- torch::nn_sigmoid()
       self$loss_fn <- torch::nn_bce_loss(reduction = "sum")
@@ -165,13 +168,48 @@ lbbnn_net <- torch::nn_module(
     }
     else if (problem_type == "regression") {
       self$out <- torch::nn_identity()
-      self$loss_fn <- torch::nn_mse_loss(reduction = "sum")
+      self$sigma <- sigma
+      if (!is.null(sigma)) {
+        sigma_val <- as.numeric(sigma)
+        sigma_sq <- sigma_val^2
+        c_term <- 0.5 * log(2 * pi * sigma_sq)
+        inv_2var <- 1.0 / (2 * sigma_sq)
+        self$loss_fn <- function(input, target, reduction = "sum") {
+          t_flt <- target$to(dtype = torch::torch_float32())
+          inp_flt <- input$view_as(t_flt)
+          sq_err <- (t_flt - inp_flt)^2
+          if (sq_err$dim() > 1 && sq_err$shape[2] > 1) {
+            sq_err <- sq_err$sum(dim = 2)
+          } else {
+            sq_err <- sq_err$squeeze(-1)
+          }
+          nll_i <- c_term + sq_err * inv_2var
+          if (reduction == "none") {
+            return(nll_i)
+          } else {
+            return(torch::torch_sum(nll_i))
+          }
+        }
+      } else {
+        self$loss_fn <- torch::nn_mse_loss(reduction = "sum")
+      }
     }else if (problem_type == "custom") {
-      if (length(link) == 0 | length(nll) == 0)
-        stop("Under custom problem, link function and the negative log likelihood
-             must be provided as torch functions")
-      self$out <- link()
-      self$loss_fn <- nll(reduction = "sum")
+      if (is.null(nll)) {
+        stop("Under custom problem, the negative log likelihood (nll) must be provided")
+      }
+      if (is.null(link)) {
+        self$out <- torch::nn_identity()
+      } else if (inherits(link, "nn_module_generator")) {
+        self$out <- link()
+      } else {
+        self$out <- link
+      }
+
+      if (inherits(nll, "nn_module_generator")) {
+        self$loss_fn <- nll(reduction = "sum")
+      } else {
+        self$loss_fn <- nll
+      }
     }
     else(stop("the type of problem must either be: \'binary classification\',
               \'multiclass classification\', \'regression\' or \'custom\'"))
@@ -184,7 +222,11 @@ lbbnn_net <- torch::nn_module(
       for (l in self$layers$children){
        x <- self$act(l(x, MPM)) #iterate over hidden layers
       }
-      x <- self$out(self$out_layer(x, MPM))
+      if (self$raw_output) {
+        x <- self$out_layer(x, MPM)
+      } else {
+        x <- self$out(self$out_layer(x, MPM))
+      }
     }
     #with input-skip
     else {x_input <- x$view(c(-1, self$sizes[1]))

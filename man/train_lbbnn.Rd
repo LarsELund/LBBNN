@@ -13,7 +13,8 @@ train_lbbnn(
   scheduler = NULL,
   sch_step_size = NULL,
   min_density = NULL,
-  verbose = TRUE
+  verbose = TRUE,
+  weights = NULL
 )
 }
 \arguments{

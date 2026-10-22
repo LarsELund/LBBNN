@@ -49,7 +49,7 @@
 #'@export
 train_lbbnn <- function(epochs, LBBNN, lr, train_dl, device = "cpu",
                         scheduler = NULL, sch_step_size = NULL, 
-                        min_density = NULL, verbose = TRUE) {
+                        min_density = NULL, verbose = TRUE, weights = NULL) {
   device <- resolve_device(device)
   opt <- torch::optim_adam(LBBNN$parameters, lr = lr)
   accs <- c()
@@ -81,22 +81,67 @@ train_lbbnn <- function(epochs, LBBNN, lr, train_dl, device = "cpu",
       data <- b[[1]]$to(device = device)
       output <- LBBNN(data, MPM = FALSE)
       target <- b[[2]]$to(device = device)
+
+      has_weights <- (length(b) >= 3 && !is.null(b[[3]]))
+      if (has_weights) {
+        w_batch <- b[[3]]$to(device = device)
+      } else {
+        w_batch <- NULL
+      }
+
       if (epoch == epochs) { #add the targets and outputs to y and r
         LBBNN$y <- c(LBBNN$y, as.numeric(target$clone()$detach()$cpu()))
         LBBNN$r <- c(LBBNN$r, as.numeric(output$clone()$detach()$view(-1)$cpu()))
-        }
+      }
       if (LBBNN$problem_type == "multiclass classification" | LBBNN$problem_type == "MNIST") { #nll loss needs float tensors but bce loss needs long tensors
         target <- target$to(dtype = torch::torch_long())
       }
       else if (LBBNN$problem_type == 'binary classification') {
         output <- output$view_as(target)
       }
-      else {
+      else if (LBBNN$problem_type == "regression") {
         output <- output$view_as(target) #for regression
-       
       } 
-      loss <- LBBNN$loss_fn(output, target) + LBBNN$kl_div() / length(train_dl)
-    
+
+      if (!has_weights) {
+        loss_val <- LBBNN$loss_fn(output, target)
+      } else {
+        loss_fn_args <- names(formals(LBBNN$loss_fn))
+        if ("weights" %in% loss_fn_args) {
+          loss_val <- LBBNN$loss_fn(output, target, weights = w_batch, reduction = "sum")
+        } else if (LBBNN$problem_type == "binary classification") {
+          nll_vec <- torch::nnf_binary_cross_entropy(output$squeeze(), target$squeeze(), reduction = "none")
+          loss_val <- torch::torch_sum(w_batch$squeeze() * nll_vec)
+        } else if (LBBNN$problem_type == "multiclass classification" | LBBNN$problem_type == "MNIST") {
+          nll_vec <- torch::nnf_nll_loss(output, target$squeeze(), reduction = "none")
+          loss_val <- torch::torch_sum(w_batch$squeeze() * nll_vec)
+        } else if (LBBNN$problem_type == "regression") {
+          if (!is.null(LBBNN$sigma)) {
+            nll_vec <- LBBNN$loss_fn(output, target, reduction = "none")
+            if (nll_vec$dim() > 1 && nll_vec$shape[2] > 1) {
+              loss_val <- torch::torch_sum(w_batch$view(c(-1, 1)) * nll_vec)
+            } else {
+              loss_val <- torch::torch_sum(w_batch$squeeze() * nll_vec$squeeze())
+            }
+          } else {
+            nll_vec <- torch::nnf_mse_loss(output, target, reduction = "none")
+            if (nll_vec$dim() > 1 && nll_vec$shape[2] > 1) {
+              loss_val <- torch::torch_sum(w_batch$view(c(-1, 1)) * nll_vec)
+            } else {
+              loss_val <- torch::torch_sum(w_batch$squeeze() * nll_vec$squeeze())
+            }
+          }
+        } else {
+          nll_fn <- if (!is.null(LBBNN$nll)) LBBNN$nll else LBBNN$loss_fn
+          nll_vec <- nll_fn(output, target, reduction = "none")
+          if (nll_vec$dim() == 1 || (nll_vec$dim() == 2 && nll_vec$shape[2] == 1)) {
+            loss_val <- torch::torch_sum(w_batch$squeeze() * nll_vec$squeeze())
+          } else {
+            loss_val <- torch::torch_sum(w_batch$view(c(-1, 1)) * nll_vec)
+          }
+        }
+      }
+      loss <- loss_val + LBBNN$kl_div() / length(train_dl)
 
       if (LBBNN$problem_type == "multiclass classification" | LBBNN$problem_type == "MNIST") {
         prediction <- output$argmax(dim = 2) #stays on device
@@ -122,12 +167,11 @@ train_lbbnn <- function(epochs, LBBNN, lr, train_dl, device = "cpu",
     dens <- LBBNN$density()
   # the below is expensive to compute for each epoch
   #  if (LBBNN$input_skip) {
-   #   LBBNN$compute_paths_input_skip()
-  #    dens <- LBBNN$density_active_path()
+  #   LBBNN$compute_paths_input_skip()
+  #   dens <- LBBNN$density_active_path()
   #  }
 
-
-    if (LBBNN$problem_type != "regression") {
+    if (LBBNN$problem_type %in% c("binary classification", "multiclass classification", "MNIST")) {
       train_acc <- (corrects / totals)$item()
       if(verbose){message(sprintf(
         "\nEpoch %d, training: loss = %3.5f, acc = %3.5f, density = %3.5f",
@@ -136,7 +180,7 @@ train_lbbnn <- function(epochs, LBBNN, lr, train_dl, device = "cpu",
       accs <- c(accs, train_acc)
       losses <- c(losses, mean_loss)
     }
-    if (LBBNN$problem_type == "regression") {
+    else {
       if(verbose){message(sprintf(
         "\nEpoch %d, training: loss = %3.5f, density = %3.5f \n",
         epoch, mean_loss, dens
@@ -251,6 +295,13 @@ validate_lbbnn <- function(LBBNN, num_samples, test_dl, device = "cpu") {
         corrects_sparse <- corrects_sparse + ((out_mpm > 0.5) == target)$sum()
         totals <- totals + target$numel()
       }
+      else if (LBBNN$problem_type == "custom") {
+        nll_fn <- if (!is.null(LBBNN$nll)) LBBNN$nll else LBBNN$loss_fn
+        loss <- nll_fn(out_full, target, reduction = "sum")
+        loss_mpm <- nll_fn(out_mpm, target, reduction = "sum")
+        val_loss <- c(val_loss, loss$item() / target$shape[1])
+        val_loss_mpm <- c(val_loss_mpm, loss_mpm$item() / target$shape[1])
+      }
       else {#for regression
         out_full <- out_full$view_as(target)
         out_mpm <- out_mpm$view_as(target)
@@ -265,7 +316,7 @@ validate_lbbnn <- function(LBBNN, num_samples, test_dl, device = "cpu") {
   acc_sparse <- corrects_sparse / totals
   density <- LBBNN$density()
   density2 <- LBBNN$density_active_path()
-  if (LBBNN$problem_type != "regression") {
+  if (LBBNN$problem_type %in% c("binary classification", "multiclass classification", "MNIST")) {
     l <- list("accuracy_full_model" = acc_full$item(), "accuracy_sparse" =
                 acc_sparse$item(), "density" = density,
               "density_active_path" = density2)

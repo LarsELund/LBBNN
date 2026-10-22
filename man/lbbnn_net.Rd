@@ -19,6 +19,7 @@ lbbnn_net(
   custom_act = NULL,
   link = NULL,
   nll = NULL,
+  sigma = NULL,
   bias_inclusion_prob = FALSE,
   weight_init = "uniform"
 )
@@ -65,9 +66,9 @@ layer to compute local explanations.}
 \item{custom_act}{Allows the user to submit their own customized
 activation function.}
 
-\item{link}{User can define their own link function (not implemented).}
+\item{link}{Optional link function or torch nn_module applied to the network output.}
 
-\item{nll}{User can define their own likelihood function (not implemented).}
+\item{nll}{Negative log-likelihood function or torch nn_module for computing loss.}
 
 \item{bias_inclusion_prob}{logical, determines whether the bias should
 be as associated with inclusion probabilities.}
