@@ -8,3 +8,5 @@ inst/doc
 from US/
 *.bak
 tests/testthat/dataset/
+*_cache/
+*_files/
