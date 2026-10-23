@@ -2,25 +2,25 @@
 title: "Sparse & Explainable Bayesian Neural Networks for Official Statistics"
 subtitle: "Unit-Weighted Pseudo-Posteriors, Formal Differential Privacy, and Non-Probability Propensity Estimation in LBBNN"
 author: "Aliaksandr Hubin & Lars Skaaret-Lund (NMBU & UiO Integreat)"
-institute: "In collaboration with Terrance D. Savitsky, Matthew R. Williams, Vladislav Beresovsky, and Julie Gershunskaya (U.S. Bureau of Labor Statistics)"
-date: "October 2026"
+date: "In collaboration with Terrance D. Savitsky, Matthew R. Williams, Vladislav Beresovsky, and Julie Gershunskaya (U.S. Bureau of Labor Statistics) \\newline October 2026"
 output:
   beamer_presentation:
-    latex_engine: pdflatex
     theme: "Madrid"
     colortheme: "dolphin"
     fonttheme: "professionalfonts"
     slide_level: 2
+    toc: false
     keep_tex: false
+    latex_engine: pdflatex
 classoption: "aspectratio=169"
 header-includes:
   - \usepackage{booktabs}
   - \usepackage{amsmath,amssymb}
   - \usepackage{tikz}
+  - \usetikzlibrary{arrows,shapes,positioning}
   - \setbeamertemplate{navigation symbols}{}
   - \setbeamertemplate{footline}[frame number]
-  - \addtobeamertemplate{frametitle}{\vspace*{-0.15cm}}{\vspace*{0.25cm}}
-  - \setbeamerfont{caption}{size=\tiny}
+  - \addtobeamertemplate{frametitle}{\vspace*{-0.15cm}}{\vspace*{0.20cm}}
 ---
 
 ```{r setup, include=FALSE}
@@ -28,10 +28,10 @@ knitr::opts_chunk$set(
   echo = FALSE,
   warning = FALSE,
   message = FALSE,
-  fig.align = "center"
+  fig.align = "center",
+  dev = "pdf"
 )
 options(knitr.table.format = "latex")
-pres_data <- readRDS("presentation_data.rds")
 ```
 
 # PART I: Foundations of LBBNN & Input-Skip Architecture (ISLaB)
@@ -39,72 +39,110 @@ pres_data <- readRDS("presentation_data.rds")
 ## Motivation — Why Sparse & Explainable BNNs in Official Statistics?
 
 \vspace{0.2em}
-\textbf{Challenges with Standard Deep Learning in Federal Agencies:}
+\textbf{The Black-Box \& Over-Parameterization Dilemma:}
 \begin{itemize}
-  \item Standard deep neural networks capture complex non-linearities and multi-way interactions, but are massively over-parameterized, black-box, and lack reliable uncertainty quantification.
-  \item Standard dense Bayesian Neural Networks (BNNs) quantify weight uncertainty, but retain all extraneous noise variables, causing severe variance inflation in downstream survey estimators.
+  \item Modern deep neural networks capture complex multi-way interactions, but lack calibrated uncertainty quantification and interpretable feature attributions.
+  \item Standard dense BNNs quantify parameter uncertainty, but retain all noise covariates, inflating variance in downstream survey estimators.
 \end{itemize}
 
-\vspace{0.4em}
-\textbf{Our Core Objectives with \texttt{LBBNN} \& \texttt{ISLaB}:}
-\begin{enumerate}
-  \item \textbf{Joint Structural \& Parameter Uncertainty}: Unify spike-and-slab topological edge selection with variational weight distributions in a single probabilistic framework.
-  \item \textbf{Dynamic Adaptation (Depth Metric)}: Automatically adapt between simple linear models ($\text{Depth} = 1$) and deep non-linear interaction surfaces ($\text{Depth} \ge 2$).
-  \item \textbf{Federal Statistical Extensions}: Extend \texttt{LBBNN} to handle informative survey sampling weights, $(\epsilon, \delta)$-differential privacy, and non-probability sample integration.
-\end{enumerate}
-
-## From Dense BNNs to Latent Binary BNNs (LBBNNs)
-
-\vspace{0.2em}
-\textbf{Probabilistic Formulation (Hubin \& Storvik, 2024):}
+\vspace{0.5em}
+\textbf{What Official Statistics Requires:}
 \begin{itemize}
-  \item Likelihood $y_i \sim f(\cdot \mid \zeta(\mathbf{x}_i))$, where hidden layer pre-activations include binary inclusion indicators:
-  $$a_p^{(j)} = o^{(j)}\!\left(w_{0,p}^{(j)} + \sum_{k=1}^{K} \gamma_{k,p}^{(j)} a_k^{(j-1)} w_{k,p}^{(j)}\right), \qquad \gamma_{k,p}^{(j)} \in \{0, 1\}$$
-  \item \textbf{Spike-and-Slab Structural Prior}:
-  $$p\big(w_{k,p}^{(j)} \mid \gamma_{k,p}^{(j)}\big) = \gamma_{k,p}^{(j)} \mathcal{N}\big(0, (\tau_{k,p}^{(j)})^2\big) + \big(1 - \gamma_{k,p}^{(j)}\big)\delta_0, \qquad p\big(\gamma_{k,p}^{(j)}\big) = \text{Bernoulli}\big(\psi_{k,p}^{(j)}\big)$$
+  \item \textbf{Structural Sparsity}: Combine model selection (spike-and-slab edge pruning) and parameter uncertainty in a single variational framework.
+  \item \textbf{Explainable Depth}: Automatically adapt between simple linear GLMs ($\text{Depth} = 1$) and deep non-linear interaction surfaces ($\text{Depth} > 1$).
+  \item \textbf{Survey \& Privacy Rigor}: Rigorous integration with informative sampling weights, differential privacy ($\epsilon, \delta$), and non-probability samples.
 \end{itemize}
 
-\vspace{0.3em}
-\textbf{Inference \& Dual Operational Modes:}
-\begin{itemize}
-  \item \textbf{Bayesian Model Averaging (BMA)}: Ensembles across posterior draws $\Gamma \sim q(\Gamma)$ and $W \sim q(W \mid \Gamma)$ for optimal uncertainty quantification and predictive calibration.
-  \item \textbf{Median Probability Model (MPM)}: Hard-prunes all edges whose posterior inclusion probability $\alpha_{k,p}^{(j)} = \mathbb{P}(\gamma_{k,p}^{(j)} = 1 \mid \mathcal{D}) \le 0.5$ (Barbieri \& Berger, 2004 optimal predictive submodel).
-\end{itemize}
-
-## Input-Skip LBBNNs (ISLaB) & Structural Depth Metrics
+## From Dense BNNs to Latent Binary BNNs (Hubin & Storvik, 2024)
 
 \vspace{0.1em}
 \begin{columns}
-\begin{column}{0.54\textwidth}
-\textbf{The ISLaB Architecture (H{\o}yheim et al., 2026, \textit{JAIR}):}
+\begin{column}{0.50\textwidth}
+\textbf{Spike-and-Slab Edge Selection:}
 \begin{itemize}
-  \item Direct skips route inputs $\mathbf{x} \in \mathbb{R}^p$ to all hidden layers: $\mathbf{a}^{(j-1)} = [a_1^{(j-1)}, \dots, a_K^{(j-1)}, \mathbf{x}^\top]^\top$.
-  \item \textbf{Active Paths ($\text{AP}$)}: Connects input $x_k$ to output $\zeta$ if all intermediate edges have $\alpha_{k,p}^{(j)} > 0.5$.
+  \item Latent binary inclusion indicator $\gamma_{k,p}^{(j)} \in \{0, 1\}$:
+  \small
+  $$p\big(w_{k,p}^{(j)} \mid \gamma_{k,p}^{(j)}\big) = \gamma_{k,p}^{(j)}\mathcal{N}\big(0, (\tau_{k,p}^{(j)})^2\big) + \big(1-\gamma_{k,p}^{(j)}\big)\delta_0$$
+  $$p\big(\gamma_{k,p}^{(j)}\big) = \text{Bernoulli}\big(\psi_{k,p}^{(j)}\big)$$
+  \normalsize
+  \item \textbf{Bayesian Model Averaging (BMA)}: Ensembles across posterior draws $\Gamma \sim q(\Gamma)$ and $W \sim q(W \mid \Gamma)$ for optimal uncertainty quantification.
+  \item \textbf{Median Probability Model (MPM)}: Hard-prunes edges with inclusion probability $\alpha_{k,p}^{(j)} \le 0.5$ (Barbieri \& Berger, 2004 optimal predictive submodel).
+\end{itemize}
+\end{column}
+
+\begin{column}{0.50\textwidth}
+\begin{center}
+\begin{tikzpicture}[scale=0.62, every node/.style={scale=0.62}]
+  % Left: Dense BNN
+  \node at (1.0, 3.6) {\textbf{\footnotesize Dense BNN (All Edges)}};
+  \node[circle, draw=blue!70, fill=blue!10, thick] (X1) at (0, 2.5) {$x_1$};
+  \node[circle, draw=blue!70, fill=blue!10, thick] (X2) at (0, 1.25) {$x_2$};
+  \node[circle, draw=gray!70, fill=gray!10, thick] (X3) at (0, 0.0) {$x_3$};
+  \node[circle, draw=green!70!black, fill=green!10, thick] (H1) at (1.5, 2.0) {$h_1$};
+  \node[circle, draw=green!70!black, fill=green!10, thick] (H2) at (1.5, 0.6) {$h_2$};
+  \node[circle, draw=red!70, fill=red!10, thick] (Y) at (2.8, 1.3) {$y$};
+  
+  \foreach \i in {X1,X2,X3}
+    \foreach \j in {H1,H2}
+      \draw[->, thin, gray!60] (\i) -- (\j);
+  \foreach \i in {H1,H2}
+    \draw[->, thin, gray!60] (\i) -- (Y);
+
+  % Right: Sparse LBBNN
+  \node at (5.8, 3.6) {\textbf{\footnotesize Sparse LBBNN (MPM $\alpha > 0.5$)}};
+  \node[circle, draw=blue!70, fill=blue!10, thick] (SX1) at (4.5, 2.5) {$x_1$};
+  \node[circle, draw=blue!70, fill=blue!10, thick] (SX2) at (4.5, 1.25) {$x_2$};
+  \node[circle, draw=gray!40, fill=gray!5, dashed] (SX3) at (4.5, 0.0) {$x_{\text{pruned}}$};
+  \node[circle, draw=green!70!black, fill=green!10, thick] (SH1) at (6.0, 2.0) {$h_1$};
+  \node[circle, draw=green!70!black, fill=green!10, thick] (SH2) at (6.0, 0.6) {$h_2$};
+  \node[circle, draw=red!70, fill=red!10, thick] (SY) at (7.3, 1.3) {$y$};
+  
+  \draw[->, thick, green!60!black] (SX1) -- (SH1);
+  \draw[->, thick, green!60!black] (SX2) -- (SH1);
+  \draw[->, thick, green!60!black] (SX2) -- (SH2);
+  \draw[->, thick, red!80] (SH1) -- (SY);
+  \draw[->, thick, red!80] (SH2) -- (SY);
+  \draw[->, dotted, gray!40] (SX3) -- (SH2);
+\end{tikzpicture}
+\end{center}
+\end{column}
+\end{columns}
+
+## Input-Skip LBBNNs (ISLaB) & Structural Depth Metrics (Høyheim et al., 2026)
+
+\vspace{0.1em}
+\begin{columns}
+\begin{column}{0.52\textwidth}
+\textbf{The ISLaB Architecture (\textit{JAIR}, 2026):}
+\begin{itemize}
+  \item Direct skip connections route raw input covariates $\mathbf{x} \in \mathbb{R}^p$ to every hidden layer:
+  $$\mathbf{a}^{(j-1)} = \left[a_1^{(j-1)}, \dots, a_K^{(j-1)}, \mathbf{x}^\top\right]^\top$$
+  \item \textbf{Active Paths ($\text{AP}$)}: An active path connects input $x_k$ to output $\zeta$ if all intermediate edges have $\alpha_{k,p}^{(j)} > 0.5$.
 \end{itemize}
 
 \vspace{0.2em}
 \textbf{Contribution Depth Classification:}
 \begin{itemize}
-  \item \textbf{Depth = 1}: Input-to-output skip $\implies$ Linear GLM effect.
-  \item \textbf{Depth $\ge$ 2}: Through hidden nodes $\implies$ Non-linear/interaction.
-  \item \textbf{Zero Paths ($L = 0$)}: Covariate completely pruned.
+  \item \textbf{Depth = 1 (Linear Skip)}: Input-to-output skip $\implies$ linear GLM effect.
+  \item \textbf{Depth $\ge$ 2 (Non-Linear)}: Through hidden nodes $\implies$ non-linear interaction.
+  \item \textbf{Paths = 0 (Pruned Noise)}: Covariate completely severed from computation graph.
 \end{itemize}
 \end{column}
 
-\begin{column}{0.46\textwidth}
+\begin{column}{0.48\textwidth}
 \begin{center}
-\begin{tikzpicture}[scale=0.68, every node/.style={scale=0.68}]
+\begin{tikzpicture}[scale=0.72, every node/.style={scale=0.72}]
   % Input nodes
   \node[circle, draw=blue!70, fill=blue!10, thick] (X1) at (0, 3) {$x_1$};
   \node[circle, draw=blue!70, fill=blue!10, thick] (X2) at (0, 1.5) {$x_2$};
   \node[circle, draw=gray!60, fill=gray!10, dashed] (X3) at (0, 0) {$x_{\text{noise}}$};
   
   % Hidden nodes
-  \node[circle, draw=green!70!black, fill=green!10, thick] (H1) at (2.5, 2.5) {$h_1$};
-  \node[circle, draw=green!70!black, fill=green!10, thick] (H2) at (2.5, 1.0) {$h_2$};
+  \node[circle, draw=green!70!black, fill=green!10, thick] (H1) at (2.4, 2.5) {$h_1$};
+  \node[circle, draw=green!70!black, fill=green!10, thick] (H2) at (2.4, 1.0) {$h_2$};
   
   % Output node
-  \node[circle, draw=red!70, fill=red!10, thick] (Y) at (5, 1.75) {$\zeta$};
+  \node[circle, draw=red!70, fill=red!10, thick] (Y) at (4.8, 1.75) {$\zeta$};
   
   % Edges
   \draw[->, thick, blue!80, dashed] (X1) to[bend left=25] node[above] {\tiny Skip (Depth 1)} (Y);
@@ -122,466 +160,350 @@ pres_data <- readRDS("presentation_data.rds")
 \end{column}
 \end{columns}
 
-## Local Explainability via Piecewise-Linear Activation Regions
-
-\vspace{0.2em}
-\textbf{Local Generalized Linear Model Representation (Hubin et al., JSM 2026):}
-\begin{itemize}
-  \item With continuous piecewise-linear activations (e.g., ReLU), the input space $\mathbb{R}^p$ is partitioned into a finite set of convex polyhedral activation regions $\mathcal{P}_1, \dots, \mathcal{P}_M$.
-  \item Within any local neighborhood $B_\epsilon(\mathbf{x}_i) \subset \mathcal{P}_m$, the active network collapses to an exact \textbf{local Generalized Linear Model (GLM)}:
-  $$\zeta(\mathbf{x}) = \beta_0(\mathbf{x}_i) + \sum_{j=1}^p \beta_j(\mathbf{x}_i) x_j, \qquad \boldsymbol{\beta}(\mathbf{x}_i) = \nabla_{\mathbf{x}} \zeta(\mathbf{x})\big|_{\mathbf{x} = \mathbf{x}_i}$$
-\end{itemize}
-
-\vspace{0.4em}
-\textbf{Rigorous Statistical Properties for Official Statistics:}
-\begin{itemize}
-  \item \textbf{Closed-Form Gradients}: Local coefficients $\beta_j(\mathbf{x}_i)$ are evaluated exactly via backpropagation without numerical perturbation approximations (e.g., unlike LIME or Kernel SHAP).
-  \item \textbf{Bayesian Local Credible Intervals}: Sampling posterior weights $W \sim q(W \mid \Gamma^*)$ yields exact posterior distributions $p(\boldsymbol{\beta}(\mathbf{x}_i) \mid \mathcal{D})$ for local covariate effects on individual survey respondents.
-\end{itemize}
-
-## Variational ELBO, Cold-Posterior Protection & Software Ecosystem
+## Local Explainability via Polyhedral ReLU Activation Regions
 
 \vspace{0.1em}
 \begin{columns}
-\begin{column}{0.55\textwidth}
-\textbf{Variational Inference Framework:}
+\begin{column}{0.48\textwidth}
+\textbf{Local GLM Theorem (JSM 2026):}
 \begin{itemize}
-  \item Mean-field spike-and-slab: $q(\mathbf{w}, \boldsymbol{\gamma}) = \prod q(w_{k,p}^{(j)} \mid \gamma_{k,p}^{(j)}) \, q(\gamma_{k,p}^{(j)})$.
-  \item Efficient sampling via Local Reparameterization Trick (LRT) and Normalizing Flows (\textit{TMLR}, 2024).
-\end{itemize}
-
-\vspace{0.2em}
-\textbf{Protection Against Cold Posteriors (Wenzel et al., 2020):}
-\begin{itemize}
-  \item Exact ELBO at $T = 1.0$: $\text{ELBO}(q) = \sum_{i=1}^n \mathbb{E}_{q}[\log f(y_i \mid \mathbf{x}_i, \theta)] - \text{KL}(q \parallel p)$.
-  \item Explicit observation noise $\sigma^2$ in Gaussian regression (\texttt{sigma} in \texttt{lbbnn\_net()}) prevents likelihood mis-scaling ($T = \sigma^2 \neq 1$) and protects spike-and-slab KL shrinkage.
+  \item Piecewise-linear activations partition $\mathbb{R}^p$ into polyhedral activation regions $\mathcal{P}_1, \dots, \mathcal{P}_M$.
+  \item Within each local region $\mathcal{P}_m$, the active network reduces to an exact \textbf{local GLM}:
+  \small
+  $$\zeta(\mathbf{x}) = \beta_0(\mathbf{x}_i) + \sum_{j=1}^p \beta_j(\mathbf{x}_i) x_j$$
+  $$\boldsymbol{\beta}(\mathbf{x}_i) = \nabla_{\mathbf{x}} \zeta(\mathbf{x})\big|_{\mathbf{x} = \mathbf{x}_i}$$
+  \normalsize
+  \item \textbf{Exact Gradients}: Evaluated via analytical backpropagation (zero perturbation error).
+  \item \textbf{Credible Intervals}: Draws $W \sim q(W \mid \Gamma^*)$ yield exact posterior intervals for respondent sensitivities.
 \end{itemize}
 \end{column}
 
-\begin{column}{0.45\textwidth}
-\textbf{Open-Source Software Ecosystem:}
+\begin{column}{0.52\textwidth}
+\includegraphics[width=\linewidth]{figures/jsm_polyhedral_regions.pdf}
+\end{column}
+\end{columns}
+
+## Variational Inference & Protection Against Cold Posteriors
+
+\vspace{0.1em}
+\begin{columns}
+\begin{column}{0.50\textwidth}
+\textbf{Variational ELBO at True $T = 1.0$:}
+\small
+$$\text{ELBO}(q) = \sum_{i=1}^n \mathbb{E}_{q}[\log f(y_i \mid \mathbf{x}_i, \theta)] - \text{KL}(q \parallel p)$$
+\normalsize
+
+\vspace{0.2em}
+\textbf{Why Explicit Error Scale $\sigma^2$ Matters (Wenzel et al., 2020):}
 \begin{itemize}
-  \item \textbf{R Package \texttt{LBBNN}}:
-    \begin{itemize}
-      \item Available on CRAN (v0.1.6).
-      \item Built on \texttt{torch} for R (pure C++ LibTorch backend, zero Python overhead).
-      \item Exported helpers for dataloaders, survey weighting, and custom likelihoods.
-    \end{itemize}
-  \vspace{0.3em}
-  \item \textbf{Python Package \texttt{ISLaB-LBBNN}}:
-    \begin{itemize}
-      \item PyTorch implementation supporting large-scale GPU cluster distributed training.
-    \end{itemize}
+  \item Omitting residual noise scale $\sigma^2$ artificially rescales likelihood ($T = \sigma^2 \neq 1$), mis-calibrating spike-and-slab KL shrinkage.
+  \item In \texttt{lbbnn\_net(sigma = ...)}, calibrated $\sigma^2$ grounds log-likelihood sensitivities on the true Bayesian scale.
+  \item Calibrates both feature inclusion probabilities $\alpha_k$ and DP sensitivities $f_i$.
+\end{itemize}
+\end{column}
+
+\begin{column}{0.50\textwidth}
+\includegraphics[width=\linewidth]{figures/jsm_variational_elbo.pdf}
+\end{column}
+\end{columns}
+
+## The `LBBNN` Open-Source Software Ecosystem
+
+\vspace{0.2em}
+\begin{columns}
+\begin{column}{0.50\textwidth}
+\textbf{R Package \texttt{LBBNN} (CRAN v0.1.6):}
+\begin{itemize}
+  \item Pure C++ LibTorch backend via \texttt{torch} for R (zero Python dependencies or overhead).
+  \item Mean-field spike-and-slab with Local Reparameterization Trick (LRT) and Normalizing Flows (\textit{TMLR}, 2024).
+  \item Automated model selection, predictive ensembling (BMA), and sparse median probability models (MPM).
+\end{itemize}
+\end{column}
+
+\begin{column}{0.50\textwidth}
+\textbf{Joint BLS Collaboration Modules:}
+\begin{itemize}
+  \item \textbf{Unit Weighting}: \texttt{get\_dataloaders()} supports non-trainable weights $u_i \ge 0$ with optional sample-size normalization.
+  \item \textbf{Residual Calibration}: \texttt{lbbnn\_net(sigma = ...)} incorporates observation noise scale.
+  \item \textbf{Differential Privacy}: \texttt{loglik\_contributions()} and \texttt{fit\_dp\_lbbnn()} for two-pass $(\epsilon, \delta)$-PDP synthesis.
+  \item \textbf{Composite Propensities}: Native losses for \texttt{STACK}, \texttt{LINK1}, \texttt{LINK2}, and \texttt{MIP}.
 \end{itemize}
 \end{column}
 \end{columns}
 
 # PART II: Track 1 — Unit-Weighted Pseudo-Posteriors & Formal Differential Privacy
 
-## Track 1 Overview — Unit-Weighted Variational Pseudo-Posteriors
+## Unit-Weighted Variational Pseudo-Posteriors (Savitsky & Toth, 2016)
 
 \vspace{0.2em}
-\textbf{BLS Collaboration with Terrance D. Savitsky, Matthew R. Williams \& Vladislav Beresovsky:}
+Equipping each unit $i \in \{1, \dots, n\}$ with a non-negative weight $u_i \ge 0$ defines the pseudo-posterior:
+\small
+$$p_{\mathbf{u}}(\theta \mid \mathbf{y}) \propto p(\theta) \prod_{i=1}^n f(y_i \mid \mathbf{x}_i, \theta)^{u_i}$$
+$$\text{ELBO}(q; \mathbf{u}) = \sum_{i=1}^n u_i \, \mathbb{E}_{q(\theta)}\!\left[\log f(y_i \mid \mathbf{x}_i, \theta)\right] - \text{KL}\big(q(\theta) \parallel p(\theta)\big)$$
+\normalsize
+
+\vspace{0.5em}
+\begin{columns}
+\begin{column}{0.50\textwidth}
+\textbf{1. Survey Sampling Weights ($u_i = \tilde{w}_i$):}
 \begin{itemize}
-  \item Equipping each unit $i \in \{1, \dots, n\}$ with a non-negative weight $u_i \ge 0$ defines the variational pseudo-posterior (Savitsky \& Toth, 2016; Bhattacharya et al., 2019):
-  $$p_{\mathbf{u}}(\theta \mid \mathbf{y}) \propto p(\theta) \prod_{i=1}^n f(y_i \mid \mathbf{x}_i, \theta)^{u_i} \iff \text{ELBO}(q; \mathbf{u}) = \sum_{i=1}^n u_i \, \mathbb{E}_{q(\theta)}[\log f(y_i \mid \mathbf{x}_i, \theta)] - \text{KL}(q \parallel p)$$
+  \item Normalized to sample size $n$: $\tilde{w}_i = w_i \frac{n}{\sum w_j}$.
+  \item Setting \texttt{normalize\_weights = TRUE} ensures $\sum \tilde{w}_i = n$ does not overpower spike-and-slab KL shrinkage.
+  \item Corrects informative sampling selection bias.
 \end{itemize}
+\end{column}
 
-\vspace{0.3em}
-\textbf{Two Distinct Operational Regimes Implemented in \texttt{LBBNN}:}
-\begin{enumerate}
-  \item \textbf{Survey Sampling Weights ($u_i = \tilde{w}_i$)}:
-    \begin{itemize}
-      \item Design weights $w_i = \pi_i^{-1}$ are sample-size normalized: $\tilde{w}_i = w_i \frac{n}{\sum_{j=1}^n w_j}$ (\texttt{normalize\_weights = TRUE}).
-      \item Enforces $\sum \tilde{w}_i = n$, ensuring the data likelihood does not overpower the spike-and-slab KL penalty.
-    \end{itemize}
-  \item \textbf{Differential Privacy Weights ($u_i = \alpha_i \in [0, 1]$)}:
-    \begin{itemize}
-      \item Risk-downweighting factors are left unnormalized (\texttt{normalize\_weights = FALSE}, $\sum \alpha_i \le n$).
-      \item Downweights high-sensitivity tail outliers and contracts the pseudo-posterior toward the prior.
-    \end{itemize}
-\end{enumerate}
+\begin{column}{0.50\textwidth}
+\textbf{2. Differential Privacy Weights ($u_i = \alpha_i$):}
+\begin{itemize}
+  \item Unnormalized weights: $\alpha_i \in [0, 1]$.
+  \item Setting \texttt{normalize\_weights = FALSE} ensures $\sum \alpha_i \le n$.
+  \item Downweights high-sensitivity tail outliers and contracts the pseudo-posterior toward the prior.
+\end{itemize}
+\end{column}
+\end{columns}
 
-## Survey-Weighted Imputation Under Informative Sampling (Setup)
-
-\vspace{0.1em}
-\textbf{True Non-Linear DGP}: $Y_i = 2.0 X_{1i} + 1.5 \sin(\pi X_{2i}) + 0.8 X_{1i} X_{2i} + \varepsilon_i$, $\varepsilon_i \sim \mathcal{N}(0, 0.4^2)$, $X_3, X_4 \sim \mathcal{N}(0, 1)$
+## Track 1A — Informative Survey Sampling Setup & Automated Noise Pruning
 
 \vspace{0.1em}
 \begin{columns}
-\begin{column}{0.46\textwidth}
+\begin{column}{0.44\textwidth}
 \textbf{Simulation Setup ($N = 2,000, p = 4$):}
 \begin{itemize}
+  \item \textbf{True Non-Linear DGP}:
+  \small
+  $$Y_i = 2 X_{1i} + 1.5 \sin(\pi X_{2i}) + 0.8 X_{1i} X_{2i} + \varepsilon_i$$
+  \normalsize
+  where $\varepsilon_i \sim \mathcal{N}(0, 0.4^2)$, and $X_3, X_4 \sim \mathcal{N}(0, 1)$ are pure noise.
   \item \textbf{Informative Selection Mechanism}:
+  \small
   $$\pi_i = \text{logit}^{-1}(-1.0 + 1.2 Y_i)$$
+  \normalsize
   Draws $n = 737$ units favoring high $Y_i$.
-  \item Biased sample mean: \textbf{+2.009} (True: \textbf{0.000}).
+  \item Unweighted sample mean is \textbf{+2.009} (True population mean: \textbf{0.000}).
 \end{itemize}
 \end{column}
 
-\begin{column}{0.54\textwidth}
-\textbf{Variational Inclusion Probabilities (Table 1):}
-
-\scriptsize
-```{r}
-knitr::kable(
-  data.frame(
-    Variable = c("x1 (Linear)", "x2 (Non-linear)", "x3 (Noise)", "x4 (Noise)"),
-    Paths = pres_data$t1_var_sel[["Out Paths"]],
-    "Out Incl." = pres_data$t1_var_sel[["Out Incl."]],
-    Status = c("Selected", "Selected", "Pruned", "Pruned"),
-    check.names = FALSE
-  ),
-  format = "latex",
-  booktabs = TRUE,
-  digits = 3
-)
-```
-\normalsize
-
-\vspace{0.3em}
-\textbf{Takeaway}: Both true signals $X_1, X_2$ are retained ($\text{Out Incl.} = 0.999$, $\text{Paths} = 1$). Pure noise variables $X_3, X_4$ are cleanly pruned ($\text{Paths} = 0$, $\text{Out Incl.} \le 0.130$).
+\begin{column}{0.56\textwidth}
+\includegraphics[width=\linewidth]{figures/track1_sparsity_lollipop.pdf}
 \end{column}
 \end{columns}
 
-## Survey-Weighted Imputation — Population Recovery & Density Plot
+## Track 1A — Population Mean & Imputation RMSE Recovery (Visual Benchmark)
 
-\vspace{0.1em}
-\begin{columns}
-\begin{column}{0.46\textwidth}
-\textbf{Imputation Accuracy (Table 2):}
-
-\tiny
-```{r}
-knitr::kable(
-  pres_data$t1_pop_recovery,
-  format = "latex",
-  booktabs = TRUE,
-  digits = 3,
-  col.names = c("Model", "Est", "Bias", "RMSE")
-)
-```
-\normalsize
-
-\vspace{0.3em}
-\textbf{Key Insights}:
-\begin{itemize}
-  \item Classical \textbf{H\'{a}jek mean} reduces bias ($+0.272$) but only estimates a single scalar (RMSE = $2.320$).
-  \item \textbf{Survey-Weighted LBBNN} learns the conditional surface, reducing RMSE to \textbf{0.461} (approaching $\sigma = 0.40$ noise floor).
-\end{itemize}
-\end{column}
-
-\begin{column}{0.54\textwidth}
-\includegraphics[width=\textwidth]{figures/track1_density_recovery.pdf}
-\end{column}
-\end{columns}
-
-## Two-Pass $(\epsilon, \delta)$-Differential Privacy (Savitsky et al., 2022)
+\includegraphics[width=0.95\textwidth]{figures/track1_pop_recovery_bars.pdf}
 
 \vspace{0.2em}
-\textbf{Why Unweighted Neural Networks Fail DP on Skewed Survey Data:}
+\textbf{Key Takeaways}:
 \begin{itemize}
-  \item Pointwise log-likelihood $|\log f(y_i \mid \mathbf{x}_i, \theta)| \propto \frac{(y_i - \mu_\theta(\mathbf{x}_i))^2}{2\sigma^2}$ grows \textbf{quadratically} with the residual.
-  \item In skewed expenditure/income data, extreme outliers drive local sensitivity $\Delta \to \infty$, destroying privacy.
+  \item Classical \textbf{H\'{a}jek mean} reduces bias ($+0.27$) but only provides a single scalar estimate ($\text{Pop RMSE} = 2.32$).
+  \item \textbf{Survey-Weighted LBBNN} learns the conditional surface, reducing Pop RMSE to \textbf{0.46} (approaching $\sigma = 0.40$ noise floor).
 \end{itemize}
 
-\vspace{0.3em}
-\textbf{The Two-Pass Surgical Mechanism (\texttt{fit\_dp\_lbbnn}):}
-\begin{enumerate}
-  \item \textbf{Pass 1 (Exploration)}: Fit unweighted LBBNN ($u_i = 1$). Extract $S \times n$ matrix $L_{s,i}^{(1)} = \log f(y_i \mid \mathbf{x}_i, \theta^{(1,s)})$ via \texttt{loglik\_contributions()}, and evaluate worst-case sensitivity $f_i = \max_s |L_{s,i}^{(1)}|$.
-  \item \textbf{Monotone Surgical Weights}: Compute smooth risk weights $\alpha_i^{\text{raw}} = c_{\text{scale}}(1 - \tilde{f}_i)$, cap at $\alpha_i \leftarrow \min(\alpha_i^{\text{raw}}, M_{\text{thresh}}/f_i)$, and \textbf{surgically zero extreme tail outliers}:
-  $$\alpha_i = 0 \quad \text{if } f_i > 3 M_{\text{thresh}}$$
-  \item \textbf{Pass 2 ($\boldsymbol{\alpha}$-Weighted Fit \& Synthesis)}: Fit LBBNN with $u_i = \alpha_i$. Verify local Lipschitz bound $\Delta_{\alpha, \mathbf{y}} = \max_{s,i} |\alpha_i L_{s,i}^{(2)}| \le M_{\text{thresh}}$ and privacy budget $\epsilon_{\mathbf{y}} = 2\Delta_{\alpha, \mathbf{y}}$.
-  \item \textbf{Microdata Synthesis}: Draw synthetic records via the \textbf{DP Post-Processing Theorem}.
-\end{enumerate}
+## Track 1A — Full Population Distribution Recovery
 
-## Two-Pass DP Synthesizer — Monotone Surgical Diagnostic
+\begin{center}
+\includegraphics[height=0.62\textheight, keepaspectratio]{figures/track1_density_recovery.pdf}
+\end{center}
+
+\vspace{-0.2em}
+\textbf{Distributional Recovery}: Survey-weighted LBBNN models (green/blue curves) accurately reconstruct the full population density (black solid curve) across all 2,000 units, completely correcting the severe rightward shift of the observed sample (red dotted curve).
+
+## Track 1B — Why Unweighted Neural Networks Fail Differential Privacy
+
+\vspace{0.2em}
+\textbf{Probabilistic Differential Privacy (Savitsky, Williams \& Hu, 2022):}
+\small
+$$\sup_{\theta \in \Theta_\delta} \left|\log \frac{q_{\boldsymbol{\alpha}}(\theta \mid \mathbf{y})}{q_{\boldsymbol{\alpha}}(\theta \mid \mathbf{y}')}\right| \le \epsilon_{\mathbf{y}} = 2 \Delta_{\alpha, \mathbf{y}}, \qquad \Delta_{\alpha, \mathbf{y}} = \max_{s, i} |\alpha_i \log f(y_i \mid \mathbf{x}_i, \theta^{(s)})|$$
+\normalsize
+
+\vspace{0.4em}
+\textbf{The Quadratic Exposure Dilemma in Gaussian Regression:}
+\begin{itemize}
+  \item Pointwise Gaussian log-likelihood grows quadratically with the residual:
+  $$|\log f(y_i \mid \mathbf{x}_i, \theta)| \propto \frac{(y_i - \mu_\theta(\mathbf{x}_i))^2}{2\sigma^2}$$
+  \item In skewed survey microdata (wages, financial expenditures), extreme outliers drive unweighted sensitivity $\Delta \to \infty$ and privacy budget $\epsilon_{\mathbf{y}} \to \infty$.
+  \item Naive gradient clipping distorts the mean and destroys the variance structure of official statistics.
+\end{itemize}
+
+## Track 1B — The Two-Pass Surgical Downweighting Pipeline (`fit_dp_lbbnn`)
+
+\vspace{0.1em}
+\begin{center}
+\begin{tikzpicture}[scale=0.72, every node/.style={scale=0.72, font=\sffamily}]
+  \node[rectangle, draw=blue!80, fill=blue!10, rounded corners, thick, text width=2.4cm, align=center] (p1) at (0, 0) {\textbf{Pass 1}\\[2pt]Unweighted Fit\\[2pt]($u_i = 1$)};
+  \node[rectangle, draw=orange!80, fill=orange!10, rounded corners, thick, text width=2.5cm, align=center] (risk) at (3.4, 0) {\textbf{Extract Risk}\\[2pt]$S \times n$ Matrix $L_{s,i}$\\[2pt]$f_i = \max_s |L_{s,i}|$};
+  \node[rectangle, draw=purple!80, fill=purple!10, rounded corners, thick, text width=2.6cm, align=center] (weight) at (7.0, 0) {\textbf{Surgical Weights}\\[2pt]Smooth $\alpha_i^{\text{raw}}$\\[2pt]Zero Tail Outliers};
+  \node[rectangle, draw=green!70!black, fill=green!10, rounded corners, thick, text width=2.4cm, align=center] (p2) at (10.6, 0) {\textbf{Pass 2}\\[2pt]$\alpha$-Weighted Fit\\[2pt]$\Delta_{\alpha} \le M_{\text{thresh}}$};
+  \node[rectangle, draw=red!80, fill=red!10, rounded corners, thick, text width=2.2cm, align=center] (synth) at (14.0, 0) {\textbf{Synthesis}\\[2pt]$(\epsilon_{\mathbf{y}}, \delta)$-PDP Microdata};
+  
+  \draw[->, thick, >=stealth] (p1) -- (risk);
+  \draw[->, thick, >=stealth] (risk) -- (weight);
+  \draw[->, thick, >=stealth] (weight) -- (p2);
+  \draw[->, thick, >=stealth] (p2) -- (synth);
+\end{tikzpicture}
+\end{center}
+
+\vspace{0.3em}
+\textbf{Monotone Surgical Truncation Formula:}
+$$\alpha_i = \min\!\left(\alpha_i^{\text{raw}}, \, \frac{M_{\text{thresh}}}{f_i}\right), \qquad \alpha_i = 0 \quad \text{if } f_i > 3 M_{\text{thresh}}$$
+Guarantees local Lipschitz bound $\Delta_{\alpha, \mathbf{y}} = \max_{s,i} |\alpha_i L_{s,i}^{(2)}| \le M_{\text{thresh}}$ and bounded privacy $\epsilon_{\mathbf{y}} = 2\Delta_{\alpha, \mathbf{y}}$.
+
+## Track 1B — Monotone Surgical Downweighting Diagnostic
 
 \vspace{0.1em}
 \begin{columns}
-\begin{column}{0.58\textwidth}
-\includegraphics[width=\textwidth]{figures/track1_dp_weights.pdf}
+\begin{column}{0.64\textwidth}
+\includegraphics[width=\linewidth]{figures/track1_dp_weights.pdf}
 \end{column}
 
-\begin{column}{0.42\textwidth}
+\begin{column}{0.36\textwidth}
 \textbf{Empirical DP Metrics:}
 \begin{itemize}
-  \item \textbf{Sample}: Skewed log-normal expenditure ($n = 300$, median $\$4.16$, 3 extreme outliers at $\$400\text{--}\$530$).
-  \item \textbf{Standard Records}: Retain high utility weights $\alpha_i \in [0.34, 0.85]$ (median $0.81$).
-  \item \textbf{Tail Outliers}: All 3 extreme outliers ($f_i > 3 M_{\text{thresh}}$) are \textbf{surgically zeroed} ($\alpha_i = 0.0$).
-  \item \textbf{Formal Privacy Guarantee}:
-  $$\Delta_{\alpha, \mathbf{y}} = 4.32 \le 5.50 \implies \epsilon_{\mathbf{y}} = 8.63$$
+  \item \textbf{Sample}: $n = 300$, median $\$4.16$, 3 extreme outliers ($\$400\text{--}\$530$).
+  \item \textbf{Standard Records}: Retain high weights $\alpha_i \in [0.34, 0.85]$ (median $0.81$).
+  \item \textbf{Tail Outliers}: All 3 extreme outliers ($f_i > 26 > 3M$) are \textbf{surgically zeroed} ($\alpha_i = 0.0$).
+  \item \textbf{Privacy Guarantee}:\\
+  $\Delta_{\alpha, \mathbf{y}} = 4.32 \le 5.50 \implies \boldsymbol{\epsilon_{\mathbf{y}} = 8.63}$.
 \end{itemize}
 \end{column}
 \end{columns}
 
-## Two-Pass DP Synthesizer — Utility vs. Outlier Protection
+## Track 1B — Synthetic Microdata Utility vs. Outlier Protection
 
-\vspace{0.1em}
-\begin{columns}
-\begin{column}{0.48\textwidth}
-\textbf{Utility Benchmark (Table 3):}
-
-\tiny
-```{r}
-knitr::kable(
-  pres_data$t1_dp_utility,
-  format = "latex",
-  booktabs = TRUE,
-  digits = 2,
-  col.names = c("Metric", "Clean", "Outliers", "Non-Priv", "DP-Priv")
-)
-```
-\normalsize
+\includegraphics[width=0.92\textwidth]{figures/track1_synth_utility_panels.pdf}
 
 \vspace{0.2em}
+\textbf{Distributional Utility vs. Disclosure Protection}:
 \begin{itemize}
-  \item 3 outliers inflate raw mean from $\$6.70$ to $\$11.30$ and SD from $\$7.23$ to $\$46.75$.
-  \item \textbf{DP-Private Synthetic} recovers the true body (Mean $\$7.99$, Median $\$4.13$) while truncating extreme risk.
+  \item 3 extreme outliers distort raw sample mean ($\$11.30$ vs. $\$6.70$) and explode standard deviation to $\$46.75$.
+  \item \textbf{DP-Private Synthetic} microdata recovers the true distribution body (Mean $\$7.99$, Median $\$4.13$) while safely truncating disclosure risk on extreme tail outliers.
 \end{itemize}
-\end{column}
-
-\begin{column}{0.52\textwidth}
-\includegraphics[width=\textwidth]{figures/track1_synth_ecdf.pdf}
-\end{column}
-\end{columns}
 
 # PART III: Track 2 — Combining Probability & Non-Probability Samples
 
-## Track 2 Overview — Selection Bias & The Conditioning Trick
+## The Big Data Paradox in Convenience Samples (Meng, 2018)
 
 \vspace{0.2em}
-\textbf{Collaboration with Vladislav Beresovsky, Julie Gershunskaya \& Terrance D. Savitsky (2026):}
+\textbf{The Non-Probability Selection Dilemma:}
 \begin{itemize}
-  \item \textbf{The Big Data Paradox (Meng, 2018)}: Opt-in convenience samples $S_c$ suffer from severe selection bias:
-  $$\text{Bias}(\bar{y}_c) \approx \rho_{R, Y} \cdot \sigma_Y \cdot \sqrt{\frac{N - n_c}{n_c}}$$
-  Massive convenience sample size $n_c$ merely shrinks variance around an egregiously biased estimate.
+  \item In convenience/opt-in samples $S_c$, sample inclusion $I_{ci} \in \{0, 1\}$ is non-random and driven by unobserved self-selection mechanisms.
+  \item \textbf{Meng's Law of Large Populations (2018)}:
+  $$\text{Bias}(\bar{y}_c) = \frac{\text{Cov}_U(I_c, Y)}{\bar{\pi}_c} = \rho_{I_c, Y} \cdot \sigma_Y \cdot \sqrt{\frac{N - n_c}{n_c}}$$
+  \item A tiny correlation $\rho_{I_c, Y} \neq 0$ creates selection bias that scales with $\sqrt{N}$.
+  \item Merely increasing convenience sample size $n_c$ shrinks variance around a severely biased estimate (the Big Data Paradox).
+\end{itemize}
+
+## The Identification Barrier & The Conditioning Trick (Beresovsky et al., 2026)
+
+\vspace{0.2em}
+\textbf{The Identification Barrier:}
+\begin{itemize}
+  \item We observe covariates $\mathbf{x}_i$ only on convenience sample $S_c$ (unknown $\pi_{ci}$) and reference survey $S_r$ (known design probability $\pi_{ri}$), never on $U \setminus (S_c \cup S_r)$.
 \end{itemize}
 
 \vspace{0.3em}
-\textbf{The Identification Barrier \& The Conditioning Trick:}
+\textbf{The Conditioning Trick:}
 \begin{itemize}
-  \item \textbf{Barrier}: Covariates $\mathbf{x}_i$ are observed only for $i \in S_c$ ($R_i = 1$, unknown $\pi_{ci}$) and for a reference probability survey $S_r$ ($I_i = 1$, known design probability $\pi_{ri}$), never on $U \setminus (S_c \cup S_r)$.
-  \item \textbf{Conditioning Trick}: By pooling $S_c$ and $S_r$ and conditioning on selection into the combined sample $S$, the known reference design probability $\pi_{ri}$ acts as a \textbf{structural offset} that anchors neural network logits $\eta_\theta(\mathbf{x}_i)$ to the true population scale:
-  $$\pi_{zi} = \mathbb{P}(i \in S_c \mid i \in S_c \cup S_r, \mathbf{x}_i) = \frac{\pi_{ci}}{\pi_{ci} + \pi_{ri}}$$
+  \item Pool $S_c$ and $S_r$ into a combined sample $S$, and model membership indicator $D_i = \mathbb{I}(i \in S_c)$:
+  $$\pi_{zi}^{\text{STACK}} = \mathbb{P}(D_i = 1 \mid \mathbf{x}_i, i \in S) = \frac{\pi_{ci}}{\pi_{ci} + \pi_{ri}}$$
+  \item The known reference probability $\pi_{ri}$ acts as an \textbf{exact structural offset}, anchoring neural network logits $\eta_\theta(\mathbf{x}_i)$ to the true population scale.
 \end{itemize}
 
-## Five Sample Combination Formulations (Beresovsky et al., 2026)
+## The Five Sample Combination Formulations (Beresovsky et al., 2026)
 
 \vspace{0.1em}
-\scriptsize
+\renewcommand{\arraystretch}{1.35}
+\footnotesize
 \begin{table}[ht]
 \centering
-\begin{tabular}{p{1.8cm}p{3.0cm}p{3.0cm}p{4.8cm}}
+\begin{tabular}{llll}
 \toprule
 \textbf{Estimator} & \textbf{Sample Domain} & \textbf{Target Indicator} & \textbf{Composite Probability $\pi_{zi}$} \\
 \midrule
-\texttt{STACK} & $S_c \oplus S_r$ (Unlinked) & $I_{zi} = D_i$ (sample source) & $\frac{\pi_{ci}}{\pi_{ci} + \pi_{ri}}$ \\
-\texttt{LINK1} & $S_c \cup (S_r \setminus S_c)$ & $I_{zi} = I_{ci}$ (deduplicated) & $\frac{\pi_{ci}}{\pi_{ci} + \pi_{ri} - \pi_{ci}\pi_{ri}}$ \\
-\texttt{LINK2} & $S_c \oplus S_r$ (Linked) & $I_{zi} = D_i + (1-D_i)I_{ci}$ & $\frac{\pi_{ci}(1 + \pi_{ri})}{\pi_{ci} + \pi_{ri}}$ \\
-\texttt{MIP} & Missing Information & $\tilde{I}_{zi}^{\text{MIP}} = D_i + (1-D_i)\tilde{p}_i$ & Bridges \texttt{STACK} ($p=0$) and \texttt{LINK2} ($p=1$) \\
-\texttt{PSEUDO} & Survey Weighted & Score: $\nabla \ell_{\text{pseudo}} = 0$ & Design-weighted: $\sum_{S_r} \pi_{ri}^{-1} \text{softplus}(\eta_i)$ \\
+\texttt{STACK} & $S_c \oplus S_r$ (Unlinked) & $I_{zi} = D_i$ (sample source) & $\frac{\pi_{ci}}{\pi_{ci} + \pi_{ri}}$ \\[4pt]
+\texttt{LINK1} & $S_c \cup (S_r \setminus S_c)$ & $I_{zi} = I_{ci}$ (deduplicated) & $\frac{\pi_{ci}}{\pi_{ci} + \pi_{ri} - \pi_{ci}\pi_{ri}}$ \\[4pt]
+\texttt{LINK2} & $S_c \oplus S_r$ (Linked Stacked) & $I_{zi} = D_i + (1-D_i)I_{ci}$ & $\frac{\pi_{ci}(1 + \pi_{ri})}{\pi_{ci} + \pi_{ri}}$ \\[4pt]
+\texttt{MIP} & Missing Information & $\tilde{I}_{zi}^{\text{MIP}} = D_i + (1-D_i)\tilde{p}_i$ & Bridges \texttt{STACK} and \texttt{LINK2} \\[4pt]
+\texttt{PSEUDO} & Survey Weighted & Score: $\nabla \ell_{\text{pseudo}} = 0$ & Design-weighted: $\sum_{S_r} \pi_{ri}^{-1}\text{softplus}(\eta_i)$ \\
 \bottomrule
 \end{tabular}
 \end{table}
 \normalsize
 
+## How `MIP` Bridges `STACK` and `LINK2` vs. Why `PSEUDO` Explodes
+
 \vspace{0.2em}
-\textbf{Structural Characteristics:}
+\textbf{Louis's (1982) Missing Information Principle (\texttt{MIP}):}
 \begin{itemize}
-  \item \textbf{Deterministic Linkage (\texttt{LINK1}, \texttt{LINK2})}: Utilizes unit-level linkage overlap between $S_c$ and $S_r$ to maximize Fisher information and minimize asymptotic variance.
-  \item \textbf{Missing Information Principle (\texttt{MIP})}: Continuously bridges unlinked \texttt{STACK} ($p_{\text{link}} = 0$) and fully linked \texttt{LINK2} ($p_{\text{link}} = 1$) via EM expectations.
-  \item \textbf{Pseudo-Likelihood (\texttt{PSEUDO})}: Vulnerable to catastrophic weight explosion when reference probabilities $\pi_{ri} \approx 0$.
+  \item Imputes linkage expectations on unlinked reference units:
+  $$\tilde{p}_i = p_{\text{link}} I_{ci} + (1 - p_{\text{link}})\text{sg}(\pi_{ci}), \qquad \tilde{I}_{zi}^{\text{MIP}} = D_i + (1 - D_i)\tilde{p}_i$$
+  \item Continuously bridges unlinked \texttt{STACK} ($p_{\text{link}} = 0$) and deterministically linked \texttt{LINK2} ($p_{\text{link}} = 1$).
 \end{itemize}
 
-## Study 0 — Exact Linear Baseline Monte Carlo Benchmark ($R = 20$)
+\vspace{0.4em}
+\textbf{The Pseudo-Likelihood (\texttt{PSEUDO}) Breakdown:}
+\begin{itemize}
+  \item \texttt{PSEUDO} scores reference units with inverse design weights $\pi_{ri}^{-1}$.
+  \item Under low common support (where $\pi_{ci} \gg 0$ but $\pi_{ri} \approx 0$), weights $\pi_{ri}^{-1} \to \infty$, causing loss gradients and parameter variance to explode.
+\end{itemize}
 
-\vspace{0.1em}
-\begin{columns}
-\begin{column}{0.50\textwidth}
-\textbf{High Common Support (Table 2):}
+## Study 0 — Exact Linear Baseline Monte Carlo ($R = 20$, Visual Benchmark)
 
-\tiny
-```{r}
-t_high <- pres_data$t2_sim0_high[c(1, 2, 3, 4, 5, 6, 7, 12), ]
-knitr::kable(
-  t_high,
-  format = "latex",
-  booktabs = TRUE,
-  digits = 3,
-  row.names = FALSE,
-  col.names = c("Estimator", "MC Mean", "Bias", "SD", "RMSE")
-)
-```
-\normalsize
+\includegraphics[width=0.95\textwidth]{figures/track2_study0_rmse_bars.pdf}
 
 \vspace{0.2em}
+\textbf{Empirical Findings}:
 \begin{itemize}
   \item \textbf{Efficiency Hierarchy}: $\text{LINK2} \succ \text{LINK1} \succ \text{STACK} \succ \text{PSEUDO}$.
-  \item \textbf{LBBNN Agreement}: Matches GLM efficiency on linear truth (RMSE $0.231$ vs. $0.240$).
+  \item \textbf{Pseudo-Likelihood Breakdown}: Under low common support, \texttt{GLM-PSEUDO} explodes to $\text{RMSE} = 1.015$, while composite likelihoods and \texttt{LBBNN} remain bounded ($\text{RMSE} \approx 0.13\text{--}0.17$).
+  \item \textbf{LBBNN Agreement}: On linear truth, \texttt{LBBNN} matches parametric GLM efficiency ($\text{RMSE} = 0.231$ vs. $0.240$).
 \end{itemize}
-\end{column}
-
-\begin{column}{0.50\textwidth}
-\textbf{Low Common Support (Table 3):}
-
-\tiny
-```{r}
-t_low <- pres_data$t2_sim0_low[c(1, 2, 3, 4, 5, 6, 7, 12), ]
-knitr::kable(
-  t_low,
-  format = "latex",
-  booktabs = TRUE,
-  digits = 3,
-  row.names = FALSE,
-  col.names = c("Estimator", "MC Mean", "Bias", "SD", "RMSE")
-)
-```
-\normalsize
-
-\vspace{0.2em}
-\begin{itemize}
-  \item \textbf{Pseudo Breakdown}: \texttt{GLM-PSEUDO} SD ($0.885$) and RMSE ($1.015$) explode under low support.
-  \item \textbf{Composite Stability}: \texttt{STACK}, \texttt{LINK2}, and \texttt{LBBNN} bound loss gradients (RMSE $0.13\text{--}0.17$).
-\end{itemize}
-\end{column}
-\end{columns}
 
 ## Study 1 — Automated Confounder Selection & Noise Pruning ($p = 6$)
 
 \vspace{0.1em}
 \begin{columns}
-\begin{column}{0.44\textwidth}
+\begin{column}{0.42\textwidth}
 \textbf{Simulation Setup ($N = 5,000, p = 6$):}
 \begin{itemize}
   \item \textbf{Confounders}: $X_1, X_2$ drive both propensity $\pi_{ci}$ and outcome $Y_i$.
-  \item \textbf{Outcome-Only}: $X_3$ drives $Y_i$ but not $\pi_{ci}$.
+  \item \textbf{Outcome-Only}: $X_3$ drives $Y_i$ but uncorrelated with selection $I_c$.
   \item \textbf{Pure Noise}: $X_4, X_5, X_6 \sim \mathcal{N}(0, 1)$.
 \end{itemize}
 
-\vspace{0.2em}
-\textbf{Why Feature Selection Matters}:
+\vspace{0.3em}
+\textbf{Why Variable Selection Matters}:
 \begin{itemize}
-  \item In standard GLMs, including outcome-only or noise predictors in propensity models inflates H\'{a}jek weight variance without reducing confounding bias.
-  \item \texttt{LBBNN} automatically prunes non-propensity predictors.
+  \item Including non-propensity predictors $X_3\text{--}X_6$ inflates H\'{a}jek weight variance without reducing confounding bias.
+  \item \texttt{LBBNN} automatically prunes them.
 \end{itemize}
 \end{column}
 
-\begin{column}{0.56\textwidth}
-\textbf{Variational Edge Probabilities (Table 4):}
-
-\scriptsize
-```{r}
-knitr::kable(
-  data.frame(
-    Variable = c("X1 (Active)", "X2 (Active)", "X3 (Outcome)", "X4 (Noise)", "X5 (Noise)", "X6 (Noise)"),
-    Role = c("Confounder", "Confounder", "Outcome Only", "Pure Noise", "Pure Noise", "Pure Noise"),
-    "Out Incl." = pres_data$t2_sim1_var_sel[["Output Incl."]],
-    Status = c("Selected", "Selected", "Pruned", "Pruned", "Pruned", "Pruned"),
-    check.names = FALSE
-  ),
-  format = "latex",
-  booktabs = TRUE,
-  digits = 3
-)
-```
-\normalsize
-
-\vspace{0.3em}
-\begin{itemize}
-  \item Active confounders $X_1, X_2$ selected ($a_1 \ge 0.99$).
-  \item $X_3$ and noise $X_4\text{--}X_6$ completely pruned ($a_1 \le 0.038$).
-\end{itemize}
+\begin{column}{0.58\textwidth}
+\includegraphics[width=\linewidth]{figures/track2_study1_lollipop.pdf}
 \end{column}
 \end{columns}
 
 ## Study 2 — High Common Support with Non-Linear Propensity & Interaction
 
-\vspace{0.1em}
-\textbf{Non-Linear DGP Surface}: $\eta_c(\mathbf{x}_i) = \beta_0 + 1.0 X_{1i} - 0.5 X_{2i} + 1.2 X_{1i}X_{2i} + \cos(\pi X_{1i}) - 0.8 X_{2i}^2$
+\includegraphics[width=0.95\textwidth]{figures/track2_study2_panels.pdf}
 
-\vspace{0.1em}
-\begin{columns}
-\begin{column}{0.48\textwidth}
-\textbf{Main-Effects GLM Failure (Table 7):}
+\vspace{0.2em}
+\textbf{Non-Linear Recovery}: Linear GLMs are structurally misspecified on the interaction surface ($|\text{Bias}| = 0.19\text{--}0.39$). \texttt{LBBNN} captures curvature and interaction, reducing bias across all composite likelihoods (\textbf{0.086} on \texttt{STACK}, 4.5x reduction!).
 
-\scriptsize
-```{r}
-t_sim2 <- pres_data$t2_sim2_results[c(1, 2, 4, 5, 8, 9, 12, 13), ]
-t_sim2$Estimator <- gsub(" \\(Linear Misspecified\\)", "", t_sim2$Estimator)
-t_sim2$Estimator <- gsub(" \\(Unweighted\\)", "", t_sim2$Estimator)
-t_sim2$Estimator <- gsub(" \\(True Propensity\\)", "", t_sim2$Estimator)
-knitr::kable(
-  t_sim2,
-  format = "latex",
-  booktabs = TRUE,
-  digits = 3,
-  row.names = FALSE,
-  col.names = c("Estimator", "Est", "Bias", "Abs Err")
-)
-```
-\normalsize
-\end{column}
+## Study 3 — Low Common Support + Non-Linearity: Bias vs. Kish's ESS
 
-\begin{column}{0.52\textwidth}
-\textbf{Key Insights}:
+\includegraphics[width=0.95\textwidth]{figures/track2_study3_bars.pdf}
+
+\vspace{0.2em}
+\textbf{Catastrophic Breakdown of Pseudo-Likelihood vs. Composite LBBNN}:
 \begin{itemize}
-  \item Even under high common support, linear GLMs are \textbf{structurally misspecified}:
-    \begin{itemize}
-      \item \texttt{GLM-LINK1} bias: \textbf{-0.388}
-      \item \texttt{GLM-LINK2} bias: \textbf{-0.393}
-      \item \texttt{GLM-PSEUDO} bias: \textbf{-0.389}
-    \end{itemize}
-  \item \textbf{LBBNN Non-Linear Recovery}:
-    \begin{itemize}
-      \item Hidden layer captures $X_1 X_2$ interaction and trigonometric curvature.
-      \item \texttt{LBBNN-STACK (MPM)} bias: \textbf{-0.086} (4.5x reduction!).
-      \item \texttt{LBBNN-LINK2 (MPM)} bias: \textbf{-0.297}.
-    \end{itemize}
-  \item Prunes noise features $X_3\text{--}X_6$ ($a_1 \le 0.066$).
-\end{itemize}
-\end{column}
-\end{columns}
-
-## Study 3 — Low Common Support + Non-Linearity & Kish ESS
-
-\vspace{0.1em}
-\begin{columns}
-\begin{column}{0.52\textwidth}
-\textbf{Severe Misspecification + Low Support (Table 8):}
-
-\tiny
-```{r}
-t_sim3 <- pres_data$t2_sim3_results[c(1, 2, 3, 5, 7, 8, 9, 12, 13), ]
-knitr::kable(
-  t_sim3,
-  format = "latex",
-  booktabs = TRUE,
-  digits = 3,
-  row.names = FALSE,
-  col.names = c("Estimator", "Est", "Bias", "Abs Err", "Kish ESS")
-)
-```
-\normalsize
-\end{column}
-
-\begin{column}{0.48\textwidth}
-\textbf{Catastrophic Breakdown of PSEUDO:}
-\begin{itemize}
-  \item When $\pi_{ci}$ is high where $\pi_{ri} \approx 0$, pseudo weights $w_i = \pi_{ri}^{-1}$ explode.
-  \item \textbf{Kish ESS collapses to 6.56} (out of $n_c = 521$!), causing bias to blow up to \textbf{+5.057}.
+  \item \texttt{GLM-PSEUDO} collapses Kish's ESS to \textbf{6.6 effective units} (out of $n_c = 521$), exploding bias to \textbf{+5.06}.
+  \item \textbf{\texttt{LBBNN-LINK2 (MPM)}} achieves the \textbf{lowest bias (+0.61)} and \textbf{highest effective sample size (Kish ESS = 136.0)}.
 \end{itemize}
 
-\vspace{0.3em}
-\textbf{Composite LBBNN Robustness:}
-\begin{itemize}
-  \item Relative odds $\pi_{zi} = \frac{\pi_{ci}}{\pi_{ci} + \pi_{ri}}$ bound gradients.
-  \item \textbf{\texttt{LBBNN-LINK2 (MPM)}} achieves lowest bias (\textbf{+0.608}) and highest effective sample size (\textbf{Kish ESS = 135.98}).
-\end{itemize}
-\end{column}
-\end{columns}
-
-## Propensity Recovery Diagnostic — 2x2 Comparison Grid
+## Study 3 — Propensity Recovery Diagnostic (2x2 Scatterplot Grid)
 
 \begin{center}
 \includegraphics[height=0.74\textheight, keepaspectratio]{figures/track2_propensity_grid.pdf}
@@ -591,13 +513,14 @@ knitr::kable(
 
 # PART IV: Unified Software Architecture & Synthesis
 
-## Unified LBBNN Architecture Across Track 1 & Track 2
+## Unified `LBBNN` Architecture Across Track 1 & Track 2
 
 \vspace{0.1em}
+\renewcommand{\arraystretch}{1.10}
 \scriptsize
 \begin{table}[ht]
 \centering
-\begin{tabular}{p{3.6cm}p{2.7cm}p{6.8cm}}
+\begin{tabular}{p{3.6cm}p{2.6cm}p{7.0cm}}
 \toprule
 \textbf{Function / Module} & \textbf{Operational Track} & \textbf{Description \& Statistical Role} \\
 \midrule
