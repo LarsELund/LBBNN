@@ -115,17 +115,16 @@ options(knitr.table.format = "latex")
 \begin{column}{0.52\textwidth}
 \textbf{The ISLaB Architecture (\textit{JAIR}, 2026):}
 \begin{itemize}
-  \item Direct skip connections route raw input covariates $\mathbf{x} \in \mathbb{R}^p$ to every hidden layer:
-  $$\mathbf{a}^{(j-1)} = \left[a_1^{(j-1)}, \dots, a_K^{(j-1)}, \mathbf{x}^\top\right]^\top$$
-  \item \textbf{Active Paths ($\text{AP}$)}: An active path connects input $x_k$ to output $\zeta$ if all intermediate edges have $\alpha_{k,p}^{(j)} > 0.5$.
+  \item Direct skips route inputs $\mathbf{x} \in \mathbb{R}^p$ to every hidden layer: $\mathbf{a}^{(j-1)} = [a_1^{(j-1)}, \dots, a_K^{(j-1)}, \mathbf{x}^\top]^\top$.
+  \item \textbf{Active Path ($\text{AP}$)}: Connects input $x_k$ to output $\zeta$ via edges with $\alpha_{k,p}^{(j)} > 0.5$.
 \end{itemize}
 
 \vspace{0.2em}
 \textbf{Contribution Depth Classification:}
 \begin{itemize}
-  \item \textbf{Depth = 1 (Linear Skip)}: Input-to-output skip $\implies$ linear GLM effect.
-  \item \textbf{Depth $\ge$ 2 (Non-Linear)}: Through hidden nodes $\implies$ non-linear interaction.
-  \item \textbf{Paths = 0 (Pruned Noise)}: Covariate completely severed from computation graph.
+  \item \textbf{Depth = 1}: Direct skip $\implies$ linear GLM effect.
+  \item \textbf{Depth $\ge$ 2}: Hidden layers $\implies$ non-linear interaction.
+  \item \textbf{Paths = 0}: Noise covariate pruned from graph.
 \end{itemize}
 \end{column}
 
@@ -353,16 +352,16 @@ Guarantees local Lipschitz bound $\Delta_{\alpha, \mathbf{y}} = \max_{s,i} |\alp
 
 \vspace{0.1em}
 \begin{columns}
-\begin{column}{0.64\textwidth}
+\begin{column}{0.60\textwidth}
 \includegraphics[width=\linewidth]{figures/track1_dp_weights.pdf}
 \end{column}
 
-\begin{column}{0.36\textwidth}
+\begin{column}{0.40\textwidth}
 \textbf{Empirical DP Metrics:}
 \begin{itemize}
   \item \textbf{Sample}: $n = 300$, median $\$4.16$, 3 extreme outliers ($\$400\text{--}\$530$).
   \item \textbf{Standard Records}: Retain high weights $\alpha_i \in [0.34, 0.85]$ (median $0.81$).
-  \item \textbf{Tail Outliers}: All 3 extreme outliers ($f_i > 26 > 3M$) are \textbf{surgically zeroed} ($\alpha_i = 0.0$).
+  \item \textbf{Tail Outliers}: All 3 outliers ($f_i > 26 > 3M$) surgically zeroed ($\alpha_i = 0.0$).
   \item \textbf{Privacy Guarantee}:\\
   $\Delta_{\alpha, \mathbf{y}} = 4.32 \le 5.50 \implies \boldsymbol{\epsilon_{\mathbf{y}} = 8.63}$.
 \end{itemize}
@@ -515,9 +514,8 @@ Guarantees local Lipschitz bound $\Delta_{\alpha, \mathbf{y}} = \max_{s,i} |\alp
 
 ## Unified `LBBNN` Architecture Across Track 1 & Track 2
 
-\vspace{0.1em}
-\renewcommand{\arraystretch}{1.10}
-\scriptsize
+\renewcommand{\arraystretch}{1.05}
+\tiny
 \begin{table}[ht]
 \centering
 \begin{tabular}{p{3.6cm}p{2.6cm}p{7.0cm}}

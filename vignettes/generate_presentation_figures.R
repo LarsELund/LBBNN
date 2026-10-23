@@ -32,7 +32,7 @@ p_slide6 <- ggplot(grid_df, aes(x = x1, y = x2, fill = Region)) +
   geom_abline(intercept = 0.2/0.8, slope = 1.2/0.8, color = "black", linewidth = 0.7, linetype = "dashed") +
   geom_abline(intercept = -0.1/1.1, slope = -0.7/1.1, color = "black", linewidth = 0.7, linetype = "dashed") +
   geom_abline(intercept = 0.4/1.3, slope = -0.5/1.3, color = "black", linewidth = 0.7, linetype = "dashed") +
-  scale_fill_brewer(palette = "Set3", name = expression("Activation Region " * scriptstyle(P[m]))) +
+  scale_fill_brewer(palette = "Set3", name = expression(P[m])) +
   labs(
     title = "Polyhedral ReLU Activation Regions",
     subtitle = expression("Within each " * P[m] * ", the active network is an exact local GLM: " * zeta(x) == beta[0] + bold(beta)^T * x),
@@ -41,10 +41,11 @@ p_slide6 <- ggplot(grid_df, aes(x = x1, y = x2, fill = Region)) +
   theme_minimal(base_size = 9.5) +
   theme(
     legend.position = "right",
-    legend.title = element_text(size = 8, face = "bold"),
+    legend.title = element_text(size = 8.5, face = "bold"),
     legend.text = element_text(size = 7.5),
     plot.title = element_text(size = 9.5, face = "bold"),
-    plot.subtitle = element_text(size = 7.5)
+    plot.subtitle = element_text(size = 7.5),
+    plot.margin = margin(5, 10, 5, 5)
   )
 
 ggsave("vignettes/figures/jsm_polyhedral_regions.pdf", p_slide6, width = 5.6, height = 4.0)
@@ -210,8 +211,8 @@ risk_df <- data.frame(
   Expenditure = y_dp,
   Sensitivity = dp_f_vec,
   Alpha = dp_alpha,
-  Type = factor(ifelse(seq_len(n_dp) %in% outlier_idx, "Extreme Outlier (Zeroed)", "Standard Record (Active)"),
-                levels = c("Standard Record (Active)", "Extreme Outlier (Zeroed)"))
+  Type = factor(ifelse(seq_len(n_dp) %in% outlier_idx, "Outlier (Zeroed)", "Standard (Active)"),
+                levels = c("Standard (Active)", "Outlier (Zeroed)"))
 )
 
 p16_a <- ggplot(risk_df, aes(x = Expenditure, y = Sensitivity, color = Type)) +
@@ -220,8 +221,8 @@ p16_a <- ggplot(risk_df, aes(x = Expenditure, y = Sensitivity, color = Type)) +
   geom_hline(yintercept = 16.5, linetype = "dotted", color = "#e74c3c", linewidth = 0.7) +
   annotate("text", x = 200, y = 7.0, label = "M[thresh] == 5.5", parse = TRUE, size = 2.5, color = "#962d22") +
   annotate("text", x = 200, y = 18.0, label = "3*M[thresh] == 16.5", parse = TRUE, size = 2.5, color = "#c0392b") +
-  scale_color_manual(values = c("Standard Record (Active)" = "#2c3e50", "Extreme Outlier (Zeroed)" = "#e74c3c")) +
-  scale_shape_manual(values = c("Standard Record (Active)" = 16, "Extreme Outlier (Zeroed)" = 17)) +
+  scale_color_manual(values = c("Standard (Active)" = "#2c3e50", "Outlier (Zeroed)" = "#e74c3c")) +
+  scale_shape_manual(values = c("Standard (Active)" = 16, "Outlier (Zeroed)" = 17)) +
   labs(title = "Panel A: Record Sensitivity", x = "Expenditure ($)", y = expression("Record Sensitivity " * f[i])) +
   theme_minimal(base_size = 9.0) +
   theme(legend.position = "none", plot.title = element_text(size = 9.0, face = "bold"),
@@ -229,8 +230,8 @@ p16_a <- ggplot(risk_df, aes(x = Expenditure, y = Sensitivity, color = Type)) +
 
 p16_b <- ggplot(risk_df, aes(x = Expenditure, y = Alpha, color = Type)) +
   geom_point(aes(shape = Type), size = 1.8, alpha = 0.85) +
-  scale_color_manual(values = c("Standard Record (Active)" = "#2c3e50", "Extreme Outlier (Zeroed)" = "#e74c3c")) +
-  scale_shape_manual(values = c("Standard Record (Active)" = 16, "Extreme Outlier (Zeroed)" = 17)) +
+  scale_color_manual(values = c("Standard (Active)" = "#2c3e50", "Outlier (Zeroed)" = "#e74c3c")) +
+  scale_shape_manual(values = c("Standard (Active)" = 16, "Outlier (Zeroed)" = 17)) +
   labs(title = "Panel B: Surgical Weight", x = "Expenditure ($)", y = expression("Privacy Weight " * alpha[i])) +
   theme_minimal(base_size = 9.0) +
   theme(
@@ -364,7 +365,7 @@ p_slide24 <- ggplot(s1_vars, aes(x = Prob, y = Variable, color = Status)) +
   geom_segment(aes(x = 0, xend = Prob, y = Variable, yend = Variable), linewidth = 1.2) +
   geom_point(size = 3.5) +
   geom_vline(xintercept = 0.50, linetype = "dashed", color = "#c0392b", linewidth = 0.8) +
-  annotate("text", x = 0.53, y = 1.4, label = "MPM Cutoff (0.50)", color = "#c0392b", size = 2.8, angle = 90, vjust = 0) +
+  annotate("text", x = 0.53, y = 2.5, label = "MPM Cutoff (0.50)", color = "#c0392b", size = 2.8, angle = 90, vjust = 0) +
   geom_text(aes(label = sprintf("%.3f", Prob)), color = "black", vjust = -0.7, hjust = ifelse(s1_vars$Prob > 0.5, 1.0, 0.0), size = 3.0, fontface = "bold") +
   scale_color_manual(values = c("Selected (Paths = 1)" = "#27ae60", "Pruned (Paths = 0)" = "#7f8c8d")) +
   scale_x_continuous(limits = c(0, 1.12), breaks = seq(0, 1, by = 0.25)) +
@@ -401,7 +402,15 @@ p25_a <- ggplot(grid_p2, aes(x = x1, y = x2, fill = pi_c)) +
     x = expression(X[1]), y = expression(X[2])
   ) +
   theme_minimal(base_size = 9.0) +
-  theme(plot.title = element_text(size = 9.0, face = "bold"), legend.key.height = unit(0.8, "cm"))
+  theme(
+    legend.position = "bottom",
+    legend.title = element_text(size = 8),
+    legend.text = element_text(size = 7.5),
+    legend.key.width = unit(0.8, "cm"),
+    legend.key.height = unit(0.25, "cm"),
+    plot.title = element_text(size = 9.0, face = "bold"),
+    plot.margin = margin(8, 8, 5, 5)
+  )
 
 s2_bias_df <- data.frame(
   Formulation = factor(rep(c("STACK", "MIP50", "LINK1", "LINK2"), 2),
@@ -419,11 +428,16 @@ p25_b <- ggplot(s2_bias_df, aes(x = Formulation, y = Abs_Bias, fill = Model)) +
   scale_y_continuous(limits = c(0, 0.46)) +
   labs(title = "Panel B: Absolute Estimation Bias (|Bias|)", x = "Composite Likelihood", y = "Absolute Bias") +
   theme_minimal(base_size = 9.0) +
-  theme(legend.position = "bottom", legend.title = element_blank(), legend.text = element_text(size = 8),
-        plot.title = element_text(size = 9.0, face = "bold"))
+  theme(
+    legend.position = "bottom",
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8),
+    plot.title = element_text(size = 9.0, face = "bold"),
+    plot.margin = margin(8, 8, 5, 5)
+  )
 
 p_slide25 <- plot_grid(p25_a, p25_b, ncol = 2, rel_widths = c(1.0, 1.15))
-ggsave("vignettes/figures/track2_study2_panels.pdf", p_slide25, width = 9.5, height = 3.8)
+ggsave("vignettes/figures/track2_study2_panels.pdf", p_slide25, width = 9.5, height = 2.85)
 cat("[9/10] track2_study2_panels.pdf generated.\n")
 
 
@@ -451,7 +465,8 @@ p26_a <- ggplot(s3_ess_df, aes(x = ESS, y = Estimator, fill = Type)) +
   theme_minimal(base_size = 9.0) +
   theme(plot.title = element_text(size = 9.0, face = "bold"),
         plot.subtitle = element_text(size = 7.5, color = "#2980b9"),
-        axis.text.y = element_text(size = 7.5))
+        axis.text.y = element_text(size = 7.5),
+        plot.margin = margin(8, 8, 5, 5))
 
 p26_b <- ggplot(s3_ess_df, aes(x = Bias, y = Estimator, fill = Type)) +
   geom_col(width = 0.68, show.legend = FALSE) +
@@ -464,7 +479,8 @@ p26_b <- ggplot(s3_ess_df, aes(x = Bias, y = Estimator, fill = Type)) +
   theme_minimal(base_size = 9.0) +
   theme(plot.title = element_text(size = 9.0, face = "bold"),
         plot.subtitle = element_text(size = 7.5, color = "gray40"),
-        axis.text.y = element_blank())
+        axis.text.y = element_blank(),
+        plot.margin = margin(8, 8, 5, 5))
 
 p_slide26 <- plot_grid(p26_a, p26_b, ncol = 2, rel_widths = c(1.3, 0.95))
 ggsave("vignettes/figures/track2_study3_bars.pdf", p_slide26, width = 9.5, height = 2.8)
