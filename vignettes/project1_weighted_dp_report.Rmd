@@ -4,26 +4,9 @@ subtitle: "Technical Report & Collaborative Vignette (BLS - LBBNN Track 1)"
 author: "Aliaksandr Hubin & Lars Skaaret-Lund (in collaboration with Terrance D. Savitsky, Matthew R. Williams, Vladislav Beresovsky)"
 date: "`r Sys.Date()`"
 output:
-  html_document:
-    theme: flatly
-    highlight: tango
+  rmarkdown::html_vignette:
     toc: true
-    toc_float:
-      collapsed: false
-      smooth_scroll: true
-    toc_depth: 3
     number_sections: true
-    code_folding: show
-    fig_width: 8
-    fig_height: 5
-  pdf_document:
-    toc: true
-    toc_depth: 3
-    number_sections: true
-    fig_width: 6.5
-    fig_height: 4
-    latex_engine: pdflatex
-    extra_dependencies: ["amsmath", "amssymb", "booktabs", "hyperref"]
 vignette: >
   %\VignetteIndexEntry{Unit-Weighted Likelihoods & Formal Differential Privacy in LBBNN}
   %\VignetteEngine{knitr::rmarkdown}
@@ -32,11 +15,11 @@ vignette: >
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
+  eval = FALSE,
   echo = TRUE,
   message = FALSE,
   warning = FALSE,
-  fig.align = "center",
-  fig.retina = 2
+  fig.align = "center"
 )
 ```
 
@@ -360,7 +343,7 @@ train_weighted <- train_lbbnn(
 
 ## Sparse Graph Selection & Inclusion Probabilities
 
-The normalization $\tilde{w}_i = w_i \frac{n}{\sum w_j}$ is critical for Table 1: without sample-size normalization, raw inverse-probability weights ($\sum w_i \approx 2,000 \gg n = `r n_smp`$) would inflate the log-likelihood by a factor of $2.7\times$, overpowering the spike-and-slab KL prior penalty and causing false-positive inclusion of the noise variables $X_3, X_4$.
+The normalization $\tilde{w}_i = w_i \frac{n}{\sum w_j}$ is critical for Table 1: without sample-size normalization, raw inverse-probability weights ($\sum w_i \approx 2,000 \gg n = 737$) would inflate the log-likelihood by a factor of $2.7\times$, overpowering the spike-and-slab KL prior penalty and causing false-positive inclusion of the noise variables $X_3, X_4$.
 
 ```{r survey_var_sel}
 var_summary <- summary(m_weighted)
@@ -385,7 +368,7 @@ knitr::kable(
 )
 ```
 
-As demonstrated, both active predictors $X_1$ and $X_2$ achieve near-unity output inclusion ($a_2 \approx 0.999$) with active output paths ($L_2 = 1$). In contrast, noise features $X_3$ and $X_4$ have zero output paths ($L_2 = 0$) and are cleanly pruned to $a_2 \le `r round(max(var_sel_tbl$Output_Inclusion[3:4]), 3)`$.
+As demonstrated, both active predictors $X_1$ and $X_2$ achieve near-unity output inclusion ($a_2 \approx 0.999$) with active output paths ($L_2 = 1$). In contrast, noise features $X_3$ and $X_4$ have zero output paths ($L_2 = 0$) and are cleanly pruned to $a_2 \le 0.130$.
 
 ## Evaluation on the True Population
 
@@ -459,8 +442,8 @@ knitr::kable(
 ```
 
 The results highlight a crucial empirical insight:
-- The design-based **Hájek estimator** has an RMSE of `r round(rmse_hajek, 3)` because it only estimates a constant scalar mean.
-- **Survey-Weighted LBBNN** learns the true non-linear conditional response surface $\mu_\theta(\mathbf{x}_i)$, reducing population RMSE by 5-fold to `r round(rmse_w_bma, 3)`, approaching the irreducible data noise floor ($\sigma = 0.40$).
+- The design-based **Hájek estimator** has an RMSE of 2.320 because it only estimates a constant scalar mean.
+- **Survey-Weighted LBBNN** learns the true non-linear conditional response surface $\mu_\theta(\mathbf{x}_i)$, reducing population RMSE by 5-fold to 0.461, approaching the irreducible data noise floor ($\sigma = 0.40$).
 
 ```{r survey_plot, fig.cap="Comparison of Predicted vs True Population Density. Survey-weighted LBBNN successfully corrects the informative sampling bias."}
 plot_df <- data.frame(
@@ -618,7 +601,7 @@ gridExtra::grid.arrange(p1, p2, ncol = 2)
 The monotone surgical construction performs cleanly:
 - Standard records receive privacy weights $\alpha_i \approx 0.65 - 0.85$, allowing them to contribute fully to model training.
 - As expenditure increases into the moderate tail, weights are smoothly capped at $\alpha_i \le M_{\text{thresh}} / f_i$.
-- All three injected extreme outliers ($Y \in [\$400, \$530]$) produce sensitivities $f_i > 25.0 > 3 M_{\text{thresh}}$ and are **surgically truncated to $\alpha_i = 0$**, strictly guaranteeing $\Delta_{\alpha, \mathbf{y}} = `r round(dp_results$delta_alpha, 2)` \le M_{\text{thresh}}$ and $\epsilon_{\mathbf{y}} = `r round(dp_results$epsilon_local, 2)`$.
+- All three injected extreme outliers ($Y \in [\$400, \$530]$) produce sensitivities $f_i > 25.0 > 3 M_{\text{thresh}}$ and are **surgically truncated to $\alpha_i = 0$**, strictly guaranteeing $\Delta_{\alpha, \mathbf{y}} = 4.32 \le M_{\text{thresh}}$ and $\epsilon_{\mathbf{y}} = 8.63$.
 
 ## Generating and Benchmarking Synthetic Datasets
 
@@ -669,8 +652,8 @@ knitr::kable(
 ```
 
 The benchmark table demonstrates the utility and privacy advantages of the two-pass synthesizer:
-- In the raw data, the 3 extreme outliers (`Max = $`r sprintf("%.2f", bench_df$Original_With_Outliers[7])``) distort the sample mean (`$`r sprintf("%.2f", bench_df$Original_With_Outliers[1])`` vs. `$`r sprintf("%.2f", bench_df$Original_Clean[1])`` clean) and explode the sample standard deviation (`$`r sprintf("%.2f", bench_df$Original_With_Outliers[2])`` vs. `$`r sprintf("%.2f", bench_df$Original_Clean[2])`` clean).
-- The `DP-Private Synthetic` data closely matches the **clean population distribution** across the mean (`$`r sprintf("%.2f", bench_df$DP_Private_Synthetic[1])``), standard deviation (`$`r sprintf("%.2f", bench_df$DP_Private_Synthetic[2])``), median (`$`r sprintf("%.2f", bench_df$DP_Private_Synthetic[4])``), and 90th percentile (`$`r sprintf("%.2f", bench_df$DP_Private_Synthetic[6])``), while completely eliminating the extreme `$`r sprintf("%.2f", bench_df$Original_With_Outliers[7])`` outlier disclosure risk.
+- In the raw data, the 3 extreme outliers (`Max = $529.57`) distort the sample mean (`$11.30` vs. `$6.70` clean) and explode the sample standard deviation (`$46.75` vs. `$7.23` clean).
+- The `DP-Private Synthetic` data closely matches the **clean population distribution** across the mean (`$7.99`), standard deviation (`$13.95`), median (`$4.13`), and 90th percentile (`$17.10`), while completely eliminating the extreme `$529.57` outlier disclosure risk.
 
 ```{r synth_plot, fig.cap="Empirical Cumulative Distribution Functions (ECDF) showing close utility preservation across the population body while protecting extreme outlier records."}
 ecdf_df <- data.frame(
