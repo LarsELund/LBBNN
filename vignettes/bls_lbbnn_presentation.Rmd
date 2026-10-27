@@ -308,6 +308,49 @@ $$\text{ELBO}(q; \mathbf{u}) = \sum_{i=1}^n u_i \, \mathbb{E}_{q(\theta)}\!\left
 \vspace{-0.2em}
 \textbf{Distributional Recovery}: Survey-weighted LBBNN models (green/blue curves) accurately reconstruct the full population density (black solid curve) across all 2,000 units, completely correcting the severe rightward shift of the observed sample (red dotted curve).
 
+## Pipeline & Return Structures: Survey-Weighted LBBNN (Track 1A)
+
+\vspace{-0.3em}
+\scriptsize
+```r
+# 1. Package design weights; auto-normalize to sample size (sum w_i = n)
+dl_train <- get_dataloaders(x = X_samp, y = y_samp, weights = w_design,
+                            normalize_weights = TRUE, batch_size = 64)
+# 2. Build LBBNN with calibrated residual noise scale sigma (protects T=1)
+net <- lbbnn_net(problem_type = "regression", sizes = c(p, 16, 1), sigma = 1.0, input_skip = TRUE)
+# 3. Train unit-weighted ELBO; predict via sparse MPM (hard-prunes a_k <= 0.5)
+fit   <- train_lbbnn(LBBNN = net, train_dl = dl_train, epochs = 100, lr = 0.01)
+y_hat <- predict(net, newdata = dl_test, model_type = "mpm")
+```
+\normalsize
+
+\vspace{-0.2em}
+\tiny
+\renewcommand{\arraystretch}{1.15}
+\begin{table}[ht]
+\centering
+\begin{tabular}{p{0.14\textwidth}p{0.20\textwidth}p{0.15\textwidth}p{0.45\textwidth}}
+\toprule
+\textbf{Step / Object} & \textbf{R Class / Type} & \textbf{Dimensions} & \textbf{Statistical Contents \& Role} \\
+\midrule
+\texttt{dl\_train} & \texttt{torch::dataloader} & Batches: $B=64$ & Tensors \texttt{x} $[B, p]$, \texttt{y} $[B, 1]$, and weights \texttt{w} $[B, 1]$ ($\sum \tilde{w}_i = n$). \\
+\texttt{net} & \texttt{lbbnn\_net} (R6) & $p \to 16 \to 1$ & Variational weights $\mu_W, \sigma_W$, logits $\psi$; direct skips $\mathbf{x} \to h_j, \zeta$. \\
+\texttt{fit} & \texttt{list} & Length 2 & Convergence history \texttt{\$loss} (numeric 100) and trained model \texttt{\$LBBNN}. \\
+\texttt{y\_hat} & \texttt{torch\_tensor} & $[N_{\text{test}}, 1]$ & MPM predictions with inactive features ($a_k \le 0.5$) zeroed out. \\
+\bottomrule
+\end{tabular}
+\end{table}
+\normalsize
+
+\vspace{-0.4em}
+\scriptsize
+\begin{itemize}
+  \setlength{\itemsep}{1pt}
+  \item \textbf{Survey Normalization}: \texttt{normalize\_weights = TRUE} enforces $\sum \tilde{w}_i = n$ (Savitsky \& Toth, 2016).
+  \item \textbf{Cold-Posterior Protection}: Calibrated $\sigma = 1.0$ maintains true likelihood temperature $T = 1$.
+\end{itemize}
+\normalsize
+
 ## Track 1B — Why Unweighted Neural Networks Fail Differential Privacy
 
 \vspace{0.2em}
@@ -378,6 +421,48 @@ Guarantees local Lipschitz bound $\Delta_{\alpha, \mathbf{y}} = \max_{s,i} |\alp
   \item 3 extreme outliers distort raw sample mean ($\$11.30$ vs. $\$6.70$) and explode standard deviation to $\$46.75$.
   \item \textbf{DP-Private Synthetic} microdata recovers the true distribution body (Mean $\$7.99$, Median $\$4.13$) while safely truncating disclosure risk on extreme tail outliers.
 \end{itemize}
+
+## Pipeline & Return Structures: Two-Pass DP Synthesis (Track 1B)
+
+\vspace{-0.3em}
+\scriptsize
+```r
+# 1. Automated two-pass DP estimation with monotone surgical downweighting
+dp_fit <- fit_dp_lbbnn(model_spec = list(sizes = c(p, 16, 1), problem_type = "regression"),
+                       X = x_micro, y = y_sensitive, M_thresh = 5.5, epochs = 100, lr = 0.01)
+# 2. Inspect record risk weights alpha_i and guaranteed privacy budget
+cat(sprintf("Guaranteed Budget: eps = %.2f (Delta = %.2f)\n", dp_fit$epsilon_local, dp_fit$delta_alpha))
+# 3. Generate private synthetic microdata via post-processing theorem
+synth_micro <- sample_synthetic_lbbnn(dp_fit$model, n_syn = 2000, draws = 50)
+```
+\normalsize
+
+\vspace{-0.2em}
+\tiny
+\renewcommand{\arraystretch}{1.15}
+\begin{table}[ht]
+\centering
+\begin{tabular}{p{0.16\textwidth}p{0.18\textwidth}p{0.15\textwidth}p{0.45\textwidth}}
+\toprule
+\textbf{Step / Object} & \textbf{R Class / Type} & \textbf{Dimensions} & \textbf{Statistical Contents \& Role} \\
+\midrule
+\texttt{dp\_fit\$model} & \texttt{lbbnn\_net} (R6) & $p \to 16 \to 1$ & Pass 2 private model trained with surgical weights $\alpha_i \in [0, 1]$. \\
+\texttt{dp\_fit\$alpha} & \texttt{numeric} vector & $[n]$ records & Risk weights $\alpha_i \in [0.34, 0.85]$; tail outliers zeroed ($\alpha_i = 0.0$). \\
+\texttt{dp\_fit\$epsilon} & \texttt{numeric} scalar & Scalar $\epsilon_{\mathbf{y}}$ & Finite-sample local DP bound $\epsilon_{\mathbf{y}} = 2\Delta_{\alpha, \mathbf{y}} = 8.63 \le 2M_{\text{thresh}}$. \\
+\texttt{synth\_micro} & \texttt{matrix} & $[2000, 50]$ & 50 private synthetic replicates drawn with calibrated $\hat{\sigma}$. \\
+\bottomrule
+\end{tabular}
+\end{table}
+\normalsize
+
+\vspace{-0.4em}
+\scriptsize
+\begin{itemize}
+  \setlength{\itemsep}{1pt}
+  \item \textbf{Monotone Surgical Weights}: $\alpha_i = \min(\alpha_i^{\text{raw}}, M/f_i)$ bounds sensitivity $\Delta_{\alpha, \mathbf{y}} \le M_{\text{thresh}}$.
+  \item \textbf{Post-Processing Theorem}: Downstream analysts query \texttt{synth\_micro} with zero disclosure risk.
+\end{itemize}
+\normalsize
 
 # PART III: Track 2 — Combining Probability & Non-Probability Samples
 
@@ -518,7 +603,52 @@ Guarantees local Lipschitz bound $\Delta_{\alpha, \mathbf{y}} = \max_{s,i} |\alp
 \vspace{-0.6em}
 \tiny \textbf{Panels}: (A) GLM-STACK bias from missing interactions; (B) GLM-PSEUDO severe weight explosion and scatter collapse; (C) LBBNN-STACK Bayesian Model Averaging calibration; (D) LBBNN-LINK2 Median Probability Model point recovery.
 
-# PART IV: Practical Pipelines, Software Architecture & Synthesis
+## Pipeline & Return Structures: Composite Propensity (Track 2)
+
+\vspace{-0.3em}
+\scriptsize
+```r
+# 1. Format combined sample (S_c (+) S_r) & build dataloader with composite targets
+prep    <- build_propensity_dataset(pop, method = "LINK2", covar_cols = paste0("X", 1:p))
+dl_prop <- get_dataloaders(prep$data, target_cols = prep$target_cols, batch_size = 64)
+# 2. Fit LBBNN with composite Bernoulli loss anchored by pi_ri offset
+net_prop <- lbbnn_net(problem_type = "custom", sizes = c(p, 8, 1),
+                      link = torch::torch_sigmoid, nll = nll_link2)
+train_lbbnn(LBBNN = net_prop, train_dl = dl_prop, epochs = 150, lr = 0.02)
+# 3. Predict convenience propensities pi_c_hat & compute debiased Hajek mean
+pi_c_hat <- predict(net_prop, newdata = dl_prop, model_type = "mpm")[prep$Sc_indices]
+y_bar_hajek <- hajek_estimate(y = pop$y[pop$I.c == 1], pi_hat = pi_c_hat)
+```
+\normalsize
+
+\vspace{-0.2em}
+\tiny
+\renewcommand{\arraystretch}{1.15}
+\begin{table}[ht]
+\centering
+\begin{tabular}{p{0.15\textwidth}p{0.18\textwidth}p{0.16\textwidth}p{0.45\textwidth}}
+\toprule
+\textbf{Step / Object} & \textbf{R Class / Type} & \textbf{Dimensions} & \textbf{Statistical Contents \& Role} \\
+\midrule
+\texttt{prep\$data} & \texttt{data.frame} & $[n_c + n_r, p + 2]$ & Covariates $\mathbf{X}$ and composite target columns $[I_{zi}, \pi_{ri}]$. \\
+\texttt{net\_prop} & \texttt{lbbnn\_net} (R6) & $p \to 8 \to 1$ & Custom net with composite Bernoulli loss and structural offset $\pi_{ri}$. \\
+\texttt{pi\_c\_hat} & \texttt{numeric} vector & $[n_c]$ & Estimated convenience propensities $\hat{\pi}_{ci} \in (0, 1)$ on $S_c$. \\
+\texttt{y\_bar\_hajek} & \texttt{numeric} scalar & Population mean & Self-normalizing debiased mean $\sum w_i y_i / \sum w_i$ ($w_i = \hat{\pi}_{ci}^{-1}$). \\
+\bottomrule
+\end{tabular}
+\end{table}
+\normalsize
+
+\vspace{-0.4em}
+\scriptsize
+\begin{itemize}
+  \setlength{\itemsep}{1pt}
+  \item \textbf{Offset Conditioning}: Exact reference probability $\pi_{ri}$ grounds unconstrained network logits $\eta_i$.
+  \item \textbf{Loss Stability}: Composite Bernoulli likelihood prevents the gradient explosion of pseudo-likelihood.
+\end{itemize}
+\normalsize
+
+# PART IV: Software Architecture, Key Takeaways & Synthesis
 
 ## Unified `LBBNN` Architecture Across Track 1 & Track 2
 
@@ -544,104 +674,6 @@ Guarantees local Lipschitz bound $\Delta_{\alpha, \mathbf{y}} = \max_{s,i} |\alp
 \bottomrule
 \end{tabular}
 \end{table}
-\normalsize
-
-## Pipeline Tutorial: Survey-Weighted Pseudo-Posteriors (Track 1A)
-
-\vspace{-0.2em}
-\textbf{Goal}: Estimate population regressions under informative survey sampling while selecting active features.
-
-\vspace{0.1em}
-\footnotesize
-```r
-# 1. Package design weights; auto-normalize to sample size (sum w_i = n)
-dl_train <- get_dataloaders(x = X_samp, y = y_samp, weights = w_design,
-                            normalize_weights = TRUE, batch_size = 64)
-
-# 2. Build LBBNN with calibrated residual noise scale sigma (protects T=1)
-net <- lbbnn_net(problem_type = "regression", sizes = c(p, 16, 1),
-                 sigma = 1.0, input_skip = TRUE)
-
-# 3. Train unit-weighted ELBO across mini-batches
-fit <- train_lbbnn(LBBNN = net, train_dl = dl_train, epochs = 100, lr = 0.01)
-
-# 4. Predict via sparse Median Probability Model (hard-prunes noise a_k <= 0.5)
-y_hat <- predict(net, newdata = dl_test, model_type = "mpm")
-```
-\normalsize
-
-\vspace{-0.2em}
-\footnotesize
-\begin{itemize}
-  \item \texttt{normalize\_weights = TRUE} enforces $\sum \tilde{w}_i = n$ (Savitsky \& Toth, 2016), preventing KL distortion.
-  \item Grounding log-likelihood sensitivity via calibrated $\sigma^2$ avoids cold posteriors ($T \neq 1$).
-  \item Direct input skips preserve linear parametric efficiency while pruning uninformative noise.
-\end{itemize}
-\normalsize
-
-## Pipeline Tutorial: Two-Pass $(\epsilon, \delta)$-DP Synthesis (Track 1B)
-
-\vspace{-0.2em}
-\textbf{Goal}: Generate synthetic microdata under finite-sample $(\epsilon, \delta)$-differential privacy guarantees.
-
-\vspace{0.1em}
-\footnotesize
-```r
-# 1. Automated two-pass DP estimation with monotone surgical downweighting
-dp_fit <- fit_dp_lbbnn(
-  model_spec = list(sizes = c(p, 16, 1), problem_type = "regression"),
-  X = x_micro, y = y_sensitive, M_thresh = 5.5, epochs = 100, lr = 0.01
-)
-
-# 2. Inspect record risk weights alpha_i and guaranteed privacy budget
-cat(sprintf("Zeroed outliers: %d (alpha_i = 0)\n", sum(dp_fit$alpha == 0)))
-cat(sprintf("Guaranteed Budget: eps = %.2f (Delta = %.2f)\n", 
-            dp_fit$epsilon_local, dp_fit$delta_alpha))
-
-# 3. Generate private synthetic microdata via post-processing theorem
-synth_micro <- sample_synthetic_lbbnn(dp_fit$model, n_syn = 2000, draws = 50)
-```
-\normalsize
-
-\vspace{-0.2em}
-\footnotesize
-\begin{itemize}
-  \item \texttt{fit\_dp\_lbbnn()} encapsulates Pass 1 fit $\to$ sensitivity extraction ($L_{s,i}$) $\to$ surgical weight capping ($\alpha_i$) $\to$ Pass 2 weighted fit in a single call.
-  \item Surgically zeroes extreme outliers ($\alpha_i = 0.0$) while retaining high utility on typical records ($\alpha_i \in [0.34, 0.85]$).
-  \item Guarantees finite-sample local Lipschitz bound $\Delta_{\alpha, \mathbf{y}} \le M_{\text{thresh}}$ and privacy budget $\epsilon_{\mathbf{y}} = 2\Delta_{\alpha, \mathbf{y}}$.
-\end{itemize}
-\normalsize
-
-## Pipeline Tutorial: Composite Non-Probability Propensity (Track 2)
-
-\vspace{-0.2em}
-\textbf{Goal}: Condition on pooled inclusion $S = S_c \cup S_r$ to debias non-probability sample means.
-
-\vspace{0.1em}
-\footnotesize
-```r
-# 1. Format combined sample (S_c (+) S_r) & dataloader with composite targets
-prep <- build_propensity_dataset(pop, method = "LINK2", covar_cols = paste0("X", 1:p))
-dl_prop <- get_dataloaders(prep$data, target_cols = prep$target_cols, batch_size = 64)
-
-# 2. Fit LBBNN with custom composite Bernoulli loss (pi_ri offset)
-net_prop <- lbbnn_net(problem_type = "custom", sizes = c(p, 8, 1),
-                      link = torch::torch_sigmoid, nll = nll_link2)
-train_lbbnn(LBBNN = net_prop, train_dl = dl_prop, epochs = 150, lr = 0.02)
-
-# 3. Predict convenience propensities pi_c_hat & compute debiased Hajek mean
-pi_c_hat <- predict(net_prop, newdata = dl_prop, model_type = "mpm")[prep$Sc_indices]
-y_bar_hajek <- hajek_estimate(y = pop$y[pop$I.c == 1], pi_hat = pi_c_hat)
-```
-\normalsize
-
-\vspace{-0.2em}
-\footnotesize
-\begin{itemize}
-  \item \texttt{build\_propensity\_dataset()} handles any of the 5 formulations (\texttt{LINK2}, \texttt{LINK1}, \texttt{STACK}, \texttt{MIP}, \texttt{PSEUDO}).
-  \item Composite Bernoulli likelihood grounds unconstrained logits via the exact reference offset $\pi_{ri}$.
-  \item \texttt{hajek\_estimate()} computes $\hat{\bar{Y}}_{\text{Hajek}} = \sum w_i y_i / \sum w_i$, eliminating selection bias.
-\end{itemize}
 \normalsize
 
 ## Key Takeaways & Synthesis for Official Statistics
@@ -673,10 +705,12 @@ y_bar_hajek <- hajek_estimate(y = pop$y[pop$I.c == 1], pi_hat = pi_c_hat)
 \begin{column}{0.50\textwidth}
 \tiny
 \begin{enumerate}
+  \setlength{\itemsep}{1.5pt}
   \item \textbf{Beresovsky, V., Gershunskaya, J., \& Savitsky, T. D.} (2024). \textit{Review of quasi-randomization approaches for estimation from non-probability samples}. Statistical Science (arXiv:2312.05383).
   \item \textbf{Savitsky, T. D., Williams, M. R., \& Hu, J.} (2022). \textit{Bayesian pseudo posterior mechanism under asymptotic differential privacy}. Journal of Machine Learning Research, 23(232), 1--37.
   \item \textbf{Savitsky, T. D., \& Toth, D.} (2016). \textit{Bayesian estimation under informative sampling}. Electronic Journal of Statistics, 10(1), 1677--1708.
   \item \textbf{Meng, X.-L.} (2018). \textit{Statistical paradises and paradoxes in big data (I): Law of large populations, big data paradox, and the 2016 US presidential election}. The Annals of Applied Statistics, 12(2), 685--726.
+  \item \textbf{Chen, Y., Li, P., \& Wu, C.} (2020). \textit{Doubly robust inference with nonprobability survey samples}. Journal of the American Statistical Association, 115(532), 2011--2021.
 \end{enumerate}
 \normalsize
 \end{column}
@@ -684,8 +718,9 @@ y_bar_hajek <- hajek_estimate(y = pop$y[pop$I.c == 1], pi_hat = pi_c_hat)
 \begin{column}{0.50\textwidth}
 \tiny
 \begin{enumerate}
-  \setcounter{enumi}{4}
-  \item \textbf{Chen, Y., Li, P., \& Wu, C.} (2020). \textit{Doubly robust inference with nonprobability survey samples}. Journal of the American Statistical Association, 115(532), 2011--2021.
+  \setlength{\itemsep}{1.5pt}
+  \setcounter{enumi}{5}
+  \item \textbf{Skaaret-Lund, L., H{\o}yheim, E., \& Hubin, A.} (2026). \textit{LBBNN: An R Package for Sparse and Explainable Bayesian Deep Learning with Latent Binary Bayesian Neural Networks}. The R Journal, 18(3), RJ-2026-048.
   \item \textbf{Hubin, A., \& Storvik, G.} (2024). \textit{Sparse Bayesian neural networks: Bridging model and parameter uncertainty through scalable variational learning}. Mathematics, 12(6), 788.
   \item \textbf{Skaaret-Lund, L., Storvik, G., \& Hubin, A.} (2024). \textit{Sparsifying Bayesian neural networks with latent binary variables and normalizing flows}. Transactions on Machine Learning Research, ISSN: 2835-8856.
   \item \textbf{H{\o}yheim, E., Skaaret-Lund, L., S{\ae}b{\o}, S., \& Hubin, A.} (2026). \textit{Explainable Bayesian deep learning through input-skip Latent Binary Bayesian Neural Networks}. Journal of Artificial Intelligence Research, 86 (arXiv:2503.10496).
@@ -693,3 +728,4 @@ y_bar_hajek <- hajek_estimate(y = pop$y[pop$I.c == 1], pi_hat = pi_c_hat)
 \normalsize
 \end{column}
 \end{columns}
+
