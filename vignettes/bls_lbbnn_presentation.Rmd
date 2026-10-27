@@ -66,7 +66,7 @@ options(knitr.table.format = "latex")
   $$p\big(\gamma_{k,p}^{(j)}\big) = \text{Bernoulli}\big(\psi_{k,p}^{(j)}\big)$$
   \normalsize
   \item \textbf{Bayesian Model Averaging (BMA)}: Ensembles across posterior draws $\Gamma \sim q(\Gamma)$ and $W \sim q(W \mid \Gamma)$ for optimal uncertainty quantification.
-  \item \textbf{Median Probability Model (MPM)}: Hard-prunes edges with inclusion probability $\alpha_{k,p}^{(j)} \le 0.5$ (Barbieri \& Berger, 2004 optimal predictive submodel).
+  \item \textbf{Median Probability Model (MPM)}: Hard-prunes edges with posterior inclusion probability $a_{k,p}^{(j)} \le 0.5$ (Barbieri \& Berger, 2004 optimal predictive submodel).
 \end{itemize}
 \end{column}
 
@@ -89,7 +89,7 @@ options(knitr.table.format = "latex")
     \draw[->, thin, gray!60] (\i) -- (Y);
 
   % Right: Sparse LBBNN
-  \node at (5.8, 3.6) {\textbf{\footnotesize Sparse LBBNN (MPM $\alpha > 0.5$)}};
+  \node at (5.8, 3.6) {\textbf{\footnotesize Sparse LBBNN (MPM $a > 0.5$)}};
   \node[circle, draw=blue!70, fill=blue!10, thick] (SX1) at (4.5, 2.5) {$x_1$};
   \node[circle, draw=blue!70, fill=blue!10, thick] (SX2) at (4.5, 1.25) {$x_2$};
   \node[circle, draw=gray!40, fill=gray!5, dashed] (SX3) at (4.5, 0.0) {$x_{\text{pruned}}$};
@@ -116,7 +116,7 @@ options(knitr.table.format = "latex")
 \textbf{The ISLaB Architecture (\textit{JAIR}, 2026):}
 \begin{itemize}
   \item Direct skips route inputs $\mathbf{x} \in \mathbb{R}^p$ to every hidden layer: $\mathbf{a}^{(j-1)} = [a_1^{(j-1)}, \dots, a_K^{(j-1)}, \mathbf{x}^\top]^\top$.
-  \item \textbf{Active Path ($\text{AP}$)}: Connects input $x_k$ to output $\zeta$ via edges with $\alpha_{k,p}^{(j)} > 0.5$.
+  \item \textbf{Active Path ($\text{AP}$)}: Connects input $x_k$ to output $\zeta$ via edges with $a_{k,p}^{(j)} > 0.5$.
 \end{itemize}
 
 \vspace{0.2em}
@@ -197,7 +197,7 @@ $$\text{ELBO}(q) = \sum_{i=1}^n \mathbb{E}_{q}[\log f(y_i \mid \mathbf{x}_i, \th
 \begin{itemize}
   \item Omitting residual noise scale $\sigma^2$ artificially rescales likelihood ($T = \sigma^2 \neq 1$), mis-calibrating spike-and-slab KL shrinkage.
   \item In \texttt{lbbnn\_net(sigma = ...)}, calibrated $\sigma^2$ grounds log-likelihood sensitivities on the true Bayesian scale.
-  \item Calibrates both feature inclusion probabilities $\alpha_k$ and DP sensitivities $f_i$.
+  \item Calibrates both feature inclusion probabilities $a_k$ and DP sensitivities $f_i$.
 \end{itemize}
 \end{column}
 
@@ -386,9 +386,11 @@ Guarantees local Lipschitz bound $\Delta_{\alpha, \mathbf{y}} = \max_{s,i} |\alp
 \vspace{0.2em}
 \textbf{The Non-Probability Selection Dilemma:}
 \begin{itemize}
-  \item In convenience/opt-in samples $S_c$, sample inclusion $I_{ci} \in \{0, 1\}$ is non-random and driven by unobserved self-selection mechanisms.
+  \item Let $U = \{1, \dots, N\}$ denote the finite target population of size $N$.
+  \item In convenience/opt-in samples $S_c \subset U$, sample inclusion $I_{ci} \in \{0, 1\}$ is non-random and driven by unobserved self-selection mechanisms.
   \item \textbf{Meng's Law of Large Populations (2018)}:
   $$\text{Bias}(\bar{y}_c) = \frac{\text{Cov}_U(I_c, Y)}{\bar{\pi}_c} = \rho_{I_c, Y} \cdot \sigma_Y \cdot \sqrt{\frac{N - n_c}{n_c}}$$
+  where $\text{Cov}_U$ denotes finite-population covariance across all units in $U$.
   \item A tiny correlation $\rho_{I_c, Y} \neq 0$ creates selection bias that scales with $\sqrt{N}$.
   \item Merely increasing convenience sample size $n_c$ shrinks variance around a severely biased estimate (the Big Data Paradox).
 \end{itemize}
@@ -398,7 +400,8 @@ Guarantees local Lipschitz bound $\Delta_{\alpha, \mathbf{y}} = \max_{s,i} |\alp
 \vspace{0.2em}
 \textbf{The Identification Barrier:}
 \begin{itemize}
-  \item We observe covariates $\mathbf{x}_i$ only on convenience sample $S_c$ (unknown $\pi_{ci}$) and reference survey $S_r$ (known design probability $\pi_{ri}$), never on $U \setminus (S_c \cup S_r)$.
+  \item Covariates $\mathbf{x}_i$ are observed only on convenience sample $S_c$ (unknown $\pi_{ci}$) and reference survey $S_r$ (known design probability $\pi_{ri}$).
+  \item Units in the unobserved population remainder $U \setminus (S_c \cup S_r)$ are never observed (where $U = \{1, \dots, N\}$ is the finite target population).
 \end{itemize}
 
 \vspace{0.3em}
@@ -449,14 +452,14 @@ Guarantees local Lipschitz bound $\Delta_{\alpha, \mathbf{y}} = \max_{s,i} |\alp
 
 ## Study 0 — Exact Linear Baseline Monte Carlo ($R = 20$, Visual Benchmark)
 
-\includegraphics[width=0.95\textwidth]{figures/track2_study0_rmse_bars.pdf}
+\includegraphics[width=0.91\textwidth]{figures/track2_study0_rmse_bars.pdf}
 
-\vspace{0.2em}
-\textbf{Empirical Findings}:
+\vspace{0.05em}
+\textbf{Empirical Findings Across Methods \& Propensity Formulations}:
 \begin{itemize}
-  \item \textbf{Efficiency Hierarchy}: $\text{LINK2} \succ \text{LINK1} \succ \text{STACK} \succ \text{PSEUDO}$.
-  \item \textbf{Pseudo-Likelihood Breakdown}: Under low common support, \texttt{GLM-PSEUDO} explodes to $\text{RMSE} = 1.015$, while composite likelihoods and \texttt{LBBNN} remain bounded ($\text{RMSE} \approx 0.13\text{--}0.17$).
-  \item \textbf{LBBNN Agreement}: On linear truth, \texttt{LBBNN} matches parametric GLM efficiency ($\text{RMSE} = 0.231$ vs. $0.240$).
+  \item \textbf{Efficiency Hierarchy}: $\text{LINK2} \succ \text{LINK1} \succ \text{STACK} \succ \text{PSEUDO}$ across both GLM and LBBNN.
+  \item \textbf{Pseudo-Likelihood Breakdown}: Under low common support, \texttt{GLM-PSEUDO} explodes to $\text{RMSE} = 1.015$, while all composite formulations remain bounded ($\text{RMSE} \approx 0.16\text{--}0.33$).
+  \item \textbf{LBBNN Agreement}: On linear truth, \texttt{LBBNN} matches GLM efficiency across all 5 formulations (e.g., \texttt{LINK2} RMSE: $0.23$ vs. $0.24$ High Support; $0.17$ vs. $0.14$ Low Support).
 \end{itemize}
 
 ## Study 1 — Automated Confounder Selection & Noise Pruning ($p = 6$)
@@ -486,20 +489,25 @@ Guarantees local Lipschitz bound $\Delta_{\alpha, \mathbf{y}} = \max_{s,i} |\alp
 
 ## Study 2 — High Common Support with Non-Linear Propensity & Interaction
 
-\includegraphics[width=0.95\textwidth]{figures/track2_study2_panels.pdf}
+\includegraphics[width=0.91\textwidth]{figures/track2_study2_panels.pdf}
 
-\vspace{0.2em}
-\textbf{Non-Linear Recovery}: Linear GLMs are structurally misspecified on the interaction surface ($|\text{Bias}| = 0.19\text{--}0.39$). \texttt{LBBNN} captures curvature and interaction, reducing bias across all composite likelihoods (\textbf{0.086} on \texttt{STACK}, 4.5x reduction!).
+\vspace{0.05em}
+\textbf{Non-Linear Recovery Across Formulations}:
+\begin{itemize}
+  \item Linear GLMs are structurally misspecified on the interaction surface ($|\text{Bias}| = 0.19\text{--}0.39$ across formulations).
+  \item \texttt{LBBNN} (BMA and MPM) captures non-linear interactions, reducing bias across all 5 formulations (lowest on \texttt{STACK}: $|\text{Bias}| = 0.086$ vs GLM $0.187$; \texttt{MIP50}: $0.198$ vs $0.229$; \texttt{PSEUDO}: $0.237$ vs $0.347$).
+\end{itemize}
 
 ## Study 3 — Low Common Support + Non-Linearity: Bias vs. Kish's ESS
 
-\includegraphics[width=0.95\textwidth]{figures/track2_study3_bars.pdf}
+\includegraphics[width=0.91\textwidth]{figures/track2_study3_bars.pdf}
 
-\vspace{0.2em}
+\vspace{0.05em}
 \textbf{Catastrophic Breakdown of Pseudo-Likelihood vs. Composite LBBNN}:
 \begin{itemize}
-  \item \texttt{GLM-PSEUDO} collapses Kish's ESS to \textbf{6.6 effective units} (out of $n_c = 521$), exploding bias to \textbf{+5.06}.
-  \item \textbf{\texttt{LBBNN-LINK2 (MPM)}} achieves the \textbf{lowest bias (+0.61)} and \textbf{highest effective sample size (Kish ESS = 136.0)}.
+  \item \texttt{PSEUDO} collapses Kish ESS ($\le 8.3$ of $n_c = 521$) and explodes bias ($|\text{Bias}| = 4.82\text{--}5.44$) across all methods.
+  \item Composite formulations remain stable; \textbf{\texttt{LBBNN-LINK2 (MPM)}} achieves the \textbf{lowest bias (+0.61)} and \textbf{highest effective sample size (Kish ESS = 136.0)}.
+  \item On \texttt{MIP50}, LBBNN restores ESS from $45.1$ to $129.4$ and cuts bias from $1.90$ to $0.71$.
 \end{itemize}
 
 ## Study 3 — Propensity Recovery Diagnostic (2x2 Scatterplot Grid)

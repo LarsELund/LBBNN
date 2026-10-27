@@ -115,7 +115,7 @@ p_slide11 <- ggplot(t1_vars, aes(x = Prob, y = Variable, color = Status)) +
   labs(
     title = "Posterior Output Inclusion Probabilities (a[2])",
     subtitle = "Spike-and-slab KL shrinkage severs pure noise paths (x3, x4)",
-    x = expression("Posterior Inclusion Probability " * alpha[k]), y = ""
+    x = expression("Posterior Inclusion Probability " * a[k]), y = ""
   ) +
   theme_minimal(base_size = 9.5) +
   theme(
@@ -309,45 +309,78 @@ cat("[6/10] track1_synth_utility_panels.pdf generated.\n")
 
 
 # -----------------------------------------------------------------
+# -----------------------------------------------------------------
 # 7. Slide 23: Track 2 Study 0 Linear Benchmark (figures/track2_study0_rmse_bars.pdf)
 # -----------------------------------------------------------------
-s0_high <- data.frame(
-  Estimator = factor(c("Oracle Hajek", "LBBNN-LINK2 (BMA)", "GLM-STACK", "LBBNN-LINK2 (MPM)", "GLM-LINK2", "GLM-PSEUDO"),
-                    levels = rev(c("Oracle Hajek", "LBBNN-LINK2 (BMA)", "GLM-STACK", "LBBNN-LINK2 (MPM)", "GLM-LINK2", "GLM-PSEUDO"))),
-  RMSE = c(0.204, 0.231, 0.234, 0.234, 0.240, 0.288),
-  Type = factor(c("Oracle", "LBBNN", "GLM", "LBBNN", "GLM", "GLM-PSEUDO"),
-                levels = c("Oracle", "LBBNN", "GLM", "GLM-PSEUDO"))
-)
+prep_s0 <- function(df) {
+  sub <- df[!df$Estimator %in% c("Naive Convenience Mean", "Oracle Hajek"), ]
+  sub$Formulation <- factor(ifelse(grepl("STACK", sub$Estimator), "STACK",
+                            ifelse(grepl("LINK1", sub$Estimator), "LINK1",
+                            ifelse(grepl("LINK2", sub$Estimator), "LINK2",
+                            ifelse(grepl("MIP50", sub$Estimator), "MIP50", "PSEUDO")))),
+                            levels = c("STACK", "LINK1", "LINK2", "MIP50", "PSEUDO"))
+  sub$Method <- factor(ifelse(grepl("GLM", sub$Estimator), "GLM (Linear)",
+                       ifelse(grepl("BMA", sub$Estimator), "LBBNN (BMA)", "LBBNN (MPM)")),
+                       levels = c("GLM (Linear)", "LBBNN (BMA)", "LBBNN (MPM)"))
+  sub
+}
 
-p23_a <- ggplot(s0_high, aes(x = RMSE, y = Estimator, fill = Type)) +
-  geom_col(width = 0.65, show.legend = FALSE) +
-  scale_fill_manual(values = c("Oracle" = "#2980b9", "LBBNN" = "#27ae60", "GLM" = "#7f8c8d", "GLM-PSEUDO" = "#e67e22")) +
-  geom_text(aes(label = sprintf("%.3f", RMSE)), hjust = -0.15, size = 2.8, fontface = "bold") +
-  scale_x_continuous(limits = c(0, 0.35)) +
-  labs(title = "Panel A: High Common Support (beta1 = +1.0)", x = "Monte Carlo RMSE", y = "") +
-  theme_minimal(base_size = 9.0) +
-  theme(plot.title = element_text(size = 9.0, face = "bold"))
+df_s0_h <- prep_s0(pres$t2_sim0_high)
+df_s0_l <- prep_s0(pres$t2_sim0_low)
 
-s0_low <- data.frame(
-  Estimator = factor(c("GLM-STACK", "GLM-LINK1", "GLM-LINK2", "LBBNN-LINK1 (BMA)", "LBBNN-LINK2 (BMA)", "LBBNN-STACK (BMA)", "Oracle Hajek", "GLM-PSEUDO"),
-                   levels = rev(c("GLM-STACK", "GLM-LINK1", "GLM-LINK2", "LBBNN-LINK1 (BMA)", "LBBNN-LINK2 (BMA)", "LBBNN-STACK (BMA)", "Oracle Hajek", "GLM-PSEUDO"))),
-  RMSE = c(0.135, 0.136, 0.138, 0.165, 0.169, 0.173, 0.224, 1.015),
-  Type = factor(c("GLM", "GLM", "GLM", "LBBNN", "LBBNN", "LBBNN", "Oracle", "GLM-PSEUDO"),
-                levels = c("Oracle", "LBBNN", "GLM", "GLM-PSEUDO"))
-)
+s0_colors <- c("GLM (Linear)" = "#e74c3c", "LBBNN (BMA)" = "#2980b9", "LBBNN (MPM)" = "#27ae60")
 
-p23_b <- ggplot(s0_low, aes(x = RMSE, y = Estimator, fill = Type)) +
-  geom_col(width = 0.65, show.legend = FALSE) +
-  scale_fill_manual(values = c("Oracle" = "#2980b9", "LBBNN" = "#27ae60", "GLM" = "#7f8c8d", "GLM-PSEUDO" = "#e74c3c")) +
-  geom_text(aes(label = sprintf("%.3f", RMSE)), hjust = -0.15, size = 2.8, fontface = "bold") +
-  scale_x_continuous(limits = c(0, 1.15)) +
-  labs(title = "Panel B: Low Common Support (beta1 = -1.0)", x = "Monte Carlo RMSE", y = "") +
-  theme_minimal(base_size = 9.0) +
-  theme(plot.title = element_text(size = 9.0, face = "bold"), axis.text.y = element_text(size = 7.5))
+p23_a <- ggplot(df_s0_h, aes(x = Formulation, y = RMSE, fill = Method)) +
+  geom_col(position = position_dodge(width = 0.78), width = 0.70) +
+  geom_hline(yintercept = 0.204, linetype = "dashed", color = "#2c3e50", linewidth = 0.7) +
+  annotate("text", x = 5.2, y = 0.204, label = "Oracle (0.204)", vjust = -0.4, hjust = 1.0, size = 2.4, color = "#2c3e50", fontface = "bold") +
+  geom_text(aes(label = sprintf("%.2f", RMSE)), position = position_dodge(width = 0.78),
+            vjust = -0.3, size = 2.1, fontface = "bold") +
+  scale_fill_manual(values = s0_colors) +
+  scale_y_continuous(limits = c(0, 0.40)) +
+  labs(title = "Panel A: High Common Support (beta1 = +1.0)",
+       subtitle = "Dashed line: Oracle Hajek RMSE = 0.204",
+       x = "Composite Formulation", y = "Monte Carlo RMSE") +
+  theme_minimal(base_size = 8.5) +
+  theme(
+    legend.position = "bottom",
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8),
+    legend.key.size = unit(0.35, "cm"),
+    plot.title = element_text(size = 8.5, face = "bold"),
+    plot.subtitle = element_text(size = 7.0, color = "gray30"),
+    plot.margin = margin(5, 6, 5, 5)
+  )
 
-p_slide23 <- plot_grid(p23_a, p23_b, ncol = 2, rel_widths = c(1.1, 1.15))
-ggsave("vignettes/figures/track2_study0_rmse_bars.pdf", p_slide23, width = 9.5, height = 2.8)
-cat("[7/10] track2_study0_rmse_bars.pdf generated.\n")
+p23_b <- ggplot(df_s0_l, aes(x = Formulation, y = RMSE, fill = Method)) +
+  geom_col(position = position_dodge(width = 0.78), width = 0.70) +
+  geom_hline(yintercept = 0.224, linetype = "dashed", color = "#2c3e50", linewidth = 0.7) +
+  annotate("text", x = 1.0, y = 0.224, label = "Oracle (0.224)", vjust = -0.4, hjust = 0.0, size = 2.4, color = "#2c3e50", fontface = "bold") +
+  geom_text(aes(label = sprintf("%.2f", RMSE)), position = position_dodge(width = 0.78),
+            vjust = -0.3, size = 2.1, fontface = "bold") +
+  scale_fill_manual(values = s0_colors) +
+  scale_y_continuous(limits = c(0, 1.18)) +
+  labs(title = "Panel B: Low Common Support (beta1 = -1.0)",
+       subtitle = "PSEUDO explodes to RMSE = 1.02; Composites bounded (0.14-0.33)",
+       x = "Composite Formulation", y = "Monte Carlo RMSE") +
+  theme_minimal(base_size = 8.5) +
+  theme(
+    legend.position = "bottom",
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8),
+    legend.key.size = unit(0.35, "cm"),
+    plot.title = element_text(size = 8.5, face = "bold"),
+    plot.subtitle = element_text(size = 7.0, color = "#c0392b"),
+    plot.margin = margin(5, 6, 5, 5)
+  )
+
+p23_legend <- cowplot::get_plot_component(p23_a, "guide-box-bottom")
+p23_grid <- plot_grid(p23_a + theme(legend.position = "none"),
+                      p23_b + theme(legend.position = "none"),
+                      ncol = 2, rel_widths = c(1, 1))
+p_slide23 <- plot_grid(p23_grid, p23_legend, ncol = 1, rel_heights = c(1, 0.12))
+ggsave("vignettes/figures/track2_study0_rmse_bars.pdf", p_slide23, width = 9.5, height = 2.80)
+cat("[7/10] track2_study0_rmse_bars.pdf generated (all methods x propensity combinations).\n")
 
 
 # -----------------------------------------------------------------
@@ -372,7 +405,7 @@ p_slide24 <- ggplot(s1_vars, aes(x = Prob, y = Variable, color = Status)) +
   labs(
     title = "Posterior Inclusion Probabilities (p = 6)",
     subtitle = "Outcome-only X3 and noise X4-X6 completely pruned to zero active paths",
-    x = expression("Posterior Inclusion Probability " * alpha[k]), y = ""
+    x = expression("Posterior Inclusion Probability " * a[k]), y = ""
   ) +
   theme_minimal(base_size = 9.5) +
   theme(
@@ -412,78 +445,118 @@ p25_a <- ggplot(grid_p2, aes(x = x1, y = x2, fill = pi_c)) +
     plot.margin = margin(8, 8, 5, 5)
   )
 
-s2_bias_df <- data.frame(
-  Formulation = factor(rep(c("STACK", "MIP50", "LINK1", "LINK2"), 2),
-                       levels = c("STACK", "MIP50", "LINK1", "LINK2")),
-  Model = factor(c(rep("Misspecified Linear GLM", 4), rep("LBBNN (MPM)", 4)),
-                 levels = c("Misspecified Linear GLM", "LBBNN (MPM)")),
-  Abs_Bias = c(0.187, 0.389, 0.388, 0.393, 0.086, 0.198, 0.301, 0.297)
-)
+prep_s2 <- function(df) {
+  sub <- df[!df$Estimator %in% c("Naive Convenience Mean (Unweighted)", "Oracle Hajek (True Propensity)"), ]
+  sub$Formulation <- factor(ifelse(grepl("STACK", sub$Estimator), "STACK",
+                            ifelse(grepl("LINK1", sub$Estimator), "LINK1",
+                            ifelse(grepl("LINK2", sub$Estimator), "LINK2",
+                            ifelse(grepl("MIP50", sub$Estimator), "MIP50", "PSEUDO")))),
+                            levels = c("STACK", "LINK1", "LINK2", "MIP50", "PSEUDO"))
+  sub$Method <- factor(ifelse(grepl("GLM", sub$Estimator), "GLM (Linear)",
+                       ifelse(grepl("BMA", sub$Estimator), "LBBNN (BMA)", "LBBNN (MPM)")),
+                       levels = c("GLM (Linear)", "LBBNN (BMA)", "LBBNN (MPM)"))
+  sub
+}
 
-p25_b <- ggplot(s2_bias_df, aes(x = Formulation, y = Abs_Bias, fill = Model)) +
-  geom_col(position = position_dodge(width = 0.75), width = 0.65) +
-  geom_text(aes(label = sprintf("%.3f", Abs_Bias)), position = position_dodge(width = 0.75),
-            vjust = -0.3, size = 2.6, fontface = "bold") +
-  scale_fill_manual(values = c("Misspecified Linear GLM" = "#e74c3c", "LBBNN (MPM)" = "#27ae60")) +
-  scale_y_continuous(limits = c(0, 0.46)) +
-  labs(title = "Panel B: Absolute Estimation Bias (|Bias|)", x = "Composite Likelihood", y = "Absolute Bias") +
-  theme_minimal(base_size = 9.0) +
+df_s2 <- prep_s2(pres$t2_sim2_results)
+s2_colors <- c("GLM (Linear)" = "#e74c3c", "LBBNN (BMA)" = "#2980b9", "LBBNN (MPM)" = "#27ae60")
+
+p25_b <- ggplot(df_s2, aes(x = Formulation, y = Abs_Error, fill = Method)) +
+  geom_col(position = position_dodge(width = 0.78), width = 0.70) +
+  geom_hline(yintercept = 0.205, linetype = "dashed", color = "#2c3e50", linewidth = 0.7) +
+  annotate("text", x = 1.0, y = 0.205, label = "Oracle (|Bias| = 0.205)", vjust = -0.4, hjust = 0.0, size = 2.4, color = "#2c3e50", fontface = "bold") +
+  geom_text(aes(label = sprintf("%.2f", Abs_Error)), position = position_dodge(width = 0.78),
+            vjust = -0.3, size = 2.1, fontface = "bold") +
+  scale_fill_manual(values = s2_colors) +
+  scale_y_continuous(limits = c(0, 0.48)) +
+  labs(title = "Panel B: Absolute Estimation Bias (|Bias|)",
+       subtitle = "LBBNN cuts bias across all 5 formulations (STACK = 0.086 vs GLM = 0.187)",
+       x = "Composite Formulation", y = "Absolute Bias") +
+  theme_minimal(base_size = 8.5) +
   theme(
     legend.position = "bottom",
     legend.title = element_blank(),
     legend.text = element_text(size = 8),
-    plot.title = element_text(size = 9.0, face = "bold"),
-    plot.margin = margin(8, 8, 5, 5)
+    legend.key.size = unit(0.35, "cm"),
+    plot.title = element_text(size = 8.5, face = "bold"),
+    plot.subtitle = element_text(size = 7.0, color = "#27ae60"),
+    plot.margin = margin(5, 5, 5, 5)
   )
 
-p_slide25 <- plot_grid(p25_a, p25_b, ncol = 2, rel_widths = c(1.0, 1.15))
-ggsave("vignettes/figures/track2_study2_panels.pdf", p_slide25, width = 9.5, height = 2.85)
-cat("[9/10] track2_study2_panels.pdf generated.\n")
+p_slide25 <- plot_grid(p25_a, p25_b, ncol = 2, rel_widths = c(0.85, 1.25))
+ggsave("vignettes/figures/track2_study2_panels.pdf", p_slide25, width = 9.5, height = 2.80)
+cat("[9/10] track2_study2_panels.pdf generated (all methods x propensity combinations).\n")
 
 
-# -----------------------------------------------------------------
+# -------------------------------------------------------------
 # 10. Slide 26: Track 2 Study 3 Kish ESS & Bias Explosion (figures/track2_study3_bars.pdf)
-# -----------------------------------------------------------------
-s3_ess_df <- data.frame(
-  Estimator = factor(c("GLM-PSEUDO", "GLM-MIP50", "GLM-LINK2", "GLM-STACK", "LBBNN-STACK (MPM)", "LBBNN-LINK1 (MPM)", "LBBNN-MIP50 (MPM)", "LBBNN-LINK2 (MPM)"),
-                     levels = c("GLM-PSEUDO", "GLM-MIP50", "GLM-LINK2", "GLM-STACK", "LBBNN-STACK (MPM)", "LBBNN-LINK1 (MPM)", "LBBNN-MIP50 (MPM)", "LBBNN-LINK2 (MPM)")),
-  ESS = c(6.56, 45.10, 99.65, 107.23, 109.20, 127.72, 129.42, 135.98),
-  Bias = c(5.057, 1.902, 0.939, 0.862, 0.904, 0.671, 0.712, 0.608),
-  Type = factor(c("PSEUDO Explosion", "MIP Partial", "GLM", "GLM", "LBBNN", "LBBNN", "LBBNN", "LBBNN"),
-                levels = c("PSEUDO Explosion", "MIP Partial", "GLM", "LBBNN"))
-)
+# -------------------------------------------------------------
+prep_s3 <- function(df) {
+  sub <- df[!df$Estimator %in% c("Naive Convenience Mean (Unweighted)", "Oracle Hajek (True Propensity)"), ]
+  sub$Formulation <- factor(ifelse(grepl("STACK", sub$Estimator), "STACK",
+                            ifelse(grepl("LINK1", sub$Estimator), "LINK1",
+                            ifelse(grepl("LINK2", sub$Estimator), "LINK2",
+                            ifelse(grepl("MIP50", sub$Estimator), "MIP50", "PSEUDO")))),
+                            levels = c("STACK", "LINK1", "LINK2", "MIP50", "PSEUDO"))
+  sub$Method <- factor(ifelse(grepl("GLM", sub$Estimator), "GLM (Linear)",
+                       ifelse(grepl("BMA", sub$Estimator), "LBBNN (BMA)", "LBBNN (MPM)")),
+                       levels = c("GLM (Linear)", "LBBNN (BMA)", "LBBNN (MPM)"))
+  sub
+}
 
-p26_a <- ggplot(s3_ess_df, aes(x = ESS, y = Estimator, fill = Type)) +
-  geom_col(width = 0.68, show.legend = FALSE) +
-  geom_vline(xintercept = 183.74, linetype = "dashed", color = "#2980b9", linewidth = 0.8) +
-  scale_fill_manual(values = c("PSEUDO Explosion" = "#e74c3c", "MIP Partial" = "#e67e22", "GLM" = "#7f8c8d", "LBBNN" = "#27ae60")) +
-  geom_text(aes(label = sprintf("%.1f", ESS)), hjust = -0.15, size = 2.8, fontface = "bold") +
-  scale_x_continuous(limits = c(0, 205)) +
+df_s3 <- prep_s3(pres$t2_sim3_results)
+s3_colors <- c("GLM (Linear)" = "#e74c3c", "LBBNN (BMA)" = "#2980b9", "LBBNN (MPM)" = "#27ae60")
+
+p26_a <- ggplot(df_s3, aes(x = Formulation, y = Kish_ESS, fill = Method)) +
+  geom_col(position = position_dodge(width = 0.78), width = 0.70) +
+  geom_hline(yintercept = 183.7, linetype = "dashed", color = "#2c3e50", linewidth = 0.7) +
+  annotate("text", x = 1.0, y = 183.7, label = "Oracle ESS = 183.7", vjust = -0.4, hjust = 0.0, size = 2.4, color = "#2c3e50", fontface = "bold") +
+  geom_text(aes(label = sprintf("%.0f", Kish_ESS)), position = position_dodge(width = 0.78),
+            vjust = -0.3, size = 2.1, fontface = "bold") +
+  scale_fill_manual(values = s3_colors) +
+  scale_y_continuous(limits = c(0, 215)) +
   labs(title = "Panel A: Kish Effective Sample Size (out of n_c = 521)",
-       subtitle = "Dashed line: Oracle Hajek ESS = 183.7",
-       x = "Effective Sample Size (Kish ESS)", y = "") +
-  theme_minimal(base_size = 9.0) +
-  theme(plot.title = element_text(size = 9.0, face = "bold"),
-        plot.subtitle = element_text(size = 7.5, color = "#2980b9"),
-        axis.text.y = element_text(size = 7.5),
-        plot.margin = margin(8, 8, 5, 5))
+       subtitle = "LBBNN recovers ESS across composites (LINK2 = 136); PSEUDO collapses (<=8)",
+       x = "Composite Formulation", y = "Kish ESS") +
+  theme_minimal(base_size = 8.5) +
+  theme(
+    legend.position = "bottom",
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8),
+    legend.key.size = unit(0.35, "cm"),
+    plot.title = element_text(size = 8.5, face = "bold"),
+    plot.subtitle = element_text(size = 7.0, color = "#2980b9"),
+    plot.margin = margin(5, 5, 5, 5)
+  )
 
-p26_b <- ggplot(s3_ess_df, aes(x = Bias, y = Estimator, fill = Type)) +
-  geom_col(width = 0.68, show.legend = FALSE) +
-  scale_fill_manual(values = c("PSEUDO Explosion" = "#e74c3c", "MIP Partial" = "#e67e22", "GLM" = "#7f8c8d", "LBBNN" = "#27ae60")) +
-  geom_text(aes(label = sprintf("%.2f", Bias)), hjust = -0.15, size = 2.8, fontface = "bold") +
-  scale_x_continuous(limits = c(0, 5.6)) +
+p26_b <- ggplot(df_s3, aes(x = Formulation, y = Abs_Error, fill = Method)) +
+  geom_col(position = position_dodge(width = 0.78), width = 0.70) +
+  geom_hline(yintercept = 0.040, linetype = "dashed", color = "#2c3e50", linewidth = 0.7) +
+  annotate("text", x = 1.0, y = 0.040, label = "Oracle (|Bias| = 0.04)", vjust = -0.4, hjust = 0.0, size = 2.4, color = "#2c3e50", fontface = "bold") +
+  geom_text(aes(label = sprintf("%.2f", Abs_Error)), position = position_dodge(width = 0.78),
+            vjust = -0.3, size = 2.1, fontface = "bold") +
+  scale_fill_manual(values = s3_colors) +
+  scale_y_continuous(limits = c(0, 6.2)) +
   labs(title = "Panel B: Absolute Population Mean Bias (|Bias|)",
-       subtitle = "Lower absolute bias is better",
-       x = "Absolute Bias", y = "") +
-  theme_minimal(base_size = 9.0) +
-  theme(plot.title = element_text(size = 9.0, face = "bold"),
-        plot.subtitle = element_text(size = 7.5, color = "gray40"),
-        axis.text.y = element_blank(),
-        plot.margin = margin(8, 8, 5, 5))
+       subtitle = "LBBNN-LINK2 (MPM) lowest bias (0.61); PSEUDO explodes (4.82-5.44)",
+       x = "Composite Formulation", y = "Absolute Bias") +
+  theme_minimal(base_size = 8.5) +
+  theme(
+    legend.position = "bottom",
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8),
+    legend.key.size = unit(0.35, "cm"),
+    plot.title = element_text(size = 8.5, face = "bold"),
+    plot.subtitle = element_text(size = 7.0, color = "#c0392b"),
+    plot.margin = margin(5, 5, 5, 5)
+  )
 
-p_slide26 <- plot_grid(p26_a, p26_b, ncol = 2, rel_widths = c(1.3, 0.95))
-ggsave("vignettes/figures/track2_study3_bars.pdf", p_slide26, width = 9.5, height = 2.8)
-cat("[10/10] track2_study3_bars.pdf generated.\n")
+p26_legend <- cowplot::get_plot_component(p26_a, "guide-box-bottom")
+p26_grid <- plot_grid(p26_a + theme(legend.position = "none"),
+                      p26_b + theme(legend.position = "none"),
+                      ncol = 2, rel_widths = c(1, 1))
+p_slide26 <- plot_grid(p26_grid, p26_legend, ncol = 1, rel_heights = c(1, 0.12))
+ggsave("vignettes/figures/track2_study3_bars.pdf", p_slide26, width = 9.5, height = 2.80)
+cat("[10/10] track2_study3_bars.pdf generated (all methods x propensity combinations).\n")
 
 cat("All 10 figures generated successfully!\n")
