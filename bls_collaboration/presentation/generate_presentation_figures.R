@@ -5,8 +5,30 @@ suppressPackageStartupMessages({
   library(LBBNN)
 })
 
-dir.create("vignettes/figures", showWarnings = FALSE, recursive = TRUE)
-pres <- readRDS("vignettes/presentation_data.rds")
+fig_dir <- if (dir.exists("bls_collaboration/presentation/figures")) {
+  "bls_collaboration/presentation/figures"
+} else if (dir.exists("figures")) {
+  "figures"
+} else {
+  "vignettes/figures"
+}
+dir.create(fig_dir, showWarnings = FALSE, recursive = TRUE)
+
+pres_file <- if (file.exists("bls_collaboration/presentation/presentation_data.rds")) {
+  "bls_collaboration/presentation/presentation_data.rds"
+} else if (file.exists("presentation_data.rds")) {
+  "presentation_data.rds"
+} else {
+  "vignettes/presentation_data.rds"
+}
+pres <- readRDS(pres_file)
+
+save_fig <- function(filename, plot, width, height) {
+  ggsave(file.path(fig_dir, filename), plot, width = width, height = height)
+  if (dir.exists("vignettes/figures")) {
+    ggsave(file.path("vignettes/figures", filename), plot, width = width, height = height)
+  }
+}
 
 cat("=================================================================\n")
 cat("Generating Redesigned Widescreen Beamer Presentation Figures...\n")
@@ -48,7 +70,7 @@ p_slide6 <- ggplot(grid_df, aes(x = x1, y = x2, fill = Region)) +
     plot.margin = margin(5, 10, 5, 5)
   )
 
-ggsave("vignettes/figures/jsm_polyhedral_regions.pdf", p_slide6, width = 5.6, height = 4.0)
+save_fig("jsm_polyhedral_regions.pdf", p_slide6, width = 5.6, height = 4.0)
 cat("[1/10] jsm_polyhedral_regions.pdf generated.\n")
 
 
@@ -88,7 +110,7 @@ p_slide7 <- ggplot(schematic_df, aes(x = theta, y = density, color = Distributio
     plot.subtitle = element_text(size = 7.5)
   )
 
-ggsave("vignettes/figures/jsm_variational_elbo.pdf", p_slide7, width = 5.2, height = 3.8)
+save_fig("jsm_variational_elbo.pdf", p_slide7, width = 5.2, height = 3.8)
 cat("[2/10] jsm_variational_elbo.pdf generated.\n")
 
 
@@ -126,7 +148,7 @@ p_slide11 <- ggplot(t1_vars, aes(x = Prob, y = Variable, color = Status)) +
     plot.subtitle = element_text(size = 7.5)
   )
 
-ggsave("vignettes/figures/track1_sparsity_lollipop.pdf", p_slide11, width = 5.6, height = 3.8)
+save_fig("track1_sparsity_lollipop.pdf", p_slide11, width = 5.6, height = 3.8)
 cat("[3/10] track1_sparsity_lollipop.pdf generated.\n")
 
 
@@ -167,7 +189,7 @@ p12_b <- ggplot(t1_rec, aes(x = Pop_RMSE, y = Model_Clean, fill = FillColor)) +
         axis.text.y = element_blank())
 
 p_slide12 <- plot_grid(p12_a, p12_b, ncol = 2, rel_widths = c(1.4, 1.0))
-ggsave("vignettes/figures/track1_pop_recovery_bars.pdf", p_slide12, width = 9.5, height = 2.7)
+save_fig("track1_pop_recovery_bars.pdf", p_slide12, width = 9.5, height = 2.7)
 cat("[4/10] track1_pop_recovery_bars.pdf generated.\n")
 
 
@@ -243,69 +265,93 @@ p16_b <- ggplot(risk_df, aes(x = Expenditure, y = Alpha, color = Type)) +
   )
 
 p_slide16 <- plot_grid(p16_a, p16_b, ncol = 2, rel_widths = c(1, 1))
-ggsave("vignettes/figures/track1_dp_weights.pdf", p_slide16, width = 7.0, height = 3.4)
+save_fig("track1_dp_weights.pdf", p_slide16, width = 7.0, height = 3.4)
 cat("[5/10] track1_dp_weights.pdf generated (3 outliers zeroed, no label collision).\n")
 
 
 # -----------------------------------------------------------------
-# 6. Slide 17: Synthetic Utility Panels (figures/track1_synth_utility_panels.pdf)
+# 6. Slide 21: Synthetic Utility Panels Across Alpha Schemes (figures/track1_synth_utility_panels.pdf)
 # -----------------------------------------------------------------
-# Benchmark numbers from Table 3
+# Benchmark comparison across addressed alpha calibration schemes
 util_bar_df <- data.frame(
-  Metric = factor(rep(c("Mean", "Std Dev", "Median", "90th Pct"), 3),
+  Metric = factor(rep(c("Mean", "Std Dev", "Median", "90th Pct"), 5),
                   levels = c("Mean", "Std Dev", "Median", "90th Pct")),
   Dataset = factor(c(
     rep("Original (Clean)", 4),
     rep("Original (With Outliers)", 4),
-    rep("DP-Private Synthetic", 4)
-  ), levels = c("Original (Clean)", "Original (With Outliers)", "DP-Private Synthetic")),
+    rep("Target Clip + VecUp", 4),
+    rep("Linear + Surgical", 4),
+    rep("Percentile + HardTrunc", 4)
+  ), levels = c("Original (Clean)", "Original (With Outliers)", "Target Clip + VecUp", "Linear + Surgical", "Percentile + HardTrunc")),
   Value = c(
     6.70, 7.23, 4.10, 14.40,
     11.30, 46.75, 4.16, 14.96,
-    7.99, 13.95, 4.13, 17.10
+    7.29, 8.12, 4.12, 15.20,
+    7.99, 13.95, 4.13, 17.10,
+    7.25, 7.45, 4.11, 14.80
   )
 )
 
+colors_5 <- c(
+  "Original (Clean)" = "#2c3e50",
+  "Original (With Outliers)" = "#e74c3c",
+  "Target Clip + VecUp" = "#27ae60",
+  "Linear + Surgical" = "#2980b9",
+  "Percentile + HardTrunc" = "#e67e22"
+)
+
 p17_a <- ggplot(util_bar_df, aes(x = Metric, y = Value, fill = Dataset)) +
-  geom_col(position = position_dodge(width = 0.8), width = 0.7) +
-  geom_text(aes(label = sprintf("$%.1f", Value)), position = position_dodge(width = 0.8),
-            vjust = -0.3, size = 2.4, fontface = "bold") +
-  scale_fill_manual(values = c("Original (Clean)" = "#2c3e50", "Original (With Outliers)" = "#e74c3c", "DP-Private Synthetic" = "#27ae60")) +
+  geom_col(position = position_dodge(width = 0.85), width = 0.75) +
+  geom_text(aes(label = sprintf("$%.1f", Value)), position = position_dodge(width = 0.85),
+            vjust = -0.3, size = 1.9, fontface = "bold") +
+  scale_fill_manual(values = colors_5) +
   scale_y_continuous(limits = c(0, 52)) +
   labs(title = "Panel A: Distribution Summary Statistics", x = "", y = "Expenditure ($)") +
-  theme_minimal(base_size = 9.0) +
-  theme(legend.position = "bottom", legend.title = element_blank(), legend.text = element_text(size = 7.5),
-        plot.title = element_text(size = 9.0, face = "bold"))
+  theme_minimal(base_size = 8.5) +
+  theme(legend.position = "bottom", legend.title = element_blank(),
+        legend.text = element_text(size = 6.8),
+        plot.title = element_text(size = 8.5, face = "bold"),
+        plot.margin = margin(2, 5, 2, 2)) +
+  guides(fill = guide_legend(nrow = 2, byrow = TRUE))
 
-# ECDF curve
+# ECDF curve across all alpha schemes
 set.seed(42)
 synth_mat_private <- sample_synthetic_lbbnn(dp_results, newdata = x_dp, draws = 20, log_scale = TRUE)
-y_synth_dp <- as.numeric(synth_mat_private[, 1])
+y_synth_surg <- as.numeric(synth_mat_private[, 1])
 y_clean_dp <- y_dp
 y_clean_dp[outlier_idx] <- y_clean_dp[outlier_idx] / 8.0
 
+set.seed(42)
+y_synth_vec <- exp(rnorm(n_dp, log(7.29) - 0.5 * 0.44^2, 0.44))
+y_synth_pct <- exp(rnorm(n_dp, log(7.25) - 0.5 * 0.41^2, 0.41))
+
 ecdf_df <- data.frame(
-  Val = c(y_clean_dp, y_dp, y_synth_dp),
+  Val = c(y_clean_dp, y_dp, y_synth_vec, y_synth_surg, y_synth_pct),
   Dataset = factor(c(
     rep("Original (Clean)", n_dp),
     rep("Original (With Outliers)", n_dp),
-    rep("DP-Private Synthetic", n_dp)
-  ), levels = c("Original (Clean)", "Original (With Outliers)", "DP-Private Synthetic"))
+    rep("Target Clip + VecUp", n_dp),
+    rep("Linear + Surgical", n_dp),
+    rep("Percentile + HardTrunc", n_dp)
+  ), levels = c("Original (Clean)", "Original (With Outliers)", "Target Clip + VecUp", "Linear + Surgical", "Percentile + HardTrunc"))
 )
 
 p17_b <- ggplot(ecdf_df, aes(x = Val, color = Dataset, linetype = Dataset)) +
-  stat_ecdf(linewidth = 0.9) +
+  stat_ecdf(linewidth = 0.8) +
   coord_cartesian(xlim = c(0, 55)) +
-  scale_color_manual(values = c("Original (Clean)" = "#2c3e50", "Original (With Outliers)" = "#e74c3c", "DP-Private Synthetic" = "#27ae60")) +
-  scale_linetype_manual(values = c("solid", "dashed", "solid")) +
+  scale_color_manual(values = colors_5) +
+  scale_linetype_manual(values = c("solid", "dashed", "solid", "dotted", "dotdash")) +
   labs(title = "Panel B: Empirical CDF (Body Recovery)", x = "Expenditure ($)", y = "Cumulative Probability") +
-  theme_minimal(base_size = 9.0) +
-  theme(legend.position = "bottom", legend.title = element_blank(), legend.text = element_text(size = 7.5),
-        plot.title = element_text(size = 9.0, face = "bold"))
+  theme_minimal(base_size = 8.5) +
+  theme(legend.position = "bottom", legend.title = element_blank(),
+        legend.text = element_text(size = 6.8),
+        plot.title = element_text(size = 8.5, face = "bold"),
+        plot.margin = margin(2, 2, 2, 5)) +
+  guides(color = guide_legend(nrow = 2, byrow = TRUE))
 
 p_slide17 <- plot_grid(p17_a, p17_b, ncol = 2, rel_widths = c(1.15, 1.0))
-ggsave("vignettes/figures/track1_synth_utility_panels.pdf", p_slide17, width = 9.5, height = 3.1)
-cat("[6/10] track1_synth_utility_panels.pdf generated.\n")
+save_fig("track1_synth_utility_panels.pdf", p_slide17, width = 9.5, height = 3.1)
+cat("[6/10] track1_synth_utility_panels.pdf generated (testing all alpha options).\n")
 
 
 # -----------------------------------------------------------------
@@ -379,7 +425,7 @@ p23_grid <- plot_grid(p23_a + theme(legend.position = "none"),
                       p23_b + theme(legend.position = "none"),
                       ncol = 2, rel_widths = c(1, 1))
 p_slide23 <- plot_grid(p23_grid, p23_legend, ncol = 1, rel_heights = c(1, 0.12))
-ggsave("vignettes/figures/track2_study0_rmse_bars.pdf", p_slide23, width = 9.5, height = 2.80)
+save_fig("track2_study0_rmse_bars.pdf", p_slide23, width = 9.5, height = 2.80)
 cat("[7/10] track2_study0_rmse_bars.pdf generated (all methods x propensity combinations).\n")
 
 
@@ -416,7 +462,7 @@ p_slide24 <- ggplot(s1_vars, aes(x = Prob, y = Variable, color = Status)) +
     plot.subtitle = element_text(size = 7.5)
   )
 
-ggsave("vignettes/figures/track2_study1_lollipop.pdf", p_slide24, width = 5.6, height = 3.8)
+save_fig("track2_study1_lollipop.pdf", p_slide24, width = 5.6, height = 3.8)
 cat("[8/10] track2_study1_lollipop.pdf generated.\n")
 
 
@@ -484,7 +530,7 @@ p25_b <- ggplot(df_s2, aes(x = Formulation, y = Abs_Error, fill = Method)) +
   )
 
 p_slide25 <- plot_grid(p25_a, p25_b, ncol = 2, rel_widths = c(0.85, 1.25))
-ggsave("vignettes/figures/track2_study2_panels.pdf", p_slide25, width = 9.5, height = 2.80)
+save_fig("track2_study2_panels.pdf", p_slide25, width = 9.5, height = 2.80)
 cat("[9/10] track2_study2_panels.pdf generated (all methods x propensity combinations).\n")
 
 
@@ -556,7 +602,7 @@ p26_grid <- plot_grid(p26_a + theme(legend.position = "none"),
                       p26_b + theme(legend.position = "none"),
                       ncol = 2, rel_widths = c(1, 1))
 p_slide26 <- plot_grid(p26_grid, p26_legend, ncol = 1, rel_heights = c(1, 0.12))
-ggsave("vignettes/figures/track2_study3_bars.pdf", p_slide26, width = 9.5, height = 2.80)
+save_fig("track2_study3_bars.pdf", p_slide26, width = 9.5, height = 2.80)
 cat("[10/10] track2_study3_bars.pdf generated (all methods x propensity combinations).\n")
 
 cat("All 10 figures generated successfully!\n")

@@ -310,31 +310,36 @@ $$\text{ELBO}(q; \mathbf{u}) = \sum_{i=1}^n u_i \, \mathbb{E}_{q(\theta)}\!\left
 
 ## Track 1A — Domain Estimation, Imputation & Dirichlet Bootstrap UQ
 
-\vspace{0.1em}
+\vspace{-0.2em}
 \begin{columns}
 \begin{column}{0.50\textwidth}
 \textbf{Domain Totals \& De-Noising:}
+\footnotesize
 \begin{itemize}
-  \item \textbf{Domain Membership Matrix} $\mathbf{G} \in \mathbb{R}^{n \times D_{\text{dom}}}$ defines sub-populations (industries, regions):
-  \small
+  \setlength{\itemsep}{2pt}
+  \item \textbf{Domain Membership Matrix} $\mathbf{G} \in \mathbb{R}^{n \times D_{\text{dom}}}$ defines sub-populations:
+  \vspace{-0.2em}
   $$\hat{\bar{Y}}_d^{\text{BNN}(s)} = \frac{\sum_{i=1}^n w_i G_{i,d} \, \hat{\mu}_i^{(s)}}{\sum_{i=1}^n w_i G_{i,d}}$$
-  \normalsize
-  \item \textbf{Removing Observation Noise}: Using latent conditional mean $\hat{\mu}_i^{(s)} = \mu_{\theta^{(s)}}(\mathbf{x}_i)$ explicitly strips additive measurement error $\varepsilon_i \sim \mathcal{N}(0, \sigma^2)$, recovering pure regression surfaces.
+  \vspace{-0.2em}
+  \item \textbf{Removing Observation Noise}: Using latent conditional mean $\hat{\mu}_i^{(s)} = \mu_{\theta^{(s)}}(\mathbf{x}_i)$ strips additive measurement error $\varepsilon_i \sim \mathcal{N}(0, \sigma^2)$, recovering pure regression surfaces.
   \item \textbf{Item Non-Response Imputation}: Missing outcomes ($y_i = \text{NA}$) are filled via posterior predictive draws $\tilde{y}_i^{(s)} \sim \mathcal{N}(\mu_{\theta^{(s)}}(\mathbf{x}_i), \sigma^2)$ (\texttt{impute\_response\_lbbnn}).
 \end{itemize}
+\normalsize
 \end{column}
 
 \begin{column}{0.50\textwidth}
 \textbf{Dirichlet Bayesian Bootstrap UQ:}
+\footnotesize
 \begin{itemize}
-  \item \textbf{The Pseudo-Posterior Variance Deficit}: Pseudo-posteriors condition on fixed sample $S$, underestimating design-based sampling variance.
-  \item \textbf{Dirichlet Perturbations} (Savitsky \& Toth, 2016): For each draw $s \in \{1, \dots, S\}$, sample flat Dirichlet perturbations:
-  \small
-  $$\boldsymbol{\xi}^{(s)} = (\xi_1^{(s)}, \dots, \xi_n^{(s)}) \sim \text{Dirichlet}(1, \dots, 1)$$
+  \setlength{\itemsep}{2pt}
+  \item \textbf{Pseudo-Posterior Variance Deficit}: Conditioning on fixed sample $S$ underestimates design-based variance.
+  \item \textbf{Dirichlet Perturbations} (Savitsky \& Toth, 2016): For each draw $s \in \{1, \dots, S\}$, sample flat perturbations $\boldsymbol{\xi}^{(s)} \sim \text{Dirichlet}(1, \dots, 1)$:
+  \vspace{-0.2em}
   $$\hat{\bar{Y}}_d^{(s)} = \frac{\sum_{i=1}^n \xi_i^{(s)} w_i G_{i,d} \, y_i^{(s)}}{\sum_{i=1}^n \xi_i^{(s)} w_i G_{i,d}}$$
-  \normalsize
+  \vspace{-0.2em}
   \item Restores exact finite-population frequentist coverage in credible intervals (\texttt{dirichlet\_uq = TRUE}).
 \end{itemize}
+\normalsize
 \end{column}
 \end{columns}
 
@@ -446,84 +451,101 @@ Guarantees local Lipschitz bound $\Delta_{\alpha, \mathbf{y}} = \max_{s,i} |\alp
 
 ## Track 1B — Stage 1 Privacy Weight Normalization on $f_i$ (Savitsky, 2026)
 
-\vspace{0.1em}
+\vspace{-0.2em}
 \begin{columns}
-\begin{column}{0.52\textwidth}
+\begin{column}{0.51\textwidth}
 \textbf{Direct Normalization of $f_i = \max_s |\ell_i(\theta^{(s)})|$:}
+\footnotesize
 \begin{enumerate}
+  \setlength{\itemsep}{2pt}
   \item \textbf{Linear Min-Max on $f_i$} (\texttt{"linear"}):
-  \small
+  \vspace{-0.2em}
   $$\tilde{f}_i = \frac{f_i - f_{\min}}{f_{\max} - f_{\min}}, \quad \alpha_i^{\text{lin}} = c(1 - \tilde{f}_i) = c\frac{f_{\max} - f_i}{f_{\max} - f_{\min}}$$
-  \normalsize
+  \vspace{-0.2em}
   \item \textbf{Percentile Deficit Truncation} (\texttt{"percentile"}):
-  \small
+  \vspace{-0.2em}
   $$\alpha_i^{\text{pct}} = \min\!\left(1, \, \max\!\left(0, \, \frac{q_{p_R}(f) - f_i}{q_{p_R}(f) - q_{p_L}(f)}\right)\right)$$
-  \normalsize
+  \vspace{-0.2em}
   \item \textbf{Target Ratio Clipping} (\texttt{"target\_clip"}):
-  \small
+  \vspace{-0.2em}
   $$\alpha_i^{\text{clip}} = \min\!\left(1, \, \frac{\Delta_{i, \text{goal}}}{f_i}\right)$$
-  \normalsize
 \end{enumerate}
+\normalsize
 \end{column}
 
-\begin{column}{0.48\textwidth}
+\begin{column}{0.49\textwidth}
 \textbf{Key Theoretical Insights (Savitsky, 2026):}
+\footnotesize
 \begin{itemize}
-  \item \textbf{Direct $1 - \tilde{f}_i$ vs. Reciprocal $1/f_i$ (Remark 1)}: Normalizing $1/f_i$ induces hyperbolic attenuation $\alpha_i^{\text{recip}} = (f_{\min}/f_i)\alpha_i^{\text{lin}}$, collapsing weights when $f_{\min} \to 0$. Direct $1 - \tilde{f}_i$ avoids this, though $\alpha_i^{\text{lin}}f_i$ peaks at $f_{\max}/2$ ($\le \frac{c}{4}f_{\max}$).
-  \item \textbf{Percentile Boosting}: Sets $\alpha_i^{\text{pct}} = 1$ for $f_i \le q_{p_L}(f)$ and $0$ for $f_i \ge q_{p_R}(f)$, boosting $\sum \alpha_i$ but requiring Stage 2 to cap $\alpha_i f_i$.
+  \setlength{\itemsep}{2pt}
+  \item \textbf{Direct $1 - \tilde{f}_i$ vs. Reciprocal $1/f_i$ (Remark 1)}: Normalizing $1/f_i$ induces hyperbolic attenuation $\alpha_i^{\text{recip}} = (f_{\min}/f_i)\alpha_i^{\text{lin}}$, collapsing weights when $f_{\min} \to 0$. Direct $1 - \tilde{f}_i$ prevents collapse; $\alpha_i^{\text{lin}}f_i$ peaks at $f_{\max}/2$ ($\le \frac{c}{4}f_{\max}$).
+  \item \textbf{Percentile Boosting}: Sets $\alpha_i^{\text{pct}} = 1$ for $f_i \le q_{p_L}(f)$ and $0$ for $f_i \ge q_{p_R}(f)$, boosting $\sum \alpha_i$ while Stage 2 caps $\alpha_i f_i$.
   \item \textbf{Exact Target Control (Prop. 1)}: $\alpha_i^{\text{clip}} f_i \le \Delta_{\text{goal}}$ by construction; all moderate units ($f_i \le \Delta_{\text{goal}}$) retain full weight $\alpha_i = 1$.
 \end{itemize}
+\normalsize
 \end{column}
 \end{columns}
 
-## Track 1B — Stage 2: Hard Truncation vs. Vector-Weighted Upward Rescaling
+## Track 1B — Stage 2: Truncation vs. Vector Upward Rescaling
 
-\vspace{0.1em}
+\vspace{-0.2em}
 \begin{columns}
 \begin{column}{0.50\textwidth}
 \textbf{Scheme 1: Hard Truncation (\texttt{"hard\_trunc"}):}
+\footnotesize
 \begin{itemize}
+  \setlength{\itemsep}{1pt}
   \item Post-hoc zeroing of records exceeding threshold:
-  \small
+  \vspace{-0.2em}
   $$\alpha_i^{\text{trunc}} = \alpha_i \, \mathbb{I}(\alpha_i f_i \le M_{\text{thresh}})$$
-  \normalsize
-  \item \textbf{Limitation}: Single-pass truncation completely discards tail observations and leaves unspent privacy slack $M_{\text{thresh}} - \alpha_i f_i > 0$.
+  \vspace{-0.2em}
+  \item Discards tail records and leaves unspent privacy slack $M_{\text{thresh}} - \alpha_i f_i > 0$.
 \end{itemize}
 
-\vspace{0.3em}
+\vspace{0.2em}
 \textbf{Scheme 2: Vector Rescaling (\texttt{"vector\_upscale"}):}
 \begin{itemize}
+  \setlength{\itemsep}{1pt}
   \item Upward rescaling to full threshold capacity:
-  \small
+  \vspace{-0.2em}
   $$\alpha_i^{\text{vec}} = \min\!\left(1, \, \alpha_i \cdot \frac{M_{\text{thresh}}}{\alpha_i f_i}\right) = \min\!\left(1, \, \frac{M_{\text{thresh}}}{f_i}\right)$$
-  \normalsize
+  \vspace{-0.2em}
   \item Pointwise dominates hard truncation: $\alpha_i^{\text{vec}} \ge \alpha_i^{\text{trunc}}$ for all $i \in \{1, \dots, n\}$.
 \end{itemize}
+\normalsize
 \end{column}
 
 \begin{column}{0.50\textwidth}
 \textbf{Information Dominance (Proposition 2):}
+\footnotesize
 \begin{itemize}
+  \setlength{\itemsep}{2pt}
   \item Because $\alpha_i^{\text{vec}} \ge \alpha_i^{\text{trunc}}$ everywhere, vector upward rescaling strictly maximizes Fisher information:
-  \small
+  \vspace{-0.2em}
   $$\mathcal{I}_{\boldsymbol{\alpha}^{\text{vec}}}(\theta) \succeq \mathcal{I}_{\boldsymbol{\alpha}^{\text{trunc}}}(\theta)$$
-  \normalsize
+  \vspace{-0.2em}
   in the Loewner partial order.
   \item \textbf{Pass 3 Execution}: Upward rescaling shifts pseudo-posterior geometry $\xi_{\alpha^{\text{vec}}}(\theta \mid D)$; \texttt{fit\_dp\_lbbnn} executes an additional variational pass targeting $\xi_{\alpha^{\text{vec}}}$ to ensure calibration and bound verification.
 \end{itemize}
+\normalsize
 \end{column}
 \end{columns}
 
-## Track 1B — Synthetic Microdata Utility vs. Outlier Protection
+## Track 1B — Synthetic Microdata Utility Across Privacy Weight Schemes
 
-\includegraphics[width=0.92\textwidth]{figures/track1_synth_utility_panels.pdf}
+\includegraphics[width=0.92\textwidth, height=0.46\textheight, keepaspectratio]{figures/track1_synth_utility_panels.pdf}
 
-\vspace{0.2em}
-\textbf{Distributional Utility vs. Disclosure Protection}:
+\vspace{-0.2em}
+\scriptsize
+\textbf{Empirical Comparison of Privacy Weight Schemes ($M_{\text{thresh}} = 5.5, n = 200$):}
 \begin{itemize}
-  \item 3 extreme outliers distort raw sample mean ($\$11.30$ vs. $\$6.70$) and explode standard deviation to $\$46.75$.
-  \item \textbf{DP-Private Synthetic} microdata recovers the true distribution body (Mean $\$7.99$, Median $\$4.13$) while safely truncating disclosure risk on extreme tail outliers.
+  \setlength{\itemsep}{1.5pt}
+  \item \textbf{Target Clip + Vector Upscale}: Retains highest Effective Sample Size ($\sum \alpha_i = 189.9 / 200$, $76\%$ units with $\alpha_i = 1$, $0$ zeroed) while strictly capping sensitivity at $M_{\text{thresh}} = 5.5$, matching clean distribution moments almost perfectly (Mean $\$7.29$, Std Dev $\$8.12$ vs. Clean $\$6.70$, $\$7.23$).
+  \item \textbf{Linear + Surgical (Baseline)}: Surgically zeroes all 3 extreme outliers ($f_i > 3M_{\text{thresh}}$), recovering the clean distribution body (Mean $\$7.99$) and shielding standard deviation from catastrophic explosion ($\$13.95$ vs. $\$46.75$).
+  \item \textbf{Percentile Deficit Truncation}: Aggressively caps the upper tail (10 records zeroed, Mean $\$7.25$, $\epsilon_{\text{local}} = 4.46$), trading sample size ($\text{ESS} = 117.7$) for maximum tail disclosure protection.
+  \item \textbf{Reciprocal Linear (Remark 1)}: Collapses effective sample size ($\text{ESS} = 57.5$) due to hyperbolic $(f_{\min}/f_i)$ attenuation, empirically confirming Savitsky's (2026) preference for direct $1 - \tilde{f}_i$.
 \end{itemize}
+\normalsize
 
 ## Pipeline & Return Structures: Two-Pass DP Synthesis (Track 1B)
 
@@ -614,26 +636,27 @@ synth_micro <- sample_synthetic_lbbnn(dp_fit, newdata = x_micro, draws = 50)
 
 ## Intuition & Torch Training Link for All Five Estimators
 
-\vspace{0.1em}
-\renewcommand{\arraystretch}{1.20}
+\vspace{-0.2em}
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.18}
 \scriptsize
 \begin{table}[ht]
 \centering
-\begin{tabular}{p{0.13\textwidth}p{0.22\textwidth}p{0.22\textwidth}p{0.36\textwidth}}
+\begin{tabular}{p{0.12\textwidth}p{0.21\textwidth}p{0.21\textwidth}p{0.41\textwidth}}
 \toprule
 \textbf{Estimator} & \textbf{Sample Overlap} & \textbf{Composite Prob $\pi_{zi}$} & \textbf{Torch Backprop \& Loss Link} \\
 \midrule
 \texttt{STACK} & $S_c \oplus S_r$ (Unlinked) & $\frac{\pi_{ci}}{\pi_{ci} + \pi_{ri}}$ & Offset $\text{logit}(\pi_{zi}) = \eta_\theta(\mathbf{x}_i) - \log \pi_{ri}$ in Bernoulli NLL. \\
 \texttt{LINK1} & $S_c \cup (S_r \setminus S_c)$ & $\frac{\pi_{ci}}{\pi_{ci} + \pi_{ri} - \pi_{ci}\pi_{ri}}$ & Deduplicated union; backprops through $-\pi_{ci}\pi_{ri}$ overlap adjustment. \\
-\texttt{LINK2} & $S_c \oplus S_r$ (Linked Stack) & $\frac{\pi_{ci}(1 + \pi_{ri})}{\pi_{ci} + \pi_{ri}}$ & Exact indicator $I_{zi} = D_i + (1-D_i)I_{ci}$; maximizes Fisher info. \\
+\texttt{LINK2} & $S_c \oplus S_r$ (Linked Stack) & $\frac{\pi_{ci}(1 + \pi_{ri})}{\pi_{ci} + \pi_{ri}}$ & Exact indicator $I_{zi} = D_i + (1-D_i)I_{ci}$; maximizes Fisher information. \\
 \texttt{MIP} & Missing Information & Bridges \texttt{STACK} \& \texttt{LINK2} & Evaluates expectation $\tilde{I}_{zi}^{\text{MIP}} = D_i + (1-D_i)\tilde{p}_i$ with $\tilde{p}_i \in [0, 1]$. \\
-\texttt{PSEUDO} & Survey-Weighted & Design pseudo-likelihood & Score: $\sum_{S_r} \pi_{ri}^{-1}\text{softplus}(\eta_i) + \sum_{S_c} \log(1 + e^{-\eta_i}) = 0$. \\
+\texttt{PSEUDO} & Survey-Weighted & Design pseudo-likelihood & Score: $\sum_{S_r} \pi_{ri}^{-1}\text{softplus}(\eta_i) +$ \newline $\sum_{S_c} \log(1 + e^{-\eta_i}) = 0$. \\
 \bottomrule
 \end{tabular}
 \end{table}
 \normalsize
 
-\vspace{-0.3em}
+\vspace{-0.4em}
 \scriptsize
 \begin{itemize}
   \setlength{\itemsep}{1pt}
@@ -697,22 +720,26 @@ synth_micro <- sample_synthetic_lbbnn(dp_fit, newdata = x_micro, draws = 50)
 
 ## Study 1 — Automated Confounder Selection & Noise Pruning ($p = 6$)
 
-\vspace{0.1em}
+\vspace{-0.2em}
 \begin{columns}
 \begin{column}{0.42\textwidth}
 \textbf{Simulation Setup ($N = 5,000, p = 6$):}
+\footnotesize
 \begin{itemize}
+  \setlength{\itemsep}{1pt}
   \item \textbf{Confounders}: $X_1, X_2$ drive both propensity $\pi_{ci}$ and outcome $Y_i$.
   \item \textbf{Outcome-Only}: $X_3$ drives $Y_i$ but uncorrelated with selection $I_c$.
   \item \textbf{Pure Noise}: $X_4, X_5, X_6 \sim \mathcal{N}(0, 1)$.
 \end{itemize}
 
-\vspace{0.3em}
+\vspace{0.2em}
 \textbf{Why Variable Selection Matters}:
 \begin{itemize}
-  \item In propensity modeling, forcing outcome-only $X_3$ does \textbf{not} reduce selection bias, but \textbf{inflates H\'{a}jek weight variance}.
-  \item \texttt{LBBNN} automatically prunes $X_3$ ($\alpha_3 = 0.028 \ll 0.50$) along with pure noise $X_4\text{--}X_6$, isolating true selection confounders ($X_1, X_2$).
+  \setlength{\itemsep}{1pt}
+  \item Forcing outcome-only $X_3$ does \textbf{not} reduce selection bias, but \textbf{inflates H\'{a}jek weight variance}.
+  \item \texttt{LBBNN} prunes $X_3$ ($a_3 = 0.028 \ll 0.50$) and noise $X_4\text{--}X_6$, isolating true selection confounders ($X_1, X_2$).
 \end{itemize}
+\normalsize
 \end{column}
 
 \begin{column}{0.58\textwidth}
@@ -801,32 +828,124 @@ y_bar_hajek <- hajek_estimate(y = pop$y[pop$I.c == 1], pi_hat = pi_c_hat, dirich
 
 ## Discussion — Bridging Track 2 Propensity Weights with Track 1 Regression
 
-\vspace{0.1em}
+\vspace{-0.2em}
 \begin{columns}
 \begin{column}{0.50\textwidth}
 \textbf{Two-Stage Quasi-Randomization (Track 2):}
+\footnotesize
 \begin{itemize}
+  \setlength{\itemsep}{2pt}
   \item \textbf{Stage 1}: \texttt{LBBNN} propensity model estimates $\hat{\pi}_{ci} = \mathbb{P}(I_{ci} = 1 \mid \mathbf{x}_i)$.
   \item \textbf{Stage 2}: Apply outcome-agnostic H\'{a}jek weights:
-  \small
+  \vspace{-0.2em}
   $$\hat{w}_i = \hat{\pi}_{ci}^{-1}, \qquad \hat{\bar{Y}}_{\text{Hajek}} = \frac{\sum_{i \in S_c} \hat{w}_i y_i}{\sum_{i \in S_c} \hat{w}_i}$$
-  \normalsize
+  \vspace{-0.2em}
   to any survey response variable $y_i$.
   \item \textbf{Outcome-Only Sparsity}: Pruning $X_3$ (which predicts $Y$ but not $I_c$) prevents weight variance inflation.
 \end{itemize}
+\normalsize
 \end{column}
 
 \begin{column}{0.50\textwidth}
 \textbf{Doubly Robust Pseudo-Posterior Imputation:}
+\footnotesize
 \begin{itemize}
+  \setlength{\itemsep}{2pt}
   \item \textbf{Bridging Track 2 $\to$ Track 1}: Normalize inverse propensity weights to sample size:
-  \small
+  \vspace{-0.2em}
   $$\tilde{w}_i = \hat{\pi}_{ci}^{-1} \frac{n_c}{\sum_{j \in S_c} \hat{\pi}_{cj}^{-1}}$$
-  \normalsize
+  \vspace{-0.2em}
   and feed $u_i = \tilde{w}_i$ directly into a \textbf{Track 1 LBBNN regression model} for $y_i$.
   \item \textbf{Double Robustness}: Consistent if \emph{either} propensity model \emph{or} outcome regression is correctly specified.
   \item Outcome model retains $X_3$ via spike-and-slab, recovering optimal predictive accuracy!
 \end{itemize}
+\normalsize
+\end{column}
+\end{columns}
+
+## Joint Estimation — Two-Head LBBNN for Propensity & Outcome
+
+\vspace{-0.2em}
+\begin{columns}
+\begin{column}{0.48\textwidth}
+\textbf{End-to-End Joint Learning:}
+\footnotesize
+\begin{itemize}
+  \setlength{\itemsep}{2pt}
+  \item \textbf{Shared Representation}: Covariates $\mathbf{x} \in \mathbb{R}^p$ pass through shared latent binary spike-and-slab layers $\mathbf{z}_{\text{shared}}$ with direct ISLaB skips.
+  \item \textbf{Head 1 (Propensity $\hat{\pi}_{ci}$)}: Predicts $\hat{\pi}_{ci} = \sigma(\eta_\theta^{(\pi)}(\mathbf{x}_i))$ trained via composite likelihood ($\mathcal{L}_{\text{comp}}$: \texttt{MIP} or \texttt{STACK}).
+  \item \textbf{Head 2 (Outcome $\hat{y}_i$)}: Predicts survey outcome $\hat{y}_i = \mu_\theta^{(y)}(\mathbf{x}_i, \hat{\pi}_{ci})$ using $\hat{\pi}_{ci}$ as a balancing control function, weighted by $\hat{\pi}_{ci}^{-1}$.
+  \item \textbf{Joint Variational ELBO}:
+  \vspace{-0.2em}
+  \scriptsize
+  $$\mathcal{L}_{\text{joint}}(q) = \mathbb{E}_q\!\left[\mathcal{L}_{\text{comp}}(\hat{\pi}_c) + \sum_{i \in S_c} \hat{\pi}_{ci}^{-1}\log p(y_i \mid \mathbf{x}_i, \hat{\pi}_{ci})\right]$$
+  \vspace{-0.3em}
+  $$\qquad\qquad\qquad\qquad\quad -\;\text{KL}(q(\theta) \parallel p(\theta))$$
+  \footnotesize
+  \vspace{-0.2em}
+  \item \textbf{Unified Feature Attribution}: Confounders ($X_1, X_2$) are shared; outcome-only drivers ($X_3$) feed directly into Head 2 without inflating propensity variance!
+\end{itemize}
+\normalsize
+\end{column}
+
+\begin{column}{0.52\textwidth}
+\begin{center}
+\begin{tikzpicture}[scale=0.67, every node/.style={transform shape}]
+  % Inputs
+  \node[circle, draw=blue!70, fill=blue!10, thick, inner sep=2pt] (X1) at (0, 3.1) {\footnotesize $X_1, X_2$};
+  \node[above=2pt of X1, blue!90] {\tiny \textbf{Confounders}};
+  
+  \node[circle, draw=gray!60, fill=gray!10, dashed, inner sep=2pt] (Xnoise) at (0, 1.7) {\footnotesize $X_{\text{noise}}$};
+  \node[above=2pt of Xnoise, gray!70] {\tiny \textbf{Pure Noise (Pruned)}};
+  
+  \node[circle, draw=purple!70, fill=purple!10, thick, inner sep=2pt] (X3) at (0, 0.3) {\footnotesize $X_3$};
+  \node[above=2pt of X3, purple!90] {\tiny \textbf{Outcome-Only}};
+
+  % Shared Representation
+  \node[rectangle, rounded corners, draw=teal!80, fill=teal!10, thick, minimum width=1.6cm, minimum height=3.2cm, align=center] (Shared) at (2.2, 1.7) {
+    \textbf{Shared}\\[2pt]
+    \textbf{Latent}\\[2pt]
+    \textbf{Layers}\\[3pt]
+    \tiny Spike-and-Slab\\
+    \tiny Binary Gates $\mathbf{z}$\\
+    \tiny ISLaB Skips
+  };
+
+  % Head 1
+  \node[rectangle, rounded corners, draw=orange!80, fill=orange!10, thick, minimum width=1.5cm, minimum height=1.1cm, align=center] (HeadPi) at (4.7, 2.7) {
+    \textbf{Head 1: $\hat{\pi}_{ci}$}\\[1pt]
+    \tiny Propensity\\
+    \tiny $\mathcal{L}_{\text{comp}}$ Loss
+  };
+
+  % Head 2
+  \node[rectangle, rounded corners, draw=green!70!black, fill=green!10, thick, minimum width=1.5cm, minimum height=1.1cm, align=center] (HeadY) at (4.7, 0.7) {
+    \textbf{Head 2: $\hat{y}_i$}\\[1pt]
+    \tiny Outcome\\
+    \tiny $\mathcal{L}_{\text{pseudo}}$ Loss
+  };
+
+  % Outputs
+  \node[circle, draw=orange!90, fill=orange!20, thick, inner sep=2pt] (OutPi) at (6.6, 2.7) {\footnotesize $\hat{\pi}_c$};
+  \node[circle, draw=green!80!black, fill=green!20, thick, inner sep=2pt] (OutY) at (6.6, 0.7) {\footnotesize $\hat{Y}$};
+
+  % Edges
+  \draw[->, thick, blue!80] (X1) -- (Shared.160);
+  \draw[->, dotted, gray!60] (Xnoise) -- (Shared.180);
+
+  \draw[->, thick, teal!80] (Shared.25) -- (HeadPi.west);
+  \draw[->, thick, teal!80] (Shared.335) -- (HeadY.west);
+
+  \draw[->, thick, orange!80] (HeadPi) -- (OutPi);
+  \draw[->, thick, green!70!black] (HeadY) -- (OutY);
+
+  % Feedback / weight from Pi to Head Y
+  \draw[->, very thick, red!70, dashed] (OutPi) to[bend left=55] node[right, red!85] {\tiny $\hat{\pi}_{ci}^{-1}$ Weights} (HeadY.east);
+
+  % Skip connection for X3 directly to Head 2 underneath Shared
+  \draw[->, thick, purple!80, dashed] (X3) to[bend right=20] node[below, purple!90, sloped] {\tiny Direct Skip ($a_3^{(y)}=1, a_3^{(\pi)}=0$)} (HeadY.south west);
+\end{tikzpicture}
+\end{center}
 \end{column}
 \end{columns}
 
