@@ -11,6 +11,7 @@
 #' @param target_cols Integer, number of target columns if \code{newdata} is a \code{data.frame} (default 1).
 #' @param device Character, device to compute on ("cpu", "cuda", "mps").
 #' @return A numeric matrix of dimension \code{draws x n} containing pointwise log-likelihoods.
+#' @importFrom stats predict rnorm quantile sd median
 #' @export
 loglik_contributions <- function(object, newdata, draws = 100, mpm = FALSE,
                                  sigma = 1.0, target_cols = 1, device = "cpu") {
@@ -119,15 +120,17 @@ loglik_contributions <- function(object, newdata, draws = 100, mpm = FALSE,
 #' \code{"vector_upscale"} (upward rescaling to Loewner-dominate hard truncation), \code{"surgical"} (monotone tail zeroing),
 #' or \code{"none"}.
 #'
-#' @param f_vec Numeric vector of length \eqn{n} containing worst-case record-level sensitivities \eqn{f_i = \max_s |\ell_i(\theta^{(s)})|}.
-#' @param stage1_method Character string specifying Stage 1 normalization: \code{"linear"} (default), \code{"percentile"}, or \code{"target_clip"}.
-#' @param stage2_method Character string specifying Stage 2 adjustment: \code{"surgical"} (default), \code{"hard_trunc"}, \code{"vector_upscale"}, or \code{"none"}.
-#' @param c_scale Numeric scaling parameter \eqn{c \in (0, 1]} for linear normalization (default 1.0).
-#' @param g_shift Numeric shift parameter \eqn{g \ge 0} for linear normalization (default 0.0).
-#' @param p_L Numeric left quantile level for percentile normalization (default 0.05).
-#' @param p_R Numeric right quantile level for percentile normalization (default 0.95).
-#' @param Delta_goal Optional numeric sensitivity goal \eqn{\Delta_{\text{goal}} > 0} for target clipping (default uses \code{M_thresh} or median of \code{f_vec}).
-#' @param M_thresh Optional numeric threshold \eqn{M_{\text{thresh}} > 0} enforcing \eqn{\alpha_i f_i \le M_{\text{thresh}}}.
+#' @param f_vec Numeric vector of unit-level empirical sensitivities \eqn{f_i = \max_s |\ell_i(\theta_s)|}. Default is \code{NULL}.
+#' @param stage1_method Character string for Stage 1 initial normalization: \code{"linear"}, \code{"percentile"}, or \code{"target_clip"}.
+#' @param stage2_method Character string for Stage 2 reweighting: \code{"surgical"}, \code{"hard_trunc"}, \code{"vector_upscale"}, or \code{"none"}.
+#' @param c_scale Numeric scaling constant \eqn{c \in (0, 1]} for linear min-max normalization. Default is \code{1}.
+#' @param g_shift Numeric shift constant \eqn{g \ge 0} for linear min-max normalization. Default is \code{0}.
+#' @param p_L Numeric lower quantile threshold \eqn{p_L \in (0, 1)} for percentile normalization. Default is \code{0.05}.
+#' @param p_R Numeric upper quantile threshold \eqn{p_R \in (0, 1)} for percentile normalization. Default is \code{0.95}.
+#' @param Delta_goal Optional numeric scalar or vector specifying the unit sensitivity goal \eqn{\Delta_{i,\text{goal}} > 0} for target ratio clipping. Default is \code{NULL}.
+#' @param M_thresh Optional numeric privacy threshold \eqn{M_{\text{thresh}} > 0} for Stage 2 reweighting. Default is \code{NULL}.
+#' @param f_i Optional alias for \code{f_vec}. Default is \code{NULL}.
+#' @param delta_goal Optional alias for \code{Delta_goal}. Default is \code{NULL}.
 #' @return A list containing:
 #'   \item{alpha}{Final numeric vector of privacy weights \eqn{\alpha_i^* \in [0, 1]}.}
 #'   \item{alpha_stage1}{Numeric vector of intermediate weights after Stage 1.}
@@ -353,7 +356,7 @@ fit_dp_lbbnn <- function(
   # Calibrate sigma for regression if NULL
   if (is.null(sigma)) {
     if (model_pass1$problem_type == "regression") {
-      preds_p1 <- predict(model_pass1, newdata = eval_dl, draws = S, mpm = FALSE, device = device)
+      preds_p1 <- stats::predict(model_pass1, newdata = eval_dl, draws = S, mpm = FALSE, device = device)
       y_hat_p1 <- as.numeric(preds_p1$mean(dim = 1)$cpu())
       sigma <- stats::sd(as.numeric(y_vec) - y_hat_p1)
       if (is.na(sigma) || sigma <= 0) sigma <- 1.0
@@ -461,12 +464,15 @@ fit_dp_lbbnn <- function(
 #' of an LBBNN model fitted with \code{fit_dp_lbbnn()}, incorporating calibrated observation noise.
 #' Returns an \code{n x draws} matrix where each column represents one complete synthetic dataset replicate.
 #'
-#' @param dp_fit Output list returned by \code{fit_dp_lbbnn()}.
-#' @param newdata Matrix, data.frame, or tensor of predictor features.
+#' @param dp_fit Fitted DP LBBNN object returned by \code{fit_dp_lbbnn()}. Default is \code{NULL}.
+#' @param newdata Optional matrix, data.frame, or tensor of predictor features. Default is \code{NULL}.
 #' @param draws Integer, number of posterior draws / synthetic replicates (default 20).
 #' @param mpm Logical, whether to use Median Probability Model (default FALSE).
 #' @param log_scale Logical, if TRUE exponentiates predictions \code{exp(y_synth)} (default FALSE).
 #' @param device Character, device string ("cpu", "cuda", "mps").
+#' @param model Optional alias for \code{dp_fit} (or a fitted \code{lbbnn_net} model). Default is \code{NULL}.
+#' @param x_ref Optional alias for \code{newdata}. Default is \code{NULL}.
+#' @param n_syn Optional integer specifying the number of synthetic records or draws (alias for \code{draws}). Default is \code{NULL}.
 #' @return A numeric matrix of dimensions \code{nrow(newdata) x draws} of synthetic observations.
 #' @export
 sample_synthetic_lbbnn <- function(dp_fit = NULL, newdata = NULL, draws = 20, mpm = FALSE,
@@ -486,13 +492,13 @@ sample_synthetic_lbbnn <- function(dp_fit = NULL, newdata = NULL, draws = 20, mp
     newdata <- newdata[1:n_syn, , drop = FALSE]
   }
   target_model <- if (inherits(dp_fit, "lbbnn_net")) dp_fit else dp_fit$model
-  mu_draws <- predict(target_model, newdata = newdata, draws = draws, mpm = mpm, device = device)
+  mu_draws <- stats::predict(target_model, newdata = newdata, draws = draws, mpm = mpm, device = device)
   # mu_draws has shape (draws, n, 1) -> transpose to (n, draws)
   mu_mat <- t(as.matrix(mu_draws[, , 1]$cpu()))
   n_obs <- nrow(mu_mat)
   sigma_noise <- if (!is.null(dp_fit$sigma_hat)) dp_fit$sigma_hat else 1.0
   synth_mat <- matrix(
-    rnorm(n_obs * draws, mean = as.numeric(mu_mat), sd = sigma_noise),
+    stats::rnorm(n_obs * draws, mean = as.numeric(mu_mat), sd = sigma_noise),
     nrow = n_obs, ncol = draws
   )
   if (log_scale) synth_mat <- exp(synth_mat)

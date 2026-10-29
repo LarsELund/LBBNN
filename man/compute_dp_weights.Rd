@@ -5,7 +5,7 @@
 \title{Two-Stage Privacy Weight Normalization for Differential Privacy}
 \usage{
 compute_dp_weights(
-  f_vec,
+  f_vec = NULL,
   stage1_method = c("linear", "percentile", "target_clip"),
   stage2_method = c("surgical", "hard_trunc", "vector_upscale", "none"),
   c_scale = 1,
@@ -13,27 +13,33 @@ compute_dp_weights(
   p_L = 0.05,
   p_R = 0.95,
   Delta_goal = NULL,
-  M_thresh = NULL
+  M_thresh = NULL,
+  f_i = NULL,
+  delta_goal = NULL
 )
 }
 \arguments{
-\item{f_vec}{Numeric vector of length \eqn{n} containing worst-case record-level sensitivities \eqn{f_i = \max_s |\ell_i(\theta^{(s)})|}.}
+\item{f_vec}{Numeric vector of unit-level empirical sensitivities \eqn{f_i = \max_s |\ell_i(\theta_s)|}. Default is \code{NULL}.}
 
-\item{stage1_method}{Character string specifying Stage 1 normalization: \code{"linear"} (default), \code{"percentile"}, or \code{"target_clip"}.}
+\item{stage1_method}{Character string for Stage 1 initial normalization: \code{"linear"}, \code{"percentile"}, or \code{"target_clip"}.}
 
-\item{stage2_method}{Character string specifying Stage 2 adjustment: \code{"surgical"} (default), \code{"hard_trunc"}, \code{"vector_upscale"}, or \code{"none"}.}
+\item{stage2_method}{Character string for Stage 2 reweighting: \code{"surgical"}, \code{"hard_trunc"}, \code{"vector_upscale"}, or \code{"none"}.}
 
-\item{c_scale}{Numeric scaling parameter \eqn{c \in (0, 1]} for linear normalization (default 1.0).}
+\item{c_scale}{Numeric scaling constant \eqn{c \in (0, 1]} for linear min-max normalization. Default is \code{1}.}
 
-\item{g_shift}{Numeric shift parameter \eqn{g \ge 0} for linear normalization (default 0.0).}
+\item{g_shift}{Numeric shift constant \eqn{g \ge 0} for linear min-max normalization. Default is \code{0}.}
 
-\item{p_L}{Numeric left quantile level for percentile normalization (default 0.05).}
+\item{p_L}{Numeric lower quantile threshold \eqn{p_L \in (0, 1)} for percentile normalization. Default is \code{0.05}.}
 
-\item{p_R}{Numeric right quantile level for percentile normalization (default 0.95).}
+\item{p_R}{Numeric upper quantile threshold \eqn{p_R \in (0, 1)} for percentile normalization. Default is \code{0.95}.}
 
-\item{Delta_goal}{Optional numeric sensitivity goal \eqn{\Delta_{\text{goal}} > 0} for target clipping (default uses \code{M_thresh} or median of \code{f_vec}).}
+\item{Delta_goal}{Optional numeric scalar or vector specifying the unit sensitivity goal \eqn{\Delta_{i,\text{goal}} > 0} for target ratio clipping. Default is \code{NULL}.}
 
-\item{M_thresh}{Optional numeric threshold \eqn{M_{\text{thresh}} > 0} enforcing \eqn{\alpha_i f_i \le M_{\text{thresh}}}.}
+\item{M_thresh}{Optional numeric privacy threshold \eqn{M_{\text{thresh}} > 0} for Stage 2 reweighting. Default is \code{NULL}.}
+
+\item{f_i}{Optional alias for \code{f_vec}. Default is \code{NULL}.}
+
+\item{delta_goal}{Optional alias for \code{Delta_goal}. Default is \code{NULL}.}
 }
 \value{
 A list containing:

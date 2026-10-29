@@ -34,6 +34,7 @@
 #'   \item{total_ci_lower}{Lower 2.5% credible bound for domain total.}
 #'   \item{total_ci_upper}{Upper 97.5% credible bound for domain total.}
 #' }
+#' @importFrom stats predict rnorm rexp quantile sd model.matrix
 #' @export
 predict_domains_lbbnn <- function(
     object,
@@ -51,7 +52,7 @@ predict_domains_lbbnn <- function(
   device <- resolve_device(device)
 
   # 1. Obtain posterior draws of predictions: shape (draws, n, 1) or (draws, n)
-  preds_draws <- predict(object, newdata = newdata, draws = draws, mpm = mpm, device = device)
+  preds_draws <- stats::predict(object, newdata = newdata, draws = draws, mpm = mpm, device = device)
   
   if (inherits(preds_draws, "torch_tensor")) {
     preds_mat <- as.matrix(preds_draws$squeeze(-1)$cpu())
@@ -213,7 +214,7 @@ impute_response_lbbnn <- function(
   mis_covars <- newdata[mis_idx, covar_cols, drop = FALSE]
 
   # Generate predictive draws for missing units
-  preds <- predict(object, newdata = mis_covars, draws = draws, mpm = mpm, device = device)
+  preds <- stats::predict(object, newdata = mis_covars, draws = draws, mpm = mpm, device = device)
   
   if (inherits(preds, "torch_tensor")) {
     preds_mat <- as.matrix(preds$squeeze(-1)$cpu())

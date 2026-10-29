@@ -19,7 +19,9 @@ Suggests:
     testthat (>= 3.0.0),
     knitr,
     rmarkdown,
-    torchvision
+    torchvision,
+    MASS,
+    sampling
 Config/testthat/edition: 3
 Depends: 
     R (>= 3.5)

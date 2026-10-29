@@ -11,7 +11,9 @@ hajek_estimate(
   clip_min = 1e-04,
   domain_matrix = NULL,
   dirichlet_uq = FALSE,
-  n_draws = 100
+  n_draws = 100,
+  pi = NULL,
+  draws = NULL
 )
 }
 \arguments{
@@ -31,6 +33,10 @@ or factor/character/integer vector of domain assignments.}
 draws \eqn{\boldsymbol{\xi}^{(s)} \sim \text{Dirichlet}(1, \dots, 1)} (default FALSE).}
 
 \item{n_draws}{Integer, number of Dirichlet draws if \code{dirichlet_uq = TRUE} (default 100).}
+
+\item{pi}{Optional alias for \code{pi_hat}. Default is \code{NULL}.}
+
+\item{draws}{Optional alias for \code{n_draws} when \code{dirichlet_uq = TRUE}. Default is \code{NULL}.}
 }
 \value{
 If \code{domain_matrix} is NULL and \code{dirichlet_uq = FALSE}, returns a numeric scalar.

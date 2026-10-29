@@ -19,6 +19,7 @@
 #' this value. Currently, this is the overall density, not density in active
 #' paths, as the latter is expensive to compute for each epoch.
 #' @param verbose Control whether metrics are printed to console.
+#' @param weights Optional numeric vector of non-negative unit observation weights \eqn{u_i \ge 0}. Default is \code{NULL}.
 #' @return a list containing the losses and accuracy (if classification)
 #' and density for each epoch during training.
 #' For comparisons sake we show the density with and without active paths.

@@ -7,6 +7,7 @@
 #' and column 2 is \eqn{\pi_{ri}}.
 #' @param reduction Character, either \code{"sum"} or \code{"none"}. Default is \code{"sum"}.
 #' @return A scalar torch tensor (if reduction is "sum") or 1D tensor of loss contributions.
+#' @importFrom stats plogis rnorm rbinom rexp quantile sd model.matrix
 #' @export
 nll_stack <- function(input, target, reduction = "sum") {
   eta <- input$squeeze(-1)
@@ -172,6 +173,13 @@ gen_pop_nonlinear <- function(
   SigmaX[1, 3] <- SigmaX[3, 1] <- 0.3
   SigmaX[2, 3] <- SigmaX[3, 2] <- 0.3
 
+  if (!requireNamespace("MASS", quietly = TRUE)) {
+    stop("Package 'MASS' is required to generate multivariate normal covariates. Please install it.")
+  }
+  if (!requireNamespace("sampling", quietly = TRUE)) {
+    stop("Package 'sampling' is required for inclusion probability calculations. Please install it.")
+  }
+
   X <- MASS::mvrnorm(n = N, mu = rep(0, p), Sigma = SigmaX)
   colnames(X) <- paste0("X", 1:p)
 
@@ -228,6 +236,9 @@ gen_pop_nonlinear <- function(
 #' @export
 draw_combined_samples <- function(pop, seed = NULL) {
   if (!is.null(seed)) set.seed(seed)
+  if (!requireNamespace("sampling", quietly = TRUE)) {
+    stop("Package 'sampling' is required for sampling from inclusion probabilities. Please install it.")
+  }
   pop$I.r <- 0
   sel_r <- which(sampling::UPrandomsystematic(pop$pi.r) == 1)
   pop$I.r[sel_r] <- 1
@@ -237,8 +248,13 @@ draw_combined_samples <- function(pop, seed = NULL) {
 
 #' @title Construct Training Dataset for Composite Propensity Estimators
 #' @description Formats covariates and target matrices for the 5 composite likelihood methods
-#' @param p_link Optional numeric scalar or vector of linkage probabilities for \code{"MIP"}.
-#' If a vector, it can have length \eqn{n_r} (for reference sample \eqn{S_r}) or length \eqn{n_c + n_r}.
+#' @param pop Optional data.frame containing the population or combined sample data. Default is \code{NULL}.
+#' @param method Character string specifying the sample combination estimator: one of \code{"STACK"}, \code{"LINK1"}, \code{"LINK2"}, \code{"MIP"}, or \code{"PSEUDO"}.
+#' @param covar_cols Character vector of covariate column names when \code{pop} is supplied. Default is \code{paste0("X", 1:10)}.
+#' @param p_link Optional scalar or numeric vector of marginal linkage probabilities in \eqn{[0, 1]} for the \code{"MIP"} estimator. Default is \code{NULL}.
+#' @param X_c Optional numeric matrix or data.frame of covariates for the convenience sample \eqn{S_c}. Default is \code{NULL}.
+#' @param X_r Optional numeric matrix or data.frame of covariates for the reference probability sample \eqn{S_r}. Default is \code{NULL}.
+#' @param pi_r Optional numeric vector of known reference survey inclusion probabilities \eqn{\pi_{ri}}. Default is \code{NULL}.
 #' @return A list containing:
 #'   \item{data}{A \code{data.frame} with covariates and the target columns packed at the end.}
 #'   \item{target_cols}{Integer number of target columns (2 for STACK/LINK1/LINK2/PSEUDO, 3 or 4 for MIP).}
@@ -353,6 +369,8 @@ build_propensity_dataset <- function(
 #' @param dirichlet_uq Logical, whether to evaluate design uncertainty via Dirichlet Bayesian bootstrap
 #' draws \eqn{\boldsymbol{\xi}^{(s)} \sim \text{Dirichlet}(1, \dots, 1)} (default FALSE).
 #' @param n_draws Integer, number of Dirichlet draws if \code{dirichlet_uq = TRUE} (default 100).
+#' @param pi Optional alias for \code{pi_hat}. Default is \code{NULL}.
+#' @param draws Optional alias for \code{n_draws} when \code{dirichlet_uq = TRUE}. Default is \code{NULL}.
 #' @return If \code{domain_matrix} is NULL and \code{dirichlet_uq = FALSE}, returns a numeric scalar.
 #' Otherwise returns a \code{data.frame} of estimates (domain, mean, sd, credible intervals, totals).
 #' @export

@@ -5,18 +5,21 @@
 \title{Generate Synthetic Microdata from DP-Trained LBBNN}
 \usage{
 sample_synthetic_lbbnn(
-  dp_fit,
-  newdata,
+  dp_fit = NULL,
+  newdata = NULL,
   draws = 20,
   mpm = FALSE,
   log_scale = FALSE,
-  device = "cpu"
+  device = "cpu",
+  model = NULL,
+  x_ref = NULL,
+  n_syn = NULL
 )
 }
 \arguments{
-\item{dp_fit}{Output list returned by \code{fit_dp_lbbnn()}.}
+\item{dp_fit}{Fitted DP LBBNN object returned by \code{fit_dp_lbbnn()}. Default is \code{NULL}.}
 
-\item{newdata}{Matrix, data.frame, or tensor of predictor features.}
+\item{newdata}{Optional matrix, data.frame, or tensor of predictor features. Default is \code{NULL}.}
 
 \item{draws}{Integer, number of posterior draws / synthetic replicates (default 20).}
 
@@ -25,6 +28,12 @@ sample_synthetic_lbbnn(
 \item{log_scale}{Logical, if TRUE exponentiates predictions \code{exp(y_synth)} (default FALSE).}
 
 \item{device}{Character, device string ("cpu", "cuda", "mps").}
+
+\item{model}{Optional alias for \code{dp_fit} (or a fitted \code{lbbnn_net} model). Default is \code{NULL}.}
+
+\item{x_ref}{Optional alias for \code{newdata}. Default is \code{NULL}.}
+
+\item{n_syn}{Optional integer specifying the number of synthetic records or draws (alias for \code{draws}). Default is \code{NULL}.}
 }
 \value{
 A numeric matrix of dimensions \code{nrow(newdata) x draws} of synthetic observations.

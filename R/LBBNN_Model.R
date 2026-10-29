@@ -38,6 +38,7 @@
 #' activation function.
 #' @param link Optional link function or torch nn_module applied to the network output.
 #' @param nll Negative log-likelihood function or torch nn_module for computing loss.
+#' @param sigma Optional numeric scalar specifying the residual observation noise standard deviation \eqn{\sigma > 0} for Gaussian likelihood calibration. Default is \code{NULL}.
 #' @param bias_inclusion_prob logical, determines whether the bias should
 #' be as associated with inclusion probabilities.
 #' @param weight_init Controls how \code{weight_mean} is initialized in each

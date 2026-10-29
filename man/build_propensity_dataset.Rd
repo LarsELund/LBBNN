@@ -5,15 +5,29 @@
 \title{Construct Training Dataset for Composite Propensity Estimators}
 \usage{
 build_propensity_dataset(
-  pop,
+  pop = NULL,
   method = c("STACK", "LINK1", "LINK2", "MIP", "PSEUDO"),
   covar_cols = paste0("X", 1:10),
-  p_link = NULL
+  p_link = NULL,
+  X_c = NULL,
+  X_r = NULL,
+  pi_r = NULL
 )
 }
 \arguments{
-\item{p_link}{Optional numeric scalar or vector of linkage probabilities for \code{"MIP"}.
-If a vector, it can have length \eqn{n_r} (for reference sample \eqn{S_r}) or length \eqn{n_c + n_r}.}
+\item{pop}{Optional data.frame containing the population or combined sample data. Default is \code{NULL}.}
+
+\item{method}{Character string specifying the sample combination estimator: one of \code{"STACK"}, \code{"LINK1"}, \code{"LINK2"}, \code{"MIP"}, or \code{"PSEUDO"}.}
+
+\item{covar_cols}{Character vector of covariate column names when \code{pop} is supplied. Default is \code{paste0("X", 1:10)}.}
+
+\item{p_link}{Optional scalar or numeric vector of marginal linkage probabilities in \eqn{[0, 1]} for the \code{"MIP"} estimator. Default is \code{NULL}.}
+
+\item{X_c}{Optional numeric matrix or data.frame of covariates for the convenience sample \eqn{S_c}. Default is \code{NULL}.}
+
+\item{X_r}{Optional numeric matrix or data.frame of covariates for the reference probability sample \eqn{S_r}. Default is \code{NULL}.}
+
+\item{pi_r}{Optional numeric vector of known reference survey inclusion probabilities \eqn{\pi_{ri}}. Default is \code{NULL}.}
 }
 \value{
 A list containing:

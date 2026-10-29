@@ -70,6 +70,8 @@ activation function.}
 
 \item{nll}{Negative log-likelihood function or torch nn_module for computing loss.}
 
+\item{sigma}{Optional numeric scalar specifying the residual observation noise standard deviation \eqn{\sigma > 0} for Gaussian likelihood calibration. Default is \code{NULL}.}
+
 \item{bias_inclusion_prob}{logical, determines whether the bias should
 be as associated with inclusion probabilities.}
 
