@@ -130,11 +130,11 @@ options(knitr.table.format = "latex")
 
 \begin{column}{0.48\textwidth}
 \begin{center}
-\begin{tikzpicture}[scale=0.72, every node/.style={scale=0.72}]
+\begin{tikzpicture}[scale=0.68, every node/.style={scale=0.68}]
   % Input nodes
   \node[circle, draw=blue!70, fill=blue!10, thick] (X1) at (0, 3) {$x_1$};
   \node[circle, draw=blue!70, fill=blue!10, thick] (X2) at (0, 1.5) {$x_2$};
-  \node[circle, draw=gray!60, fill=gray!10, dashed] (X3) at (0, 0) {$x_{\text{noise}}$};
+  \node[circle, draw=gray!60, fill=gray!10, dashed] (X3) at (0, 0.2) {$x_{\text{noise}}$};
   
   % Hidden nodes
   \node[circle, draw=green!70!black, fill=green!10, thick] (H1) at (2.4, 2.5) {$h_1$};
@@ -153,7 +153,7 @@ options(knitr.table.format = "latex")
   
   % Pruned edge
   \draw[->, dotted, gray!60] (X3) -- (H2);
-  \node[right, gray!70] at (0.2, -0.4) {\tiny $L=0$ (Pruned)};
+  \node[right, gray!70] at (0.5, 0.0) {\tiny $L=0$ (Pruned)};
 \end{tikzpicture}
 \end{center}
 \end{column}
@@ -347,7 +347,8 @@ $$\text{ELBO}(q; \mathbf{u}) = \sum_{i=1}^n u_i \, \mathbb{E}_{q(\theta)}\!\left
 dl_train <- get_dataloaders(df_survey, weights = w_design, normalize_weights = TRUE,
                             allow_missing = TRUE, train_batch_size = 64, test_batch_size = 32)
 # 2. Build LBBNN with calibrated residual noise scale sigma (protects T=1)
-net <- lbbnn_net(problem_type = "regression", sizes = c(p, 16, 1), sigma = 0.4, input_skip = TRUE)
+net <- lbbnn_net(problem_type = "regression", sizes = c(p, 16, 1),
+                 sigma = 0.4, input_skip = TRUE)
 fit <- train_lbbnn(LBBNN = net, train_dl = dl_train$train_loader, epochs = 100, lr = 0.01)
 # 3. Domain predictions & Bayesian imputation with Dirichlet uncertainty draws
 dom_est <- predict_domains_lbbnn(net, X, domain_matrix = G, weights = w_design,
@@ -361,7 +362,7 @@ imp_res <- impute_response_lbbnn(net, newdata = df_survey, target_col = "y", dra
 \renewcommand{\arraystretch}{1.15}
 \begin{table}[ht]
 \centering
-\begin{tabular}{p{0.20\textwidth}p{0.18\textwidth}p{0.14\textwidth}p{0.44\textwidth}}
+\begin{tabular}{p{0.19\textwidth}p{0.16\textwidth}p{0.13\textwidth}p{0.42\textwidth}}
 \toprule
 \textbf{Step / Object} & \textbf{R Class / Type} & \textbf{Dimensions} & \textbf{Statistical Contents \& Role} \\
 \midrule
@@ -443,29 +444,20 @@ Guarantees local Lipschitz bound $\Delta_{\alpha, \mathbf{y}} = \max_{s,i} |\alp
 \end{column}
 \end{columns}
 
-## Track 1B — Two-Stage Privacy Weight Normalization (Savitsky, 2026)
+## Track 1B — Stage 1 Privacy Weight Normalization on $f_i$ (Savitsky, 2026)
 
 \vspace{0.1em}
 \begin{columns}
-\begin{column}{0.50\textwidth}
-\textbf{Record Sensitivity Proxy:}
-\begin{itemize}
-  \item Extract worst-case empirical log-likelihood sensitivity from unweighted Pass 1:
-  \small
-  $$f_i = \max_{s \in \{1, \dots, S\}} |\ell_i(\theta^{(s)})|, \quad \tilde{\alpha}_i = \frac{1}{f_i}$$
-  \normalsize
-\end{itemize}
-
-\vspace{0.3em}
-\textbf{Stage 1: Initial Normalization Options:}
+\begin{column}{0.52\textwidth}
+\textbf{Direct Normalization of $f_i = \max_s |\ell_i(\theta^{(s)})|$:}
 \begin{enumerate}
-  \item \textbf{Global Linear Min-Max} (\texttt{"linear"}):
+  \item \textbf{Linear Min-Max on $f_i$} (\texttt{"linear"}):
   \small
-  $$\alpha_i^{\text{lin}} = \text{clip}_{[0, 1]}\!\left(c \cdot \frac{\tilde{\alpha}_i - \tilde{\alpha}_{\min}}{\tilde{\alpha}_{\max} - \tilde{\alpha}_{\min}} + g\right)$$
+  $$\tilde{f}_i = \frac{f_i - f_{\min}}{f_{\max} - f_{\min}}, \quad \alpha_i^{\text{lin}} = c(1 - \tilde{f}_i) = c\frac{f_{\max} - f_i}{f_{\max} - f_{\min}}$$
   \normalsize
   \item \textbf{Percentile Deficit Truncation} (\texttt{"percentile"}):
   \small
-  $$\alpha_i^{\text{pct}} = \min\!\left(1, \, \max\!\left(0, \, \frac{\tilde{\alpha}_i - q_{p_L}(\tilde{\alpha})}{q_{p_R}(\tilde{\alpha}) - q_{p_L}(\tilde{\alpha})}\right)\right)$$
+  $$\alpha_i^{\text{pct}} = \min\!\left(1, \, \max\!\left(0, \, \frac{q_{p_R}(f) - f_i}{q_{p_R}(f) - q_{p_L}(f)}\right)\right)$$
   \normalsize
   \item \textbf{Target Ratio Clipping} (\texttt{"target\_clip"}):
   \small
@@ -474,12 +466,12 @@ Guarantees local Lipschitz bound $\Delta_{\alpha, \mathbf{y}} = \max_{s,i} |\alp
 \end{enumerate}
 \end{column}
 
-\begin{column}{0.50\textwidth}
-\textbf{Theoretical Properties (Proposition 1):}
+\begin{column}{0.48\textwidth}
+\textbf{Key Theoretical Insights (Savitsky, 2026):}
 \begin{itemize}
-  \item \textbf{Min-Max Vulnerability}: Inliers ($f_{j^*} \to 0 \implies \tilde{\alpha}_{\max} \to \infty$) uniformly deflate intermediate sample weights.
-  \item \textbf{Percentile Deficit}: Truncates bottom $p_L$ tail risk and boosts intermediate sample size ($\sum \alpha_i$), but requires Stage 2 to bound $\alpha_i f_i$.
-  \item \textbf{Exact Sensitivity Control}: Target clipping guarantees $\alpha_i^{\text{clip}} f_i = \min(f_i, \Delta_{\text{goal}}) \le \Delta_{\text{goal}}$ by construction, leaving all low-sensitivity records untouched at $\alpha_i = 1$.
+  \item \textbf{Direct $1 - \tilde{f}_i$ vs. Reciprocal $1/f_i$ (Remark 1)}: Normalizing $1/f_i$ induces hyperbolic attenuation $\alpha_i^{\text{recip}} = (f_{\min}/f_i)\alpha_i^{\text{lin}}$, collapsing weights when $f_{\min} \to 0$. Direct $1 - \tilde{f}_i$ avoids this, though $\alpha_i^{\text{lin}}f_i$ peaks at $f_{\max}/2$ ($\le \frac{c}{4}f_{\max}$).
+  \item \textbf{Percentile Boosting}: Sets $\alpha_i^{\text{pct}} = 1$ for $f_i \le q_{p_L}(f)$ and $0$ for $f_i \ge q_{p_R}(f)$, boosting $\sum \alpha_i$ but requiring Stage 2 to cap $\alpha_i f_i$.
+  \item \textbf{Exact Target Control (Prop. 1)}: $\alpha_i^{\text{clip}} f_i \le \Delta_{\text{goal}}$ by construction; all moderate units ($f_i \le \Delta_{\text{goal}}$) retain full weight $\alpha_i = 1$.
 \end{itemize}
 \end{column}
 \end{columns}
@@ -539,8 +531,8 @@ Guarantees local Lipschitz bound $\Delta_{\alpha, \mathbf{y}} = \max_{s,i} |\alp
 \scriptsize
 ```r
 # 1. Calibrate privacy weights: Stage 1 target clipping + Stage 2 vector upward rescaling
-dp_w <- compute_dp_weights(f_sens, stage1_method = "target_clip", stage2_method = "vector_upscale",
-                           M_thresh = 5.5, Delta_goal = 5.5)
+dp_w <- compute_dp_weights(f_sens, stage1_method = "target_clip",
+                           stage2_method = "vector_upscale", M_thresh = 5.5, Delta_goal = 5.5)
 # 2. End-to-end multi-pass DP estimation (executes Pass 3 for vector upscale geometry)
 dp_fit <- fit_dp_lbbnn(model_spec = list(sizes = c(p, 16, 1), problem_type = "regression"),
                        X = x_micro, y = y_sensitive, stage1_method = "target_clip",
@@ -555,7 +547,7 @@ synth_micro <- sample_synthetic_lbbnn(dp_fit, newdata = x_micro, draws = 50)
 \renewcommand{\arraystretch}{1.15}
 \begin{table}[ht]
 \centering
-\begin{tabular}{p{0.18\textwidth}p{0.18\textwidth}p{0.15\textwidth}p{0.43\textwidth}}
+\begin{tabular}{p{0.19\textwidth}p{0.16\textwidth}p{0.13\textwidth}p{0.42\textwidth}}
 \toprule
 \textbf{Step / Object} & \textbf{R Class / Type} & \textbf{Dimensions} & \textbf{Statistical Contents \& Role} \\
 \midrule
@@ -688,15 +680,20 @@ synth_micro <- sample_synthetic_lbbnn(dp_fit, newdata = x_micro, draws = 50)
 
 ## Study 0 — Exact Linear Baseline Monte Carlo ($R = 20$, Visual Benchmark)
 
-\includegraphics[width=0.91\textwidth]{figures/track2_study0_rmse_bars.pdf}
+\centering
+\includegraphics[width=0.84\textwidth, height=0.50\textheight, keepaspectratio]{figures/track2_study0_rmse_bars.pdf}
 
-\vspace{-0.1em}
+\vspace{-0.2em}
+\raggedright
+\footnotesize
 \textbf{Empirical Findings, The Oracle Benchmark, \& Stein's Phenomenon}:
 \begin{itemize}
+  \setlength{\itemsep}{1pt}
   \item \textbf{The Oracle Benchmark}: Theoretical bound plugging true data-generating propensities $\pi_{ci}$ directly into H\'{a}jek weighting (bypassing propensity estimation).
   \item \textbf{Why LBBNN Beats the Oracle in Panel B (Low Support)}: Under low common support, true propensities near 0 create extreme $1/\pi_{ci}$ weights and high sampling variance. \texttt{LBBNN} regularization smooths tail weights, trading tiny bias for a large variance reduction (Stein's phenomenon).
   \item \textbf{Pseudo-Likelihood Breakdown}: Under low support, \texttt{GLM-PSEUDO} explodes to $\text{RMSE} = 1.015$ (weight variance and gradient explosion), while composite formulations remain bounded ($\text{RMSE} \approx 0.16\text{--}0.33$).
 \end{itemize}
+\normalsize
 
 ## Study 1 — Automated Confounder Selection & Noise Pruning ($p = 6$)
 
@@ -760,10 +757,13 @@ synth_micro <- sample_synthetic_lbbnn(dp_fit, newdata = x_micro, draws = 50)
 \scriptsize
 ```r
 # 1. Format combined sample with vectorized linkage probabilities p_vec
-prep    <- build_propensity_dataset(pop, method = "MIP", covar_cols = paste0("X", 1:p), p_link = p_vec_r)
-dl_prop <- get_dataloaders(prep$data, target_cols = prep$target_cols, train_batch_size = 64, test_batch_size = 32)
+prep    <- build_propensity_dataset(pop, method = "MIP",
+                                    covar_cols = paste0("X", 1:p), p_link = p_vec_r)
+dl_prop <- get_dataloaders(prep$data, target_cols = prep$target_cols,
+                           train_batch_size = 64, test_batch_size = 32)
 # 2. Fit LBBNN with composite Bernoulli loss anchored by pi_ri offset
-net_prop <- lbbnn_net(problem_type = "custom", sizes = c(p, 8, 1), raw_output = TRUE, nll = make_nll_mip())
+net_prop <- lbbnn_net(problem_type = "custom", sizes = c(p, 8, 1),
+                      raw_output = TRUE, nll = make_nll_mip())
 train_lbbnn(LBBNN = net_prop, train_dl = dl_prop$train_loader, epochs = 150, lr = 0.02)
 # 3. Predict convenience propensities pi_c_hat & compute debiased Hajek mean
 logits_c    <- predict(net_prop, newdata = prep$data[prep$Sc_indices, 1:p], mpm = TRUE)
@@ -777,7 +777,7 @@ y_bar_hajek <- hajek_estimate(y = pop$y[pop$I.c == 1], pi_hat = pi_c_hat, dirich
 \renewcommand{\arraystretch}{1.15}
 \begin{table}[ht]
 \centering
-\begin{tabular}{p{0.18\textwidth}p{0.18\textwidth}p{0.15\textwidth}p{0.43\textwidth}}
+\begin{tabular}{p{0.19\textwidth}p{0.16\textwidth}p{0.13\textwidth}p{0.42\textwidth}}
 \toprule
 \textbf{Step / Object} & \textbf{R Class / Type} & \textbf{Dimensions} & \textbf{Statistical Contents \& Role} \\
 \midrule

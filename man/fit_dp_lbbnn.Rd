@@ -12,7 +12,7 @@ fit_dp_lbbnn(
   lr = 0.01,
   batch_size = 64,
   S = 100,
-  stage1_method = c("linear", "percentile", "target_clip"),
+  stage1_method = c("linear", "percentile", "target_clip", "reciprocal_linear"),
   stage2_method = c("surgical", "hard_trunc", "vector_upscale", "none"),
   c_scale = 1,
   g_shift = 0,
@@ -42,7 +42,7 @@ or a zero-argument function that returns a fresh \code{lbbnn_net}.}
 
 \item{S}{Integer, number of posterior draws for sensitivity extraction (default 100).}
 
-\item{stage1_method}{Character string for Stage 1 normalization: \code{"linear"} (default), \code{"percentile"}, or \code{"target_clip"}.}
+\item{stage1_method}{Character string for Stage 1 normalization: \code{"linear"} (default), \code{"percentile"}, \code{"target_clip"}, or \code{"reciprocal_linear"}.}
 
 \item{stage2_method}{Character string for Stage 2 adjustment: \code{"surgical"} (default), \code{"hard_trunc"}, \code{"vector_upscale"}, or \code{"none"}.}
 

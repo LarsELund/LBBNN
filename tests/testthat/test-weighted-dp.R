@@ -330,3 +330,32 @@ testthat::test_that("fit_dp_lbbnn executes vector_upscale multi-pass training", 
   testthat::expect_equal(dp_vec$epsilon_local, 2 * dp_vec$delta_alpha)
 })
 
+testthat::test_that("Savitsky (Oct 29, 2026) direct-f normalization and reciprocal_linear comparison hold", {
+  f_vec <- seq(1.0, 10.0, length.out = 100)
+  p_L <- 0.10
+  p_R <- 0.90
+  q_L <- stats::quantile(f_vec, probs = p_L)
+  q_R <- stats::quantile(f_vec, probs = p_R)
+
+  # Percentile test
+  res_pct <- compute_dp_weights(f_vec, stage1_method = "percentile", stage2_method = "none",
+                                p_L = p_L, p_R = p_R)
+  # Low sensitivities (<= q_L) should have weight 1
+  testthat::expect_true(all(res_pct$alpha[f_vec <= q_L] == 1.0))
+  # High sensitivities (>= q_R) should have weight 0
+  testthat::expect_true(all(res_pct$alpha[f_vec >= q_R] == 0.0))
+  # Monotonically non-increasing
+  testthat::expect_true(all(diff(res_pct$alpha) <= 1e-10))
+
+  # Linear vs reciprocal_linear (Remark 1, Eq. 8)
+  res_lin <- compute_dp_weights(f_vec, stage1_method = "linear", stage2_method = "none")
+  res_recip <- compute_dp_weights(f_vec, stage1_method = "reciprocal_linear", stage2_method = "none")
+
+  # At f_min: alpha_lin == 1.0, alpha_recip == 1.0
+  testthat::expect_equal(res_lin$alpha[1], 1.0)
+  testthat::expect_equal(res_recip$alpha[1], 1.0)
+  # For all interior units f_min < f_i < f_max, linear strictly dominates reciprocal
+  interior <- 2:99
+  testthat::expect_true(all(res_lin$alpha[interior] > res_recip$alpha[interior]))
+})
+

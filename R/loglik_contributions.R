@@ -121,7 +121,7 @@ loglik_contributions <- function(object, newdata, draws = 100, mpm = FALSE,
 #' or \code{"none"}.
 #'
 #' @param f_vec Numeric vector of unit-level empirical sensitivities \eqn{f_i = \max_s |\ell_i(\theta_s)|}. Default is \code{NULL}.
-#' @param stage1_method Character string for Stage 1 initial normalization: \code{"linear"}, \code{"percentile"}, or \code{"target_clip"}.
+#' @param stage1_method Character string for Stage 1 initial normalization: \code{"linear"}, \code{"percentile"}, \code{"target_clip"}, or \code{"reciprocal_linear"}.
 #' @param stage2_method Character string for Stage 2 reweighting: \code{"surgical"}, \code{"hard_trunc"}, \code{"vector_upscale"}, or \code{"none"}.
 #' @param c_scale Numeric scaling constant \eqn{c \in (0, 1]} for linear min-max normalization. Default is \code{1}.
 #' @param g_shift Numeric shift constant \eqn{g \ge 0} for linear min-max normalization. Default is \code{0}.
@@ -141,7 +141,7 @@ loglik_contributions <- function(object, newdata, draws = 100, mpm = FALSE,
 #' @export
 compute_dp_weights <- function(
     f_vec = NULL,
-    stage1_method = c("linear", "percentile", "target_clip"),
+    stage1_method = c("linear", "percentile", "target_clip", "reciprocal_linear"),
     stage2_method = c("surgical", "hard_trunc", "vector_upscale", "none"),
     c_scale = 1.0,
     g_shift = 0.0,
@@ -160,26 +160,29 @@ compute_dp_weights <- function(
   f_vec <- as.numeric(f_vec)
   n <- length(f_vec)
   f_safe <- pmax(f_vec, 1e-8)
-  alpha_tilde <- 1.0 / f_safe
 
-  # --- Stage 1: Initial Normalization ---
+  # --- Stage 1: Initial Normalization (re_weight4-3.pdf) ---
   if (stage1_method == "linear") {
+    # Eq. 4-5: Direct linear min-max on f_i: alpha_i = c * (f_max - f_i)/(f_max - f_min) + g
     f_min <- min(f_vec)
     f_max <- max(f_vec)
     f_tilde <- if (f_max > f_min) (f_vec - f_min) / (f_max - f_min) else rep(0, n)
     alpha_1 <- pmin(1, pmax(0, c_scale * (1 - f_tilde) + g_shift))
 
   } else if (stage1_method == "percentile") {
-    q_L <- stats::quantile(alpha_tilde, probs = p_L, na.rm = TRUE)
-    q_R <- stats::quantile(alpha_tilde, probs = p_R, na.rm = TRUE)
+    # Eq. 10-11: Percentile-based normalization directly on f_i
+    # Low sensitivity (f_i <= q_pL) -> alpha_i = 1; high sensitivity (f_i >= q_pR) -> alpha_i = 0
+    q_L <- stats::quantile(f_vec, probs = p_L, na.rm = TRUE)
+    q_R <- stats::quantile(f_vec, probs = p_R, na.rm = TRUE)
     if (q_R > q_L) {
-      scaled <- (alpha_tilde - q_L) / (q_R - q_L)
+      scaled <- (q_R - f_vec) / (q_R - q_L)
       alpha_1 <- pmin(1, pmax(0, scaled))
     } else {
       alpha_1 <- rep(1, n)
     }
 
   } else if (stage1_method == "target_clip") {
+    # Eq. 13: Target ratio clipping alpha_i = min(1, Delta_goal / f_i)
     delta_target <- if (!is.null(Delta_goal)) {
       as.numeric(Delta_goal)
     } else if (!is.null(M_thresh)) {
@@ -188,6 +191,14 @@ compute_dp_weights <- function(
       stats::median(f_vec, na.rm = TRUE)
     }
     alpha_1 <- pmin(1, delta_target / f_safe)
+
+  } else if (stage1_method == "reciprocal_linear") {
+    # Remark 1 (Eq. 8): Reciprocal transformation alpha_i^recip = (f_min / f_i) * alpha_i^lin
+    f_min <- min(f_vec)
+    f_max <- max(f_vec)
+    f_tilde <- if (f_max > f_min) (f_vec - f_min) / (f_max - f_min) else rep(0, n)
+    alpha_lin <- pmin(1, pmax(0, c_scale * (1 - f_tilde) + g_shift))
+    alpha_1 <- pmin(1, (f_min / f_safe) * alpha_lin)
   }
 
   alpha_stage1 <- alpha_1
@@ -251,7 +262,7 @@ compute_dp_weights <- function(
 #' @param lr Numeric, learning rate for optimizer (default 0.01).
 #' @param batch_size Integer, mini-batch size (default 64).
 #' @param S Integer, number of posterior draws for sensitivity extraction (default 100).
-#' @param stage1_method Character string for Stage 1 normalization: \code{"linear"} (default), \code{"percentile"}, or \code{"target_clip"}.
+#' @param stage1_method Character string for Stage 1 normalization: \code{"linear"} (default), \code{"percentile"}, \code{"target_clip"}, or \code{"reciprocal_linear"}.
 #' @param stage2_method Character string for Stage 2 adjustment: \code{"surgical"} (default), \code{"hard_trunc"}, \code{"vector_upscale"}, or \code{"none"}.
 #' @param c_scale Numeric, scaling factor for risk weights (default 1.0).
 #' @param g_shift Numeric, shift parameter for risk weights (default 0.0).
@@ -285,7 +296,7 @@ compute_dp_weights <- function(
 fit_dp_lbbnn <- function(
     model_spec, X, y, epochs = 100, lr = 0.01,
     batch_size = 64, S = 100,
-    stage1_method = c("linear", "percentile", "target_clip"),
+    stage1_method = c("linear", "percentile", "target_clip", "reciprocal_linear"),
     stage2_method = c("surgical", "hard_trunc", "vector_upscale", "none"),
     c_scale = 1.0, g_shift = 0.0,
     p_L = 0.05, p_R = 0.95, Delta_goal = NULL,

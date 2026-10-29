@@ -6,7 +6,7 @@
 \usage{
 compute_dp_weights(
   f_vec = NULL,
-  stage1_method = c("linear", "percentile", "target_clip"),
+  stage1_method = c("linear", "percentile", "target_clip", "reciprocal_linear"),
   stage2_method = c("surgical", "hard_trunc", "vector_upscale", "none"),
   c_scale = 1,
   g_shift = 0,
@@ -21,7 +21,7 @@ compute_dp_weights(
 \arguments{
 \item{f_vec}{Numeric vector of unit-level empirical sensitivities \eqn{f_i = \max_s |\ell_i(\theta_s)|}. Default is \code{NULL}.}
 
-\item{stage1_method}{Character string for Stage 1 initial normalization: \code{"linear"}, \code{"percentile"}, or \code{"target_clip"}.}
+\item{stage1_method}{Character string for Stage 1 initial normalization: \code{"linear"}, \code{"percentile"}, \code{"target_clip"}, or \code{"reciprocal_linear"}.}
 
 \item{stage2_method}{Character string for Stage 2 reweighting: \code{"surgical"}, \code{"hard_trunc"}, \code{"vector_upscale"}, or \code{"none"}.}
 
