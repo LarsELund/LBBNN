@@ -15,7 +15,8 @@ get_dataloaders(
   seed = 1,
   weights = NULL,
   target_cols = 1,
-  normalize_weights = FALSE
+  normalize_weights = FALSE,
+  allow_missing = TRUE
 )
 }
 \arguments{
@@ -42,6 +43,8 @@ Proportion of data to be used for training.}
 \item{target_cols}{integer, number of columns at the end of \code{dataset} representing the target (default 1).}
 
 \item{normalize_weights}{logical, whether to normalize weights to sum to the sample size (recommended for survey weights w_i per Savitsky & Toth 2016). Default is FALSE.}
+
+\item{allow_missing}{logical, whether to automatically filter missing responses (NA values in target column) for the training dataloader so that training can proceed over observed units. Default is TRUE.}
 }
 \value{
 A list containing:

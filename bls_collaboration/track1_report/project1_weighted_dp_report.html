@@ -1,0 +1,1428 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="author" content="Aliaksandr Hubin &amp; Lars Skaaret-Lund (in collaboration with Terrance D. Savitsky, Matthew R. Williams, Vladislav Beresovsky)" />
+
+<meta name="date" content="2026-10-23" />
+
+<title>Unit-Weighted Likelihoods &amp; Formal Differential Privacy in LBBNN</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Unit-Weighted Likelihoods &amp; Formal
+Differential Privacy in LBBNN</h1>
+<h3 class="subtitle">Technical Report &amp; Collaborative Vignette (BLS
+- LBBNN Track 1)</h3>
+<h4 class="author">Aliaksandr Hubin &amp; Lars Skaaret-Lund (in
+collaboration with Terrance D. Savitsky, Matthew R. Williams, Vladislav
+Beresovsky)</h4>
+<h4 class="date">2026-10-23</h4>
+
+
+<div id="TOC">
+<ul>
+<li><a href="#executive-overview-collaboration-scope" id="toc-executive-overview-collaboration-scope"><span class="toc-section-number">1</span> Executive Overview &amp;
+Collaboration Scope</a></li>
+<li><a href="#mathematical-framework" id="toc-mathematical-framework"><span class="toc-section-number">2</span> Mathematical Framework</a>
+<ul>
+<li><a href="#variational-inference-with-observation-weights" id="toc-variational-inference-with-observation-weights"><span class="toc-section-number">2.1</span> Variational Inference with
+Observation Weights</a>
+<ul>
+<li><a href="#from-standard-posteriors-to-the-unit-weighted-pseudo-posterior" id="toc-from-standard-posteriors-to-the-unit-weighted-pseudo-posterior"><span class="toc-section-number">2.1.1</span> From Standard Posteriors to the
+Unit-Weighted Pseudo-Posterior</a></li>
+<li><a href="#mini-batch-alignment-elbo-scaling" id="toc-mini-batch-alignment-elbo-scaling"><span class="toc-section-number">2.1.2</span> Mini-Batch Alignment &amp; ELBO
+Scaling</a></li>
+<li><a href="#survey-weight-normalization-vs.-privacy-weight-scaling" id="toc-survey-weight-normalization-vs.-privacy-weight-scaling"><span class="toc-section-number">2.1.3</span> Survey Weight Normalization
+vs. Privacy Weight Scaling</a></li>
+<li><a href="#full-error-variance-specification-protection-against-coldwarm-posteriors" id="toc-full-error-variance-specification-protection-against-coldwarm-posteriors"><span class="toc-section-number">2.1.4</span> Full Error Variance
+Specification &amp; Protection Against Cold/Warm Posteriors</a></li>
+</ul></li>
+<li><a href="#record-level-log-likelihood-extraction" id="toc-record-level-log-likelihood-extraction"><span class="toc-section-number">2.2</span> Record-Level Log-Likelihood
+Extraction</a></li>
+<li><a href="#two-pass-differential-privacy-mechanism-savitsky-williams-hu-2022" id="toc-two-pass-differential-privacy-mechanism-savitsky-williams-hu-2022"><span class="toc-section-number">2.3</span> Two-Pass Differential Privacy
+Mechanism (Savitsky, Williams &amp; Hu, 2022)</a>
+<ul>
+<li><a href="#definition-of-epsilon-delta-probabilistic-differential-privacy-pdp-for-posteriors" id="toc-definition-of-epsilon-delta-probabilistic-differential-privacy-pdp-for-posteriors"><span class="toc-section-number">2.3.1</span> Definition of <span class="math inline">\((\epsilon, \delta)\)</span>-Probabilistic
+Differential Privacy (PDP) for Posteriors</a></li>
+<li><a href="#connecting-the-log-posterior-ratio-to-pointwise-log-likelihood-sensitivity" id="toc-connecting-the-log-posterior-ratio-to-pointwise-log-likelihood-sensitivity"><span class="toc-section-number">2.3.2</span> Connecting the Log-Posterior
+Ratio to Pointwise Log-Likelihood Sensitivity</a></li>
+<li><a href="#why-unweighted-neural-networks-fail-differential-privacy-on-skewed-data" id="toc-why-unweighted-neural-networks-fail-differential-privacy-on-skewed-data"><span class="toc-section-number">2.3.3</span> Why Unweighted Neural Networks
+Fail Differential Privacy on Skewed Data</a></li>
+<li><a href="#the-two-pass-surgical-downweighting-algorithm-step-by-step" id="toc-the-two-pass-surgical-downweighting-algorithm-step-by-step"><span class="toc-section-number">2.3.4</span> The Two-Pass Surgical
+Downweighting Algorithm (Step-by-Step)</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#example-1-survey-weighted-imputation-under-informative-sampling" id="toc-example-1-survey-weighted-imputation-under-informative-sampling"><span class="toc-section-number">3</span> Example 1: Survey-Weighted
+Imputation Under Informative Sampling</a>
+<ul>
+<li><a href="#simulating-an-informatively-sampled-population" id="toc-simulating-an-informatively-sampled-population"><span class="toc-section-number">3.1</span> Simulating an Informatively
+Sampled Population</a></li>
+<li><a href="#fitting-unweighted-vs.-survey-weighted-lbbnn" id="toc-fitting-unweighted-vs.-survey-weighted-lbbnn"><span class="toc-section-number">3.2</span> Fitting Unweighted
+vs. Survey-Weighted LBBNN</a></li>
+<li><a href="#sparse-graph-selection-inclusion-probabilities" id="toc-sparse-graph-selection-inclusion-probabilities"><span class="toc-section-number">3.3</span> Sparse Graph Selection &amp;
+Inclusion Probabilities</a></li>
+<li><a href="#evaluation-on-the-true-population" id="toc-evaluation-on-the-true-population"><span class="toc-section-number">3.4</span> Evaluation on the True
+Population</a></li>
+</ul></li>
+<li><a href="#example-2-two-pass-differential-privacy-pseudo-posterior-synthesizer" id="toc-example-2-two-pass-differential-privacy-pseudo-posterior-synthesizer"><span class="toc-section-number">4</span> Example 2: Two-Pass Differential
+Privacy Pseudo-Posterior Synthesizer</a>
+<ul>
+<li><a href="#simulating-skewed-sensitive-microdata" id="toc-simulating-skewed-sensitive-microdata"><span class="toc-section-number">4.1</span> Simulating Skewed Sensitive
+Microdata</a></li>
+<li><a href="#running-the-two-pass-dp-synthesizer-fit_dp_lbbnn" id="toc-running-the-two-pass-dp-synthesizer-fit_dp_lbbnn"><span class="toc-section-number">4.2</span> Running the Two-Pass DP
+Synthesizer (<code>fit_dp_lbbnn</code>)</a></li>
+<li><a href="#inspecting-record-sensitivities-surgical-downweighting" id="toc-inspecting-record-sensitivities-surgical-downweighting"><span class="toc-section-number">4.3</span> Inspecting Record Sensitivities
+&amp; Surgical Downweighting</a></li>
+<li><a href="#generating-and-benchmarking-synthetic-datasets" id="toc-generating-and-benchmarking-synthetic-datasets"><span class="toc-section-number">4.4</span> Generating and Benchmarking
+Synthetic Datasets</a></li>
+</ul></li>
+<li><a href="#example-3-custom-composite-likelihood-integration" id="toc-example-3-custom-composite-likelihood-integration"><span class="toc-section-number">5</span> Example 3: Custom Composite
+Likelihood Integration</a></li>
+<li><a href="#collaborator-api-reference" id="toc-collaborator-api-reference"><span class="toc-section-number">6</span> Collaborator API Reference</a></li>
+<li><a href="#references" id="toc-references"><span class="toc-section-number">7</span> References</a></li>
+<li><a href="#session-information" id="toc-session-information"><span class="toc-section-number">8</span> Session Information</a></li>
+</ul>
+</div>
+
+<div id="executive-overview-collaboration-scope" class="section level1" number="1">
+<h1><span class="header-section-number">1</span> Executive Overview
+&amp; Collaboration Scope</h1>
+<p>This technical report details the implementation, methodology, and
+empirical evaluation of <strong>Track 1</strong> of the research
+collaboration between the <strong>U.S. Bureau of Labor Statistics
+(BLS)</strong> (Terrance D. Savitsky, Matthew R. Williams, and Vladislav
+Beresovsky) and the <strong>LBBNN development team</strong> (Aliaksandr
+Hubin and Lars Skaaret-Lund).</p>
+<p>The primary objective of Track 1 is augmenting the <code>LBBNN</code>
+(Latent Binary Bayesian Neural Network) package in R to support two
+critical statistical operations in official government data
+production:</p>
+<ol style="list-style-type: decimal">
+<li><strong>Survey-Weighted Imputation &amp; Modeling</strong>:
+Incorporating unit-indexed survey sampling weights <span class="math inline">\(w_i \propto \pi_i^{-1}\)</span> (where <span class="math inline">\(\pi_i\)</span> is the inclusion probability) into
+the variational Evidence Lower Bound (ELBO) objective. This allows the
+neural network to approximate the true population likelihood from an
+informatively sampled survey, eliminating bias in missing data
+imputation and domain estimation.</li>
+<li><strong>Formally Private Synthetic Data Generation</strong>:
+Implementing the two-pass risk-weighted pseudo-posterior mechanism
+(Savitsky, Williams &amp; Hu, 2022). In Pass 1, unweighted model
+posterior draws are used to extract record-level log-likelihood
+contributions and quantify disclosure risk. Symmetrically,
+record-specific privacy weights <span class="math inline">\(\alpha_i \in
+[0, 1]\)</span> surgically downweight high-risk outliers during Pass 2,
+yielding synthetic microdata equipped with a mathematically provable
+local <span class="math inline">\((\epsilon,
+\delta)\)</span>-probabilistic differential privacy (PDP) guarantee
+without degrading utility for safe observations.</li>
+</ol>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(LBBNN)</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">library</span>(torch)</span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a><span class="fu">library</span>(gridExtra)</span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a><span class="co"># Ensure reproducibility</span></span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">2026</span>)</span>
+<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a>torch<span class="sc">::</span><span class="fu">torch_manual_seed</span>(<span class="dv">2026</span>)</span></code></pre></div>
+<hr />
+</div>
+<div id="mathematical-framework" class="section level1" number="2">
+<h1><span class="header-section-number">2</span> Mathematical
+Framework</h1>
+<div id="variational-inference-with-observation-weights" class="section level2" number="2.1">
+<h2><span class="header-section-number">2.1</span> Variational Inference
+with Observation Weights</h2>
+<div id="from-standard-posteriors-to-the-unit-weighted-pseudo-posterior" class="section level3" number="2.1.1">
+<h3><span class="header-section-number">2.1.1</span> From Standard
+Posteriors to the Unit-Weighted Pseudo-Posterior</h3>
+<p>Let <span class="math inline">\(\mathbf{y} = (y_1, \dots, y_n)^\top
+\in \mathcal{Y}^n\)</span> denote an observed dataset with associated
+auxiliary covariates <span class="math inline">\(\mathbf{X} =
+(\mathbf{x}_1, \dots, \mathbf{x}_n)^\top\)</span>. In standard Bayesian
+inference, model parameters <span class="math inline">\(\theta \in
+\Theta\)</span> are endowed with a prior <span class="math inline">\(p(\theta)\)</span>, and conditioning on the data
+yields the exact posterior distribution:</p>
+<p><span class="math display">\[p(\theta \mid \mathbf{y}) =
+\frac{p(\theta) \prod_{i=1}^n f(y_i \mid \mathbf{x}_i,
+\theta)}{\int_{\Theta} p(\theta) \prod_{i=1}^n f(y_i \mid \mathbf{x}_i,
+\theta) \, d\theta}\]</span></p>
+<p>In complex survey sampling and privacy-preserving synthesis,
+individual observations do not contribute equally to the inferential
+target. To account for unequal survey selection probabilities or
+heterogeneous disclosure risks, we equip each observation <span class="math inline">\(i\)</span> with a non-negative unit weight <span class="math inline">\(u_i \ge 0\)</span>, defining the
+<strong>unit-weighted pseudo-posterior distribution</strong> (Savitsky
+&amp; Toth, 2016; Bhattacharya et al., 2019):</p>
+<p><span class="math display">\[p_{\mathbf{u}}(\theta \mid \mathbf{y}) =
+\frac{p(\theta) \prod_{i=1}^n f(y_i \mid \mathbf{x}_i,
+\theta)^{u_i}}{Z_{\mathbf{u}}}, \qquad Z_{\mathbf{u}} = \int_{\Theta}
+p(\theta) \prod_{i=1}^n f(y_i \mid \mathbf{x}_i, \theta)^{u_i} \,
+d\theta\]</span></p>
+<p>In Mean-Field Variational Inference (MFVI) for LBBNNs, the
+intractable pseudo-posterior <span class="math inline">\(p_{\mathbf{u}}(\theta \mid \mathbf{y})\)</span> is
+approximated by a tractable variational family <span class="math inline">\(q(\theta) = q(\theta, \gamma)\)</span>. To find
+the optimal variational parameters, we minimize the Kullback-Leibler
+(KL) divergence from <span class="math inline">\(q(\theta)\)</span> to
+<span class="math inline">\(p_{\mathbf{u}}(\theta \mid
+\mathbf{y})\)</span>:</p>
+<p><span class="math display">\[\begin{aligned}
+\text{KL}\big(q(\theta) \parallel p_{\mathbf{u}}(\theta \mid
+\mathbf{y})\big) &amp;= \mathbb{E}_{q(\theta)}\left[\log q(\theta) -
+\log p_{\mathbf{u}}(\theta \mid \mathbf{y})\right] \\
+&amp;= \mathbb{E}_{q(\theta)}[\log q(\theta)] -
+\mathbb{E}_{q(\theta)}\left[\log p(\theta) + \sum_{i=1}^n u_i \log f(y_i
+\mid \mathbf{x}_i, \theta) - \log Z_{\mathbf{u}}\right] \\
+&amp;= \text{KL}\big(q(\theta) \parallel p(\theta)\big) - \sum_{i=1}^n
+u_i \, \mathbb{E}_{q(\theta)}\!\left[\log f(y_i \mid \mathbf{x}_i,
+\theta)\right] + \log Z_{\mathbf{u}}
+\end{aligned}\]</span></p>
+<p>Because the marginal normalizing constant <span class="math inline">\(Z_{\mathbf{u}}\)</span> does not depend on the
+variational distribution <span class="math inline">\(q(\theta)\)</span>,
+minimizing <span class="math inline">\(\text{KL}\big(q(\theta) \parallel
+p_{\mathbf{u}}(\theta \mid \mathbf{y})\big)\)</span> is mathematically
+equivalent to maximizing the <strong>unit-weighted Evidence Lower Bound
+(ELBO)</strong>:</p>
+<p><span class="math display">\[\text{ELBO}(q; \mathbf{u}) =
+\sum_{i=1}^n u_i \, \mathbb{E}_{q(\theta)}\!\left[\log f(y_i \mid
+\mathbf{x}_i, \theta)\right] - \text{KL}\big(q(\theta) \parallel
+p(\theta)\big)\]</span></p>
+</div>
+<div id="mini-batch-alignment-elbo-scaling" class="section level3" number="2.1.2">
+<h3><span class="header-section-number">2.1.2</span> Mini-Batch
+Alignment &amp; ELBO Scaling</h3>
+<p>When optimizing the ELBO via stochastic gradient descent across <span class="math inline">\(M\)</span> mini-batches with batch size <span class="math inline">\(B\)</span>, the mini-batch objective must maintain
+exact unit-level alignment between each covariate vector <span class="math inline">\(\mathbf{x}_i\)</span>, outcome <span class="math inline">\(y_i\)</span>, and its assigned weight <span class="math inline">\(u_i\)</span>, while properly scaling the
+likelihood relative to the prior regularization penalty:</p>
+<p><span class="math display">\[\text{ELBO}_{\text{batch}}(q;
+\mathbf{u}) = \sum_{i \in \text{batch}} u_i \, \log f(y_i \mid
+\mathbf{x}_i, \theta) - \frac{1}{M} \text{KL}\big(q(\theta) \parallel
+p(\theta)\big)\]</span></p>
+<p>The surrogate mini-batch training loss minimized during
+back-propagation is the negative weighted ELBO:</p>
+<p><span class="math display">\[\text{Loss}_{\text{batch}}(q;
+\mathbf{u}) = -\text{ELBO}_{\text{batch}}(q; \mathbf{u}) = \sum_{i \in
+\text{batch}} u_i \left( -\log f(y_i \mid \mathbf{x}_i, \theta) \right)
++ \frac{1}{M} \text{KL}\big(q(\theta) \parallel
+p(\theta)\big)\]</span></p>
+<p>When <span class="math inline">\(u_i = 1\)</span> for all <span class="math inline">\(i = 1, \dots, n\)</span>, this formulation is
+<strong>100% numerically identical</strong> to standard unweighted
+variational training.</p>
+</div>
+<div id="survey-weight-normalization-vs.-privacy-weight-scaling" class="section level3" number="2.1.3">
+<h3><span class="header-section-number">2.1.3</span> Survey Weight
+Normalization vs. Privacy Weight Scaling</h3>
+<p>A critical operational distinction exists between <strong>survey
+sampling weights</strong> (<span class="math inline">\(w_i\)</span>) and
+<strong>differential privacy weights</strong> (<span class="math inline">\(\alpha_i\)</span>):</p>
+<ol style="list-style-type: decimal">
+<li><p><strong>Survey Sampling Weights (<span class="math inline">\(w_i
+= \pi_i^{-1}\)</span>)</strong>: In design-based survey inference, raw
+inverse-probability weights <span class="math inline">\(w_i =
+1/\pi_i\)</span> estimate population totals and satisfy <span class="math inline">\(\sum_{i=1}^n w_i \approx N_{\text{pop}}\)</span>,
+where <span class="math inline">\(N_{\text{pop}} \gg n\)</span>. If raw
+weights were inserted directly into the ELBO, the weighted
+log-likelihood term would scale with <span class="math inline">\(N_{\text{pop}}\)</span>, overpowering the prior
+<span class="math inline">\(\text{KL}\big(q(\theta) \parallel
+p(\theta)\big)\)</span> regularization penalty by a factor of <span class="math inline">\(N_{\text{pop}} / n\)</span>. Following Savitsky
+&amp; Toth (2016), we normalize survey weights to sum to the observed
+sample size <span class="math inline">\(n\)</span>: <span class="math display">\[\tilde{w}_i = w_i \times \frac{n}{\sum_{j=1}^n
+w_j}\]</span> This normalization ensures the effective sample size in
+the variational pseudo-posterior matches <span class="math inline">\(n\)</span>, preserving the intended balance
+between data evidence and prior regularization. In
+<code>get_dataloaders()</code>, this is activated by setting
+<code>normalize_weights = TRUE</code>.</p></li>
+<li><p><strong>Differential Privacy Weights (<span class="math inline">\(\alpha_i \in [0, 1]\)</span>)</strong>: In the
+two-pass privacy mechanism (Savitsky, Williams &amp; Hu, 2022), the risk
+weights <span class="math inline">\(\alpha_i \in [0, 1]\)</span> measure
+record safety, where <span class="math inline">\(\alpha_i \to 0\)</span>
+for high-risk outliers and <span class="math inline">\(\alpha_i \approx
+1\)</span> for typical observations. Here, <span class="math inline">\(\sum_{i=1}^n \alpha_i \le n\)</span>. These
+weights are <strong>intentionally left unnormalized</strong>
+(<code>normalize_weights = FALSE</code>, the default). Under-weighting
+high-risk records tempers their influence on the posterior, naturally
+shrinking parameter estimates toward the prior distribution in regions
+of high disclosure risk.</p></li>
+</ol>
+</div>
+<div id="full-error-variance-specification-protection-against-coldwarm-posteriors" class="section level3" number="2.1.4">
+<h3><span class="header-section-number">2.1.4</span> Full Error Variance
+Specification &amp; Protection Against Cold/Warm Posteriors</h3>
+<p>A fundamental challenge in Bayesian deep learning is the <strong>cold
+posterior / cold prior problem</strong> (Wenzel et al., 2020), wherein
+misspecifying the likelihood scale introduces an unintended temperature
+<span class="math inline">\(T \neq 1\)</span>:</p>
+<p><span class="math display">\[\mathcal{L}_{\text{ELBO}}(q) =
+\frac{1}{T} \sum_{i=1}^n u_i \, \mathbb{E}_{q(\theta)}\!\left[\log f(y_i
+\mid \mathbf{x}_i, \theta)\right] - \text{KL}\big(q(\theta) \parallel
+p(\theta)\big)\]</span></p>
+<p>In Gaussian regression with observation model <span class="math inline">\(y_i \mid \mathbf{x}_i, \theta \sim
+\mathcal{N}\big(\mu_\theta(\mathbf{x}_i), \sigma^2\big)\)</span>, the
+exact pointwise log-likelihood is:</p>
+<p><span class="math display">\[\log f(y_i \mid \mathbf{x}_i, \theta,
+\sigma^2) = -\frac{1}{2}\log(2\pi\sigma^2) - \frac{\big(y_i -
+\mu_\theta(\mathbf{x}_i)\big)^2}{2\sigma^2}\]</span></p>
+<p>Many conventional neural network implementations replace this exact
+Gaussian density with an unscaled sum of squared errors <span class="math inline">\(-\frac{1}{2}\sum_i (y_i - \mu_i)^2\)</span>,
+implicitly fixing <span class="math inline">\(\sigma^2 = 1.0\)</span>
+(precision <span class="math inline">\(\tau = 1.0\)</span>). Whenever
+the true noise variance differs from unity (for example, <span class="math inline">\(\sigma = 0.40 \implies \sigma^2 = 0.16\)</span> in
+Example 1), using unscaled squared error dampens the data log-likelihood
+by a factor of <span class="math inline">\(\sigma^2 = 0.16\)</span>
+relative to the prior KL divergence:</p>
+<p><span class="math display">\[\frac{1}{2} (y_i - \mu_i)^2 = 0.16
+\times \left[ \frac{(y_i - \mu_i)^2}{2 \times 0.16} \right]\]</span></p>
+<p>This mis-scaling acts as an unintended <strong>hot prior / cold
+posterior temperature</strong> (<span class="math inline">\(T = \sigma^2
+= 0.16 &lt; 1\)</span>), artificially over-regularizing the model and
+distorting the spike-and-slab inclusion probabilities <span class="math inline">\(a_k\)</span> toward zero.</p>
+<p>Furthermore, in the Two-Pass Differential Privacy mechanism, each
+unit’s record sensitivity:</p>
+<p><span class="math display">\[f_i = \max_{s \in \{1,\dots,S\}} \left|
+\log f(y_i \mid \mathbf{x}_i, \theta^{(s)}, \sigma^2)
+\right|\]</span></p>
+<p>directly depends on the residual scale <span class="math inline">\(\sigma^2\)</span>. If <span class="math inline">\(\sigma^2\)</span> is misspecified, sensitivities
+are measured on an arbitrary scale, invalidating the empirical privacy
+guarantee <span class="math inline">\(\epsilon_{\mathbf{y}} =
+2\Delta_{\alpha, \mathbf{y}}\)</span>. To guarantee full probabilistic
+calibration, <code>lbbnn_net()</code> accepts an explicit
+<code>sigma</code> argument (or automatically calibrates <span class="math inline">\(\hat{\sigma}\)</span> from training residuals in
+<code>fit_dp_lbbnn()</code>), evaluating the exact negative
+log-likelihood:</p>
+<p><span class="math display">\[\text{NLL}_i =
+\frac{1}{2}\log(2\pi\sigma^2) + \frac{(y_i -
+\mu_\theta(\mathbf{x}_i))^2}{2\sigma^2}\]</span></p>
+<p>This guarantees that variational training operates at the exact
+Bayesian temperature <span class="math inline">\(T = 1.0\)</span>,
+protecting edge selection decisions from cold-posterior bias and
+grounding privacy sensitivities in the true data distribution.</p>
+<hr />
+</div>
+</div>
+<div id="record-level-log-likelihood-extraction" class="section level2" number="2.2">
+<h2><span class="header-section-number">2.2</span> Record-Level
+Log-Likelihood Extraction</h2>
+<p>To quantify disclosure risks and calculate empirical sensitivity
+bounds, we evaluate pointwise log-likelihood contributions across <span class="math inline">\(S\)</span> posterior parameter draws <span class="math inline">\(\theta^{(s)} \sim q(\theta)\)</span>:</p>
+<p><span class="math display">\[L_{s, i} = \log f\big(y_i \mid
+\mathbf{x}_i, \theta^{(s)}\big), \quad s \in \{1, \dots, S\}, \; i \in
+\{1, \dots, n\}\]</span></p>
+<p>This produces an <span class="math inline">\(S \times n\)</span>
+matrix <span class="math inline">\(\mathbf{L}\)</span>, implemented in
+the exported function <code>loglik_contributions()</code>.</p>
+<hr />
+</div>
+<div id="two-pass-differential-privacy-mechanism-savitsky-williams-hu-2022" class="section level2" number="2.3">
+<h2><span class="header-section-number">2.3</span> Two-Pass Differential
+Privacy Mechanism (Savitsky, Williams &amp; Hu, 2022)</h2>
+<div id="definition-of-epsilon-delta-probabilistic-differential-privacy-pdp-for-posteriors" class="section level3" number="2.3.1">
+<h3><span class="header-section-number">2.3.1</span> Definition of <span class="math inline">\((\epsilon, \delta)\)</span>-Probabilistic
+Differential Privacy (PDP) for Posteriors</h3>
+<p>Let <span class="math inline">\(\mathbf{y}, \mathbf{y}&#39; \in
+\mathcal{Y}^n\)</span> denote neighboring databases differing in exactly
+one individual record (<span class="math inline">\(\|\mathbf{y} -
+\mathbf{y}&#39;\|_{\text{Hamming}} = 1\)</span>). A posterior (or
+variational pseudo-posterior) distribution <span class="math inline">\(q_{\boldsymbol{\alpha}}(\theta \mid
+\mathbf{y})\)</span> satisfies <strong><span class="math inline">\((\epsilon, \delta)\)</span>-Probabilistic
+Differential Privacy (PDP)</strong> (Dimitrakakis et al., 2017;
+Savitsky, Williams &amp; Hu, 2022) if, for all neighboring datasets and
+all measurable subsets <span class="math inline">\(\mathcal{A} \subset
+\Theta\)</span> within the <span class="math inline">\((1-\delta)\)</span>-probability support <span class="math inline">\(\Theta_\delta\)</span>:</p>
+<p><span class="math display">\[\sup_{\theta \in \Theta_\delta} \left|
+\log \frac{q_{\boldsymbol{\alpha}}(\theta \mid
+\mathbf{y})}{q_{\boldsymbol{\alpha}}(\theta \mid \mathbf{y}&#39;)}
+\right| \le \epsilon\]</span></p>
+</div>
+<div id="connecting-the-log-posterior-ratio-to-pointwise-log-likelihood-sensitivity" class="section level3" number="2.3.2">
+<h3><span class="header-section-number">2.3.2</span> Connecting the
+Log-Posterior Ratio to Pointwise Log-Likelihood Sensitivity</h3>
+<p>In the unit-weighted pseudo-posterior, replacing record <span class="math inline">\(i\)</span> with an alternative record <span class="math inline">\(i&#39;\)</span> changes the unnormalized
+log-density by at most:</p>
+<p><span class="math display">\[\left| \log
+p_{\boldsymbol{\alpha}}(\theta \mid \mathbf{y}) - \log
+p_{\boldsymbol{\alpha}}(\theta \mid \mathbf{y}&#39;) \right| \le
+\alpha_i \left| \log f(y_i \mid \mathbf{x}_i, \theta) - \log f(y_i&#39;
+\mid \mathbf{x}_i&#39;, \theta) \right|\]</span></p>
+<p>Across <span class="math inline">\(s = 1, \dots, S\)</span> posterior
+parameter draws <span class="math inline">\(\theta^{(s)} \sim
+q_{\boldsymbol{\alpha}}(\theta \mid \mathbf{y})\)</span>, the
+<strong>local Lipschitz bound</strong> (empirical record sensitivity) on
+the observed database <span class="math inline">\(\mathbf{y}\)</span>
+is:</p>
+<p><span class="math display">\[\Delta_{\alpha, \mathbf{y}} = \max_{s
+\in \{1,\dots,S\}, \, i \in \{1,\dots,n\}} \left| \alpha_i \log f(y_i
+\mid \mathbf{x}_i, \theta^{(s)}) \right|\]</span></p>
+<p>Because replacing record <span class="math inline">\(y_i\)</span>
+with an alternative record <span class="math inline">\(y_i&#39;\)</span>
+alters the log-likelihood by at most <span class="math inline">\(2\Delta_{\alpha, \mathbf{y}}\)</span>, the model
+satisfies local differential privacy with budget:</p>
+<p><span class="math display">\[\epsilon_{\mathbf{y}} = 2
+\Delta_{\alpha, \mathbf{y}}\]</span></p>
+</div>
+<div id="why-unweighted-neural-networks-fail-differential-privacy-on-skewed-data" class="section level3" number="2.3.3">
+<h3><span class="header-section-number">2.3.3</span> Why Unweighted
+Neural Networks Fail Differential Privacy on Skewed Data</h3>
+<p>In unweighted Bayesian neural networks (<span class="math inline">\(\alpha_i = 1\)</span>), the Gaussian
+log-likelihood sensitivity:</p>
+<p><span class="math display">\[\left| \log f(y_i \mid \mathbf{x}_i,
+\theta) \right| = \left| -\frac{1}{2}\log(2\pi\sigma^2) - \frac{(y_i -
+\mu_\theta(\mathbf{x}_i))^2}{2\sigma^2} \right|\]</span></p>
+<p>grows <strong>quadratically</strong> with the prediction residual
+<span class="math inline">\(|y_i -
+\mu_\theta(\mathbf{x}_i)|\)</span>.</p>
+<p>In economic and establishment surveys, high-expenditure or
+high-income outliers produce massive prediction residuals. An unweighted
+network shifts its internal representations to accommodate these
+outliers, driving <span class="math inline">\(f_i = \max_s
+|L_{s,i}|\)</span> and <span class="math inline">\(\Delta_{1,
+\mathbf{y}}\)</span> to infinity. This creates extreme disclosure risk:
+an adversary querying the model can readily infer whether an outlier
+household or firm participated in the survey.</p>
+</div>
+<div id="the-two-pass-surgical-downweighting-algorithm-step-by-step" class="section level3" number="2.3.4">
+<h3><span class="header-section-number">2.3.4</span> The Two-Pass
+Surgical Downweighting Algorithm (Step-by-Step)</h3>
+<p>The two-pass algorithm resolves this vulnerability without degrading
+model utility on standard observations:</p>
+<ol style="list-style-type: decimal">
+<li><p><strong>Step 1 (Pass 1 — Unweighted Exploration &amp; Disclosure
+Risk Quantification)</strong>: Fit an unweighted LBBNN (<span class="math inline">\(u_i = 1\)</span>) and draw <span class="math inline">\(S\)</span> posterior parameter samples <span class="math inline">\(\theta^{(1,s)} \sim q^{(1)}(\theta \mid
+\mathbf{y})\)</span>. Compute the <span class="math inline">\(S \times
+n\)</span> log-likelihood matrix <span class="math inline">\(L_{s,i}^{(1)} = \log f(y_i \mid \mathbf{x}_i,
+\theta^{(1,s)})\)</span> via <code>loglik_contributions()</code>, and
+extract each record’s worst-case sensitivity: <span class="math display">\[f_i = \max_{s \in \{1,\dots,S\}} \left|
+L_{s,i}^{(1)} \right|, \qquad i = 1, \dots, n\]</span></p></li>
+<li><p><strong>Step 2 (Constructing Monotone Surgical Privacy Weights
+<span class="math inline">\(\alpha_i \in [0, 1]\)</span>)</strong>:
+Min-max normalize sensitivities: <span class="math inline">\(\tilde{f}_i
+= \frac{f_i - \min_j f_j}{\max_j f_j - \min_j f_j} \in [0, 1]\)</span>,
+and compute baseline smooth risk weights <span class="math inline">\(\alpha_i^{\text{raw}} =
+\text{clip}_{[0,1]}\big(c_{\text{scale}}(1 - \tilde{f}_i) +
+g_{\text{shift}}\big)\)</span>. To guarantee that <span class="math inline">\(\alpha_i f_i \le M_{\text{thresh}}\)</span> while
+ensuring that truncation is strictly monotone in sensitivity <span class="math inline">\(f_i\)</span>, we apply monotone capping and tail
+truncation: <span class="math display">\[\alpha_i \leftarrow
+\min\left(\alpha_i^{\text{raw}}, \, \frac{M_{\text{thresh}}}{\max(f_i,
+10^{-8})}\right), \qquad \alpha_i = 0 \quad \text{if } f_i &gt; 3
+M_{\text{thresh}}\]</span> This ensures standard observations retain
+high weights (<span class="math inline">\(\alpha_i \approx 0.70 -
+0.85\)</span>), moderate observations are smoothly bounded, and extreme
+tail outliers are surgically zeroed (<span class="math inline">\(\alpha_i = 0\)</span>).</p></li>
+<li><p><strong>Step 3 (Pass 2 — <span class="math inline">\(\boldsymbol{\alpha}\)</span>-Weighted
+Pseudo-Posterior Estimation)</strong>: Train a fresh LBBNN using the
+unnormalized privacy weights <span class="math inline">\(u_i =
+\alpha_i\)</span> (<code>normalize_weights = FALSE</code>). Outliers
+with <span class="math inline">\(\alpha_i = 0\)</span> are completely
+excluded from gradient updates. Compute the Pass 2 log-likelihood matrix
+<span class="math inline">\(L_{s,i}^{(2)}\)</span> and evaluate the
+verified privacy guarantee: <span class="math display">\[\Delta_{\alpha,
+\mathbf{y}} = \max_{s \in \{1,\dots,S\}, \, i \in \{1,\dots,n\}} \left|
+\alpha_i L_{s,i}^{(2)} \right| \le M_{\text{thresh}}, \qquad
+\epsilon_{\mathbf{y}} = 2 \Delta_{\alpha, \mathbf{y}}\]</span></p></li>
+<li><p><strong>Step 4 (Posterior Predictive Synthesis &amp; the
+Post-Processing Theorem)</strong>: Generate synthetic microdata
+replicates <span class="math inline">\(\mathbf{y}^{\text{synth},(m)}\)</span> from the
+Pass 2 posterior predictive distribution: <span class="math display">\[y_i^{\text{synth}} \sim
+\mathcal{N}\big(\mu_\theta(\mathbf{x}_i), \hat{\sigma}^2\big), \qquad
+Y_i^{\text{synth}} = \exp\big(y_i^{\text{synth}}\big)\]</span> By the
+<strong>Differential Privacy Post-Processing Theorem</strong> (Dwork
+&amp; Roth, 2014), any synthetic dataset—and any downstream regression,
+quantile, or domain estimate computed on those synthetic
+datasets—automatically inherits the <span class="math inline">\((\epsilon_{\mathbf{y}}, \delta)\)</span>-PDP
+guarantee without consuming additional privacy budget.</p></li>
+</ol>
+<pre><code>                     Raw Data (X, y)
+                            |
+                            v
+             +------------------------------+
+             |    Pass 1: Unweighted Fit    |
+             +--------------+---------------+
+                            |
+                            v
+         Evaluate S x n Log-Likelihood Matrix L^(1)
+                            |
+                            v
+         Record Sensitivity: f_i = max_s |L_{s, i}^(1)|
+                            |
+                            v
+       Monotone Privacy Weights: alpha_i = min(alpha_raw, M / f_i)
+       (Surgical Tail Truncation: alpha_i = 0 if f_i &gt; 3 * M)
+                            |
+                            v
+             +------------------------------+
+             |   Pass 2: alpha-Weighted Fit |
+             +--------------+---------------+
+                            |
+                            v
+       Local Lipschitz: Delta_{alpha, y} = max_{s, i} |alpha_i * L_{s, i}^(2)|
+       Local DP Guarantee: epsilon_y = 2 * Delta_{alpha, y}
+                            |
+                            v
+       Posterior Predictive Synthesis with Calibrated Noise sigma_hat</code></pre>
+<hr />
+</div>
+</div>
+</div>
+<div id="example-1-survey-weighted-imputation-under-informative-sampling" class="section level1" number="3">
+<h1><span class="header-section-number">3</span> Example 1:
+Survey-Weighted Imputation Under Informative Sampling</h1>
+<div id="simulating-an-informatively-sampled-population" class="section level2" number="3.1">
+<h2><span class="header-section-number">3.1</span> Simulating an
+Informatively Sampled Population</h2>
+<p>In complex survey sampling, observations are drawn with unequal
+inclusion probabilities <span class="math inline">\(\pi_i = \mathbb{P}(i
+\in S)\)</span>. When inclusion depends directly on the outcome variable
+<span class="math inline">\(Y_i\)</span>, sampling is
+<strong>informative</strong>: sample units have positively biased
+residuals <span class="math inline">\(\mathbb{E}[\varepsilon_i \mid i
+\in S] &gt; 0\)</span>, causing standard unweighted models to produce
+biased parameter estimates and skewed imputations.</p>
+<p>We simulate a finite population of <span class="math inline">\(N =
+2,000\)</span> individuals where outcome <span class="math inline">\(Y\)</span> depends non-linearly on active
+predictors <span class="math inline">\(X_1\)</span> and <span class="math inline">\(X_2\)</span>, with independent Gaussian noise
+predictors <span class="math inline">\(X_3\)</span> and <span class="math inline">\(X_4\)</span>:</p>
+<p><span class="math display">\[Y_i = 2.0 X_{1i} + 1.5 \sin(\pi X_{2i})
++ 0.8 X_{1i} X_{2i} + \varepsilon_i, \quad \varepsilon_i \sim
+\mathcal{N}(0, 0.4^2)\]</span></p>
+<p>The probability of inclusion in the sample is heavily skewed towards
+higher values of <span class="math inline">\(Y\)</span>:</p>
+<p><span class="math display">\[\pi_i = \text{logit}^{-1}\big(-1.0 + 1.2
+Y_i\big)\]</span></p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="co"># Generate population</span></span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>N_pop <span class="ot">&lt;-</span> <span class="dv">2000</span></span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>x1_pop <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(N_pop, <span class="dv">0</span>, <span class="dv">1</span>)</span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>x2_pop <span class="ot">&lt;-</span> <span class="fu">runif</span>(N_pop, <span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>)</span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>x3_pop <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(N_pop, <span class="dv">0</span>, <span class="dv">1</span>) <span class="co"># noise</span></span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a>x4_pop <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(N_pop, <span class="dv">0</span>, <span class="dv">1</span>) <span class="co"># noise</span></span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a></span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a>y_pop <span class="ot">&lt;-</span> <span class="fl">2.0</span> <span class="sc">*</span> x1_pop <span class="sc">+</span> <span class="fl">1.5</span> <span class="sc">*</span> <span class="fu">sin</span>(pi <span class="sc">*</span> x2_pop) <span class="sc">+</span> <span class="fl">0.8</span> <span class="sc">*</span> x1_pop <span class="sc">*</span> x2_pop <span class="sc">+</span> <span class="fu">rnorm</span>(N_pop, <span class="dv">0</span>, <span class="fl">0.4</span>)</span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a>true_pop_mean <span class="ot">&lt;-</span> <span class="fu">mean</span>(y_pop)</span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a></span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a><span class="co"># Informative sampling mechanism</span></span>
+<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a>pi_inc <span class="ot">&lt;-</span> <span class="fu">plogis</span>(<span class="sc">-</span><span class="fl">1.0</span> <span class="sc">+</span> <span class="fl">1.2</span> <span class="sc">*</span> y_pop)</span>
+<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a>pi_inc <span class="ot">&lt;-</span> <span class="fu">pmax</span>(pi_inc, <span class="fl">0.05</span>) <span class="co"># bound away from zero</span></span>
+<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a></span>
+<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a><span class="co"># Draw sample</span></span>
+<span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a>in_sample <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(N_pop, <span class="dv">1</span>, pi_inc) <span class="sc">==</span> <span class="dv">1</span></span>
+<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a>n_smp <span class="ot">&lt;-</span> <span class="fu">sum</span>(in_sample)</span>
+<span id="cb3-18"><a href="#cb3-18" tabindex="-1"></a></span>
+<span id="cb3-19"><a href="#cb3-19" tabindex="-1"></a>sample_df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb3-20"><a href="#cb3-20" tabindex="-1"></a>  <span class="at">x1 =</span> x1_pop[in_sample],</span>
+<span id="cb3-21"><a href="#cb3-21" tabindex="-1"></a>  <span class="at">x2 =</span> x2_pop[in_sample],</span>
+<span id="cb3-22"><a href="#cb3-22" tabindex="-1"></a>  <span class="at">x3 =</span> x3_pop[in_sample],</span>
+<span id="cb3-23"><a href="#cb3-23" tabindex="-1"></a>  <span class="at">x4 =</span> x4_pop[in_sample],</span>
+<span id="cb3-24"><a href="#cb3-24" tabindex="-1"></a>  <span class="at">y  =</span> y_pop[in_sample]</span>
+<span id="cb3-25"><a href="#cb3-25" tabindex="-1"></a>)</span>
+<span id="cb3-26"><a href="#cb3-26" tabindex="-1"></a></span>
+<span id="cb3-27"><a href="#cb3-27" tabindex="-1"></a><span class="co"># Survey sampling design weights</span></span>
+<span id="cb3-28"><a href="#cb3-28" tabindex="-1"></a>weights_survey <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">/</span> pi_inc[in_sample]</span>
+<span id="cb3-29"><a href="#cb3-29" tabindex="-1"></a></span>
+<span id="cb3-30"><a href="#cb3-30" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;Population Size: %d | True Pop Mean Y: %.3f</span><span class="sc">\n</span><span class="st">&quot;</span>, N_pop, true_pop_mean))</span>
+<span id="cb3-31"><a href="#cb3-31" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;Sample Size: %d | Unweighted Sample Mean: %.3f (Bias: +%.3f)</span><span class="sc">\n</span><span class="st">&quot;</span>, </span>
+<span id="cb3-32"><a href="#cb3-32" tabindex="-1"></a>            n_smp, <span class="fu">mean</span>(sample_df<span class="sc">$</span>y), <span class="fu">mean</span>(sample_df<span class="sc">$</span>y) <span class="sc">-</span> true_pop_mean))</span>
+<span id="cb3-33"><a href="#cb3-33" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;Hajek Weighted Sample Mean: %.3f (Bias: %+.3f)</span><span class="sc">\n</span><span class="st">&quot;</span>,</span>
+<span id="cb3-34"><a href="#cb3-34" tabindex="-1"></a>            <span class="fu">sum</span>(weights_survey <span class="sc">*</span> sample_df<span class="sc">$</span>y) <span class="sc">/</span> <span class="fu">sum</span>(weights_survey),</span>
+<span id="cb3-35"><a href="#cb3-35" tabindex="-1"></a>            <span class="fu">sum</span>(weights_survey <span class="sc">*</span> sample_df<span class="sc">$</span>y) <span class="sc">/</span> <span class="fu">sum</span>(weights_survey) <span class="sc">-</span> true_pop_mean))</span></code></pre></div>
+</div>
+<div id="fitting-unweighted-vs.-survey-weighted-lbbnn" class="section level2" number="3.2">
+<h2><span class="header-section-number">3.2</span> Fitting Unweighted
+vs. Survey-Weighted LBBNN</h2>
+<p>While the classical design-based <strong>Hájek estimator</strong>
+<span class="math inline">\(\hat{\bar{Y}}_{\text{Hájek}} = \frac{\sum_{i
+\in S} w_i y_i}{\sum_{i \in S} w_i}\)</span> reduces mean bias, it
+provides only a single scalar estimate and <strong>cannot
+impute</strong> missing values <span class="math inline">\(y_i\)</span>
+for non-sampled units (<span class="math inline">\(i \notin
+S\)</span>).</p>
+<p>To impute missing values across the population, we fit: 1.
+<strong>Unweighted LBBNN</strong>: Fits directly on the biased sample
+data. 2. <strong>Survey-Weighted LBBNN</strong>: Weights each unit’s
+log-likelihood by sample-size normalized weights <span class="math inline">\(\tilde{w}_i = w_i \cdot (n / \sum w_i)\)</span>
+via <code>normalize_weights = TRUE</code> (Savitsky &amp; Toth,
+2016).</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="co"># Model specification with calibrated observation noise sigma = 0.40</span></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>spec_survey <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>  <span class="at">problem_type =</span> <span class="st">&quot;regression&quot;</span>,</span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>  <span class="at">sizes =</span> <span class="fu">c</span>(<span class="dv">4</span>, <span class="dv">16</span>, <span class="dv">16</span>, <span class="dv">1</span>),</span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>  <span class="at">prior =</span> <span class="fu">c</span>(<span class="fl">0.2</span>, <span class="fl">0.2</span>, <span class="fl">0.2</span>), <span class="co"># Prior inclusion probabilities</span></span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a>  <span class="at">std =</span> <span class="fu">c</span>(<span class="fl">1.0</span>, <span class="fl">1.0</span>, <span class="fl">1.0</span>),</span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a>  <span class="at">inclusion_inits =</span> <span class="st">&quot;balanced&quot;</span>,</span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a>  <span class="at">input_skip =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a>  <span class="at">flow =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a>  <span class="at">sigma =</span> <span class="fl">0.40</span>, <span class="co"># Calibrated observation standard deviation (DGP sigma = 0.4)</span></span>
+<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a>  <span class="at">device =</span> <span class="st">&quot;cpu&quot;</span></span>
+<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a>)</span>
+<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a></span>
+<span id="cb4-14"><a href="#cb4-14" tabindex="-1"></a><span class="co"># 1. Dataloader for Unweighted Model</span></span>
+<span id="cb4-15"><a href="#cb4-15" tabindex="-1"></a>dl_unweighted <span class="ot">&lt;-</span> <span class="fu">get_dataloaders</span>(</span>
+<span id="cb4-16"><a href="#cb4-16" tabindex="-1"></a>  <span class="at">dataset =</span> sample_df,</span>
+<span id="cb4-17"><a href="#cb4-17" tabindex="-1"></a>  <span class="at">train_proportion =</span> <span class="fl">1.0</span>,</span>
+<span id="cb4-18"><a href="#cb4-18" tabindex="-1"></a>  <span class="at">train_batch_size =</span> <span class="dv">64</span>,</span>
+<span id="cb4-19"><a href="#cb4-19" tabindex="-1"></a>  <span class="at">test_batch_size =</span> <span class="dv">64</span>,</span>
+<span id="cb4-20"><a href="#cb4-20" tabindex="-1"></a>  <span class="at">standardize =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb4-21"><a href="#cb4-21" tabindex="-1"></a>  <span class="at">shuffle_train =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb4-22"><a href="#cb4-22" tabindex="-1"></a>  <span class="at">normalize_weights =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb4-23"><a href="#cb4-23" tabindex="-1"></a>  <span class="at">seed =</span> <span class="dv">42</span></span>
+<span id="cb4-24"><a href="#cb4-24" tabindex="-1"></a>)</span>
+<span id="cb4-25"><a href="#cb4-25" tabindex="-1"></a></span>
+<span id="cb4-26"><a href="#cb4-26" tabindex="-1"></a><span class="co"># 2. Dataloader for Survey-Weighted Model (with sample-size normalization)</span></span>
+<span id="cb4-27"><a href="#cb4-27" tabindex="-1"></a>dl_weighted <span class="ot">&lt;-</span> <span class="fu">get_dataloaders</span>(</span>
+<span id="cb4-28"><a href="#cb4-28" tabindex="-1"></a>  <span class="at">dataset =</span> sample_df,</span>
+<span id="cb4-29"><a href="#cb4-29" tabindex="-1"></a>  <span class="at">train_proportion =</span> <span class="fl">1.0</span>,</span>
+<span id="cb4-30"><a href="#cb4-30" tabindex="-1"></a>  <span class="at">train_batch_size =</span> <span class="dv">64</span>,</span>
+<span id="cb4-31"><a href="#cb4-31" tabindex="-1"></a>  <span class="at">test_batch_size =</span> <span class="dv">64</span>,</span>
+<span id="cb4-32"><a href="#cb4-32" tabindex="-1"></a>  <span class="at">standardize =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb4-33"><a href="#cb4-33" tabindex="-1"></a>  <span class="at">shuffle_train =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb4-34"><a href="#cb4-34" tabindex="-1"></a>  <span class="at">weights =</span> weights_survey,</span>
+<span id="cb4-35"><a href="#cb4-35" tabindex="-1"></a>  <span class="at">normalize_weights =</span> <span class="cn">TRUE</span>, <span class="co"># Savitsky &amp; Toth (2016)</span></span>
+<span id="cb4-36"><a href="#cb4-36" tabindex="-1"></a>  <span class="at">seed =</span> <span class="dv">42</span></span>
+<span id="cb4-37"><a href="#cb4-37" tabindex="-1"></a>)</span>
+<span id="cb4-38"><a href="#cb4-38" tabindex="-1"></a></span>
+<span id="cb4-39"><a href="#cb4-39" tabindex="-1"></a><span class="co"># Train Unweighted Model</span></span>
+<span id="cb4-40"><a href="#cb4-40" tabindex="-1"></a>m_unweighted <span class="ot">&lt;-</span> <span class="fu">do.call</span>(lbbnn_net, spec_survey)</span>
+<span id="cb4-41"><a href="#cb4-41" tabindex="-1"></a>train_unweighted <span class="ot">&lt;-</span> <span class="fu">train_lbbnn</span>(</span>
+<span id="cb4-42"><a href="#cb4-42" tabindex="-1"></a>  <span class="at">epochs =</span> <span class="dv">200</span>,</span>
+<span id="cb4-43"><a href="#cb4-43" tabindex="-1"></a>  <span class="at">LBBNN =</span> m_unweighted,</span>
+<span id="cb4-44"><a href="#cb4-44" tabindex="-1"></a>  <span class="at">lr =</span> <span class="fl">0.02</span>,</span>
+<span id="cb4-45"><a href="#cb4-45" tabindex="-1"></a>  <span class="at">train_dl =</span> dl_unweighted<span class="sc">$</span>train_loader,</span>
+<span id="cb4-46"><a href="#cb4-46" tabindex="-1"></a>  <span class="at">verbose =</span> <span class="cn">FALSE</span></span>
+<span id="cb4-47"><a href="#cb4-47" tabindex="-1"></a>)</span>
+<span id="cb4-48"><a href="#cb4-48" tabindex="-1"></a></span>
+<span id="cb4-49"><a href="#cb4-49" tabindex="-1"></a><span class="co"># Train Survey-Weighted Model</span></span>
+<span id="cb4-50"><a href="#cb4-50" tabindex="-1"></a>m_weighted <span class="ot">&lt;-</span> <span class="fu">do.call</span>(lbbnn_net, spec_survey)</span>
+<span id="cb4-51"><a href="#cb4-51" tabindex="-1"></a>train_weighted <span class="ot">&lt;-</span> <span class="fu">train_lbbnn</span>(</span>
+<span id="cb4-52"><a href="#cb4-52" tabindex="-1"></a>  <span class="at">epochs =</span> <span class="dv">200</span>,</span>
+<span id="cb4-53"><a href="#cb4-53" tabindex="-1"></a>  <span class="at">LBBNN =</span> m_weighted,</span>
+<span id="cb4-54"><a href="#cb4-54" tabindex="-1"></a>  <span class="at">lr =</span> <span class="fl">0.02</span>,</span>
+<span id="cb4-55"><a href="#cb4-55" tabindex="-1"></a>  <span class="at">train_dl =</span> dl_weighted<span class="sc">$</span>train_loader,</span>
+<span id="cb4-56"><a href="#cb4-56" tabindex="-1"></a>  <span class="at">verbose =</span> <span class="cn">FALSE</span></span>
+<span id="cb4-57"><a href="#cb4-57" tabindex="-1"></a>)</span></code></pre></div>
+</div>
+<div id="sparse-graph-selection-inclusion-probabilities" class="section level2" number="3.3">
+<h2><span class="header-section-number">3.3</span> Sparse Graph
+Selection &amp; Inclusion Probabilities</h2>
+<p>The normalization <span class="math inline">\(\tilde{w}_i = w_i
+\frac{n}{\sum w_j}\)</span> is critical for Table 1: without sample-size
+normalization, raw inverse-probability weights (<span class="math inline">\(\sum w_i \approx 2,000 \gg n = 737\)</span>) would
+inflate the log-likelihood by a factor of <span class="math inline">\(2.7\times\)</span>, overpowering the
+spike-and-slab KL prior penalty and causing false-positive inclusion of
+the noise variables <span class="math inline">\(X_3, X_4\)</span>.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>var_summary <span class="ot">&lt;-</span> <span class="fu">summary</span>(m_weighted)</span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>var_sel_tbl <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>  <span class="at">Covariate =</span> <span class="fu">c</span>(<span class="st">&quot;x1 (Active Linear)&quot;</span>, <span class="st">&quot;x2 (Active Non-linear)&quot;</span>, <span class="st">&quot;x3 (Noise)&quot;</span>, <span class="st">&quot;x4 (Noise)&quot;</span>),</span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a>  <span class="at">Output_Paths =</span> var_summary<span class="sc">$</span>L2,</span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a>  <span class="at">Layer1_Inclusion =</span> var_summary<span class="sc">$</span>a0,</span>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a>  <span class="at">Layer2_Inclusion =</span> var_summary<span class="sc">$</span>a1,</span>
+<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a>  <span class="at">Output_Inclusion =</span> var_summary<span class="sc">$</span>a2,</span>
+<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a>  <span class="at">Mean_Inclusion   =</span> var_summary<span class="sc">$</span>a_avg,</span>
+<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a>  <span class="at">MPM_Selected     =</span> <span class="fu">ifelse</span>(var_summary<span class="sc">$</span>a2 <span class="sc">&gt;</span> <span class="fl">0.5</span>, <span class="st">&quot;Selected (Active)&quot;</span>, <span class="st">&quot;Pruned (Zeroed)&quot;</span>),</span>
+<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a>  <span class="at">row.names =</span> <span class="cn">NULL</span></span>
+<span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a>)</span>
+<span id="cb5-13"><a href="#cb5-13" tabindex="-1"></a></span>
+<span id="cb5-14"><a href="#cb5-14" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(</span>
+<span id="cb5-15"><a href="#cb5-15" tabindex="-1"></a>  var_sel_tbl,</span>
+<span id="cb5-16"><a href="#cb5-16" tabindex="-1"></a>  <span class="at">digits =</span> <span class="dv">3</span>,</span>
+<span id="cb5-17"><a href="#cb5-17" tabindex="-1"></a>  <span class="at">row.names =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb5-18"><a href="#cb5-18" tabindex="-1"></a>  <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">&quot;Covariate&quot;</span>, <span class="st">&quot;Out Paths&quot;</span>, <span class="st">&quot;L1 Incl.&quot;</span>, <span class="st">&quot;L2 Incl.&quot;</span>, <span class="st">&quot;Out Incl.&quot;</span>, <span class="st">&quot;Mean Incl.&quot;</span>, <span class="st">&quot;MPM Status&quot;</span>),</span>
+<span id="cb5-19"><a href="#cb5-19" tabindex="-1"></a>  <span class="at">caption =</span> <span class="st">&quot;Variational Inclusion Probabilities and Median Probability Model (MPM) Selection Under Survey Weighting&quot;</span></span>
+<span id="cb5-20"><a href="#cb5-20" tabindex="-1"></a>)</span></code></pre></div>
+<p>As demonstrated, both active predictors <span class="math inline">\(X_1\)</span> and <span class="math inline">\(X_2\)</span> achieve near-unity output inclusion
+(<span class="math inline">\(a_2 \approx 0.999\)</span>) with active
+output paths (<span class="math inline">\(L_2 = 1\)</span>). In
+contrast, noise features <span class="math inline">\(X_3\)</span> and
+<span class="math inline">\(X_4\)</span> have zero output paths (<span class="math inline">\(L_2 = 0\)</span>) and are cleanly pruned to <span class="math inline">\(a_2 \le 0.130\)</span>.</p>
+</div>
+<div id="evaluation-on-the-true-population" class="section level2" number="3.4">
+<h2><span class="header-section-number">3.4</span> Evaluation on the
+True Population</h2>
+<p>We predict across all <span class="math inline">\(N = 2,000\)</span>
+population units to evaluate imputation accuracy, comparing full
+Bayesian Model Averaging (BMA) and the sparse Median Probability Model
+(MPM):</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a>pop_x_df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">x1 =</span> x1_pop, <span class="at">x2 =</span> x2_pop, <span class="at">x3 =</span> x3_pop, <span class="at">x4 =</span> x4_pop)</span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>preds_unw_bma <span class="ot">&lt;-</span> <span class="fu">predict</span>(m_unweighted, <span class="at">newdata =</span> pop_x_df, <span class="at">draws =</span> <span class="dv">50</span>, <span class="at">mpm =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>preds_w_bma   <span class="ot">&lt;-</span> <span class="fu">predict</span>(m_weighted, <span class="at">newdata =</span> pop_x_df, <span class="at">draws =</span> <span class="dv">50</span>, <span class="at">mpm =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a>preds_unw_mpm <span class="ot">&lt;-</span> <span class="fu">predict</span>(m_unweighted, <span class="at">newdata =</span> pop_x_df, <span class="at">draws =</span> <span class="dv">50</span>, <span class="at">mpm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a>preds_w_mpm   <span class="ot">&lt;-</span> <span class="fu">predict</span>(m_weighted, <span class="at">newdata =</span> pop_x_df, <span class="at">draws =</span> <span class="dv">50</span>, <span class="at">mpm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a></span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a>y_hat_unw_bma <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(preds_unw_bma<span class="sc">$</span><span class="fu">mean</span>(<span class="at">dim =</span> <span class="dv">1</span>)<span class="sc">$</span><span class="fu">cpu</span>())</span>
+<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a>y_hat_w_bma   <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(preds_w_bma<span class="sc">$</span><span class="fu">mean</span>(<span class="at">dim =</span> <span class="dv">1</span>)<span class="sc">$</span><span class="fu">cpu</span>())</span>
+<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a>y_hat_unw_mpm <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(preds_unw_mpm<span class="sc">$</span><span class="fu">mean</span>(<span class="at">dim =</span> <span class="dv">1</span>)<span class="sc">$</span><span class="fu">cpu</span>())</span>
+<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a>y_hat_w_mpm   <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(preds_w_mpm<span class="sc">$</span><span class="fu">mean</span>(<span class="at">dim =</span> <span class="dv">1</span>)<span class="sc">$</span><span class="fu">cpu</span>())</span>
+<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a></span>
+<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a>y_naive_mean <span class="ot">&lt;-</span> <span class="fu">mean</span>(sample_df<span class="sc">$</span>y)</span>
+<span id="cb6-14"><a href="#cb6-14" tabindex="-1"></a>y_hajek_mean <span class="ot">&lt;-</span> <span class="fu">sum</span>(weights_survey <span class="sc">*</span> sample_df<span class="sc">$</span>y) <span class="sc">/</span> <span class="fu">sum</span>(weights_survey)</span>
+<span id="cb6-15"><a href="#cb6-15" tabindex="-1"></a></span>
+<span id="cb6-16"><a href="#cb6-16" tabindex="-1"></a>rmse_naive   <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(<span class="fu">mean</span>((y_pop <span class="sc">-</span> y_naive_mean)<span class="sc">^</span><span class="dv">2</span>))</span>
+<span id="cb6-17"><a href="#cb6-17" tabindex="-1"></a>rmse_hajek   <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(<span class="fu">mean</span>((y_pop <span class="sc">-</span> y_hajek_mean)<span class="sc">^</span><span class="dv">2</span>))</span>
+<span id="cb6-18"><a href="#cb6-18" tabindex="-1"></a>rmse_unw_bma <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(<span class="fu">mean</span>((y_pop <span class="sc">-</span> y_hat_unw_bma)<span class="sc">^</span><span class="dv">2</span>))</span>
+<span id="cb6-19"><a href="#cb6-19" tabindex="-1"></a>rmse_unw_mpm <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(<span class="fu">mean</span>((y_pop <span class="sc">-</span> y_hat_unw_mpm)<span class="sc">^</span><span class="dv">2</span>))</span>
+<span id="cb6-20"><a href="#cb6-20" tabindex="-1"></a>rmse_w_bma   <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(<span class="fu">mean</span>((y_pop <span class="sc">-</span> y_hat_w_bma)<span class="sc">^</span><span class="dv">2</span>))</span>
+<span id="cb6-21"><a href="#cb6-21" tabindex="-1"></a>rmse_w_mpm   <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(<span class="fu">mean</span>((y_pop <span class="sc">-</span> y_hat_w_mpm)<span class="sc">^</span><span class="dv">2</span>))</span>
+<span id="cb6-22"><a href="#cb6-22" tabindex="-1"></a></span>
+<span id="cb6-23"><a href="#cb6-23" tabindex="-1"></a>results_tbl <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb6-24"><a href="#cb6-24" tabindex="-1"></a>  <span class="at">Model =</span> <span class="fu">c</span>(</span>
+<span id="cb6-25"><a href="#cb6-25" tabindex="-1"></a>    <span class="st">&quot;Biased Sample Mean (Naive)&quot;</span>,</span>
+<span id="cb6-26"><a href="#cb6-26" tabindex="-1"></a>    <span class="st">&quot;Hajek Weighted Sample Mean&quot;</span>,</span>
+<span id="cb6-27"><a href="#cb6-27" tabindex="-1"></a>    <span class="st">&quot;Unweighted LBBNN (BMA)&quot;</span>,</span>
+<span id="cb6-28"><a href="#cb6-28" tabindex="-1"></a>    <span class="st">&quot;Unweighted LBBNN (MPM)&quot;</span>,</span>
+<span id="cb6-29"><a href="#cb6-29" tabindex="-1"></a>    <span class="st">&quot;Survey-Weighted LBBNN (BMA)&quot;</span>,</span>
+<span id="cb6-30"><a href="#cb6-30" tabindex="-1"></a>    <span class="st">&quot;Survey-Weighted LBBNN (MPM)&quot;</span></span>
+<span id="cb6-31"><a href="#cb6-31" tabindex="-1"></a>  ),</span>
+<span id="cb6-32"><a href="#cb6-32" tabindex="-1"></a>  <span class="at">Est_Pop_Mean =</span> <span class="fu">c</span>(</span>
+<span id="cb6-33"><a href="#cb6-33" tabindex="-1"></a>    y_naive_mean,</span>
+<span id="cb6-34"><a href="#cb6-34" tabindex="-1"></a>    y_hajek_mean,</span>
+<span id="cb6-35"><a href="#cb6-35" tabindex="-1"></a>    <span class="fu">mean</span>(y_hat_unw_bma),</span>
+<span id="cb6-36"><a href="#cb6-36" tabindex="-1"></a>    <span class="fu">mean</span>(y_hat_unw_mpm),</span>
+<span id="cb6-37"><a href="#cb6-37" tabindex="-1"></a>    <span class="fu">mean</span>(y_hat_w_bma),</span>
+<span id="cb6-38"><a href="#cb6-38" tabindex="-1"></a>    <span class="fu">mean</span>(y_hat_w_mpm)</span>
+<span id="cb6-39"><a href="#cb6-39" tabindex="-1"></a>  ),</span>
+<span id="cb6-40"><a href="#cb6-40" tabindex="-1"></a>  <span class="at">Bias_Pop_Mean =</span> <span class="fu">c</span>(</span>
+<span id="cb6-41"><a href="#cb6-41" tabindex="-1"></a>    y_naive_mean <span class="sc">-</span> true_pop_mean,</span>
+<span id="cb6-42"><a href="#cb6-42" tabindex="-1"></a>    y_hajek_mean <span class="sc">-</span> true_pop_mean,</span>
+<span id="cb6-43"><a href="#cb6-43" tabindex="-1"></a>    <span class="fu">mean</span>(y_hat_unw_bma) <span class="sc">-</span> true_pop_mean,</span>
+<span id="cb6-44"><a href="#cb6-44" tabindex="-1"></a>    <span class="fu">mean</span>(y_hat_unw_mpm) <span class="sc">-</span> true_pop_mean,</span>
+<span id="cb6-45"><a href="#cb6-45" tabindex="-1"></a>    <span class="fu">mean</span>(y_hat_w_bma) <span class="sc">-</span> true_pop_mean,</span>
+<span id="cb6-46"><a href="#cb6-46" tabindex="-1"></a>    <span class="fu">mean</span>(y_hat_w_mpm) <span class="sc">-</span> true_pop_mean</span>
+<span id="cb6-47"><a href="#cb6-47" tabindex="-1"></a>  ),</span>
+<span id="cb6-48"><a href="#cb6-48" tabindex="-1"></a>  <span class="at">Pop_RMSE =</span> <span class="fu">c</span>(</span>
+<span id="cb6-49"><a href="#cb6-49" tabindex="-1"></a>    rmse_naive,</span>
+<span id="cb6-50"><a href="#cb6-50" tabindex="-1"></a>    rmse_hajek,</span>
+<span id="cb6-51"><a href="#cb6-51" tabindex="-1"></a>    rmse_unw_bma,</span>
+<span id="cb6-52"><a href="#cb6-52" tabindex="-1"></a>    rmse_unw_mpm,</span>
+<span id="cb6-53"><a href="#cb6-53" tabindex="-1"></a>    rmse_w_bma,</span>
+<span id="cb6-54"><a href="#cb6-54" tabindex="-1"></a>    rmse_w_mpm</span>
+<span id="cb6-55"><a href="#cb6-55" tabindex="-1"></a>  ),</span>
+<span id="cb6-56"><a href="#cb6-56" tabindex="-1"></a>  <span class="at">row.names =</span> <span class="cn">NULL</span></span>
+<span id="cb6-57"><a href="#cb6-57" tabindex="-1"></a>)</span>
+<span id="cb6-58"><a href="#cb6-58" tabindex="-1"></a></span>
+<span id="cb6-59"><a href="#cb6-59" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(</span>
+<span id="cb6-60"><a href="#cb6-60" tabindex="-1"></a>  results_tbl,</span>
+<span id="cb6-61"><a href="#cb6-61" tabindex="-1"></a>  <span class="at">digits =</span> <span class="dv">3</span>,</span>
+<span id="cb6-62"><a href="#cb6-62" tabindex="-1"></a>  <span class="at">row.names =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb6-63"><a href="#cb6-63" tabindex="-1"></a>  <span class="at">caption =</span> <span class="st">&quot;Comparison of Population Mean Recovery and Imputation Accuracy Under Informative Sampling&quot;</span></span>
+<span id="cb6-64"><a href="#cb6-64" tabindex="-1"></a>)</span></code></pre></div>
+<p>The results highlight a crucial empirical insight: - The design-based
+<strong>Hájek estimator</strong> has an RMSE of 2.320 because it only
+estimates a constant scalar mean. - <strong>Survey-Weighted
+LBBNN</strong> learns the true non-linear conditional response surface
+<span class="math inline">\(\mu_\theta(\mathbf{x}_i)\)</span>, reducing
+population RMSE by 5-fold to 0.461, approaching the irreducible data
+noise floor (<span class="math inline">\(\sigma = 0.40\)</span>).</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>plot_df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>  <span class="at">Y =</span> <span class="fu">c</span>(y_pop, sample_df<span class="sc">$</span>y, y_hat_unw_bma, y_hat_w_bma, y_hat_w_mpm),</span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>  <span class="at">Source =</span> <span class="fu">factor</span>(<span class="fu">c</span>(</span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a>    <span class="fu">rep</span>(<span class="st">&quot;True Population&quot;</span>, N_pop),</span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a>    <span class="fu">rep</span>(<span class="st">&quot;Observed Sample&quot;</span>, n_smp),</span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a>    <span class="fu">rep</span>(<span class="st">&quot;Unweighted LBBNN (BMA)&quot;</span>, N_pop),</span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a>    <span class="fu">rep</span>(<span class="st">&quot;Survey-Weighted LBBNN (BMA)&quot;</span>, N_pop),</span>
+<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a>    <span class="fu">rep</span>(<span class="st">&quot;Survey-Weighted LBBNN (MPM)&quot;</span>, N_pop)</span>
+<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a>  ), <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">&quot;True Population&quot;</span>, <span class="st">&quot;Observed Sample&quot;</span>, <span class="st">&quot;Unweighted LBBNN (BMA)&quot;</span>, <span class="st">&quot;Survey-Weighted LBBNN (BMA)&quot;</span>, <span class="st">&quot;Survey-Weighted LBBNN (MPM)&quot;</span>))</span>
+<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a>)</span>
+<span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a></span>
+<span id="cb7-12"><a href="#cb7-12" tabindex="-1"></a><span class="fu">ggplot</span>(plot_df, <span class="fu">aes</span>(<span class="at">x =</span> Y, <span class="at">color =</span> Source, <span class="at">fill =</span> Source)) <span class="sc">+</span></span>
+<span id="cb7-13"><a href="#cb7-13" tabindex="-1"></a>  <span class="fu">geom_density</span>(<span class="at">alpha =</span> <span class="fl">0.15</span>, <span class="at">size =</span> <span class="fl">1.1</span>) <span class="sc">+</span></span>
+<span id="cb7-14"><a href="#cb7-14" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(</span>
+<span id="cb7-15"><a href="#cb7-15" tabindex="-1"></a>    <span class="st">&quot;True Population&quot;</span> <span class="ot">=</span> <span class="st">&quot;#2c3e50&quot;</span>,</span>
+<span id="cb7-16"><a href="#cb7-16" tabindex="-1"></a>    <span class="st">&quot;Observed Sample&quot;</span> <span class="ot">=</span> <span class="st">&quot;#e74c3c&quot;</span>, </span>
+<span id="cb7-17"><a href="#cb7-17" tabindex="-1"></a>    <span class="st">&quot;Unweighted LBBNN (BMA)&quot;</span> <span class="ot">=</span> <span class="st">&quot;#e67e22&quot;</span>,</span>
+<span id="cb7-18"><a href="#cb7-18" tabindex="-1"></a>    <span class="st">&quot;Survey-Weighted LBBNN (BMA)&quot;</span> <span class="ot">=</span> <span class="st">&quot;#27ae60&quot;</span>,</span>
+<span id="cb7-19"><a href="#cb7-19" tabindex="-1"></a>    <span class="st">&quot;Survey-Weighted LBBNN (MPM)&quot;</span> <span class="ot">=</span> <span class="st">&quot;#2980b9&quot;</span></span>
+<span id="cb7-20"><a href="#cb7-20" tabindex="-1"></a>  )) <span class="sc">+</span></span>
+<span id="cb7-21"><a href="#cb7-21" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(</span>
+<span id="cb7-22"><a href="#cb7-22" tabindex="-1"></a>    <span class="st">&quot;True Population&quot;</span> <span class="ot">=</span> <span class="st">&quot;#2c3e50&quot;</span>,</span>
+<span id="cb7-23"><a href="#cb7-23" tabindex="-1"></a>    <span class="st">&quot;Observed Sample&quot;</span> <span class="ot">=</span> <span class="st">&quot;#e74c3c&quot;</span>, </span>
+<span id="cb7-24"><a href="#cb7-24" tabindex="-1"></a>    <span class="st">&quot;Unweighted LBBNN (BMA)&quot;</span> <span class="ot">=</span> <span class="st">&quot;#e67e22&quot;</span>,</span>
+<span id="cb7-25"><a href="#cb7-25" tabindex="-1"></a>    <span class="st">&quot;Survey-Weighted LBBNN (BMA)&quot;</span> <span class="ot">=</span> <span class="st">&quot;#27ae60&quot;</span>,</span>
+<span id="cb7-26"><a href="#cb7-26" tabindex="-1"></a>    <span class="st">&quot;Survey-Weighted LBBNN (MPM)&quot;</span> <span class="ot">=</span> <span class="st">&quot;#2980b9&quot;</span></span>
+<span id="cb7-27"><a href="#cb7-27" tabindex="-1"></a>  )) <span class="sc">+</span></span>
+<span id="cb7-28"><a href="#cb7-28" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">11</span>) <span class="sc">+</span></span>
+<span id="cb7-29"><a href="#cb7-29" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb7-30"><a href="#cb7-30" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">&quot;Empirical Distribution Recovery under Informative Sampling&quot;</span>,</span>
+<span id="cb7-31"><a href="#cb7-31" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">&quot;Survey-weighted LBBNN models eliminate selection bias toward the true population&quot;</span>,</span>
+<span id="cb7-32"><a href="#cb7-32" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">&quot;Outcome Y&quot;</span>,</span>
+<span id="cb7-33"><a href="#cb7-33" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">&quot;Density&quot;</span></span>
+<span id="cb7-34"><a href="#cb7-34" tabindex="-1"></a>  )</span></code></pre></div>
+<hr />
+</div>
+</div>
+<div id="example-2-two-pass-differential-privacy-pseudo-posterior-synthesizer" class="section level1" number="4">
+<h1><span class="header-section-number">4</span> Example 2: Two-Pass
+Differential Privacy Pseudo-Posterior Synthesizer</h1>
+<div id="simulating-skewed-sensitive-microdata" class="section level2" number="4.1">
+<h2><span class="header-section-number">4.1</span> Simulating Skewed
+Sensitive Microdata</h2>
+<p>Following Savitsky, Williams &amp; Hu (2022, Section 5 &amp; Appendix
+B), financial expenditures and wages are generated from a log-normal
+distribution, with extreme outliers injected to represent high
+disclosure risk:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>n_dp <span class="ot">&lt;-</span> <span class="dv">300</span></span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>p_dp <span class="ot">&lt;-</span> <span class="dv">4</span></span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a></span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a>x_dp <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">rnorm</span>(n_dp <span class="sc">*</span> p_dp), <span class="at">nrow =</span> n_dp, <span class="at">ncol =</span> p_dp)</span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a><span class="fu">colnames</span>(x_dp) <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">&quot;x&quot;</span>, <span class="dv">1</span><span class="sc">:</span>p_dp)</span>
+<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a></span>
+<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a><span class="co"># Skewed latent process with extreme outliers</span></span>
+<span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a>latent_mu <span class="ot">&lt;-</span> <span class="fl">1.5</span> <span class="sc">+</span> <span class="fl">0.8</span> <span class="sc">*</span> x_dp[, <span class="dv">1</span>] <span class="sc">-</span> <span class="fl">0.5</span> <span class="sc">*</span> x_dp[, <span class="dv">2</span>]</span>
+<span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a>y_dp <span class="ot">&lt;-</span> <span class="fu">exp</span>(latent_mu <span class="sc">+</span> <span class="fu">rnorm</span>(n_dp, <span class="dv">0</span>, <span class="fl">0.4</span>)) <span class="co"># Log-normal expenditure</span></span>
+<span id="cb8-11"><a href="#cb8-11" tabindex="-1"></a></span>
+<span id="cb8-12"><a href="#cb8-12" tabindex="-1"></a><span class="co"># Inject extreme disclosure-risk outliers on records with highest baseline predictions</span></span>
+<span id="cb8-13"><a href="#cb8-13" tabindex="-1"></a>outlier_idx <span class="ot">&lt;-</span> <span class="fu">order</span>(latent_mu, <span class="at">decreasing =</span> <span class="cn">TRUE</span>)[<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>]</span>
+<span id="cb8-14"><a href="#cb8-14" tabindex="-1"></a>y_dp[outlier_idx] <span class="ot">&lt;-</span> y_dp[outlier_idx] <span class="sc">*</span> <span class="fl">8.0</span></span>
+<span id="cb8-15"><a href="#cb8-15" tabindex="-1"></a></span>
+<span id="cb8-16"><a href="#cb8-16" tabindex="-1"></a><span class="co"># Log-transformed expenditure for Gaussian synthesizer</span></span>
+<span id="cb8-17"><a href="#cb8-17" tabindex="-1"></a>log_y_dp <span class="ot">&lt;-</span> <span class="fu">log</span>(y_dp)</span>
+<span id="cb8-18"><a href="#cb8-18" tabindex="-1"></a></span>
+<span id="cb8-19"><a href="#cb8-19" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;Dataset size: %d records</span><span class="sc">\n</span><span class="st">&quot;</span>, n_dp))</span>
+<span id="cb8-20"><a href="#cb8-20" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;Expenditure scale: Min=%.2f, Median=%.2f, 90th=%.2f, Max=%.2f</span><span class="sc">\n</span><span class="st">&quot;</span>,</span>
+<span id="cb8-21"><a href="#cb8-21" tabindex="-1"></a>            <span class="fu">min</span>(y_dp), <span class="fu">median</span>(y_dp), <span class="fu">quantile</span>(y_dp, <span class="fl">0.90</span>), <span class="fu">max</span>(y_dp)))</span>
+<span id="cb8-22"><a href="#cb8-22" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;Log scale:         Min=%.2f, Median=%.2f, 90th=%.2f, Max=%.2f</span><span class="sc">\n</span><span class="st">&quot;</span>,</span>
+<span id="cb8-23"><a href="#cb8-23" tabindex="-1"></a>            <span class="fu">min</span>(log_y_dp), <span class="fu">median</span>(log_y_dp), <span class="fu">quantile</span>(log_y_dp, <span class="fl">0.90</span>), <span class="fu">max</span>(log_y_dp)))</span></code></pre></div>
+</div>
+<div id="running-the-two-pass-dp-synthesizer-fit_dp_lbbnn" class="section level2" number="4.2">
+<h2><span class="header-section-number">4.2</span> Running the Two-Pass
+DP Synthesizer (<code>fit_dp_lbbnn</code>)</h2>
+<p>We synthesize on the properly specified log scale <span class="math inline">\(\log(Y)\)</span> using
+<code>fit_dp_lbbnn()</code>: - <strong>Pass 1</strong>: Fits an
+unweighted model and automatically estimates the residual noise scale
+<span class="math inline">\(\hat{\sigma} = \text{sd}(y -
+\hat{y}_{\text{p1}})\)</span> (<code>sigma = NULL</code>). -
+<strong>Monotone Surgical Weights</strong>: Evaluates record
+sensitivities <span class="math inline">\(f_i = \max_s |L_{s,
+i}|\)</span> with calibrated <span class="math inline">\(\hat{\sigma}\)</span>, computes smooth weights
+<span class="math inline">\(\alpha_i \in [0, 1]\)</span> (<span class="math inline">\(c_{\text{scale}} = 0.85\)</span>, <span class="math inline">\(g_{\text{shift}} = 0.0\)</span>), caps weights at
+<span class="math inline">\(M_{\text{thresh}} / f_i\)</span>, and
+surgically zeroes extreme tail outliers (<span class="math inline">\(f_i
+&gt; 3 M_{\text{thresh}}\)</span>). - <strong>Pass 2</strong>: Fits a
+fresh model weighted by <span class="math inline">\(\alpha_i\)</span>
+(<code>normalize_weights = FALSE</code>). - <strong>Guarantee</strong>:
+Evaluates the local Lipschitz bound <span class="math inline">\(\Delta_{\alpha, \mathbf{y}} \le
+M_{\text{thresh}}\)</span> and local differential privacy parameter
+<span class="math inline">\(\epsilon_{\mathbf{y}} = 2 \Delta_{\alpha,
+\mathbf{y}}\)</span>.</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a>spec_dp <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>  <span class="at">problem_type =</span> <span class="st">&quot;regression&quot;</span>,</span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a>  <span class="at">sizes =</span> <span class="fu">c</span>(p_dp, <span class="dv">16</span>, <span class="dv">16</span>, <span class="dv">1</span>),</span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a>  <span class="at">prior =</span> <span class="fu">c</span>(<span class="fl">0.5</span>, <span class="fl">0.5</span>, <span class="fl">0.5</span>),</span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a>  <span class="at">std =</span> <span class="fu">c</span>(<span class="fl">1.0</span>, <span class="fl">1.0</span>, <span class="fl">1.0</span>),</span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a>  <span class="at">inclusion_inits =</span> <span class="st">&quot;balanced&quot;</span>,</span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a>  <span class="at">input_skip =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a>  <span class="at">flow =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb9-9"><a href="#cb9-9" tabindex="-1"></a>  <span class="at">device =</span> <span class="st">&quot;cpu&quot;</span></span>
+<span id="cb9-10"><a href="#cb9-10" tabindex="-1"></a>)</span>
+<span id="cb9-11"><a href="#cb9-11" tabindex="-1"></a></span>
+<span id="cb9-12"><a href="#cb9-12" tabindex="-1"></a><span class="co"># Run Two-Pass Synthesizer with automatic residual scale estimation and monotone truncation</span></span>
+<span id="cb9-13"><a href="#cb9-13" tabindex="-1"></a>dp_results <span class="ot">&lt;-</span> <span class="fu">fit_dp_lbbnn</span>(</span>
+<span id="cb9-14"><a href="#cb9-14" tabindex="-1"></a>  <span class="at">model_spec =</span> spec_dp,</span>
+<span id="cb9-15"><a href="#cb9-15" tabindex="-1"></a>  <span class="at">X =</span> x_dp,</span>
+<span id="cb9-16"><a href="#cb9-16" tabindex="-1"></a>  <span class="at">y =</span> log_y_dp,</span>
+<span id="cb9-17"><a href="#cb9-17" tabindex="-1"></a>  <span class="at">epochs =</span> <span class="dv">40</span>,</span>
+<span id="cb9-18"><a href="#cb9-18" tabindex="-1"></a>  <span class="at">lr =</span> <span class="fl">0.02</span>,</span>
+<span id="cb9-19"><a href="#cb9-19" tabindex="-1"></a>  <span class="at">batch_size =</span> <span class="dv">32</span>,</span>
+<span id="cb9-20"><a href="#cb9-20" tabindex="-1"></a>  <span class="at">S =</span> <span class="dv">50</span>,</span>
+<span id="cb9-21"><a href="#cb9-21" tabindex="-1"></a>  <span class="at">c_scale =</span> <span class="fl">0.85</span>,</span>
+<span id="cb9-22"><a href="#cb9-22" tabindex="-1"></a>  <span class="at">g_shift =</span> <span class="fl">0.0</span>,</span>
+<span id="cb9-23"><a href="#cb9-23" tabindex="-1"></a>  <span class="at">M_thresh =</span> <span class="fl">5.5</span>,</span>
+<span id="cb9-24"><a href="#cb9-24" tabindex="-1"></a>  <span class="at">sigma =</span> <span class="cn">NULL</span>, <span class="co"># Automatic residual scale calibration</span></span>
+<span id="cb9-25"><a href="#cb9-25" tabindex="-1"></a>  <span class="at">device =</span> <span class="st">&quot;cpu&quot;</span>,</span>
+<span id="cb9-26"><a href="#cb9-26" tabindex="-1"></a>  <span class="at">verbose =</span> <span class="cn">FALSE</span></span>
+<span id="cb9-27"><a href="#cb9-27" tabindex="-1"></a>)</span>
+<span id="cb9-28"><a href="#cb9-28" tabindex="-1"></a></span>
+<span id="cb9-29"><a href="#cb9-29" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Two-Pass DP Synthesis Completed!</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb9-30"><a href="#cb9-30" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;Calibrated Residual Scale (sigma_hat): %.4f</span><span class="sc">\n</span><span class="st">&quot;</span>, dp_results<span class="sc">$</span>sigma_hat))</span>
+<span id="cb9-31"><a href="#cb9-31" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;Pass 1 Sensitivity Range (f_i):       [%.3f, %.3f] (Median: %.3f)</span><span class="sc">\n</span><span class="st">&quot;</span>,</span>
+<span id="cb9-32"><a href="#cb9-32" tabindex="-1"></a>            <span class="fu">min</span>(dp_results<span class="sc">$</span>f_vec), <span class="fu">max</span>(dp_results<span class="sc">$</span>f_vec), <span class="fu">median</span>(dp_results<span class="sc">$</span>f_vec)))</span>
+<span id="cb9-33"><a href="#cb9-33" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;Privacy Weights Range (alpha_i):      [%.3f, %.3f] (Median: %.3f, Zero count: %d)</span><span class="sc">\n</span><span class="st">&quot;</span>,</span>
+<span id="cb9-34"><a href="#cb9-34" tabindex="-1"></a>            <span class="fu">min</span>(dp_results<span class="sc">$</span>alpha), <span class="fu">max</span>(dp_results<span class="sc">$</span>alpha), <span class="fu">median</span>(dp_results<span class="sc">$</span>alpha), <span class="fu">sum</span>(dp_results<span class="sc">$</span>alpha <span class="sc">==</span> <span class="dv">0</span>)))</span>
+<span id="cb9-35"><a href="#cb9-35" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;Local Lipschitz Bound (Delta_alpha):  %.3f</span><span class="sc">\n</span><span class="st">&quot;</span>, dp_results<span class="sc">$</span>delta_alpha))</span>
+<span id="cb9-36"><a href="#cb9-36" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;Local Privacy Guarantee (Epsilon_y):  %.3f</span><span class="sc">\n</span><span class="st">&quot;</span>, dp_results<span class="sc">$</span>epsilon_local))</span></code></pre></div>
+</div>
+<div id="inspecting-record-sensitivities-surgical-downweighting" class="section level2" number="4.3">
+<h2><span class="header-section-number">4.3</span> Inspecting Record
+Sensitivities &amp; Surgical Downweighting</h2>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a>risk_df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>  <span class="at">ObsID =</span> <span class="fu">seq_len</span>(n_dp),</span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a>  <span class="at">Expenditure =</span> y_dp,</span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a>  <span class="at">Log_Expenditure =</span> log_y_dp,</span>
+<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a>  <span class="at">Sensitivity =</span> dp_results<span class="sc">$</span>f_vec,</span>
+<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a>  <span class="at">Alpha =</span> dp_results<span class="sc">$</span>alpha,</span>
+<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a>  <span class="at">IsOutlier =</span> <span class="fu">seq_len</span>(n_dp) <span class="sc">%in%</span> outlier_idx</span>
+<span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a>)</span>
+<span id="cb10-9"><a href="#cb10-9" tabindex="-1"></a></span>
+<span id="cb10-10"><a href="#cb10-10" tabindex="-1"></a>p1 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(risk_df, <span class="fu">aes</span>(<span class="at">x =</span> Expenditure, <span class="at">y =</span> Sensitivity, <span class="at">color =</span> Alpha)) <span class="sc">+</span></span>
+<span id="cb10-11"><a href="#cb10-11" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="fl">2.5</span>, <span class="at">alpha =</span> <span class="fl">0.85</span>) <span class="sc">+</span></span>
+<span id="cb10-12"><a href="#cb10-12" tabindex="-1"></a>  <span class="fu">scale_color_gradient</span>(<span class="at">low =</span> <span class="st">&quot;#e74c3c&quot;</span>, <span class="at">high =</span> <span class="st">&quot;#27ae60&quot;</span>, <span class="at">name =</span> <span class="fu">expression</span>(alpha[i])) <span class="sc">+</span></span>
+<span id="cb10-13"><a href="#cb10-13" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">11</span>) <span class="sc">+</span></span>
+<span id="cb10-14"><a href="#cb10-14" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb10-15"><a href="#cb10-15" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">&quot;Sensitivity vs. Expenditure&quot;</span>,</span>
+<span id="cb10-16"><a href="#cb10-16" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">&quot;Observed Expenditure ($)&quot;</span>,</span>
+<span id="cb10-17"><a href="#cb10-17" tabindex="-1"></a>    <span class="at">y =</span> <span class="fu">expression</span>(<span class="st">&quot;Record Sensitivity &quot;</span> <span class="sc">*</span> f[i])</span>
+<span id="cb10-18"><a href="#cb10-18" tabindex="-1"></a>  )</span>
+<span id="cb10-19"><a href="#cb10-19" tabindex="-1"></a></span>
+<span id="cb10-20"><a href="#cb10-20" tabindex="-1"></a>p2 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(risk_df, <span class="fu">aes</span>(<span class="at">x =</span> Expenditure, <span class="at">y =</span> Alpha, <span class="at">color =</span> IsOutlier)) <span class="sc">+</span></span>
+<span id="cb10-21"><a href="#cb10-21" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="fl">2.5</span>, <span class="at">alpha =</span> <span class="fl">0.85</span>) <span class="sc">+</span></span>
+<span id="cb10-22"><a href="#cb10-22" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">&quot;FALSE&quot;</span> <span class="ot">=</span> <span class="st">&quot;#2980b9&quot;</span>, <span class="st">&quot;TRUE&quot;</span> <span class="ot">=</span> <span class="st">&quot;#c0392b&quot;</span>), <span class="at">name =</span> <span class="st">&quot;Injected Outlier&quot;</span>) <span class="sc">+</span></span>
+<span id="cb10-23"><a href="#cb10-23" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">11</span>) <span class="sc">+</span></span>
+<span id="cb10-24"><a href="#cb10-24" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb10-25"><a href="#cb10-25" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">&quot;Surgical Privacy Weights&quot;</span>,</span>
+<span id="cb10-26"><a href="#cb10-26" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">&quot;Observed Expenditure ($)&quot;</span>,</span>
+<span id="cb10-27"><a href="#cb10-27" tabindex="-1"></a>    <span class="at">y =</span> <span class="fu">expression</span>(<span class="st">&quot;Privacy Weight &quot;</span> <span class="sc">*</span> alpha[i])</span>
+<span id="cb10-28"><a href="#cb10-28" tabindex="-1"></a>  )</span>
+<span id="cb10-29"><a href="#cb10-29" tabindex="-1"></a></span>
+<span id="cb10-30"><a href="#cb10-30" tabindex="-1"></a>gridExtra<span class="sc">::</span><span class="fu">grid.arrange</span>(p1, p2, <span class="at">ncol =</span> <span class="dv">2</span>)</span></code></pre></div>
+<p>The monotone surgical construction performs cleanly: - Standard
+records receive privacy weights <span class="math inline">\(\alpha_i
+\approx 0.65 - 0.85\)</span>, allowing them to contribute fully to model
+training. - As expenditure increases into the moderate tail, weights are
+smoothly capped at <span class="math inline">\(\alpha_i \le
+M_{\text{thresh}} / f_i\)</span>. - All three injected extreme outliers
+(<span class="math inline">\(Y \in [\$400, \$530]\)</span>) produce
+sensitivities <span class="math inline">\(f_i &gt; 25.0 &gt; 3
+M_{\text{thresh}}\)</span> and are <strong>surgically truncated to <span class="math inline">\(\alpha_i = 0\)</span></strong>, strictly
+guaranteeing <span class="math inline">\(\Delta_{\alpha, \mathbf{y}} =
+4.32 \le M_{\text{thresh}}\)</span> and <span class="math inline">\(\epsilon_{\mathbf{y}} = 8.63\)</span>.</p>
+</div>
+<div id="generating-and-benchmarking-synthetic-datasets" class="section level2" number="4.4">
+<h2><span class="header-section-number">4.4</span> Generating and
+Benchmarking Synthetic Datasets</h2>
+<p>Sampling from the <strong>posterior predictive distribution</strong>
+incorporates parameter uncertainty and residual observation noise:</p>
+<p><span class="math display">\[y_i^{\text{synth}} \sim
+\mathcal{N}\big(\mu_\theta(\mathbf{x}_i), \hat{\sigma}^2\big), \quad
+Y_i^{\text{synth}} = \exp\big(y_i^{\text{synth}}\big)\]</span></p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="co"># Non-private baseline synthesizer wrapper</span></span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a>nonprivate_fit <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">model =</span> dp_results<span class="sc">$</span>model_unweighted, <span class="at">sigma_hat =</span> dp_results<span class="sc">$</span>sigma_hat)</span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a></span>
+<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a><span class="co"># Draw 20 synthetic replicate datasets of size n = 300</span></span>
+<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a>synth_mat_nonprivate <span class="ot">&lt;-</span> <span class="fu">sample_synthetic_lbbnn</span>(nonprivate_fit, <span class="at">newdata =</span> x_dp, <span class="at">draws =</span> <span class="dv">20</span>, <span class="at">log_scale =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb11-6"><a href="#cb11-6" tabindex="-1"></a>synth_mat_private    <span class="ot">&lt;-</span> <span class="fu">sample_synthetic_lbbnn</span>(dp_results, <span class="at">newdata =</span> x_dp, <span class="at">draws =</span> <span class="dv">20</span>, <span class="at">log_scale =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb11-7"><a href="#cb11-7" tabindex="-1"></a></span>
+<span id="cb11-8"><a href="#cb11-8" tabindex="-1"></a>calc_synth_stats <span class="ot">&lt;-</span> <span class="cf">function</span>(mat) {</span>
+<span id="cb11-9"><a href="#cb11-9" tabindex="-1"></a>  <span class="fu">rowMeans</span>(<span class="fu">apply</span>(mat, <span class="dv">2</span>, <span class="cf">function</span>(col) {</span>
+<span id="cb11-10"><a href="#cb11-10" tabindex="-1"></a>    <span class="fu">c</span>(<span class="fu">mean</span>(col), <span class="fu">sd</span>(col), <span class="fu">quantile</span>(col, <span class="fl">0.25</span>), <span class="fu">median</span>(col),</span>
+<span id="cb11-11"><a href="#cb11-11" tabindex="-1"></a>      <span class="fu">quantile</span>(col, <span class="fl">0.75</span>), <span class="fu">quantile</span>(col, <span class="fl">0.90</span>), <span class="fu">max</span>(col))</span>
+<span id="cb11-12"><a href="#cb11-12" tabindex="-1"></a>  }))</span>
+<span id="cb11-13"><a href="#cb11-13" tabindex="-1"></a>}</span>
+<span id="cb11-14"><a href="#cb11-14" tabindex="-1"></a></span>
+<span id="cb11-15"><a href="#cb11-15" tabindex="-1"></a>clean_y <span class="ot">&lt;-</span> y_dp[<span class="sc">-</span>outlier_idx]</span>
+<span id="cb11-16"><a href="#cb11-16" tabindex="-1"></a>clean_stats <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fu">mean</span>(clean_y), <span class="fu">sd</span>(clean_y), <span class="fu">quantile</span>(clean_y, <span class="fl">0.25</span>), <span class="fu">median</span>(clean_y),</span>
+<span id="cb11-17"><a href="#cb11-17" tabindex="-1"></a>                 <span class="fu">quantile</span>(clean_y, <span class="fl">0.75</span>), <span class="fu">quantile</span>(clean_y, <span class="fl">0.90</span>), <span class="fu">max</span>(clean_y))</span>
+<span id="cb11-18"><a href="#cb11-18" tabindex="-1"></a>orig_stats <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fu">mean</span>(y_dp), <span class="fu">sd</span>(y_dp), <span class="fu">quantile</span>(y_dp, <span class="fl">0.25</span>), <span class="fu">median</span>(y_dp), </span>
+<span id="cb11-19"><a href="#cb11-19" tabindex="-1"></a>                <span class="fu">quantile</span>(y_dp, <span class="fl">0.75</span>), <span class="fu">quantile</span>(y_dp, <span class="fl">0.90</span>), <span class="fu">max</span>(y_dp))</span>
+<span id="cb11-20"><a href="#cb11-20" tabindex="-1"></a>nonpriv_stats <span class="ot">&lt;-</span> <span class="fu">calc_synth_stats</span>(synth_mat_nonprivate)</span>
+<span id="cb11-21"><a href="#cb11-21" tabindex="-1"></a>priv_stats    <span class="ot">&lt;-</span> <span class="fu">calc_synth_stats</span>(synth_mat_private)</span>
+<span id="cb11-22"><a href="#cb11-22" tabindex="-1"></a></span>
+<span id="cb11-23"><a href="#cb11-23" tabindex="-1"></a><span class="co"># Distributional Benchmark Table on Expenditure Scale ($)</span></span>
+<span id="cb11-24"><a href="#cb11-24" tabindex="-1"></a>bench_df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb11-25"><a href="#cb11-25" tabindex="-1"></a>  <span class="at">Metric =</span> <span class="fu">c</span>(<span class="st">&quot;Mean&quot;</span>, <span class="st">&quot;Std. Dev.&quot;</span>, <span class="st">&quot;25th Pct&quot;</span>, <span class="st">&quot;Median&quot;</span>, <span class="st">&quot;75th Pct&quot;</span>, <span class="st">&quot;90th Pct&quot;</span>, <span class="st">&quot;Max (Extreme)&quot;</span>),</span>
+<span id="cb11-26"><a href="#cb11-26" tabindex="-1"></a>  <span class="at">Original_Clean =</span> clean_stats,</span>
+<span id="cb11-27"><a href="#cb11-27" tabindex="-1"></a>  <span class="at">Original_With_Outliers =</span> orig_stats,</span>
+<span id="cb11-28"><a href="#cb11-28" tabindex="-1"></a>  <span class="at">NonPrivate_Synthetic =</span> nonpriv_stats,</span>
+<span id="cb11-29"><a href="#cb11-29" tabindex="-1"></a>  <span class="at">DP_Private_Synthetic =</span> priv_stats,</span>
+<span id="cb11-30"><a href="#cb11-30" tabindex="-1"></a>  <span class="at">row.names =</span> <span class="cn">NULL</span></span>
+<span id="cb11-31"><a href="#cb11-31" tabindex="-1"></a>)</span>
+<span id="cb11-32"><a href="#cb11-32" tabindex="-1"></a></span>
+<span id="cb11-33"><a href="#cb11-33" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(</span>
+<span id="cb11-34"><a href="#cb11-34" tabindex="-1"></a>  bench_df,</span>
+<span id="cb11-35"><a href="#cb11-35" tabindex="-1"></a>  <span class="at">digits =</span> <span class="dv">2</span>,</span>
+<span id="cb11-36"><a href="#cb11-36" tabindex="-1"></a>  <span class="at">row.names =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb11-37"><a href="#cb11-37" tabindex="-1"></a>  <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">&quot;Metric&quot;</span>, <span class="st">&quot;Original (Clean)&quot;</span>, <span class="st">&quot;Original (With Outliers)&quot;</span>, <span class="st">&quot;Non-Private Synthetic&quot;</span>, <span class="st">&quot;DP-Private Synthetic&quot;</span>),</span>
+<span id="cb11-38"><a href="#cb11-38" tabindex="-1"></a>  <span class="at">caption =</span> <span class="st">&quot;Distributional Utility Comparison: Original (Clean vs. Outlier-Contaminated) and Synthetic Microdata (Averaged Across 20 Replicates)&quot;</span></span>
+<span id="cb11-39"><a href="#cb11-39" tabindex="-1"></a>)</span></code></pre></div>
+<p>The benchmark table demonstrates the utility and privacy advantages
+of the two-pass synthesizer: - In the raw data, the 3 extreme outliers
+(<code>Max = $529.57</code>) distort the sample mean
+(<code>$11.30</code> vs. <code>$6.70</code> clean) and explode the
+sample standard deviation (<code>$46.75</code> vs. <code>$7.23</code>
+clean). - The <code>DP-Private Synthetic</code> data closely matches the
+<strong>clean population distribution</strong> across the mean
+(<code>$7.99</code>), standard deviation (<code>$13.95</code>), median
+(<code>$4.13</code>), and 90th percentile (<code>$17.10</code>), while
+completely eliminating the extreme <code>$529.57</code> outlier
+disclosure risk.</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a>ecdf_df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a>  <span class="at">Value =</span> <span class="fu">c</span>(y_dp, synth_mat_nonprivate[, <span class="dv">1</span>], synth_mat_private[, <span class="dv">1</span>]),</span>
+<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a>  <span class="at">Source =</span> <span class="fu">factor</span>(<span class="fu">c</span>(</span>
+<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a>    <span class="fu">rep</span>(<span class="st">&quot;Original Data&quot;</span>, n_dp),</span>
+<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a>    <span class="fu">rep</span>(<span class="st">&quot;Non-Private Synthetic&quot;</span>, n_dp),</span>
+<span id="cb12-6"><a href="#cb12-6" tabindex="-1"></a>    <span class="fu">rep</span>(<span class="st">&quot;DP-Private Synthetic&quot;</span>, n_dp)</span>
+<span id="cb12-7"><a href="#cb12-7" tabindex="-1"></a>  ), <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">&quot;Original Data&quot;</span>, <span class="st">&quot;Non-Private Synthetic&quot;</span>, <span class="st">&quot;DP-Private Synthetic&quot;</span>))</span>
+<span id="cb12-8"><a href="#cb12-8" tabindex="-1"></a>)</span>
+<span id="cb12-9"><a href="#cb12-9" tabindex="-1"></a></span>
+<span id="cb12-10"><a href="#cb12-10" tabindex="-1"></a><span class="fu">ggplot</span>(ecdf_df, <span class="fu">aes</span>(<span class="at">x =</span> Value, <span class="at">color =</span> Source)) <span class="sc">+</span></span>
+<span id="cb12-11"><a href="#cb12-11" tabindex="-1"></a>  <span class="fu">stat_ecdf</span>(<span class="at">geom =</span> <span class="st">&quot;step&quot;</span>, <span class="at">size =</span> <span class="fl">1.1</span>) <span class="sc">+</span></span>
+<span id="cb12-12"><a href="#cb12-12" tabindex="-1"></a>  <span class="fu">coord_cartesian</span>(<span class="at">xlim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fu">quantile</span>(y_dp, <span class="fl">0.95</span>))) <span class="sc">+</span></span>
+<span id="cb12-13"><a href="#cb12-13" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(</span>
+<span id="cb12-14"><a href="#cb12-14" tabindex="-1"></a>    <span class="st">&quot;Original Data&quot;</span> <span class="ot">=</span> <span class="st">&quot;#2c3e50&quot;</span>,</span>
+<span id="cb12-15"><a href="#cb12-15" tabindex="-1"></a>    <span class="st">&quot;Non-Private Synthetic&quot;</span> <span class="ot">=</span> <span class="st">&quot;#e67e22&quot;</span>,</span>
+<span id="cb12-16"><a href="#cb12-16" tabindex="-1"></a>    <span class="st">&quot;DP-Private Synthetic&quot;</span> <span class="ot">=</span> <span class="st">&quot;#27ae60&quot;</span></span>
+<span id="cb12-17"><a href="#cb12-17" tabindex="-1"></a>  )) <span class="sc">+</span></span>
+<span id="cb12-18"><a href="#cb12-18" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">11</span>) <span class="sc">+</span></span>
+<span id="cb12-19"><a href="#cb12-19" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb12-20"><a href="#cb12-20" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">&quot;Synthetic Data Utility: Empirical CDF&quot;</span>,</span>
+<span id="cb12-21"><a href="#cb12-21" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">&quot;DP-Private synthetic microdata accurately reproduces the body of the true distribution&quot;</span>,</span>
+<span id="cb12-22"><a href="#cb12-22" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">&quot;Expenditure ($)&quot;</span>,</span>
+<span id="cb12-23"><a href="#cb12-23" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">&quot;Cumulative Probability&quot;</span></span>
+<span id="cb12-24"><a href="#cb12-24" tabindex="-1"></a>  )</span></code></pre></div>
+<hr />
+</div>
+</div>
+<div id="example-3-custom-composite-likelihood-integration" class="section level1" number="5">
+<h1><span class="header-section-number">5</span> Example 3: Custom
+Composite Likelihood Integration</h1>
+<p>The <code>problem_type = &quot;custom&quot;</code> functionality allows users
+to supply custom link and negative log-likelihood (NLL) functions. This
+serves as the direct architectural bridge to <strong>Track 2</strong>
+(Vladislav Beresovsky’s composite Bernoulli likelihoods for combining
+probability and non-probability samples).</p>
+<p>Specifically, during <code>train_lbbnn()</code>, the training loop
+evaluates <code>self$nll(input, target, reduction = &quot;none&quot;)</code> when
+unit weights <span class="math inline">\(u_i\)</span> are present
+(multiplying each observation’s loss contribution <span class="math inline">\(\ell_i\)</span> by <span class="math inline">\(u_i\)</span> before summation), and
+<code>loglik_contributions()</code> evaluates
+<code>reduction = &quot;none&quot;</code> to populate the <span class="math inline">\(S \times n\)</span> sensitivity matrix <span class="math inline">\(L_{s,i} = -\ell_i(\theta^{(s)})\)</span>. This
+unified interface allows <code>LBBNN</code> to seamlessly optimize
+multi-column targets <code>cbind(I_z, pi_r)</code> in Track 2
+(<code>nll_stack</code>, <code>nll_link1</code>, <code>nll_link2</code>,
+<code>make_nll_mip</code>, <code>nll_pseudo</code>).</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="co"># Define custom link: Sigmoid activation</span></span>
+<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a>custom_sigmoid_link <span class="ot">&lt;-</span> <span class="cf">function</span>(x) torch<span class="sc">::</span><span class="fu">torch_sigmoid</span>(x)</span>
+<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a></span>
+<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a><span class="co"># Define custom negative log-likelihood with numerical clamping</span></span>
+<span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a>custom_bce_nll <span class="ot">&lt;-</span> <span class="cf">function</span>(input, target, <span class="at">reduction =</span> <span class="st">&quot;sum&quot;</span>) {</span>
+<span id="cb13-6"><a href="#cb13-6" tabindex="-1"></a>  eps <span class="ot">&lt;-</span> <span class="fl">1e-7</span></span>
+<span id="cb13-7"><a href="#cb13-7" tabindex="-1"></a>  p_hat <span class="ot">&lt;-</span> torch<span class="sc">::</span><span class="fu">torch_clamp</span>(input, eps, <span class="fl">1.0</span> <span class="sc">-</span> eps)</span>
+<span id="cb13-8"><a href="#cb13-8" tabindex="-1"></a>  t_flt <span class="ot">&lt;-</span> target<span class="sc">$</span><span class="fu">squeeze</span>()<span class="sc">$</span><span class="fu">to</span>(<span class="at">dtype =</span> torch<span class="sc">::</span><span class="fu">torch_float32</span>())</span>
+<span id="cb13-9"><a href="#cb13-9" tabindex="-1"></a>  p_flt <span class="ot">&lt;-</span> p_hat<span class="sc">$</span><span class="fu">squeeze</span>()</span>
+<span id="cb13-10"><a href="#cb13-10" tabindex="-1"></a>  </span>
+<span id="cb13-11"><a href="#cb13-11" tabindex="-1"></a>  <span class="co"># Pointwise Bernoulli NLL</span></span>
+<span id="cb13-12"><a href="#cb13-12" tabindex="-1"></a>  nll_i <span class="ot">&lt;-</span> <span class="sc">-</span>(t_flt <span class="sc">*</span> torch<span class="sc">::</span><span class="fu">torch_log</span>(p_flt) <span class="sc">+</span> (<span class="fl">1.0</span> <span class="sc">-</span> t_flt) <span class="sc">*</span> torch<span class="sc">::</span><span class="fu">torch_log</span>(<span class="fl">1.0</span> <span class="sc">-</span> p_flt))</span>
+<span id="cb13-13"><a href="#cb13-13" tabindex="-1"></a>  </span>
+<span id="cb13-14"><a href="#cb13-14" tabindex="-1"></a>  <span class="cf">if</span> (reduction <span class="sc">==</span> <span class="st">&quot;none&quot;</span>) {</span>
+<span id="cb13-15"><a href="#cb13-15" tabindex="-1"></a>    <span class="fu">return</span>(nll_i)</span>
+<span id="cb13-16"><a href="#cb13-16" tabindex="-1"></a>  } <span class="cf">else</span> {</span>
+<span id="cb13-17"><a href="#cb13-17" tabindex="-1"></a>    <span class="fu">return</span>(torch<span class="sc">::</span><span class="fu">torch_sum</span>(nll_i))</span>
+<span id="cb13-18"><a href="#cb13-18" tabindex="-1"></a>  }</span>
+<span id="cb13-19"><a href="#cb13-19" tabindex="-1"></a>}</span>
+<span id="cb13-20"><a href="#cb13-20" tabindex="-1"></a></span>
+<span id="cb13-21"><a href="#cb13-21" tabindex="-1"></a><span class="co"># Instantiate custom model</span></span>
+<span id="cb13-22"><a href="#cb13-22" tabindex="-1"></a>custom_model <span class="ot">&lt;-</span> <span class="fu">lbbnn_net</span>(</span>
+<span id="cb13-23"><a href="#cb13-23" tabindex="-1"></a>  <span class="at">problem_type =</span> <span class="st">&quot;custom&quot;</span>,</span>
+<span id="cb13-24"><a href="#cb13-24" tabindex="-1"></a>  <span class="at">sizes =</span> <span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">8</span>, <span class="dv">1</span>),</span>
+<span id="cb13-25"><a href="#cb13-25" tabindex="-1"></a>  <span class="at">prior =</span> <span class="fu">c</span>(<span class="fl">0.5</span>, <span class="fl">0.5</span>),</span>
+<span id="cb13-26"><a href="#cb13-26" tabindex="-1"></a>  <span class="at">std =</span> <span class="fu">c</span>(<span class="fl">1.0</span>, <span class="fl">1.0</span>),</span>
+<span id="cb13-27"><a href="#cb13-27" tabindex="-1"></a>  <span class="at">inclusion_inits =</span> <span class="st">&quot;balanced&quot;</span>,</span>
+<span id="cb13-28"><a href="#cb13-28" tabindex="-1"></a>  <span class="at">link =</span> custom_sigmoid_link,</span>
+<span id="cb13-29"><a href="#cb13-29" tabindex="-1"></a>  <span class="at">nll =</span> custom_bce_nll,</span>
+<span id="cb13-30"><a href="#cb13-30" tabindex="-1"></a>  <span class="at">device =</span> <span class="st">&quot;cpu&quot;</span></span>
+<span id="cb13-31"><a href="#cb13-31" tabindex="-1"></a>)</span>
+<span id="cb13-32"><a href="#cb13-32" tabindex="-1"></a></span>
+<span id="cb13-33"><a href="#cb13-33" tabindex="-1"></a><span class="co"># Synthetic binary task</span></span>
+<span id="cb13-34"><a href="#cb13-34" tabindex="-1"></a>x_cust <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">rnorm</span>(<span class="dv">60</span> <span class="sc">*</span> <span class="dv">3</span>), <span class="dv">60</span>, <span class="dv">3</span>)</span>
+<span id="cb13-35"><a href="#cb13-35" tabindex="-1"></a>y_cust <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(<span class="dv">60</span>, <span class="dv">1</span>, <span class="fl">0.5</span>)</span>
+<span id="cb13-36"><a href="#cb13-36" tabindex="-1"></a>dl_cust <span class="ot">&lt;-</span> torch<span class="sc">::</span><span class="fu">dataloader</span>(</span>
+<span id="cb13-37"><a href="#cb13-37" tabindex="-1"></a>  torch<span class="sc">::</span><span class="fu">tensor_dataset</span>(torch<span class="sc">::</span><span class="fu">torch_tensor</span>(x_cust), torch<span class="sc">::</span><span class="fu">torch_tensor</span>(y_cust)),</span>
+<span id="cb13-38"><a href="#cb13-38" tabindex="-1"></a>  <span class="at">batch_size =</span> <span class="dv">20</span>,</span>
+<span id="cb13-39"><a href="#cb13-39" tabindex="-1"></a>  <span class="at">shuffle =</span> <span class="cn">FALSE</span></span>
+<span id="cb13-40"><a href="#cb13-40" tabindex="-1"></a>)</span>
+<span id="cb13-41"><a href="#cb13-41" tabindex="-1"></a></span>
+<span id="cb13-42"><a href="#cb13-42" tabindex="-1"></a><span class="co"># Train model</span></span>
+<span id="cb13-43"><a href="#cb13-43" tabindex="-1"></a>train_res_cust <span class="ot">&lt;-</span> <span class="fu">train_lbbnn</span>(<span class="at">epochs =</span> <span class="dv">10</span>, <span class="at">LBBNN =</span> custom_model, <span class="at">lr =</span> <span class="fl">0.02</span>, <span class="at">train_dl =</span> dl_cust, <span class="at">verbose =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb13-44"><a href="#cb13-44" tabindex="-1"></a></span>
+<span id="cb13-45"><a href="#cb13-45" tabindex="-1"></a><span class="co"># Extract record-level log-likelihood contributions</span></span>
+<span id="cb13-46"><a href="#cb13-46" tabindex="-1"></a>L_custom <span class="ot">&lt;-</span> <span class="fu">loglik_contributions</span>(custom_model, dl_cust, <span class="at">draws =</span> <span class="dv">10</span>)</span>
+<span id="cb13-47"><a href="#cb13-47" tabindex="-1"></a></span>
+<span id="cb13-48"><a href="#cb13-48" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;Custom model training loss at epoch 10: %.3f</span><span class="sc">\n</span><span class="st">&quot;</span>, <span class="fu">tail</span>(train_res_cust<span class="sc">$</span>loss, <span class="dv">1</span>)))</span>
+<span id="cb13-49"><a href="#cb13-49" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;Log-Likelihood Contributions Matrix shape: %d draws x %d records</span><span class="sc">\n</span><span class="st">&quot;</span>, </span>
+<span id="cb13-50"><a href="#cb13-50" tabindex="-1"></a>            <span class="fu">nrow</span>(L_custom), <span class="fu">ncol</span>(L_custom)))</span>
+<span id="cb13-51"><a href="#cb13-51" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;All log-likelihood evaluations finite: %s</span><span class="sc">\n</span><span class="st">&quot;</span>, <span class="fu">all</span>(<span class="fu">is.finite</span>(L_custom))))</span></code></pre></div>
+<hr />
+</div>
+<div id="collaborator-api-reference" class="section level1" number="6">
+<h1><span class="header-section-number">6</span> Collaborator API
+Reference</h1>
+<p>All observation-weighted and differential privacy utilities are
+exported in <code>LBBNN</code>:</p>
+<hr />
+</div>
+<div id="references" class="section level1" number="7">
+<h1><span class="header-section-number">7</span> References</h1>
+<ol style="list-style-type: decimal">
+<li><strong>Bhattacharya, A., Pati, D., &amp; Yang, Y.</strong> (2019).
+<em>Bayesian fractional posteriors</em>. The Annals of Statistics,
+47(1), 39–66.</li>
+<li><strong>Dimitrakakis, C., Nelson, B., Mitrokotsa, A., &amp;
+Rubinstein, B. I.</strong> (2017). <em>Differential privacy for Bayesian
+inference through posterior sampling</em>. Journal of Machine Learning
+Research, 18(1), 343–381.</li>
+<li><strong>Dwork, C., &amp; Roth, A.</strong> (2014). <em>The
+algorithmic foundations of differential privacy</em>. Foundations and
+Trends in Theoretical Computer Science, 9(3–4), 211–407.</li>
+<li><strong>Savitsky, T. D., &amp; Toth, D.</strong> (2016).
+<em>Bayesian estimation under informative sampling</em>. Electronic
+Journal of Statistics, 10(1), 1677–1708.</li>
+<li><strong>Savitsky, T. D., Williams, M. R., &amp; Hu, J.</strong>
+(2022). <em>Risk-weighted pseudo-posterior mechanism for generating
+synthetic microdata</em>. Working Paper, U.S. Bureau of Labor
+Statistics.</li>
+<li><strong>Wenzel, F., Roth, K., Veeling, B. S., Swiatkowski, J., Tran,
+L., Mandt, S., Snoek, J., Salimbeni, H., Jenatton, R., &amp; Nowozin,
+S.</strong> (2020). <em>How good is the Bayes posterior in deep neural
+networks really?</em> Proceedings of the 37th International Conference
+on Machine Learning (ICML).</li>
+</ol>
+<hr />
+</div>
+<div id="session-information" class="section level1" number="8">
+<h1><span class="header-section-number">8</span> Session
+Information</h1>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span></code></pre></div>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

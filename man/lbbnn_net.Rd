@@ -7,9 +7,9 @@
 lbbnn_net(
   problem_type,
   sizes,
-  prior,
-  std,
-  inclusion_inits,
+  prior = rep(0.5, length(sizes) - 1),
+  std = rep(1, length(sizes) - 1),
+  inclusion_inits = "balanced",
   input_skip = FALSE,
   flow = FALSE,
   num_transforms = 2,

@@ -1,0 +1,238 @@
+---
+title: "LBBNN in Official Statistics: Survey Weighting, Differential Privacy, and Non-Probability Propensity"
+output:
+  rmarkdown::html_vignette:
+    df_print: paged
+params:
+  eval: true
+vignette: >
+  %\VignetteIndexEntry{LBBNN in Official Statistics: Survey Weighting, Differential Privacy, and Non-Probability Propensity}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  eval = isTRUE(torch::torch_is_installed())
+)
+library(LBBNN)
+```
+
+## Overview
+
+This quickstart vignette demonstrates the official statistics capabilities implemented in `LBBNN`:
+1. **Track 1A**: Survey-weighted pseudo-posterior estimation, domain-level inference (`predict_domains_lbbnn`), Bayesian missing-response imputation (`impute_response_lbbnn`), and Dirichlet Bayesian bootstrap uncertainty quantification (`hajek_estimate`).
+2. **Track 1B**: Two-stage differential privacy (DP) weight calibration (`compute_dp_weights`, `fit_dp_lbbnn`) supporting multiple Stage 1 normalization schemes and Stage 2 reweighting mechanisms, followed by private synthetic microdata generation (`sample_synthetic_lbbnn`).
+3. **Track 2**: Semi-supervised non-probability sample integration using composite likelihoods with vectorized unit-level linkage probabilities (`make_nll_mip`, `build_propensity_dataset`).
+
+All examples run in seconds on standard hardware.
+
+---
+
+## Part 1 (Track 1A): Survey Weights, Domain Estimation, Imputation & Dirichlet UQ
+
+Official survey data often features complex design weights $w_i$, domain partitions (e.g., industries or geographies), and item non-response.
+
+```{r track1a_demo}
+set.seed(42)
+torch::torch_manual_seed(42)
+
+n <- 120
+p <- 3
+X <- matrix(rnorm(n * p), n, p)
+true_beta <- c(1.5, -1.0, 0.0)
+y_latent <- X %*% true_beta
+y_obs <- y_latent + rnorm(n, sd = 0.4)
+
+# Create 10 missing responses (item non-response)
+missing_idx <- sample(1:n, 10)
+y_with_na <- y_obs
+y_with_na[missing_idx] <- NA
+
+# Unequal survey design weights
+survey_weights <- runif(n, 0.5, 3.0)
+
+# Binary domain partition: Domain 1 vs Domain 2
+domains <- ifelse(X[, 1] > 0, 1, 2)
+G_matrix <- model.matrix(~ factor(domains) - 1)
+colnames(G_matrix) <- c("Domain_1", "Domain_2")
+
+df_survey <- cbind(as.data.frame(X), y = y_with_na)
+loaders <- get_dataloaders(
+  df_survey,
+  train_proportion = 0.9,
+  train_batch_size = 40,
+  test_batch_size = 10,
+  weights = survey_weights,
+  allow_missing = TRUE,
+  standardize = FALSE
+)
+
+# Initialize LBBNN with residual scale sigma
+model <- lbbnn_net(
+  problem_type = "regression",
+  sizes = c(p, 4, 1),
+  sigma = 0.4,
+  device = "cpu"
+)
+
+# Train survey-weighted pseudo-posterior
+train_lbbnn(epochs = 10, LBBNN = model, lr = 0.01, train_dl = loaders$train_loader, verbose = FALSE)
+
+# 1. Domain-level latent predictions with Dirichlet Bayesian bootstrap UQ
+domain_res <- predict_domains_lbbnn(
+  object = model,
+  newdata = X,
+  domain_matrix = G_matrix,
+  weights = survey_weights,
+  type = "latent_mean", # Strips out additive measurement error epsilon_i
+  draws = 15,
+  dirichlet_uq = TRUE
+)
+print(domain_res)
+
+# 2. Impute missing response values via posterior predictive draws
+impute_res <- impute_response_lbbnn(
+  object = model,
+  newdata = df_survey,
+  target_col = "y",
+  draws = 15,
+  type = "latent_mean"
+)
+cat("Imputed summary for missing units (first 3):\n")
+head(impute_res$imputed_summary, 3)
+
+# 3. Domain Hájek estimates with Dirichlet uncertainty
+hajek_res <- hajek_estimate(
+  y = y_obs,
+  weights = survey_weights,
+  domain_matrix = G_matrix,
+  dirichlet_uq = TRUE,
+  draws = 15
+)
+print(hajek_res)
+```
+
+---
+
+## Part 2 (Track 1B): Two-Stage Differential Privacy Calibration
+
+Under Savitsky et al. (2026), privacy weights $\alpha_i$ are calibrated in two modular stages:
+- **Stage 1 (Initial Normalization)**: `"linear"` min-max, `"percentile"` deficit truncation, or `"target_clip"` ratio clipping ($\Delta_{i,\text{goal}} / f_i$).
+- **Stage 2 (Second-Stage Reweighting)**: `"hard_trunc"` (zeroing above $M_{\text{thresh}}$) or `"vector_upscale"` (upward rescaling pointwise dominating hard truncation in Fisher information).
+
+```{r track1b_demo}
+# Standalone evaluation of privacy weight calibration
+set.seed(123)
+f_sens <- rgamma(50, shape = 2, rate = 0.5) # sensitivity proxy f_i
+
+# Stage 1: target ratio clipping + Stage 2: vector-weighted upward rescaling
+dp_w <- compute_dp_weights(
+  f_i = f_sens,
+  stage1_method = "target_clip",
+  stage2_method = "vector_upscale",
+  M_thresh = 4.0,
+  delta_goal = 4.0
+)
+cat(sprintf("Realized sensitivity: %.3f (Local privacy epsilon: %.3f)\n",
+            dp_w$delta_alpha, dp_w$epsilon_local))
+summary(dp_w$alpha)
+
+# End-to-end two-pass (or three-pass) differentially private model fitting
+dp_fit <- fit_dp_lbbnn(
+  model_spec = list(sizes = c(p, 4, 1), problem_type = "regression", device = "cpu"),
+  X = X,
+  y = y_obs,
+  weights = survey_weights,
+  stage1_method = "target_clip",
+  stage2_method = "vector_upscale",
+  M_thresh = 4.0,
+  epochs = 5,
+  batch_size = 40,
+  S = 10,
+  verbose = FALSE
+)
+
+# Sample private synthetic microdata via the post-processing theorem
+syn_data <- sample_synthetic_lbbnn(
+  dp_fit = dp_fit,
+  newdata = X[1:30, ],
+  draws = 10
+)
+cat("Synthetic microdata sample (first 3 records, 4 draws):\n")
+print(syn_data[1:3, 1:4])
+```
+
+---
+
+## Part 3 (Track 2): Non-Probability Sample Integration & Vectorized Linkage in `MIP`
+
+When combining a non-probability convenience sample $S_c$ ($n_c = 70$) with a probability reference survey $S_r$ ($n_r = 70$), we can use composite likelihoods:
+- Deterministic linkage: `LINK2`
+- Unlinked stacking: `STACK`
+- Probabilistic record linkage with unit-level marginal linkage probabilities $\tilde{\mathbf{p}} = (\tilde{p}_1, \dots, \tilde{p}_n)^\top$: `MIP` (Missing Information Principle).
+
+```{r track2_demo}
+n_c <- 70
+n_r <- 70
+
+X_c <- matrix(rnorm(n_c * 2), n_c, 2)
+X_r <- matrix(rnorm(n_r * 2), n_r, 2)
+pi_r <- runif(n_r, 0.05, 0.25)
+
+# Vector of probabilistic record linkage probabilities for reference units
+p_link_vec <- runif(n_r, 0.1, 0.9)
+
+# 1. Build composite dataset for MIP
+mip_ds <- build_propensity_dataset(
+  X_c = X_c,
+  X_r = X_r,
+  pi_r = pi_r,
+  method = "MIP",
+  p_link = p_link_vec
+)
+
+# 2. Instantiate Torch loss module (reads p_link from 4-column target tensor)
+mip_loss <- make_nll_mip()
+
+# 3. Train LBBNN propensity network
+mip_net <- lbbnn_net(
+  problem_type = "custom",
+  sizes = c(2, 4, 1),
+  raw_output = TRUE,
+  nll = mip_loss,
+  device = "cpu"
+)
+
+mip_loaders <- get_dataloaders(
+  mip_ds$data,
+  train_proportion = 1.0,
+  train_batch_size = 35,
+  test_batch_size = 35,
+  target_cols = mip_ds$target_cols,
+  standardize = FALSE
+)
+train_lbbnn(epochs = 5, LBBNN = mip_net, lr = 0.02, train_dl = mip_loaders$train_loader, verbose = FALSE)
+
+# 4. Predict propensities pi_c for convenience units
+torch::with_no_grad({
+  logits_c <- mip_net(torch::torch_tensor(X_c, dtype = torch::torch_float32()))
+  pi_c_hat <- as.numeric(torch::torch_sigmoid(logits_c)$cpu())
+})
+
+# Compute population mean using estimated Hájek inverse-propensity weights
+y_convenience <- 2.0 * X_c[, 1] - 1.5 * X_c[, 2] + rnorm(n_c, sd = 0.3)
+hajek_pop_mean <- hajek_estimate(y = y_convenience, pi = pi_c_hat)
+print(hajek_pop_mean)
+```
+
+---
+
+## Conclusion
+
+The `LBBNN` package provides a unified Bayesian neural network framework for modern official statistics:
+- Explicit design weight scaling and Dirichlet bootstrap calibration for pseudo-posteriors (Track 1A).
+- Multi-stage privacy calibration dominating classical truncation under asymptotic differential privacy (Track 1B).
+- Composite likelihoods handling deterministic, unlinked, and probabilistic survey record linkage (Track 2).

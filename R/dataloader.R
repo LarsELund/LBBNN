@@ -13,6 +13,7 @@
 #' @param weights optional numeric vector of length \code{nrow(dataset)} specifying observation weights.
 #' @param target_cols integer, number of columns at the end of \code{dataset} representing the target (default 1).
 #' @param normalize_weights logical, whether to normalize weights to sum to the sample size (recommended for survey weights w_i per Savitsky & Toth 2016). Default is FALSE.
+#' @param allow_missing logical, whether to automatically filter missing responses (NA values in target column) for the training dataloader so that training can proceed over observed units. Default is TRUE.
 #' @return A list containing:
 #'   \describe{
 #'     \item{train_loader}{A \code{torch::dataloader} for the training data.}
@@ -23,7 +24,7 @@ get_dataloaders <- function(dataset, train_proportion, train_batch_size,
                             test_batch_size, standardize = TRUE,
                             shuffle_train = TRUE, shuffle_test = FALSE,
                             seed = 1, weights = NULL, target_cols = 1,
-                            normalize_weights = FALSE) {
+                            normalize_weights = FALSE, allow_missing = TRUE) {
   if (!inherits(dataset, "data.frame"))
     stop(paste("dataset must be a data.frame object"))
   if (!inherits(train_proportion, "numeric"))
@@ -75,9 +76,9 @@ get_dataloaders <- function(dataset, train_proportion, train_batch_size,
   if (target_cols == 1) {
     y_train <- as.numeric(train[, ncol(train)])
     y_test  <- if (!is.null(test)) as.numeric(test[, ncol(test)]) else NULL
-    if (min(y_train) == 0 && max(y_train) > 1) {
+    if (!anyNA(y_train) && min(y_train) == 0 && max(y_train) > 1) {
       y_train <- y_train + 1
-      if (!is.null(y_test)) y_test <- y_test + 1
+      if (!is.null(y_test) && !anyNA(y_test)) y_test <- y_test + 1
     }
   } else {
     y_train <- as.matrix(train[, (p + 1):ncol(train), drop = FALSE])
@@ -86,6 +87,22 @@ get_dataloaders <- function(dataset, train_proportion, train_batch_size,
 
   x_train <- as.matrix(train[, 1:p, drop = FALSE])
   x_test  <- if (!is.null(test)) as.matrix(test[, 1:p, drop = FALSE]) else NULL
+
+  # Filter missing training units if allow_missing is TRUE
+  if (allow_missing) {
+    obs_idx <- if (target_cols == 1) which(!is.na(y_train)) else which(stats::complete.cases(y_train))
+    if (length(obs_idx) < length(if (target_cols == 1) y_train else y_train[, 1])) {
+      if (length(obs_idx) == 0) stop("All training target values are NA")
+      x_train <- x_train[obs_idx, , drop = FALSE]
+      y_train <- if (target_cols == 1) y_train[obs_idx] else y_train[obs_idx, , drop = FALSE]
+      if (!is.null(w_train)) {
+        w_train <- w_train[obs_idx]
+        if (normalize_weights && sum(w_train) > 0) {
+          w_train <- w_train * (length(w_train) / sum(w_train))
+        }
+      }
+    }
+  }
 
   if (standardize) {
     x_train <- scale(x_train)

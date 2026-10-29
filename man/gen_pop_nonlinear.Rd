@@ -10,6 +10,7 @@ gen_pop_nonlinear(
   nonlinear_y = FALSE,
   nonlinear_propensity = FALSE,
   common_support = c("high", "low"),
+  b2 = NULL,
   n_r = 1000,
   n_c = 1000,
   seed = 100
@@ -25,6 +26,8 @@ gen_pop_nonlinear(
 \item{nonlinear_propensity}{Logical, whether the convenience propensity \eqn{\pi_{ci}} includes non-linear interactions and curves. Default is FALSE.}
 
 \item{common_support}{Character, either \code{"high"} (\eqn{\beta_1 = 1.0, \beta_2 = -0.3}) or \code{"low"} (\eqn{\beta_1 = -1.0, \beta_2 = -0.3}). Default is \code{"high"}.}
+
+\item{b2}{Optional numeric coefficient for X2 in convenience propensity. Default NULL (uses -0.5 for high support, -0.3 for low support).}
 
 \item{n_r}{Target reference sample size \eqn{n_r}. Default is 1,000.}
 

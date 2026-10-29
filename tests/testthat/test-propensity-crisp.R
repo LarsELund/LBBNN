@@ -117,3 +117,39 @@ test_that("LBBNN trains successfully with composite loss function", {
   pi_hat <- apply(as.matrix(preds[, , 1]$cpu()), 2, mean)
   expect_true(all(pi_hat >= 0 & pi_hat <= 1))
 })
+
+testthat::test_that("make_nll_mip and build_propensity_dataset support vectorized p_link", {
+  testthat::skip_on_cran()
+  testthat::skip_if_not(torch_available())
+
+  set.seed(321)
+  pop <- gen_pop_nonlinear(N = 300, p = 3, n_r = 50, n_c = 50, seed = 321)
+  pop <- draw_combined_samples(pop, seed = 321)
+
+  n_r <- sum(pop$I.r == 1)
+  p_vec_r <- runif(n_r, 0.1, 0.9) # per-unit marginal linkage probabilities for reference sample
+
+  # 1. Dataset with vectorized p_link (target_cols = 4)
+  prep_vec <- build_propensity_dataset(pop, method = "MIP", covar_cols = paste0("X", 1:3), p_link = p_vec_r)
+  testthat::expect_equal(prep_vec$target_cols, 4)
+  testthat::expect_true("p_link" %in% names(prep_vec$data))
+
+  dl <- get_dataloaders(prep_vec$data, train_proportion = 1, train_batch_size = 32,
+                        test_batch_size = 32, target_cols = 4, standardize = FALSE)
+
+  loss_fn_mip <- make_nll_mip()
+  model <- lbbnn_net(
+    problem_type = "custom",
+    sizes = c(3, 4, 1),
+    flow = FALSE,
+    raw_output = TRUE,
+    nll = loss_fn_mip,
+    device = "cpu"
+  )
+
+  testthat::expect_error(
+    train_lbbnn(epochs = 2, LBBNN = model, lr = 0.01, train_dl = dl$train_loader, verbose = FALSE),
+    NA
+  )
+})
+

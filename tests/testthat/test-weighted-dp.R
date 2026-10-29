@@ -261,3 +261,72 @@ testthat::test_that("fit_dp_lbbnn runs two-pass synthesizer and calculates local
   testthat::expect_equal(dim(dp_res$L_pass1), c(10, n))
   testthat::expect_equal(dim(dp_res$L_pass2), c(10, n))
 })
+
+testthat::test_that("compute_dp_weights implements Stage 1 and Stage 2 normalization correctly", {
+  f_vec <- c(0.5, 1.2, 2.0, 5.0, 15.0, 50.0) # 6 records with increasing sensitivities
+  M_thresh <- 3.0
+
+  # 1. Linear + Surgical
+  res_lin_surg <- compute_dp_weights(f_vec, stage1_method = "linear", stage2_method = "surgical", M_thresh = M_thresh)
+  testthat::expect_equal(length(res_lin_surg$alpha), length(f_vec))
+  testthat::expect_true(all(res_lin_surg$alpha >= 0 & res_lin_surg$alpha <= 1))
+  testthat::expect_true(res_lin_surg$alpha[6] == 0) # extreme outlier (> 3 * M_thresh) zeroed
+  testthat::expect_true(all(res_lin_surg$alpha * f_vec <= M_thresh + 1e-6))
+
+  # 2. Percentile + Hard Truncation
+  res_pct_hard <- compute_dp_weights(f_vec, stage1_method = "percentile", stage2_method = "hard_trunc", M_thresh = M_thresh)
+  testthat::expect_true(all(res_pct_hard$alpha * f_vec <= M_thresh + 1e-6))
+  testthat::expect_true(res_pct_hard$alpha[6] == 0)
+
+  # 3. Target Clip + Vector Upscale (Proposition 1 & 2 of Savitsky 2026)
+  res_clip_vec <- compute_dp_weights(f_vec, stage1_method = "target_clip", stage2_method = "vector_upscale",
+                                     Delta_goal = 2.0, M_thresh = M_thresh)
+  # Low sensitivities should have weight 1
+  testthat::expect_equal(res_clip_vec$alpha_stage1[1], 1.0)
+  testthat::expect_equal(res_clip_vec$alpha_stage1[2], 1.0)
+  # Vector upscale pointwise dominates hard truncation
+  res_clip_hard <- compute_dp_weights(f_vec, stage1_method = "target_clip", stage2_method = "hard_trunc",
+                                      Delta_goal = 2.0, M_thresh = M_thresh)
+  testthat::expect_true(all(res_clip_vec$alpha >= res_clip_hard$alpha - 1e-6))
+  testthat::expect_true(res_clip_vec$delta_alpha <= M_thresh + 1e-6)
+})
+
+testthat::test_that("fit_dp_lbbnn executes vector_upscale multi-pass training", {
+  testthat::skip_on_cran()
+  testthat::skip_if_not(torch_available())
+
+  set.seed(88)
+  n <- 30
+  p <- 2
+  X <- matrix(rnorm(n * p), n, p)
+  y <- rnorm(n)
+
+  model_spec <- list(
+    problem_type = "regression",
+    sizes = c(p, 4, 1),
+    flow = FALSE,
+    device = "cpu"
+  )
+
+  dp_vec <- fit_dp_lbbnn(
+    model_spec = model_spec,
+    X = X,
+    y = y,
+    epochs = 2,
+    lr = 0.01,
+    batch_size = 15,
+    S = 5,
+    stage1_method = "percentile",
+    stage2_method = "vector_upscale",
+    M_thresh = 4.0,
+    device = "cpu",
+    verbose = FALSE
+  )
+
+  testthat::expect_type(dp_vec, "list")
+  testthat::expect_false(is.null(dp_vec$L_pass3))
+  testthat::expect_equal(dp_vec$stage2_method, "vector_upscale")
+  testthat::expect_true(dp_vec$delta_alpha <= 4.0 + 1e-4)
+  testthat::expect_equal(dp_vec$epsilon_local, 2 * dp_vec$delta_alpha)
+})
+

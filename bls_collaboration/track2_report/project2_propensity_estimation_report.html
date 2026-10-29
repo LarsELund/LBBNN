@@ -1,0 +1,1678 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="author" content="Aliaksandr Hubin &amp; Lars Skaaret-Lund (in collaboration with Vladislav Beresovsky, Julie Gershunskaya, Terrance D. Savitsky)" />
+
+<meta name="date" content="2026-10-23" />
+
+<title>Response Propensity Estimation for Combining Probability and Non-Probability Samples with LBBNN</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Response Propensity Estimation for
+Combining Probability and Non-Probability Samples with LBBNN</h1>
+<h4 class="author">Aliaksandr Hubin &amp; Lars Skaaret-Lund (in
+collaboration with Vladislav Beresovsky, Julie Gershunskaya, Terrance D.
+Savitsky)</h4>
+<h4 class="date">2026-10-23</h4>
+
+
+<div id="TOC">
+<ul>
+<li><a href="#executive-summary" id="toc-executive-summary"><span class="toc-section-number">1</span> Executive Summary</a></li>
+<li><a href="#theoretical-foundations" id="toc-theoretical-foundations"><span class="toc-section-number">2</span> Theoretical Foundations</a>
+<ul>
+<li><a href="#the-challenge-of-non-probability-convenience-data" id="toc-the-challenge-of-non-probability-convenience-data"><span class="toc-section-number">2.1</span> The Challenge of Non-Probability
+Convenience Data</a></li>
+<li><a href="#the-five-estimation-formulations-beresovsky-gershunskaya-savitsky-2026" id="toc-the-five-estimation-formulations-beresovsky-gershunskaya-savitsky-2026"><span class="toc-section-number">2.2</span> The Five Estimation Formulations
+(Beresovsky, Gershunskaya &amp; Savitsky, 2026)</a>
+<ul>
+<li><a href="#the-fundamental-identification-problem-the-conditioning-trick" id="toc-the-fundamental-identification-problem-the-conditioning-trick"><span class="toc-section-number">2.2.1</span> The Fundamental Identification
+Problem &amp; The Conditioning Trick</a></li>
+<li><a href="#unlinked-stacked-sample-stack" id="toc-unlinked-stacked-sample-stack"><span class="toc-section-number">2.2.2</span> Unlinked Stacked Sample
+(<code>STACK</code>)</a></li>
+<li><a href="#deterministically-linked-union-link1" id="toc-deterministically-linked-union-link1"><span class="toc-section-number">2.2.3</span> Deterministically Linked Union
+(<code>LINK1</code>)</a></li>
+<li><a href="#deterministically-linked-stacked-sample-link2" id="toc-deterministically-linked-stacked-sample-link2"><span class="toc-section-number">2.2.4</span> Deterministically Linked Stacked
+Sample (<code>LINK2</code>)</a></li>
+<li><a href="#missing-information-principle-mip" id="toc-missing-information-principle-mip"><span class="toc-section-number">2.2.5</span> Missing Information Principle
+(<code>MIP</code>)</a></li>
+<li><a href="#pseudo-log-likelihood-pseudo-chen-li-wu-2020" id="toc-pseudo-log-likelihood-pseudo-chen-li-wu-2020"><span class="toc-section-number">2.2.6</span> Pseudo-Log-Likelihood
+(<code>PSEUDO</code>, Chen, Li &amp; Wu 2020)</a></li>
+</ul></li>
+<li><a href="#self-normalizing-h%C3%A1jek-estimator" id="toc-self-normalizing-hájek-estimator"><span class="toc-section-number">2.3</span> Self-Normalizing Hájek
+Estimator</a></li>
+<li><a href="#variational-elbo-calibration-protection-against-cold-posteriors" id="toc-variational-elbo-calibration-protection-against-cold-posteriors"><span class="toc-section-number">2.4</span> Variational ELBO Calibration &amp;
+Protection Against Cold Posteriors</a></li>
+</ul></li>
+<li><a href="#package-setup-environment-verification" id="toc-package-setup-environment-verification"><span class="toc-section-number">3</span> Package Setup &amp; Environment
+Verification</a></li>
+<li><a href="#simulation-study-0-exact-linear-baseline-beresovsky-et-al.-2026" id="toc-simulation-study-0-exact-linear-baseline-beresovsky-et-al.-2026"><span class="toc-section-number">4</span> Simulation Study 0: Exact Linear
+Baseline (Beresovsky et al., 2026)</a>
+<ul>
+<li><a href="#high-common-support-benchmark" id="toc-high-common-support-benchmark"><span class="toc-section-number">4.1</span> High Common Support
+Benchmark</a></li>
+<li><a href="#low-common-support-benchmark" id="toc-low-common-support-benchmark"><span class="toc-section-number">4.2</span> Low Common Support
+Benchmark</a></li>
+</ul></li>
+<li><a href="#simulation-study-1-high-common-support-with-linear-propensity-noise-covariates" id="toc-simulation-study-1-high-common-support-with-linear-propensity-noise-covariates"><span class="toc-section-number">5</span> Simulation Study 1: High Common
+Support with Linear Propensity &amp; Noise Covariates</a>
+<ul>
+<li><a href="#fitting-propensity-models-lbbnn-vs-all-5-glm-baselines" id="toc-fitting-propensity-models-lbbnn-vs-all-5-glm-baselines"><span class="toc-section-number">5.1</span> Fitting Propensity Models (LBBNN
+vs All 5 GLM Baselines)</a></li>
+<li><a href="#sparse-variable-selection-active-graph-pruning" id="toc-sparse-variable-selection-active-graph-pruning"><span class="toc-section-number">5.2</span> Sparse Variable Selection &amp;
+Active Graph Pruning</a></li>
+<li><a href="#finite-population-mean-recovery" id="toc-finite-population-mean-recovery"><span class="toc-section-number">5.3</span> Finite Population Mean
+Recovery</a></li>
+</ul></li>
+<li><a href="#simulation-study-2-high-common-support-with-non-linear-propensity-interaction" id="toc-simulation-study-2-high-common-support-with-non-linear-propensity-interaction"><span class="toc-section-number">6</span> Simulation Study 2: High Common
+Support with Non-Linear Propensity &amp; Interaction</a>
+<ul>
+<li><a href="#fitting-propensity-models-under-high-support-non-linearity" id="toc-fitting-propensity-models-under-high-support-non-linearity"><span class="toc-section-number">6.1</span> Fitting Propensity Models under
+High Support Non-Linearity</a></li>
+<li><a href="#variable-selection-under-non-linear-interaction" id="toc-variable-selection-under-non-linear-interaction"><span class="toc-section-number">6.2</span> Variable Selection under
+Non-Linear Interaction</a></li>
+<li><a href="#finite-population-mean-recovery-1" id="toc-finite-population-mean-recovery-1"><span class="toc-section-number">6.3</span> Finite Population Mean
+Recovery</a>
+<ul>
+<li><a href="#pedagogical-takeaway" id="toc-pedagogical-takeaway"><span class="toc-section-number">6.3.1</span> Pedagogical Takeaway</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#simulation-study-3-low-common-support-with-non-linear-propensity-interaction" id="toc-simulation-study-3-low-common-support-with-non-linear-propensity-interaction"><span class="toc-section-number">7</span> Simulation Study 3: Low Common
+Support with Non-Linear Propensity &amp; Interaction</a>
+<ul>
+<li><a href="#model-fitting-under-low-common-support" id="toc-model-fitting-under-low-common-support"><span class="toc-section-number">7.1</span> Model Fitting under Low Common
+Support</a></li>
+<li><a href="#performance-comparison-kishs-ess-the-breakdown-of-pseudo-likelihood" id="toc-performance-comparison-kishs-ess-the-breakdown-of-pseudo-likelihood"><span class="toc-section-number">7.2</span> Performance Comparison: Kish’s ESS
+&amp; The Breakdown of Pseudo-Likelihood</a></li>
+<li><a href="#propensity-recovery-diagnostic-2x2-comparison-grid" id="toc-propensity-recovery-diagnostic-2x2-comparison-grid"><span class="toc-section-number">7.3</span> Propensity Recovery Diagnostic:
+2x2 Comparison Grid</a></li>
+</ul></li>
+<li><a href="#synthesis-comparative-discussion-across-simulation-regimes" id="toc-synthesis-comparative-discussion-across-simulation-regimes"><span class="toc-section-number">8</span> Synthesis &amp; Comparative
+Discussion Across Simulation Regimes</a>
+<ul>
+<li><a href="#when-the-true-propensity-is-linear-studies-0-1" id="toc-when-the-true-propensity-is-linear-studies-0-1"><span class="toc-section-number">8.1</span> When the True Propensity is Linear
+(Studies 0 &amp; 1)</a></li>
+<li><a href="#when-the-propensity-is-non-linear-with-interactions-under-high-common-support-study-2" id="toc-when-the-propensity-is-non-linear-with-interactions-under-high-common-support-study-2"><span class="toc-section-number">8.2</span> When the Propensity is Non-Linear
+with Interactions under High Common Support (Study 2)</a></li>
+<li><a href="#when-non-linearity-meets-low-common-support-study-3" id="toc-when-non-linearity-meets-low-common-support-study-3"><span class="toc-section-number">8.3</span> When Non-Linearity Meets Low
+Common Support (Study 3)</a></li>
+</ul></li>
+<li><a href="#collaborator-api-reference" id="toc-collaborator-api-reference"><span class="toc-section-number">9</span> Collaborator API Reference</a></li>
+<li><a href="#references" id="toc-references"><span class="toc-section-number">10</span> References</a></li>
+<li><a href="#session-information" id="toc-session-information"><span class="toc-section-number">11</span> Session Information</a></li>
+</ul>
+</div>
+
+<div id="executive-summary" class="section level1" number="1">
+<h1><span class="header-section-number">1</span> Executive Summary</h1>
+<p>In federal and official statistics, the combination of a large
+<strong>non-probability (“convenience”) sample</strong> (such as
+commercial web panels or administrative filings) with a smaller,
+high-quality <strong>probability reference survey</strong> offers
+substantial promise for reducing survey costs and respondent burden
+while expanding data coverage. However, unweighted convenience data
+suffer from severe <strong>selection bias</strong> (Meng, 2018).</p>
+<p>This report implements and benchmarks the <strong>Latent Binary
+Bayesian Neural Network (<code>LBBNN</code>)</strong> framework for
+estimating unknown convenience participation propensities <span class="math inline">\(\pi_{ci} = \mathbb{P}(I_{ci} = 1 \mid
+\mathbf{x}_i)\)</span> under five composite likelihood and
+pseudo-likelihood formulations:</p>
+<ol style="list-style-type: decimal">
+<li><strong><code>STACK</code></strong>: Composite Bernoulli likelihood
+on the unlinked stacked sample <span class="math inline">\(S = S_c
+\oplus S_r\)</span> (<span class="math inline">\(\pi_{zi} =
+\frac{\pi_{ci}}{\pi_{ci} + \pi_{ri}}\)</span>).</li>
+<li><strong><code>LINK1</code></strong>: Deterministically linked union
+sample <span class="math inline">\(S = S_c \cup (S_r \setminus
+S_c)\)</span> (<span class="math inline">\(\pi_{zi} =
+\frac{\pi_{ci}}{\pi_{ci} + \pi_{ri} - \pi_{ci}\pi_{ri}}\)</span>).</li>
+<li><strong><code>LINK2</code></strong>: Deterministically linked
+stacked sample <span class="math inline">\(S = S_c \oplus S_r\)</span>
+(<span class="math inline">\(\pi_{zi} = \frac{\pi_{ci}(1 +
+\pi_{ri})}{\pi_{ci} + \pi_{ri}}\)</span>).</li>
+<li><strong><code>MIP</code> (Missing Information Principle)</strong>:
+Probabilistically linked stacked sample with linkage informativeness
+parameter <span class="math inline">\(p_{\text{link}} \in [0,
+1]\)</span>.</li>
+<li><strong><code>PSEUDO</code></strong>: Pseudo-log-likelihood approach
+of Chen, Li &amp; Wu (2020) utilizing survey design weights <span class="math inline">\(w_{ri} = 1 / \pi_{ri}\)</span> on <span class="math inline">\(S_r\)</span>.</li>
+</ol>
+<p>Through automated <strong>variational spike-and-slab edge
+selection</strong>, <code>LBBNN</code> simultaneously: - Captures
+complex <strong>non-linear propensity curves and multi-way
+interactions</strong> without manual polynomial expansions. - Prunes
+<strong>uninformative noise covariates</strong> from the network
+architecture. - Prevents the catastrophic <strong>variance and weight
+explosion</strong> that afflicts classical pseudo-likelihood under low
+common support.</p>
+<hr />
+</div>
+<div id="theoretical-foundations" class="section level1" number="2">
+<h1><span class="header-section-number">2</span> Theoretical
+Foundations</h1>
+<div id="the-challenge-of-non-probability-convenience-data" class="section level2" number="2.1">
+<h2><span class="header-section-number">2.1</span> The Challenge of
+Non-Probability Convenience Data</h2>
+<p>Let <span class="math inline">\(U = \{1, \dots, N\}\)</span> denote a
+finite target population. Each unit <span class="math inline">\(i \in
+U\)</span> is associated with: - A vector of auxiliary covariates <span class="math inline">\(\mathbf{x}_i \in \mathbb{R}^p\)</span>. - An
+outcome of interest <span class="math inline">\(y_i \in
+\mathbb{R}\)</span>. - An unobserved convenience sample participation
+indicator <span class="math inline">\(I_{ci} \in \{0, 1\}\)</span>, with
+unknown participation propensity <span class="math inline">\(\pi_{ci} =
+\mathbb{P}(I_{ci} = 1 \mid \mathbf{x}_i) &gt; 0\)</span>. - A
+probability survey inclusion indicator <span class="math inline">\(I_{ri} \in \{0, 1\}\)</span>, with known design
+selection probability <span class="math inline">\(\pi_{ri} =
+\mathbb{P}(I_{ri} = 1 \mid \mathbf{x}_i) &gt; 0\)</span>.</p>
+<p>If units with particular values of <span class="math inline">\(\mathbf{x}_i\)</span> or <span class="math inline">\(y_i\)</span> systematically self-select into the
+convenience dataset, the naive sample mean is severely biased:</p>
+<p><span class="math display">\[\text{Bias}(\bar{y}_c) =
+\frac{\text{Cov}_U(I_c, Y)}{\bar{\pi}_c}\]</span></p>
+<p>As Meng (2018) proved, this selection bias scales with <span class="math inline">\(\sqrt{N}\)</span> rather than sample size <span class="math inline">\(n_c\)</span>: even a massive convenience dataset
+comprising 80% or 90% of the population can produce wildly misleading
+population estimates if <span class="math inline">\(\text{Corr}(I_c, Y)
+\neq 0\)</span>.</p>
+</div>
+<div id="the-five-estimation-formulations-beresovsky-gershunskaya-savitsky-2026" class="section level2" number="2.2">
+<h2><span class="header-section-number">2.2</span> The Five Estimation
+Formulations (Beresovsky, Gershunskaya &amp; Savitsky, 2026)</h2>
+<div id="the-fundamental-identification-problem-the-conditioning-trick" class="section level3" number="2.2.1">
+<h3><span class="header-section-number">2.2.1</span> The Fundamental
+Identification Problem &amp; The Conditioning Trick</h3>
+<p>In standard supervised machine learning, fitting a binary
+classification model <span class="math inline">\(\mathbb{P}(I_{ci} = 1
+\mid \mathbf{x}_i)\)</span> requires a training sample of both positive
+(<span class="math inline">\(I_{ci} = 1\)</span>) and negative (<span class="math inline">\(I_{ci} = 0\)</span>) units drawn from the
+population. In the non-probability survey setting, however, we encounter
+a <strong>fundamental identification barrier</strong>: 1. We observe
+auxiliary covariates <span class="math inline">\(\mathbf{x}_i\)</span>
+only for units that participated in the convenience sample <span class="math inline">\(S_c = \{i \in U : I_{ci} = 1\}\)</span> and units
+selected into the reference probability survey <span class="math inline">\(S_r = \{i \in U : I_{ri} = 1\}\)</span>. 2. For
+all non-sampled population units (<span class="math inline">\(i \notin
+S_c \cup S_r\)</span>), the covariates <span class="math inline">\(\mathbf{x}_i\)</span> are entirely unobserved.</p>
+<p>Consequently, one cannot directly fit a standard binary regression
+for <span class="math inline">\(I_{ci}\)</span> over <span class="math inline">\(U\)</span>. Beresovsky, Gershunskaya &amp;
+Savitsky (2026) resolve this challenge through a <strong>conditioning
+trick</strong>: by combining <span class="math inline">\(S_c\)</span>
+and <span class="math inline">\(S_r\)</span> into a combined sample
+<span class="math inline">\(S\)</span> and conditioning on the event
+that a unit was observed in <span class="math inline">\(S\)</span>, the
+known reference design probability <span class="math inline">\(\pi_{ri}\)</span> acts as a <strong>structural
+offset</strong> that anchors the neural network’s unconstrained logits
+<span class="math inline">\(\eta_\theta(\mathbf{x}_i)\)</span> to the
+true population scale, allowing exact recovery of <span class="math inline">\(\pi_{ci}(\mathbf{x}_i; \theta) =
+\sigma(\eta_\theta(\mathbf{x}_i))\)</span>.</p>
+</div>
+<div id="unlinked-stacked-sample-stack" class="section level3" number="2.2.2">
+<h3><span class="header-section-number">2.2.2</span> Unlinked Stacked
+Sample (<code>STACK</code>)</h3>
+<p>When records between the convenience and reference files cannot be
+matched, we form the stacked multiset <span class="math inline">\(S =
+S_c \oplus S_r\)</span> of size <span class="math inline">\(n = n_c +
+n_r\)</span>. Any population unit <span class="math inline">\(i \in S_c
+\cap S_r\)</span> that happens to be selected into both files appears
+<strong>twice</strong> in <span class="math inline">\(S\)</span>: once
+in the <span class="math inline">\(S_c\)</span> block with origin
+indicator <span class="math inline">\(D_i = 1\)</span>, and once in the
+<span class="math inline">\(S_r\)</span> block with <span class="math inline">\(D_i = 0\)</span>.</p>
+<p>Defining the target response indicator as <span class="math inline">\(I_{zi} = D_i\)</span>, we evaluate the conditional
+probability that a record with covariate profile <span class="math inline">\(\mathbf{x}_i\)</span> observed in <span class="math inline">\(S_c \oplus S_r\)</span> originated from <span class="math inline">\(S_c\)</span> using Bayes’ rule:</p>
+<p><span class="math display">\[\pi_{zi}^{\text{STACK}} = \mathbb{P}(D_i
+= 1 \mid \mathbf{x}_i, i \in S_c \oplus S_r) = \frac{\mathbb{E}[I_{ci}
+\mid \mathbf{x}_i]}{\mathbb{E}[I_{ci} + I_{ri} \mid \mathbf{x}_i]} =
+\frac{\pi_{ci}}{\pi_{ci} + \pi_{ri}}\]</span></p>
+<p>Writing the convenience propensity as <span class="math inline">\(\pi_{ci} =
+\sigma(\eta_\theta(\mathbf{x}_i))\)</span>, the log-odds of <span class="math inline">\(\pi_{zi}^{\text{STACK}}\)</span> satisfy:</p>
+<p><span class="math display">\[\log\left(\frac{\pi_{zi}^{\text{STACK}}}{1 -
+\pi_{zi}^{\text{STACK}}}\right) = \log\pi_{ci} - \log\pi_{ri} =
+\eta_\theta(\mathbf{x}_i) - \log(1 + e^{\eta_\theta(\mathbf{x}_i)}) -
+\log\pi_{ri}\]</span></p>
+<p>In typical survey settings where <span class="math inline">\(\pi_{ci}
+\ll 1\)</span>, this behaves as an unconstrained binary classification
+model where <span class="math inline">\(-\log\pi_{ri}\)</span> acts as a
+known structural offset. Training minimizes the standard Bernoulli
+negative log-likelihood:</p>
+<p><span class="math display">\[\mathcal{L}_{\text{STACK}}(\theta) =
+-\sum_{i \in S_c \oplus S_r} \left[ I_{zi} \log(\pi_{zi}^{\text{STACK}})
++ (1 - I_{zi}) \log(1 - \pi_{zi}^{\text{STACK}}) \right]\]</span></p>
+</div>
+<div id="deterministically-linked-union-link1" class="section level3" number="2.2.3">
+<h3><span class="header-section-number">2.2.3</span> Deterministically
+Linked Union (<code>LINK1</code>)</h3>
+<p>When unique identifiers (such as Social Security or Employer
+Identification Numbers) are present, overlapping units <span class="math inline">\(i \in S_r \cap S_c\)</span> can be
+deterministically matched and removed from the reference survey,
+yielding the deduplicated union <span class="math inline">\(S = S_c \cup
+(S_r \setminus S_c)\)</span>.</p>
+<p>Assuming conditional independence <span class="math inline">\(\mathbb{P}(I_{ci} = 1, I_{ri} = 1 \mid
+\mathbf{x}_i) = \pi_{ci}\pi_{ri}\)</span> (which holds whenever the
+reference sampling mechanism is non-informative given <span class="math inline">\(\mathbf{x}_i\)</span>), the marginal probability
+of population unit <span class="math inline">\(i\)</span> entering the
+union is <span class="math inline">\(\pi_{ci} + \pi_{ri} -
+\pi_{ci}\pi_{ri}\)</span>. Conditioning on membership in the union, the
+probability that unit <span class="math inline">\(i\)</span> belongs to
+the convenience sample <span class="math inline">\(S_c\)</span> (<span class="math inline">\(I_{zi} = 1\)</span>) rather than the
+non-overlapping reference sample <span class="math inline">\(S_r
+\setminus S_c\)</span> (<span class="math inline">\(I_{zi} = 0\)</span>)
+is:</p>
+<p><span class="math display">\[\pi_{zi}^{\text{LINK1}} =
+\frac{\pi_{ci}}{\pi_{ci} + \pi_{ri} - \pi_{ci}\pi_{ri}}\]</span></p>
+<p><span class="math display">\[\mathcal{L}_{\text{LINK1}}(\theta) =
+-\sum_{i \in S_c \cup (S_r \setminus S_c)} \left[ I_{zi}
+\log(\pi_{zi}^{\text{LINK1}}) + (1 - I_{zi}) \log(1 -
+\pi_{zi}^{\text{LINK1}}) \right]\]</span></p>
+</div>
+<div id="deterministically-linked-stacked-sample-link2" class="section level3" number="2.2.4">
+<h3><span class="header-section-number">2.2.4</span> Deterministically
+Linked Stacked Sample (<code>LINK2</code>)</h3>
+<p><code>LINK2</code> improves upon both <code>STACK</code> and
+<code>LINK1</code> by retaining the full sample size <span class="math inline">\(n = n_c + n_r\)</span> of the stacked multiset
+<span class="math inline">\(S = S_c \oplus S_r\)</span> without
+discarding observations, while exploiting deterministic linkage to
+<strong>re-label</strong> overlapping records within the <span class="math inline">\(S_r\)</span> block.</p>
+<p>Let <span class="math inline">\(D_i \in \{0, 1\}\)</span> denote
+whether record <span class="math inline">\(i\)</span> belongs to the
+<span class="math inline">\(S_c\)</span> file (<span class="math inline">\(D_i = 1\)</span>) or the <span class="math inline">\(S_r\)</span> file (<span class="math inline">\(D_i
+= 0\)</span>). In <code>LINK2</code>, the target indicator is defined
+as:</p>
+<p><span class="math display">\[I_{zi} = D_i + (1 - D_i)
+I_{ci}\]</span></p>
+<p>Under this definition: - Every record in <span class="math inline">\(S_c\)</span> receives <span class="math inline">\(I_{zi} = 1\)</span>. - Any record in <span class="math inline">\(S_r\)</span> that also participated in <span class="math inline">\(S_c\)</span> (<span class="math inline">\(I_{ci} =
+1\)</span>) is flagged and receives <span class="math inline">\(I_{zi} =
+1\)</span>. - Only records in <span class="math inline">\(S_r\)</span>
+that did <em>not</em> participate in <span class="math inline">\(S_c\)</span> (<span class="math inline">\(I_{ci} =
+0\)</span>) receive <span class="math inline">\(I_{zi} = 0\)</span>.</p>
+<p>Across the two stacked files, the expected number of records at <span class="math inline">\(\mathbf{x}_i\)</span> assigned <span class="math inline">\(I_{zi} = 1\)</span> is <span class="math inline">\(\mathbb{E}[I_{ci} + I_{ri} I_{ci} \mid
+\mathbf{x}_i] = \pi_{ci} + \pi_{ci}\pi_{ri} = \pi_{ci}(1 +
+\pi_{ri})\)</span>, while the total expected number of records is <span class="math inline">\(\mathbb{E}[I_{ci} + I_{ri} \mid \mathbf{x}_i] =
+\pi_{ci} + \pi_{ri}\)</span>. This yields the composite conditional
+probability:</p>
+<p><span class="math display">\[\pi_{zi}^{\text{LINK2}} =
+\frac{\pi_{ci}(1 + \pi_{ri})}{\pi_{ci} + \pi_{ri}}\]</span></p>
+<p><span class="math display">\[\mathcal{L}_{\text{LINK2}}(\theta) =
+-\sum_{i \in S_c \oplus S_r} \left[ I_{zi} \log(\pi_{zi}^{\text{LINK2}})
++ (1 - I_{zi}) \log(1 - \pi_{zi}^{\text{LINK2}}) \right]\]</span></p>
+</div>
+<div id="missing-information-principle-mip" class="section level3" number="2.2.5">
+<h3><span class="header-section-number">2.2.5</span> Missing Information
+Principle (<code>MIP</code>)</h3>
+<p>In administrative and survey practice, exact deterministic matching
+is rarely available; linkages are typically probabilistic (e.g., via
+Fellegi-Sunter record linkage or <code>fastLink</code>), yielding an
+estimated linkage probability <span class="math inline">\(p_{\text{link}} \in [0, 1]\)</span>.</p>
+<p>Under Louis’s (1982) Missing Information Principle: - If linkage were
+perfectly deterministic (<span class="math inline">\(p_{\text{link}} =
+1\)</span>), <span class="math inline">\(I_{ci} \in \{0, 1\}\)</span>
+would be fully observed for all reference units <span class="math inline">\(i \in S_r\)</span>, allowing direct evaluation of
+the complete-data <code>LINK2</code> score with indicator <span class="math inline">\(I_{zi}^{\text{LINK2}} = D_i + (1 -
+D_i)I_{ci}\)</span>. - When linkage is imperfect (<span class="math inline">\(p_{\text{link}} \in [0, 1]\)</span>), the true
+indicator <span class="math inline">\(I_{ci}\)</span> on <span class="math inline">\(S_r\)</span> is partially latent. Analogous to the
+Expectation step of an EM algorithm, we project the complete-data score
+onto the observed data by replacing <span class="math inline">\(I_{ci}\)</span> with its conditional
+expectation:</p>
+<p><span class="math display">\[\tilde{p}_i = p_{\text{link}} I_{ci} +
+(1 - p_{\text{link}}) \text{sg}\big(\pi_{ci}(\mathbf{x}_i; \theta)\big),
+\qquad \tilde{I}_{zi}^{\text{MIP}} = D_i + (1 -
+D_i)\tilde{p}_i\]</span></p>
+<p>where <span class="math inline">\(\text{sg}(\cdot)\)</span> denotes
+the stop-gradient (<code>$detach()</code>) operator. This ensures that
+<span class="math inline">\(\tilde{p}_i\)</span> acts as a fixed target
+during backpropagation while gradients flow through the composite model
+probability <span class="math inline">\(\pi_{zi} = \frac{\pi_{ci}(1 +
+\pi_{ri})}{\pi_{ci} + \pi_{ri}}\)</span>:</p>
+<p><span class="math display">\[\mathcal{L}_{\text{MIP}}(\theta) =
+-\sum_{i \in S_c \oplus S_r} \left[ \tilde{I}_{zi}^{\text{MIP}}
+\log(\pi_{zi}) + (1 - \tilde{I}_{zi}^{\text{MIP}}) \log(1 - \pi_{zi})
+\right]\]</span></p>
+<p>Importantly, <code>MIP</code> continuously interpolates between the
+unlinked and deterministically linked extremes: - When <span class="math inline">\(p_{\text{link}} = 1\)</span>, <span class="math inline">\(\tilde{I}_{zi}^{\text{MIP}} =
+I_{zi}^{\text{LINK2}}\)</span>, reproducing <code>LINK2</code> exactly.
+- When <span class="math inline">\(p_{\text{link}} = 0\)</span> (zero
+linkage information), <span class="math inline">\(\tilde{p}_i =
+\hat{\pi}_{ci}\)</span>, and the stationary score equation of
+<code>MIP</code> reduces algebraically to that of
+<code>STACK</code>.</p>
+</div>
+<div id="pseudo-log-likelihood-pseudo-chen-li-wu-2020" class="section level3" number="2.2.6">
+<h3><span class="header-section-number">2.2.6</span>
+Pseudo-Log-Likelihood (<code>PSEUDO</code>, Chen, Li &amp; Wu 2020)</h3>
+<p>Rather than formulating a conditional Bernoulli composite likelihood,
+the pseudo-likelihood approach approximates the population summation
+using design survey weights <span class="math inline">\(w_{ri} = 1 /
+\pi_{ri}\)</span> on <span class="math inline">\(S_r\)</span>:</p>
+<p><span class="math display">\[\ell_{\text{pseudo}}(\theta) = \sum_{i
+\in S_c} \log\left(\frac{\pi_{ci}}{1 - \pi_{ci}}\right) + \sum_{i \in
+S_r} \frac{1}{\pi_{ri}} \log(1 - \pi_{ci})\]</span></p>
+<p>Recognizing that <span class="math inline">\(\log\big(\frac{\pi_{ci}}{1 - \pi_{ci}}\big) =
+\eta_\theta(\mathbf{x}_i)\)</span> (the unconstrained neural network
+logit) and <span class="math inline">\(\log(1 - \pi_{ci}) =
+-\text{softplus}(\eta_\theta(\mathbf{x}_i))\)</span>, we express this
+loss in an infinitely numerically stable form:</p>
+<p><span class="math display">\[\text{NLL}_{\text{pseudo}}(\theta) =
+-\sum_{i \in S_c} \eta_\theta(\mathbf{x}_i) + \sum_{i \in S_r}
+\frac{1}{\pi_{ri}}
+\text{softplus}\big(\eta_\theta(\mathbf{x}_i)\big)\]</span></p>
+<p>While computationally convenient, <code>PSEUDO</code> is vulnerable
+to catastrophic variance inflation when common support is low: if units
+in <span class="math inline">\(S_c\)</span> have very small reference
+inclusion probabilities <span class="math inline">\(\pi_{ri} \approx
+0\)</span>, the inverse weights <span class="math inline">\(1 /
+\pi_{ri}\)</span> explode.</p>
+</div>
+</div>
+<div id="self-normalizing-hájek-estimator" class="section level2" number="2.3">
+<h2><span class="header-section-number">2.3</span> Self-Normalizing
+Hájek Estimator</h2>
+<p>Once model propensities <span class="math inline">\(\hat{\pi}_{ci} =
+\sigma\big(f(\mathbf{x}_i; \theta)\big)\)</span> are predicted, the
+finite population mean <span class="math inline">\(\bar{Y}\)</span> is
+recovered via the self-normalizing Hájek estimator:</p>
+<p><span class="math display">\[\hat{\bar{Y}}_{\text{Hajek}} =
+\frac{\sum_{i \in S_c} \hat{\pi}_{ci}^{-1} y_i}{\sum_{i \in S_c}
+\hat{\pi}_{ci}^{-1}}\]</span></p>
+</div>
+<div id="variational-elbo-calibration-protection-against-cold-posteriors" class="section level2" number="2.4">
+<h2><span class="header-section-number">2.4</span> Variational ELBO
+Calibration &amp; Protection Against Cold Posteriors</h2>
+<p>A central challenge in variational Bayesian neural networks is the
+<strong>cold posterior / cold prior problem</strong> (Wenzel et al.,
+2020), wherein misspecifying the likelihood scale introduces an
+unintended temperature <span class="math inline">\(T \neq
+1\)</span>:</p>
+<p><span class="math display">\[\mathcal{L}_{\text{ELBO}}(q) =
+\frac{1}{T} \mathbb{E}_{q(\theta)} \left[ \sum_{i=1}^n \log f(y_i \mid
+\theta) \right] - \text{KL}\big(q(\theta, \gamma) \parallel p(\theta,
+\gamma)\big)\]</span></p>
+<p>When <span class="math inline">\(T \neq 1\)</span>, empirical data
+evidence is either artificially downweighted (<span class="math inline">\(T &gt; 1\)</span>, cold prior) or overweighted
+(<span class="math inline">\(T &lt; 1\)</span>, cold posterior) relative
+to the prior regularization, distorting the variational spike-and-slab
+inclusion probabilities <span class="math inline">\(a_0, a_1\)</span>
+away from their true posterior values.</p>
+<p>In <code>LBBNN</code>, two structural design choices ensure proper
+posterior calibration: 1. <strong>Exact Bernoulli Likelihood
+Scaling</strong>: In binary non-probability propensity estimation, the
+Bernoulli dispersion is intrinsically fixed (<span class="math inline">\(\text{Var}(Y \mid \pi) = \pi(1-\pi)\)</span>). All
+composite loss functions in <code>LBBNN</code> evaluate the exact
+Bernoulli log-likelihood without heuristic scaling factors, scaled
+relative to <span class="math inline">\(\text{KL} / M\)</span> across
+mini-batches at true Bayesian temperature <span class="math inline">\(T
+= 1.0\)</span>. 2. <strong>Weakly Informative Slab Prior Calibration
+(<code>std = c(2.0, 2.0)</code>)</strong>: In typical convenience
+samples with sampling fraction <span class="math inline">\(n_c / N
+\approx 0.10\)</span>, the baseline log-odds intercept is <span class="math inline">\(\beta_0 = \log(0.10 / 0.90) \approx
+-2.20\)</span>. A narrow Gaussian slab prior <span class="math inline">\(\mathcal{N}(0, 1^2)\)</span> excessively shrinks
+large negative intercepts and active slopes toward zero, causing severe
+propensity attenuation toward <span class="math inline">\(0.5\)</span>
+(which distorts Hájek weights). Setting <code>std = c(2.0, 2.0)</code>
+avoids slope attenuation on true signal pathways while allowing the
+spike-and-slab inclusion parameters <span class="math inline">\(\gamma
+\sim \text{Bernoulli}(p_0)\)</span> to aggressively prune noise
+features.</p>
+<hr />
+</div>
+</div>
+<div id="package-setup-environment-verification" class="section level1" number="3">
+<h1><span class="header-section-number">3</span> Package Setup &amp;
+Environment Verification</h1>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(LBBNN)</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">library</span>(torch)</span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="fu">library</span>(sampling)</span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a><span class="fu">library</span>(gridExtra)</span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a><span class="co"># Set random seeds for exact reproducibility</span></span>
+<span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">2026</span>)</span>
+<span id="cb1-10"><a href="#cb1-10" tabindex="-1"></a>torch<span class="sc">::</span><span class="fu">torch_manual_seed</span>(<span class="dv">2026</span>)</span>
+<span id="cb1-11"><a href="#cb1-11" tabindex="-1"></a></span>
+<span id="cb1-12"><a href="#cb1-12" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;LBBNN version:&quot;</span>, <span class="fu">as.character</span>(<span class="fu">packageVersion</span>(<span class="st">&quot;LBBNN&quot;</span>)), <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb1-13"><a href="#cb1-13" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;PyTorch backend device: CPU</span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
+<hr />
+</div>
+<div id="simulation-study-0-exact-linear-baseline-beresovsky-et-al.-2026" class="section level1" number="4">
+<h1><span class="header-section-number">4</span> Simulation Study 0:
+Exact Linear Baseline (Beresovsky et al., 2026)</h1>
+<p>To establish a direct 1-to-1 comparison with the simulation results
+in Beresovsky, Gershunskaya &amp; Savitsky (2026), we first benchmark
+all estimators under Vladislav’s <strong>exact 3-covariate linear data
+generating process</strong> without neural network non-linearities or
+noise features:</p>
+<ul>
+<li>Target population size: <span class="math inline">\(N =
+5,000\)</span>.</li>
+<li>Covariates: <span class="math inline">\(\mathbf{X} = (X_1, X_2,
+X_3)^\top \sim \mathcal{MVN}(\mathbf{0}, \boldsymbol{\Sigma})\)</span>
+with <span class="math inline">\(\Sigma_{ii} = 1.0, \Sigma_{1, 2:3} =
+(0.5, 0.3), \Sigma_{2,3} = 0.3\)</span>.</li>
+<li>Outcome: <span class="math inline">\(Y_i \sim \mathcal{N}(1 + X_{1i}
++ X_{2i} + X_{3i}, 1.0^2)\)</span>.</li>
+<li>Reference survey sample: <span class="math inline">\(n_r =
+500\)</span> drawn via systematic PPS with size measure <span class="math inline">\(\text{logit}^{-1}(X_1 + X_2)\)</span>.</li>
+<li>Convenience sample: <span class="math inline">\(n_c = 500\)</span>
+drawn with linear propensity <span class="math inline">\(\text{logit}(\pi_{ci}) = \beta_0 + \beta_1 X_{1i}
++ \beta_2 X_{2i}\)</span>.</li>
+<li><strong>Monte Carlo Replications</strong>: <span class="math inline">\(R = 20\)</span> repeated independent sample draws
+(<code>seed = 2026 + r</code>).</li>
+</ul>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="co"># Fast GLM MLE helper for exact composite likelihoods across any covariate dimension</span></span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>fit_glm_all <span class="ot">&lt;-</span> <span class="cf">function</span>(smp, <span class="at">covars =</span> <span class="fu">c</span>(<span class="st">&quot;X1&quot;</span>, <span class="st">&quot;X2&quot;</span>, <span class="st">&quot;X3&quot;</span>)) {</span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>  Sc <span class="ot">&lt;-</span> smp[smp<span class="sc">$</span>I.c <span class="sc">==</span> <span class="dv">1</span>, ]</span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>  Sr <span class="ot">&lt;-</span> smp[smp<span class="sc">$</span>I.r <span class="sc">==</span> <span class="dv">1</span>, ]</span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>  p_dim <span class="ot">&lt;-</span> <span class="fu">length</span>(covars) <span class="sc">+</span> <span class="dv">1</span></span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a>  </span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a>  <span class="co"># GLM-STACK</span></span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a>  df_s <span class="ot">&lt;-</span> <span class="fu">rbind</span>(<span class="fu">data.frame</span>(Sc[, covars], <span class="at">I_z =</span> <span class="dv">1</span>, <span class="at">pi_r =</span> Sc<span class="sc">$</span>pi.r),</span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a>                <span class="fu">data.frame</span>(Sr[, covars], <span class="at">I_z =</span> <span class="dv">0</span>, <span class="at">pi_r =</span> Sr<span class="sc">$</span>pi.r))</span>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a>  Xs <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(<span class="fu">cbind</span>(<span class="dv">1</span>, df_s[, covars]))</span>
+<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a>  b_s <span class="ot">&lt;-</span> <span class="fu">optim</span>(<span class="fu">rep</span>(<span class="dv">0</span>, p_dim), <span class="cf">function</span>(b) {</span>
+<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a>    p_c <span class="ot">&lt;-</span> <span class="fu">plogis</span>(Xs <span class="sc">%*%</span> b)</span>
+<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a>    p_z <span class="ot">&lt;-</span> <span class="fu">pmin</span>(<span class="fu">pmax</span>(p_c <span class="sc">/</span> (p_c <span class="sc">+</span> df_s<span class="sc">$</span>pi_r <span class="sc">+</span> <span class="fl">1e-12</span>), <span class="fl">1e-7</span>), <span class="dv">1</span> <span class="sc">-</span> <span class="fl">1e-7</span>)</span>
+<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a>    <span class="sc">-</span><span class="fu">sum</span>(df_s<span class="sc">$</span>I_z <span class="sc">*</span> <span class="fu">log</span>(p_z) <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">-</span> df_s<span class="sc">$</span>I_z) <span class="sc">*</span> <span class="fu">log</span>(<span class="dv">1</span> <span class="sc">-</span> p_z))</span>
+<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a>  }, <span class="at">method =</span> <span class="st">&quot;BFGS&quot;</span>)<span class="sc">$</span>par</span>
+<span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a>  pi_stack <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(<span class="fu">plogis</span>(<span class="fu">cbind</span>(<span class="dv">1</span>, <span class="fu">as.matrix</span>(Sc[, covars])) <span class="sc">%*%</span> b_s))</span>
+<span id="cb2-17"><a href="#cb2-17" tabindex="-1"></a>  </span>
+<span id="cb2-18"><a href="#cb2-18" tabindex="-1"></a>  <span class="co"># GLM-LINK1</span></span>
+<span id="cb2-19"><a href="#cb2-19" tabindex="-1"></a>  Sr_nc <span class="ot">&lt;-</span> Sr[Sr<span class="sc">$</span>I.c <span class="sc">==</span> <span class="dv">0</span>, ]</span>
+<span id="cb2-20"><a href="#cb2-20" tabindex="-1"></a>  df_l1 <span class="ot">&lt;-</span> <span class="fu">rbind</span>(<span class="fu">data.frame</span>(Sc[, covars], <span class="at">I_z =</span> <span class="dv">1</span>, <span class="at">pi_r =</span> Sc<span class="sc">$</span>pi.r),</span>
+<span id="cb2-21"><a href="#cb2-21" tabindex="-1"></a>                 <span class="fu">data.frame</span>(Sr_nc[, covars], <span class="at">I_z =</span> <span class="dv">0</span>, <span class="at">pi_r =</span> Sr_nc<span class="sc">$</span>pi.r))</span>
+<span id="cb2-22"><a href="#cb2-22" tabindex="-1"></a>  X_l1 <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(<span class="fu">cbind</span>(<span class="dv">1</span>, df_l1[, covars]))</span>
+<span id="cb2-23"><a href="#cb2-23" tabindex="-1"></a>  b_l1 <span class="ot">&lt;-</span> <span class="fu">optim</span>(<span class="fu">rep</span>(<span class="dv">0</span>, p_dim), <span class="cf">function</span>(b) {</span>
+<span id="cb2-24"><a href="#cb2-24" tabindex="-1"></a>    p_c <span class="ot">&lt;-</span> <span class="fu">plogis</span>(X_l1 <span class="sc">%*%</span> b)</span>
+<span id="cb2-25"><a href="#cb2-25" tabindex="-1"></a>    denom <span class="ot">&lt;-</span> p_c <span class="sc">+</span> df_l1<span class="sc">$</span>pi_r <span class="sc">-</span> (p_c <span class="sc">*</span> df_l1<span class="sc">$</span>pi_r) <span class="sc">+</span> <span class="fl">1e-12</span></span>
+<span id="cb2-26"><a href="#cb2-26" tabindex="-1"></a>    p_z <span class="ot">&lt;-</span> <span class="fu">pmin</span>(<span class="fu">pmax</span>(p_c <span class="sc">/</span> denom, <span class="fl">1e-7</span>), <span class="dv">1</span> <span class="sc">-</span> <span class="fl">1e-7</span>)</span>
+<span id="cb2-27"><a href="#cb2-27" tabindex="-1"></a>    <span class="sc">-</span><span class="fu">sum</span>(df_l1<span class="sc">$</span>I_z <span class="sc">*</span> <span class="fu">log</span>(p_z) <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">-</span> df_l1<span class="sc">$</span>I_z) <span class="sc">*</span> <span class="fu">log</span>(<span class="dv">1</span> <span class="sc">-</span> p_z))</span>
+<span id="cb2-28"><a href="#cb2-28" tabindex="-1"></a>  }, <span class="at">method =</span> <span class="st">&quot;BFGS&quot;</span>)<span class="sc">$</span>par</span>
+<span id="cb2-29"><a href="#cb2-29" tabindex="-1"></a>  pi_link1 <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(<span class="fu">plogis</span>(<span class="fu">cbind</span>(<span class="dv">1</span>, <span class="fu">as.matrix</span>(Sc[, covars])) <span class="sc">%*%</span> b_l1))</span>
+<span id="cb2-30"><a href="#cb2-30" tabindex="-1"></a>  </span>
+<span id="cb2-31"><a href="#cb2-31" tabindex="-1"></a>  <span class="co"># GLM-LINK2</span></span>
+<span id="cb2-32"><a href="#cb2-32" tabindex="-1"></a>  df_l2 <span class="ot">&lt;-</span> <span class="fu">rbind</span>(<span class="fu">data.frame</span>(Sc[, covars], <span class="at">I_z =</span> <span class="dv">1</span>, <span class="at">pi_r =</span> Sc<span class="sc">$</span>pi.r),</span>
+<span id="cb2-33"><a href="#cb2-33" tabindex="-1"></a>                 <span class="fu">data.frame</span>(Sr[, covars], <span class="at">I_z =</span> <span class="fu">as.numeric</span>(Sr<span class="sc">$</span>I.c <span class="sc">==</span> <span class="dv">1</span>), <span class="at">pi_r =</span> Sr<span class="sc">$</span>pi.r))</span>
+<span id="cb2-34"><a href="#cb2-34" tabindex="-1"></a>  X_l2 <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(<span class="fu">cbind</span>(<span class="dv">1</span>, df_l2[, covars]))</span>
+<span id="cb2-35"><a href="#cb2-35" tabindex="-1"></a>  b_l2 <span class="ot">&lt;-</span> <span class="fu">optim</span>(<span class="fu">rep</span>(<span class="dv">0</span>, p_dim), <span class="cf">function</span>(b) {</span>
+<span id="cb2-36"><a href="#cb2-36" tabindex="-1"></a>    p_c <span class="ot">&lt;-</span> <span class="fu">plogis</span>(X_l2 <span class="sc">%*%</span> b)</span>
+<span id="cb2-37"><a href="#cb2-37" tabindex="-1"></a>    p_z <span class="ot">&lt;-</span> <span class="fu">pmin</span>(<span class="fu">pmax</span>((p_c <span class="sc">*</span> (<span class="dv">1</span> <span class="sc">+</span> df_l2<span class="sc">$</span>pi_r)) <span class="sc">/</span> (p_c <span class="sc">+</span> df_l2<span class="sc">$</span>pi_r <span class="sc">+</span> <span class="fl">1e-12</span>), <span class="fl">1e-7</span>), <span class="dv">1</span> <span class="sc">-</span> <span class="fl">1e-7</span>)</span>
+<span id="cb2-38"><a href="#cb2-38" tabindex="-1"></a>    <span class="sc">-</span><span class="fu">sum</span>(df_l2<span class="sc">$</span>I_z <span class="sc">*</span> <span class="fu">log</span>(p_z) <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">-</span> df_l2<span class="sc">$</span>I_z) <span class="sc">*</span> <span class="fu">log</span>(<span class="dv">1</span> <span class="sc">-</span> p_z))</span>
+<span id="cb2-39"><a href="#cb2-39" tabindex="-1"></a>  }, <span class="at">method =</span> <span class="st">&quot;BFGS&quot;</span>)<span class="sc">$</span>par</span>
+<span id="cb2-40"><a href="#cb2-40" tabindex="-1"></a>  pi_link2 <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(<span class="fu">plogis</span>(<span class="fu">cbind</span>(<span class="dv">1</span>, <span class="fu">as.matrix</span>(Sc[, covars])) <span class="sc">%*%</span> b_l2))</span>
+<span id="cb2-41"><a href="#cb2-41" tabindex="-1"></a>  </span>
+<span id="cb2-42"><a href="#cb2-42" tabindex="-1"></a>  <span class="co"># GLM-MIP50</span></span>
+<span id="cb2-43"><a href="#cb2-43" tabindex="-1"></a>  b_mip <span class="ot">&lt;-</span> <span class="fu">optim</span>(<span class="fu">rep</span>(<span class="dv">0</span>, p_dim), <span class="cf">function</span>(b) {</span>
+<span id="cb2-44"><a href="#cb2-44" tabindex="-1"></a>    p_c <span class="ot">&lt;-</span> <span class="fu">plogis</span>(X_l2 <span class="sc">%*%</span> b)</span>
+<span id="cb2-45"><a href="#cb2-45" tabindex="-1"></a>    p_i <span class="ot">&lt;-</span> (<span class="fl">0.5</span> <span class="sc">*</span> df_l2<span class="sc">$</span>I_z) <span class="sc">+</span> (<span class="fl">0.5</span> <span class="sc">*</span> p_c)</span>
+<span id="cb2-46"><a href="#cb2-46" tabindex="-1"></a>    I_z_m <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fu">rep</span>(<span class="dv">1</span>, <span class="fu">nrow</span>(Sc)), p_i[(<span class="fu">nrow</span>(Sc)<span class="sc">+</span><span class="dv">1</span>)<span class="sc">:</span><span class="fu">nrow</span>(df_l2)])</span>
+<span id="cb2-47"><a href="#cb2-47" tabindex="-1"></a>    p_z <span class="ot">&lt;-</span> <span class="fu">pmin</span>(<span class="fu">pmax</span>((p_c <span class="sc">*</span> (<span class="dv">1</span> <span class="sc">+</span> df_l2<span class="sc">$</span>pi_r)) <span class="sc">/</span> (p_c <span class="sc">+</span> df_l2<span class="sc">$</span>pi_r <span class="sc">+</span> <span class="fl">1e-12</span>), <span class="fl">1e-7</span>), <span class="dv">1</span> <span class="sc">-</span> <span class="fl">1e-7</span>)</span>
+<span id="cb2-48"><a href="#cb2-48" tabindex="-1"></a>    <span class="sc">-</span><span class="fu">sum</span>(I_z_m <span class="sc">*</span> <span class="fu">log</span>(p_z) <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">-</span> I_z_m) <span class="sc">*</span> <span class="fu">log</span>(<span class="dv">1</span> <span class="sc">-</span> p_z))</span>
+<span id="cb2-49"><a href="#cb2-49" tabindex="-1"></a>  }, <span class="at">method =</span> <span class="st">&quot;BFGS&quot;</span>)<span class="sc">$</span>par</span>
+<span id="cb2-50"><a href="#cb2-50" tabindex="-1"></a>  pi_mip50 <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(<span class="fu">plogis</span>(<span class="fu">cbind</span>(<span class="dv">1</span>, <span class="fu">as.matrix</span>(Sc[, covars])) <span class="sc">%*%</span> b_mip))</span>
+<span id="cb2-51"><a href="#cb2-51" tabindex="-1"></a>  </span>
+<span id="cb2-52"><a href="#cb2-52" tabindex="-1"></a>  <span class="co"># GLM-PSEUDO</span></span>
+<span id="cb2-53"><a href="#cb2-53" tabindex="-1"></a>  Xc <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(<span class="fu">cbind</span>(<span class="dv">1</span>, Sc[, covars]))</span>
+<span id="cb2-54"><a href="#cb2-54" tabindex="-1"></a>  Xr <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(<span class="fu">cbind</span>(<span class="dv">1</span>, Sr[, covars]))</span>
+<span id="cb2-55"><a href="#cb2-55" tabindex="-1"></a>  b_ps <span class="ot">&lt;-</span> <span class="fu">optim</span>(<span class="fu">rep</span>(<span class="dv">0</span>, p_dim), <span class="cf">function</span>(b) {</span>
+<span id="cb2-56"><a href="#cb2-56" tabindex="-1"></a>    <span class="sc">-</span><span class="fu">sum</span>(Xc <span class="sc">%*%</span> b) <span class="sc">+</span> <span class="fu">sum</span>((<span class="dv">1</span> <span class="sc">/</span> Sr<span class="sc">$</span>pi.r) <span class="sc">*</span> <span class="fu">log1p</span>(<span class="fu">exp</span>(Xr <span class="sc">%*%</span> b)))</span>
+<span id="cb2-57"><a href="#cb2-57" tabindex="-1"></a>  }, <span class="at">method =</span> <span class="st">&quot;BFGS&quot;</span>)<span class="sc">$</span>par</span>
+<span id="cb2-58"><a href="#cb2-58" tabindex="-1"></a>  pi_pseudo <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(<span class="fu">plogis</span>(Xc <span class="sc">%*%</span> b_ps))</span>
+<span id="cb2-59"><a href="#cb2-59" tabindex="-1"></a>  </span>
+<span id="cb2-60"><a href="#cb2-60" tabindex="-1"></a>  <span class="fu">list</span>(<span class="at">stack =</span> pi_stack, <span class="at">link1 =</span> pi_link1, <span class="at">link2 =</span> pi_link2, <span class="at">mip50 =</span> pi_mip50, <span class="at">pseudo =</span> pi_pseudo)</span>
+<span id="cb2-61"><a href="#cb2-61" tabindex="-1"></a>}</span>
+<span id="cb2-62"><a href="#cb2-62" tabindex="-1"></a></span>
+<span id="cb2-63"><a href="#cb2-63" tabindex="-1"></a><span class="co"># Kish&#39;s Effective Sample Size diagnostic</span></span>
+<span id="cb2-64"><a href="#cb2-64" tabindex="-1"></a>calc_ess <span class="ot">&lt;-</span> <span class="cf">function</span>(pi_hat) {</span>
+<span id="cb2-65"><a href="#cb2-65" tabindex="-1"></a>  w <span class="ot">&lt;-</span> <span class="fl">1.0</span> <span class="sc">/</span> <span class="fu">pmax</span>(pi_hat, <span class="fl">1e-7</span>)</span>
+<span id="cb2-66"><a href="#cb2-66" tabindex="-1"></a>  (<span class="fu">sum</span>(w))<span class="sc">^</span><span class="dv">2</span> <span class="sc">/</span> <span class="fu">sum</span>(w<span class="sc">^</span><span class="dv">2</span>)</span>
+<span id="cb2-67"><a href="#cb2-67" tabindex="-1"></a>}</span>
+<span id="cb2-68"><a href="#cb2-68" tabindex="-1"></a></span>
+<span id="cb2-69"><a href="#cb2-69" tabindex="-1"></a><span class="co"># Monte Carlo runner across R replications</span></span>
+<span id="cb2-70"><a href="#cb2-70" tabindex="-1"></a>run_baseline_mc <span class="ot">&lt;-</span> <span class="cf">function</span>(<span class="at">common_support =</span> <span class="st">&quot;high&quot;</span>, <span class="at">R =</span> <span class="dv">20</span>, <span class="at">seed =</span> <span class="dv">2026</span>) {</span>
+<span id="cb2-71"><a href="#cb2-71" tabindex="-1"></a>  <span class="fu">set.seed</span>(seed)</span>
+<span id="cb2-72"><a href="#cb2-72" tabindex="-1"></a>  <span class="fu">torch_manual_seed</span>(seed)</span>
+<span id="cb2-73"><a href="#cb2-73" tabindex="-1"></a>  </span>
+<span id="cb2-74"><a href="#cb2-74" tabindex="-1"></a>  pop <span class="ot">&lt;-</span> <span class="fu">gen_pop_nonlinear</span>(</span>
+<span id="cb2-75"><a href="#cb2-75" tabindex="-1"></a>    <span class="at">N =</span> <span class="dv">5000</span>, <span class="at">p =</span> <span class="dv">3</span>, <span class="at">nonlinear_y =</span> <span class="cn">FALSE</span>, <span class="at">nonlinear_propensity =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb2-76"><a href="#cb2-76" tabindex="-1"></a>    <span class="at">common_support =</span> common_support, <span class="at">b2 =</span> <span class="sc">-</span><span class="fl">0.3</span>, <span class="at">n_r =</span> <span class="dv">500</span>, <span class="at">n_c =</span> <span class="dv">500</span>, <span class="at">seed =</span> seed</span>
+<span id="cb2-77"><a href="#cb2-77" tabindex="-1"></a>  )</span>
+<span id="cb2-78"><a href="#cb2-78" tabindex="-1"></a>  true_pop_mean <span class="ot">&lt;-</span> <span class="fu">mean</span>(pop<span class="sc">$</span>y)</span>
+<span id="cb2-79"><a href="#cb2-79" tabindex="-1"></a>  covars <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;X1&quot;</span>, <span class="st">&quot;X2&quot;</span>, <span class="st">&quot;X3&quot;</span>)</span>
+<span id="cb2-80"><a href="#cb2-80" tabindex="-1"></a>  </span>
+<span id="cb2-81"><a href="#cb2-81" tabindex="-1"></a>  est_names <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb2-82"><a href="#cb2-82" tabindex="-1"></a>    <span class="st">&quot;Naive Convenience Mean&quot;</span>, <span class="st">&quot;Oracle Hajek&quot;</span>,</span>
+<span id="cb2-83"><a href="#cb2-83" tabindex="-1"></a>    <span class="st">&quot;GLM-STACK&quot;</span>, <span class="st">&quot;GLM-LINK1&quot;</span>, <span class="st">&quot;GLM-LINK2&quot;</span>, <span class="st">&quot;GLM-MIP50&quot;</span>, <span class="st">&quot;GLM-PSEUDO&quot;</span>,</span>
+<span id="cb2-84"><a href="#cb2-84" tabindex="-1"></a>    <span class="st">&quot;LBBNN-STACK (BMA)&quot;</span>, <span class="st">&quot;LBBNN-STACK (MPM)&quot;</span>,</span>
+<span id="cb2-85"><a href="#cb2-85" tabindex="-1"></a>    <span class="st">&quot;LBBNN-LINK1 (BMA)&quot;</span>, <span class="st">&quot;LBBNN-LINK1 (MPM)&quot;</span>,</span>
+<span id="cb2-86"><a href="#cb2-86" tabindex="-1"></a>    <span class="st">&quot;LBBNN-LINK2 (BMA)&quot;</span>, <span class="st">&quot;LBBNN-LINK2 (MPM)&quot;</span>,</span>
+<span id="cb2-87"><a href="#cb2-87" tabindex="-1"></a>    <span class="st">&quot;LBBNN-MIP50 (BMA)&quot;</span>, <span class="st">&quot;LBBNN-MIP50 (MPM)&quot;</span></span>
+<span id="cb2-88"><a href="#cb2-88" tabindex="-1"></a>  )</span>
+<span id="cb2-89"><a href="#cb2-89" tabindex="-1"></a>  </span>
+<span id="cb2-90"><a href="#cb2-90" tabindex="-1"></a>  reps_mat <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="cn">NA</span>, <span class="at">nrow =</span> R, <span class="at">ncol =</span> <span class="fu">length</span>(est_names))</span>
+<span id="cb2-91"><a href="#cb2-91" tabindex="-1"></a>  <span class="fu">colnames</span>(reps_mat) <span class="ot">&lt;-</span> est_names</span>
+<span id="cb2-92"><a href="#cb2-92" tabindex="-1"></a>  </span>
+<span id="cb2-93"><a href="#cb2-93" tabindex="-1"></a>  <span class="cf">for</span> (r <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>R) {</span>
+<span id="cb2-94"><a href="#cb2-94" tabindex="-1"></a>    smp <span class="ot">&lt;-</span> <span class="fu">draw_combined_samples</span>(pop, <span class="at">seed =</span> seed <span class="sc">+</span> r)</span>
+<span id="cb2-95"><a href="#cb2-95" tabindex="-1"></a>    Sc <span class="ot">&lt;-</span> smp[smp<span class="sc">$</span>I.c <span class="sc">==</span> <span class="dv">1</span>, ]</span>
+<span id="cb2-96"><a href="#cb2-96" tabindex="-1"></a>    Sr <span class="ot">&lt;-</span> smp[smp<span class="sc">$</span>I.r <span class="sc">==</span> <span class="dv">1</span>, ]</span>
+<span id="cb2-97"><a href="#cb2-97" tabindex="-1"></a>    </span>
+<span id="cb2-98"><a href="#cb2-98" tabindex="-1"></a>    reps_mat[r, <span class="st">&quot;Naive Convenience Mean&quot;</span>] <span class="ot">&lt;-</span> <span class="fu">mean</span>(Sc<span class="sc">$</span>y)</span>
+<span id="cb2-99"><a href="#cb2-99" tabindex="-1"></a>    reps_mat[r, <span class="st">&quot;Oracle Hajek&quot;</span>] <span class="ot">&lt;-</span> <span class="fu">hajek_estimate</span>(Sc<span class="sc">$</span>y, Sc<span class="sc">$</span>pi.c)</span>
+<span id="cb2-100"><a href="#cb2-100" tabindex="-1"></a>    </span>
+<span id="cb2-101"><a href="#cb2-101" tabindex="-1"></a>    <span class="co"># Fit GLMs</span></span>
+<span id="cb2-102"><a href="#cb2-102" tabindex="-1"></a>    glm_res <span class="ot">&lt;-</span> <span class="fu">fit_glm_all</span>(smp, covars)</span>
+<span id="cb2-103"><a href="#cb2-103" tabindex="-1"></a>    reps_mat[r, <span class="st">&quot;GLM-STACK&quot;</span>]  <span class="ot">&lt;-</span> <span class="fu">hajek_estimate</span>(Sc<span class="sc">$</span>y, glm_res<span class="sc">$</span>stack)</span>
+<span id="cb2-104"><a href="#cb2-104" tabindex="-1"></a>    reps_mat[r, <span class="st">&quot;GLM-LINK1&quot;</span>]  <span class="ot">&lt;-</span> <span class="fu">hajek_estimate</span>(Sc<span class="sc">$</span>y, glm_res<span class="sc">$</span>link1)</span>
+<span id="cb2-105"><a href="#cb2-105" tabindex="-1"></a>    reps_mat[r, <span class="st">&quot;GLM-LINK2&quot;</span>]  <span class="ot">&lt;-</span> <span class="fu">hajek_estimate</span>(Sc<span class="sc">$</span>y, glm_res<span class="sc">$</span>link2)</span>
+<span id="cb2-106"><a href="#cb2-106" tabindex="-1"></a>    reps_mat[r, <span class="st">&quot;GLM-MIP50&quot;</span>]  <span class="ot">&lt;-</span> <span class="fu">hajek_estimate</span>(Sc<span class="sc">$</span>y, glm_res<span class="sc">$</span>mip50)</span>
+<span id="cb2-107"><a href="#cb2-107" tabindex="-1"></a>    reps_mat[r, <span class="st">&quot;GLM-PSEUDO&quot;</span>] <span class="ot">&lt;-</span> <span class="fu">hajek_estimate</span>(Sc<span class="sc">$</span>y, glm_res<span class="sc">$</span>pseudo)</span>
+<span id="cb2-108"><a href="#cb2-108" tabindex="-1"></a>    </span>
+<span id="cb2-109"><a href="#cb2-109" tabindex="-1"></a>    <span class="co"># Fit LBBNN</span></span>
+<span id="cb2-110"><a href="#cb2-110" tabindex="-1"></a>    <span class="cf">for</span> (m_type <span class="cf">in</span> <span class="fu">c</span>(<span class="st">&quot;STACK&quot;</span>, <span class="st">&quot;LINK1&quot;</span>, <span class="st">&quot;LINK2&quot;</span>, <span class="st">&quot;MIP&quot;</span>)) {</span>
+<span id="cb2-111"><a href="#cb2-111" tabindex="-1"></a>      ds <span class="ot">&lt;-</span> <span class="fu">build_propensity_dataset</span>(smp, <span class="at">method =</span> m_type, <span class="at">covar_cols =</span> covars)</span>
+<span id="cb2-112"><a href="#cb2-112" tabindex="-1"></a>      dl <span class="ot">&lt;-</span> <span class="fu">get_dataloaders</span>(ds<span class="sc">$</span>data, <span class="at">train_proportion =</span> <span class="fl">1.0</span>, <span class="at">train_batch_size =</span> <span class="dv">64</span>,</span>
+<span id="cb2-113"><a href="#cb2-113" tabindex="-1"></a>                            <span class="at">test_batch_size =</span> <span class="dv">64</span>, <span class="at">standardize =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb2-114"><a href="#cb2-114" tabindex="-1"></a>                            <span class="at">shuffle_train =</span> <span class="cn">TRUE</span>, <span class="at">target_cols =</span> ds<span class="sc">$</span>target_cols, <span class="at">seed =</span> seed <span class="sc">+</span> r)</span>
+<span id="cb2-115"><a href="#cb2-115" tabindex="-1"></a>      nll_fn <span class="ot">&lt;-</span> <span class="cf">switch</span>(m_type, <span class="st">&quot;STACK&quot;</span> <span class="ot">=</span> nll_stack, <span class="st">&quot;LINK1&quot;</span> <span class="ot">=</span> nll_link1, <span class="st">&quot;LINK2&quot;</span> <span class="ot">=</span> nll_link2, <span class="st">&quot;MIP&quot;</span> <span class="ot">=</span> <span class="fu">make_nll_mip</span>(<span class="fl">0.5</span>))</span>
+<span id="cb2-116"><a href="#cb2-116" tabindex="-1"></a>      net <span class="ot">&lt;-</span> <span class="fu">lbbnn_net</span>(</span>
+<span id="cb2-117"><a href="#cb2-117" tabindex="-1"></a>        <span class="at">problem_type =</span> <span class="st">&quot;custom&quot;</span>, <span class="at">sizes =</span> <span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">8</span>, <span class="dv">1</span>),</span>
+<span id="cb2-118"><a href="#cb2-118" tabindex="-1"></a>        <span class="at">prior =</span> <span class="fu">c</span>(<span class="fl">0.5</span>, <span class="fl">0.5</span>), <span class="at">std =</span> <span class="fu">c</span>(<span class="fl">2.0</span>, <span class="fl">2.0</span>),</span>
+<span id="cb2-119"><a href="#cb2-119" tabindex="-1"></a>        <span class="at">inclusion_inits =</span> <span class="st">&quot;balanced&quot;</span>, <span class="at">input_skip =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb2-120"><a href="#cb2-120" tabindex="-1"></a>        <span class="at">flow =</span> <span class="cn">FALSE</span>, <span class="at">raw_output =</span> <span class="cn">TRUE</span>, <span class="at">nll =</span> nll_fn, <span class="at">device =</span> <span class="st">&quot;cpu&quot;</span></span>
+<span id="cb2-121"><a href="#cb2-121" tabindex="-1"></a>      )</span>
+<span id="cb2-122"><a href="#cb2-122" tabindex="-1"></a>      <span class="fu">train_lbbnn</span>(<span class="at">epochs =</span> <span class="dv">80</span>, <span class="at">LBBNN =</span> net, <span class="at">lr =</span> <span class="fl">0.02</span>, <span class="at">train_dl =</span> dl<span class="sc">$</span>train_loader, <span class="at">verbose =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb2-123"><a href="#cb2-123" tabindex="-1"></a>      </span>
+<span id="cb2-124"><a href="#cb2-124" tabindex="-1"></a>      pred_bma <span class="ot">&lt;-</span> <span class="fu">predict</span>(net, <span class="at">newdata =</span> <span class="fu">as.matrix</span>(Sc[, covars]), <span class="at">draws =</span> <span class="dv">20</span>, <span class="at">link =</span> torch_sigmoid)</span>
+<span id="cb2-125"><a href="#cb2-125" tabindex="-1"></a>      pred_mpm <span class="ot">&lt;-</span> <span class="fu">predict</span>(net, <span class="at">newdata =</span> <span class="fu">as.matrix</span>(Sc[, covars]), <span class="at">draws =</span> <span class="dv">20</span>, <span class="at">mpm =</span> <span class="cn">TRUE</span>, <span class="at">link =</span> torch_sigmoid)</span>
+<span id="cb2-126"><a href="#cb2-126" tabindex="-1"></a>      </span>
+<span id="cb2-127"><a href="#cb2-127" tabindex="-1"></a>      col_bma <span class="ot">&lt;-</span> <span class="fu">sprintf</span>(<span class="st">&quot;LBBNN-%s (BMA)&quot;</span>, <span class="cf">if</span>(m_type <span class="sc">==</span> <span class="st">&quot;MIP&quot;</span>) <span class="st">&quot;MIP50&quot;</span> <span class="cf">else</span> m_type)</span>
+<span id="cb2-128"><a href="#cb2-128" tabindex="-1"></a>      col_mpm <span class="ot">&lt;-</span> <span class="fu">sprintf</span>(<span class="st">&quot;LBBNN-%s (MPM)&quot;</span>, <span class="cf">if</span>(m_type <span class="sc">==</span> <span class="st">&quot;MIP&quot;</span>) <span class="st">&quot;MIP50&quot;</span> <span class="cf">else</span> m_type)</span>
+<span id="cb2-129"><a href="#cb2-129" tabindex="-1"></a>      </span>
+<span id="cb2-130"><a href="#cb2-130" tabindex="-1"></a>      reps_mat[r, col_bma] <span class="ot">&lt;-</span> <span class="fu">hajek_estimate</span>(Sc<span class="sc">$</span>y, <span class="fu">apply</span>(<span class="fu">as.matrix</span>(pred_bma[, , <span class="dv">1</span>]<span class="sc">$</span><span class="fu">cpu</span>()), <span class="dv">2</span>, mean))</span>
+<span id="cb2-131"><a href="#cb2-131" tabindex="-1"></a>      reps_mat[r, col_mpm] <span class="ot">&lt;-</span> <span class="fu">hajek_estimate</span>(Sc<span class="sc">$</span>y, <span class="fu">apply</span>(<span class="fu">as.matrix</span>(pred_mpm[, , <span class="dv">1</span>]<span class="sc">$</span><span class="fu">cpu</span>()), <span class="dv">2</span>, mean))</span>
+<span id="cb2-132"><a href="#cb2-132" tabindex="-1"></a>    }</span>
+<span id="cb2-133"><a href="#cb2-133" tabindex="-1"></a>  }</span>
+<span id="cb2-134"><a href="#cb2-134" tabindex="-1"></a>  </span>
+<span id="cb2-135"><a href="#cb2-135" tabindex="-1"></a>  means <span class="ot">&lt;-</span> <span class="fu">colMeans</span>(reps_mat)</span>
+<span id="cb2-136"><a href="#cb2-136" tabindex="-1"></a>  bias <span class="ot">&lt;-</span> means <span class="sc">-</span> true_pop_mean</span>
+<span id="cb2-137"><a href="#cb2-137" tabindex="-1"></a>  sds <span class="ot">&lt;-</span> <span class="fu">apply</span>(reps_mat, <span class="dv">2</span>, sd)</span>
+<span id="cb2-138"><a href="#cb2-138" tabindex="-1"></a>  rmse <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(bias<span class="sc">^</span><span class="dv">2</span> <span class="sc">+</span> sds<span class="sc">^</span><span class="dv">2</span>)</span>
+<span id="cb2-139"><a href="#cb2-139" tabindex="-1"></a>  </span>
+<span id="cb2-140"><a href="#cb2-140" tabindex="-1"></a>  <span class="fu">data.frame</span>(</span>
+<span id="cb2-141"><a href="#cb2-141" tabindex="-1"></a>    <span class="at">Estimator =</span> est_names,</span>
+<span id="cb2-142"><a href="#cb2-142" tabindex="-1"></a>    <span class="at">MC_Mean =</span> <span class="fu">round</span>(<span class="fu">as.numeric</span>(means), <span class="dv">4</span>),</span>
+<span id="cb2-143"><a href="#cb2-143" tabindex="-1"></a>    <span class="at">Bias =</span> <span class="fu">round</span>(<span class="fu">as.numeric</span>(bias), <span class="dv">4</span>),</span>
+<span id="cb2-144"><a href="#cb2-144" tabindex="-1"></a>    <span class="at">SD =</span> <span class="fu">round</span>(<span class="fu">as.numeric</span>(sds), <span class="dv">4</span>),</span>
+<span id="cb2-145"><a href="#cb2-145" tabindex="-1"></a>    <span class="at">RMSE =</span> <span class="fu">round</span>(<span class="fu">as.numeric</span>(rmse), <span class="dv">4</span>),</span>
+<span id="cb2-146"><a href="#cb2-146" tabindex="-1"></a>    <span class="at">row.names =</span> <span class="cn">NULL</span></span>
+<span id="cb2-147"><a href="#cb2-147" tabindex="-1"></a>  )</span>
+<span id="cb2-148"><a href="#cb2-148" tabindex="-1"></a>}</span></code></pre></div>
+<div id="high-common-support-benchmark" class="section level2" number="4.1">
+<h2><span class="header-section-number">4.1</span> High Common Support
+Benchmark</h2>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>tbl_sim0_high <span class="ot">&lt;-</span> <span class="fu">run_baseline_mc</span>(<span class="at">common_support =</span> <span class="st">&quot;high&quot;</span>, <span class="at">R =</span> <span class="dv">20</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(</span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>  tbl_sim0_high,</span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>  <span class="at">digits =</span> <span class="dv">4</span>,</span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a>  <span class="at">row.names =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a>  <span class="at">caption =</span> <span class="st">&quot;Monte Carlo Benchmark (R = 20 Replications): Vladislav&#39;s Linear Baseline Under High Common Support&quot;</span></span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a>)</span></code></pre></div>
+</div>
+<div id="low-common-support-benchmark" class="section level2" number="4.2">
+<h2><span class="header-section-number">4.2</span> Low Common Support
+Benchmark</h2>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>tbl_sim0_low <span class="ot">&lt;-</span> <span class="fu">run_baseline_mc</span>(<span class="at">common_support =</span> <span class="st">&quot;low&quot;</span>, <span class="at">R =</span> <span class="dv">20</span>)</span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(</span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>  tbl_sim0_low,</span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>  <span class="at">digits =</span> <span class="dv">4</span>,</span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a>  <span class="at">row.names =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a>  <span class="at">caption =</span> <span class="st">&quot;Monte Carlo Benchmark (R = 20 Replications): Vladislav&#39;s Linear Baseline Under Low Common Support&quot;</span></span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a>)</span></code></pre></div>
+<p>The baseline replication results directly mirror Beresovsky,
+Gershunskaya &amp; Savitsky (2026): 1. <strong>Efficiency
+Hierarchy</strong>: Under high common support, deterministic linkage
+estimators (<code>LINK2</code> and <code>LINK1</code>) yield the lowest
+RMSE, followed by <code>STACK</code> and <code>PSEUDO</code>. 2.
+<strong>Pseudo-Likelihood Degradation</strong>: Under low common
+support, <code>GLM-PSEUDO</code> variability and RMSE substantially
+increase, while composite likelihood estimators (<code>LINK2</code>,
+<code>LINK1</code>, <code>MIP</code>, <code>STACK</code>) maintain
+consistent, bounded variance. 3. <strong>LBBNN Agreement</strong>: Even
+on purely linear models where neural networks offer no structural
+advantage over linear logistic regression, <code>LBBNN</code> composite
+models track the classical GLM solutions closely without
+degradation.</p>
+<hr />
+</div>
+</div>
+<div id="simulation-study-1-high-common-support-with-linear-propensity-noise-covariates" class="section level1" number="5">
+<h1><span class="header-section-number">5</span> Simulation Study 1:
+High Common Support with Linear Propensity &amp; Noise Covariates</h1>
+<p>To evaluate automated sparse variable selection when true
+propensities are linear, we formulate a 6-covariate Data Generating
+Process (DGP) with distinct structural roles:</p>
+<ol style="list-style-type: decimal">
+<li><strong>Population &amp; Covariate Structure (<span class="math inline">\(N = 5,000, p = 6\)</span>)</strong>:
+<ul>
+<li>Correlated signal block: <span class="math inline">\((X_{1i},
+X_{2i}, X_{3i})^\top \sim \mathcal{MVN}(\mathbf{0},
+\boldsymbol{\Sigma})\)</span> with <span class="math inline">\(\Sigma_{jj} = 1.0\)</span>, <span class="math inline">\(\Sigma_{12} = 0.5\)</span>, <span class="math inline">\(\Sigma_{13} = \Sigma_{23} = 0.3\)</span>.</li>
+<li>Pure noise block: <span class="math inline">\(X_{4i}, X_{5i}, X_{6i}
+\stackrel{\text{i.i.d.}}{\sim} \mathcal{N}(0, 1)\)</span>, independent
+of all other variables.</li>
+</ul></li>
+<li><strong>Non-Linear Outcome Model (<span class="math inline">\(Y_i\)</span>)</strong>: <span class="math display">\[Y_i = 1.0 + X_{1i} + X_{2i} + X_{3i} + 0.5
+X_{1i}^2 - 0.5 \sin(\pi X_{2i}) + \epsilon_i, \quad \epsilon_i \sim
+\mathcal{N}(0, 1)\]</span></li>
+<li><strong>Reference Probability Survey (<span class="math inline">\(S_r, n_r = 500\)</span>)</strong>: Drawn via
+systematic PPS sampling (<code>sampling::UPsystematic</code>) with size
+measure <span class="math inline">\(s_i = \text{logit}^{-1}(X_{1i} +
+X_{2i})\)</span> and selection probabilities <span class="math inline">\(\pi_{ri} = n_r s_i / \sum_{j=1}^N
+s_j\)</span>.</li>
+<li><strong>Convenience Sample (<span class="math inline">\(S_c, n_c
+\approx 500\)</span>)</strong>: Drawn via independent Bernoulli trials
+with linear logit propensity: <span class="math display">\[\text{logit}(\pi_{ci}) = \beta_0 + \beta_1 X_{1i}
++ \beta_2 X_{2i}, \qquad \beta_1 = 1.0, \; \beta_2 = -0.5\]</span> where
+<span class="math inline">\(\beta_0\)</span> is calibrated so that <span class="math inline">\(\mathbb{E}[n_c] = \sum_{i=1}^N \pi_{ci} =
+500\)</span>. Because <span class="math inline">\(\beta_1 = +1.0 &gt;
+0\)</span>, both <span class="math inline">\(\pi_{ri}\)</span> and <span class="math inline">\(\pi_{ci}\)</span> favor units with high <span class="math inline">\(X_{1i}\)</span>, establishing <strong>High Common
+Support</strong>.</li>
+<li><strong>Three Distinct Covariate Roles</strong>:
+<ul>
+<li><span class="math inline">\(X_1, X_2\)</span>: <strong>True
+Confounders</strong> that drive both participation (<span class="math inline">\(I_{ci}\)</span>) and outcome (<span class="math inline">\(Y_i\)</span>).</li>
+<li><span class="math inline">\(X_3\)</span>: <strong>Outcome-Only
+Predictor</strong> (correlated with <span class="math inline">\(X_1,
+X_2\)</span> and drives <span class="math inline">\(Y_i\)</span>, but
+conditionally independent of <span class="math inline">\(I_{ci}\)</span>
+given <span class="math inline">\(X_1, X_2\)</span>; including it in
+<span class="math inline">\(\hat{\pi}_{ci}\)</span> only inflates Hájek
+variance).</li>
+<li><span class="math inline">\(X_4, X_5, X_6\)</span>: <strong>Pure
+Noise</strong> (independent of both <span class="math inline">\(I_{ci}\)</span> and <span class="math inline">\(Y_i\)</span>).</li>
+</ul></li>
+</ol>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>pop1 <span class="ot">&lt;-</span> <span class="fu">gen_pop_nonlinear</span>(</span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>  <span class="at">N =</span> <span class="dv">5000</span>,</span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>  <span class="at">p =</span> <span class="dv">6</span>,</span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>  <span class="at">nonlinear_y =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a>  <span class="at">nonlinear_propensity =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a>  <span class="at">common_support =</span> <span class="st">&quot;high&quot;</span>,</span>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a>  <span class="at">b2 =</span> <span class="sc">-</span><span class="fl">0.5</span>,</span>
+<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a>  <span class="at">n_r =</span> <span class="dv">500</span>,</span>
+<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a>  <span class="at">n_c =</span> <span class="dv">500</span>,</span>
+<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a>  <span class="at">seed =</span> <span class="dv">2026</span></span>
+<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a>)</span>
+<span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a></span>
+<span id="cb5-13"><a href="#cb5-13" tabindex="-1"></a>pop1 <span class="ot">&lt;-</span> <span class="fu">draw_combined_samples</span>(pop1, <span class="at">seed =</span> <span class="dv">2026</span>)</span>
+<span id="cb5-14"><a href="#cb5-14" tabindex="-1"></a></span>
+<span id="cb5-15"><a href="#cb5-15" tabindex="-1"></a>Sc1 <span class="ot">&lt;-</span> pop1[pop1<span class="sc">$</span>I.c <span class="sc">==</span> <span class="dv">1</span>, ]</span>
+<span id="cb5-16"><a href="#cb5-16" tabindex="-1"></a>Sr1 <span class="ot">&lt;-</span> pop1[pop1<span class="sc">$</span>I.r <span class="sc">==</span> <span class="dv">1</span>, ]</span>
+<span id="cb5-17"><a href="#cb5-17" tabindex="-1"></a>covars <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">&quot;X&quot;</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">6</span>)</span>
+<span id="cb5-18"><a href="#cb5-18" tabindex="-1"></a></span>
+<span id="cb5-19"><a href="#cb5-19" tabindex="-1"></a>true_mean1 <span class="ot">&lt;-</span> <span class="fu">mean</span>(pop1<span class="sc">$</span>y)</span>
+<span id="cb5-20"><a href="#cb5-20" tabindex="-1"></a>naive_mean1 <span class="ot">&lt;-</span> <span class="fu">mean</span>(Sc1<span class="sc">$</span>y)</span>
+<span id="cb5-21"><a href="#cb5-21" tabindex="-1"></a>oracle_hajek1 <span class="ot">&lt;-</span> <span class="fu">hajek_estimate</span>(Sc1<span class="sc">$</span>y, Sc1<span class="sc">$</span>pi.c)</span>
+<span id="cb5-22"><a href="#cb5-22" tabindex="-1"></a></span>
+<span id="cb5-23"><a href="#cb5-23" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;Population Size N:               %d</span><span class="sc">\n</span><span class="st">&quot;</span>, <span class="fu">nrow</span>(pop1)))</span>
+<span id="cb5-24"><a href="#cb5-24" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;Convenience Sample (Sc) Size:    %d</span><span class="sc">\n</span><span class="st">&quot;</span>, <span class="fu">nrow</span>(Sc1)))</span>
+<span id="cb5-25"><a href="#cb5-25" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;Reference Sample (Sr) Size:      %d</span><span class="sc">\n</span><span class="st">&quot;</span>, <span class="fu">nrow</span>(Sr1)))</span>
+<span id="cb5-26"><a href="#cb5-26" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;True Population Mean Y:          %.4f</span><span class="sc">\n</span><span class="st">&quot;</span>, true_mean1))</span>
+<span id="cb5-27"><a href="#cb5-27" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;Naive Sample Mean (Unweighted):  %.4f (Bias: %+.4f)</span><span class="sc">\n</span><span class="st">&quot;</span>, naive_mean1, naive_mean1 <span class="sc">-</span> true_mean1))</span>
+<span id="cb5-28"><a href="#cb5-28" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;Oracle Hajek Mean (True pi.c):   %.4f (Bias: %+.4f)</span><span class="sc">\n</span><span class="st">&quot;</span>, oracle_hajek1, oracle_hajek1 <span class="sc">-</span> true_mean1))</span></code></pre></div>
+<div id="fitting-propensity-models-lbbnn-vs-all-5-glm-baselines" class="section level2" number="5.1">
+<h2><span class="header-section-number">5.1</span> Fitting Propensity
+Models (LBBNN vs All 5 GLM Baselines)</h2>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="co"># Fit all 5 exact GLM MLE baselines</span></span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>glm_res1 <span class="ot">&lt;-</span> <span class="fu">fit_glm_all</span>(pop1, covars)</span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a><span class="co"># Helper function to fit LBBNN with calibrated slab prior std = c(2.0, 2.0)</span></span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a>fit_prop_lbbnn <span class="ot">&lt;-</span> <span class="cf">function</span>(pop, method, covars, <span class="at">epochs =</span> <span class="dv">100</span>, <span class="at">lr =</span> <span class="fl">0.02</span>, <span class="at">p_link =</span> <span class="fl">0.5</span>) {</span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a>  ds <span class="ot">&lt;-</span> <span class="fu">build_propensity_dataset</span>(pop, <span class="at">method =</span> method, <span class="at">covar_cols =</span> covars)</span>
+<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a>  dl <span class="ot">&lt;-</span> <span class="fu">get_dataloaders</span>(ds<span class="sc">$</span>data, <span class="at">train_proportion =</span> <span class="fl">1.0</span>, <span class="at">train_batch_size =</span> <span class="dv">64</span>,</span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a>                        <span class="at">test_batch_size =</span> <span class="dv">64</span>, <span class="at">standardize =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a>                        <span class="at">shuffle_train =</span> <span class="cn">TRUE</span>, <span class="at">target_cols =</span> ds<span class="sc">$</span>target_cols, <span class="at">seed =</span> <span class="dv">42</span>)</span>
+<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a>  nll_f <span class="ot">&lt;-</span> <span class="cf">switch</span>(</span>
+<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a>    method,</span>
+<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a>    <span class="st">&quot;STACK&quot;</span>  <span class="ot">=</span> nll_stack,</span>
+<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a>    <span class="st">&quot;LINK1&quot;</span>  <span class="ot">=</span> nll_link1,</span>
+<span id="cb6-14"><a href="#cb6-14" tabindex="-1"></a>    <span class="st">&quot;LINK2&quot;</span>  <span class="ot">=</span> nll_link2,</span>
+<span id="cb6-15"><a href="#cb6-15" tabindex="-1"></a>    <span class="st">&quot;MIP&quot;</span>    <span class="ot">=</span> <span class="fu">make_nll_mip</span>(<span class="at">p_link =</span> p_link),</span>
+<span id="cb6-16"><a href="#cb6-16" tabindex="-1"></a>    <span class="st">&quot;PSEUDO&quot;</span> <span class="ot">=</span> nll_pseudo</span>
+<span id="cb6-17"><a href="#cb6-17" tabindex="-1"></a>  )</span>
+<span id="cb6-18"><a href="#cb6-18" tabindex="-1"></a>  m <span class="ot">&lt;-</span> <span class="fu">lbbnn_net</span>(</span>
+<span id="cb6-19"><a href="#cb6-19" tabindex="-1"></a>    <span class="at">problem_type =</span> <span class="st">&quot;custom&quot;</span>,</span>
+<span id="cb6-20"><a href="#cb6-20" tabindex="-1"></a>    <span class="at">sizes =</span> <span class="fu">c</span>(<span class="fu">length</span>(covars), <span class="dv">16</span>, <span class="dv">1</span>),</span>
+<span id="cb6-21"><a href="#cb6-21" tabindex="-1"></a>    <span class="at">prior =</span> <span class="fu">c</span>(<span class="fl">0.2</span>, <span class="fl">0.2</span>),</span>
+<span id="cb6-22"><a href="#cb6-22" tabindex="-1"></a>    <span class="at">std =</span> <span class="fu">c</span>(<span class="fl">1.0</span>, <span class="fl">1.0</span>),</span>
+<span id="cb6-23"><a href="#cb6-23" tabindex="-1"></a>    <span class="at">inclusion_inits =</span> <span class="st">&quot;balanced&quot;</span>,</span>
+<span id="cb6-24"><a href="#cb6-24" tabindex="-1"></a>    <span class="at">input_skip =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb6-25"><a href="#cb6-25" tabindex="-1"></a>    <span class="at">flow =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb6-26"><a href="#cb6-26" tabindex="-1"></a>    <span class="at">raw_output =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb6-27"><a href="#cb6-27" tabindex="-1"></a>    <span class="at">nll =</span> nll_f,</span>
+<span id="cb6-28"><a href="#cb6-28" tabindex="-1"></a>    <span class="at">device =</span> <span class="st">&quot;cpu&quot;</span></span>
+<span id="cb6-29"><a href="#cb6-29" tabindex="-1"></a>  )</span>
+<span id="cb6-30"><a href="#cb6-30" tabindex="-1"></a>  <span class="fu">train_lbbnn</span>(<span class="at">epochs =</span> epochs, <span class="at">LBBNN =</span> m, <span class="at">lr =</span> lr, <span class="at">train_dl =</span> dl<span class="sc">$</span>train_loader, <span class="at">verbose =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb6-31"><a href="#cb6-31" tabindex="-1"></a>  preds_bma <span class="ot">&lt;-</span> <span class="fu">predict</span>(m, <span class="at">newdata =</span> <span class="fu">as.matrix</span>(pop[pop<span class="sc">$</span>I.c <span class="sc">==</span> <span class="dv">1</span>, covars]), <span class="at">draws =</span> <span class="dv">50</span>, <span class="at">link =</span> torch<span class="sc">::</span>torch_sigmoid)</span>
+<span id="cb6-32"><a href="#cb6-32" tabindex="-1"></a>  preds_mpm <span class="ot">&lt;-</span> <span class="fu">predict</span>(m, <span class="at">newdata =</span> <span class="fu">as.matrix</span>(pop[pop<span class="sc">$</span>I.c <span class="sc">==</span> <span class="dv">1</span>, covars]), <span class="at">draws =</span> <span class="dv">50</span>, <span class="at">mpm =</span> <span class="cn">TRUE</span>, <span class="at">link =</span> torch<span class="sc">::</span>torch_sigmoid)</span>
+<span id="cb6-33"><a href="#cb6-33" tabindex="-1"></a>  </span>
+<span id="cb6-34"><a href="#cb6-34" tabindex="-1"></a>  <span class="fu">invisible</span>(<span class="fu">capture.output</span>(sm <span class="ot">&lt;-</span> <span class="fu">summary</span>(m)))</span>
+<span id="cb6-35"><a href="#cb6-35" tabindex="-1"></a>  </span>
+<span id="cb6-36"><a href="#cb6-36" tabindex="-1"></a>  <span class="fu">list</span>(</span>
+<span id="cb6-37"><a href="#cb6-37" tabindex="-1"></a>    <span class="at">model =</span> m,</span>
+<span id="cb6-38"><a href="#cb6-38" tabindex="-1"></a>    <span class="at">pi_bma =</span> <span class="fu">apply</span>(<span class="fu">as.matrix</span>(preds_bma[, , <span class="dv">1</span>]<span class="sc">$</span><span class="fu">cpu</span>()), <span class="dv">2</span>, mean),</span>
+<span id="cb6-39"><a href="#cb6-39" tabindex="-1"></a>    <span class="at">pi_mpm =</span> <span class="fu">apply</span>(<span class="fu">as.matrix</span>(preds_mpm[, , <span class="dv">1</span>]<span class="sc">$</span><span class="fu">cpu</span>()), <span class="dv">2</span>, mean),</span>
+<span id="cb6-40"><a href="#cb6-40" tabindex="-1"></a>    <span class="at">summary =</span> sm</span>
+<span id="cb6-41"><a href="#cb6-41" tabindex="-1"></a>  )</span>
+<span id="cb6-42"><a href="#cb6-42" tabindex="-1"></a>}</span>
+<span id="cb6-43"><a href="#cb6-43" tabindex="-1"></a></span>
+<span id="cb6-44"><a href="#cb6-44" tabindex="-1"></a><span class="co"># Fit all 5 LBBNN composite models</span></span>
+<span id="cb6-45"><a href="#cb6-45" tabindex="-1"></a>fit_lbbnn_stack1  <span class="ot">&lt;-</span> <span class="fu">fit_prop_lbbnn</span>(pop1, <span class="st">&quot;STACK&quot;</span>, covars)</span>
+<span id="cb6-46"><a href="#cb6-46" tabindex="-1"></a>fit_lbbnn_link1_1 <span class="ot">&lt;-</span> <span class="fu">fit_prop_lbbnn</span>(pop1, <span class="st">&quot;LINK1&quot;</span>, covars)</span>
+<span id="cb6-47"><a href="#cb6-47" tabindex="-1"></a>fit_lbbnn_link2_1 <span class="ot">&lt;-</span> <span class="fu">fit_prop_lbbnn</span>(pop1, <span class="st">&quot;LINK2&quot;</span>, covars)</span>
+<span id="cb6-48"><a href="#cb6-48" tabindex="-1"></a>fit_lbbnn_mip1    <span class="ot">&lt;-</span> <span class="fu">fit_prop_lbbnn</span>(pop1, <span class="st">&quot;MIP&quot;</span>, covars, <span class="at">p_link =</span> <span class="fl">0.5</span>)</span>
+<span id="cb6-49"><a href="#cb6-49" tabindex="-1"></a>fit_lbbnn_pseudo1 <span class="ot">&lt;-</span> <span class="fu">fit_prop_lbbnn</span>(pop1, <span class="st">&quot;PSEUDO&quot;</span>, covars)</span></code></pre></div>
+</div>
+<div id="sparse-variable-selection-active-graph-pruning" class="section level2" number="5.2">
+<h2><span class="header-section-number">5.2</span> Sparse Variable
+Selection &amp; Active Graph Pruning</h2>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>sm1 <span class="ot">&lt;-</span> fit_lbbnn_stack1<span class="sc">$</span>summary</span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>var_table1 <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a>  <span class="at">Covariate =</span> <span class="fu">c</span>(<span class="st">&quot;X1 (Active)&quot;</span>, <span class="st">&quot;X2 (Active)&quot;</span>, <span class="st">&quot;X3 (Outcome-only)&quot;</span>, <span class="st">&quot;X4 (Noise)&quot;</span>, <span class="st">&quot;X5 (Noise)&quot;</span>, <span class="st">&quot;X6 (Noise)&quot;</span>),</span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a>  <span class="at">True_Status =</span> <span class="fu">c</span>(<span class="st">&quot;Active in Propensity&quot;</span>, <span class="st">&quot;Active in Propensity&quot;</span>, <span class="st">&quot;Uncorrelated with Sc&quot;</span>, <span class="st">&quot;Pure Noise&quot;</span>, <span class="st">&quot;Pure Noise&quot;</span>, <span class="st">&quot;Pure Noise&quot;</span>),</span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a>  <span class="at">Out_Paths =</span> sm1<span class="sc">$</span>L1,</span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a>  <span class="at">Layer0_Incl =</span> sm1<span class="sc">$</span>a0,</span>
+<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a>  <span class="at">Output_Incl =</span> sm1<span class="sc">$</span>a1,</span>
+<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a>  <span class="at">Mean_Incl   =</span> sm1<span class="sc">$</span>a_avg,</span>
+<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a>  <span class="at">MPM_Decision =</span> <span class="fu">ifelse</span>(sm1<span class="sc">$</span>a1 <span class="sc">&gt;</span> <span class="fl">0.5</span>, <span class="st">&quot;Selected (Active)&quot;</span>, <span class="st">&quot;Pruned (Zeroed)&quot;</span>),</span>
+<span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a>  <span class="at">row.names =</span> <span class="cn">NULL</span></span>
+<span id="cb7-12"><a href="#cb7-12" tabindex="-1"></a>)</span>
+<span id="cb7-13"><a href="#cb7-13" tabindex="-1"></a></span>
+<span id="cb7-14"><a href="#cb7-14" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(</span>
+<span id="cb7-15"><a href="#cb7-15" tabindex="-1"></a>  var_table1,</span>
+<span id="cb7-16"><a href="#cb7-16" tabindex="-1"></a>  <span class="at">digits =</span> <span class="dv">3</span>,</span>
+<span id="cb7-17"><a href="#cb7-17" tabindex="-1"></a>  <span class="at">row.names =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb7-18"><a href="#cb7-18" tabindex="-1"></a>  <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">&quot;Covariate&quot;</span>, <span class="st">&quot;True Role&quot;</span>, <span class="st">&quot;Output Paths&quot;</span>, <span class="st">&quot;Layer 0 Incl.&quot;</span>, <span class="st">&quot;Output Incl.&quot;</span>, <span class="st">&quot;Mean Incl.&quot;</span>, <span class="st">&quot;MPM Status&quot;</span>),</span>
+<span id="cb7-19"><a href="#cb7-19" tabindex="-1"></a>  <span class="at">caption =</span> <span class="st">&quot;Variational Inclusion Probabilities and Median Probability Model Selection under High Common Support&quot;</span></span>
+<span id="cb7-20"><a href="#cb7-20" tabindex="-1"></a>)</span></code></pre></div>
+<p>The spike-and-slab posterior reflects near-perfect feature
+identification: - Both active confounders <span class="math inline">\(X_1\)</span> and <span class="math inline">\(X_2\)</span> achieve inclusion probabilities
+approaching 1.0 (output inclusion: <span class="math inline">\(0.997\)</span> and <span class="math inline">\(0.991\)</span>, respectively) and active output
+connectivity (<span class="math inline">\(L_1 = 1\)</span>). - The
+outcome-only predictor <span class="math inline">\(X_3\)</span> and pure
+noise variables <span class="math inline">\(X_4, X_5, X_6\)</span> are
+completely pruned (<span class="math inline">\(L_1 = 0\)</span>, maximum
+output inclusion: <span class="math inline">\(0.038 \le
+0.10\)</span>).</p>
+</div>
+<div id="finite-population-mean-recovery" class="section level2" number="5.3">
+<h2><span class="header-section-number">5.3</span> Finite Population
+Mean Recovery</h2>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>comp_df1 <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>  <span class="at">Estimator =</span> <span class="fu">c</span>(</span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>    <span class="st">&quot;Naive Convenience Mean (Unweighted)&quot;</span>,</span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a>    <span class="st">&quot;Oracle Hajek (True Propensity)&quot;</span>,</span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a>    <span class="st">&quot;GLM-STACK&quot;</span>,</span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a>    <span class="st">&quot;GLM-LINK1&quot;</span>,</span>
+<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a>    <span class="st">&quot;GLM-LINK2&quot;</span>,</span>
+<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a>    <span class="st">&quot;GLM-MIP50&quot;</span>,</span>
+<span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a>    <span class="st">&quot;GLM-PSEUDO&quot;</span>,</span>
+<span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a>    <span class="st">&quot;LBBNN-STACK (BMA)&quot;</span>,</span>
+<span id="cb8-11"><a href="#cb8-11" tabindex="-1"></a>    <span class="st">&quot;LBBNN-STACK (MPM)&quot;</span>,</span>
+<span id="cb8-12"><a href="#cb8-12" tabindex="-1"></a>    <span class="st">&quot;LBBNN-LINK1 (BMA)&quot;</span>,</span>
+<span id="cb8-13"><a href="#cb8-13" tabindex="-1"></a>    <span class="st">&quot;LBBNN-LINK1 (MPM)&quot;</span>,</span>
+<span id="cb8-14"><a href="#cb8-14" tabindex="-1"></a>    <span class="st">&quot;LBBNN-LINK2 (BMA)&quot;</span>,</span>
+<span id="cb8-15"><a href="#cb8-15" tabindex="-1"></a>    <span class="st">&quot;LBBNN-LINK2 (MPM)&quot;</span>,</span>
+<span id="cb8-16"><a href="#cb8-16" tabindex="-1"></a>    <span class="st">&quot;LBBNN-MIP50 (BMA)&quot;</span>,</span>
+<span id="cb8-17"><a href="#cb8-17" tabindex="-1"></a>    <span class="st">&quot;LBBNN-MIP50 (MPM)&quot;</span>,</span>
+<span id="cb8-18"><a href="#cb8-18" tabindex="-1"></a>    <span class="st">&quot;LBBNN-PSEUDO (BMA)&quot;</span>,</span>
+<span id="cb8-19"><a href="#cb8-19" tabindex="-1"></a>    <span class="st">&quot;LBBNN-PSEUDO (MPM)&quot;</span></span>
+<span id="cb8-20"><a href="#cb8-20" tabindex="-1"></a>  ),</span>
+<span id="cb8-21"><a href="#cb8-21" tabindex="-1"></a>  <span class="at">Estimate =</span> <span class="fu">c</span>(</span>
+<span id="cb8-22"><a href="#cb8-22" tabindex="-1"></a>    naive_mean1,</span>
+<span id="cb8-23"><a href="#cb8-23" tabindex="-1"></a>    oracle_hajek1,</span>
+<span id="cb8-24"><a href="#cb8-24" tabindex="-1"></a>    <span class="fu">hajek_estimate</span>(Sc1<span class="sc">$</span>y, glm_res1<span class="sc">$</span>stack),</span>
+<span id="cb8-25"><a href="#cb8-25" tabindex="-1"></a>    <span class="fu">hajek_estimate</span>(Sc1<span class="sc">$</span>y, glm_res1<span class="sc">$</span>link1),</span>
+<span id="cb8-26"><a href="#cb8-26" tabindex="-1"></a>    <span class="fu">hajek_estimate</span>(Sc1<span class="sc">$</span>y, glm_res1<span class="sc">$</span>link2),</span>
+<span id="cb8-27"><a href="#cb8-27" tabindex="-1"></a>    <span class="fu">hajek_estimate</span>(Sc1<span class="sc">$</span>y, glm_res1<span class="sc">$</span>mip50),</span>
+<span id="cb8-28"><a href="#cb8-28" tabindex="-1"></a>    <span class="fu">hajek_estimate</span>(Sc1<span class="sc">$</span>y, glm_res1<span class="sc">$</span>pseudo),</span>
+<span id="cb8-29"><a href="#cb8-29" tabindex="-1"></a>    <span class="fu">hajek_estimate</span>(Sc1<span class="sc">$</span>y, fit_lbbnn_stack1<span class="sc">$</span>pi_bma),</span>
+<span id="cb8-30"><a href="#cb8-30" tabindex="-1"></a>    <span class="fu">hajek_estimate</span>(Sc1<span class="sc">$</span>y, fit_lbbnn_stack1<span class="sc">$</span>pi_mpm),</span>
+<span id="cb8-31"><a href="#cb8-31" tabindex="-1"></a>    <span class="fu">hajek_estimate</span>(Sc1<span class="sc">$</span>y, fit_lbbnn_link1_1<span class="sc">$</span>pi_bma),</span>
+<span id="cb8-32"><a href="#cb8-32" tabindex="-1"></a>    <span class="fu">hajek_estimate</span>(Sc1<span class="sc">$</span>y, fit_lbbnn_link1_1<span class="sc">$</span>pi_mpm),</span>
+<span id="cb8-33"><a href="#cb8-33" tabindex="-1"></a>    <span class="fu">hajek_estimate</span>(Sc1<span class="sc">$</span>y, fit_lbbnn_link2_1<span class="sc">$</span>pi_bma),</span>
+<span id="cb8-34"><a href="#cb8-34" tabindex="-1"></a>    <span class="fu">hajek_estimate</span>(Sc1<span class="sc">$</span>y, fit_lbbnn_link2_1<span class="sc">$</span>pi_mpm),</span>
+<span id="cb8-35"><a href="#cb8-35" tabindex="-1"></a>    <span class="fu">hajek_estimate</span>(Sc1<span class="sc">$</span>y, fit_lbbnn_mip1<span class="sc">$</span>pi_bma),</span>
+<span id="cb8-36"><a href="#cb8-36" tabindex="-1"></a>    <span class="fu">hajek_estimate</span>(Sc1<span class="sc">$</span>y, fit_lbbnn_mip1<span class="sc">$</span>pi_mpm),</span>
+<span id="cb8-37"><a href="#cb8-37" tabindex="-1"></a>    <span class="fu">hajek_estimate</span>(Sc1<span class="sc">$</span>y, fit_lbbnn_pseudo1<span class="sc">$</span>pi_bma),</span>
+<span id="cb8-38"><a href="#cb8-38" tabindex="-1"></a>    <span class="fu">hajek_estimate</span>(Sc1<span class="sc">$</span>y, fit_lbbnn_pseudo1<span class="sc">$</span>pi_mpm)</span>
+<span id="cb8-39"><a href="#cb8-39" tabindex="-1"></a>  ),</span>
+<span id="cb8-40"><a href="#cb8-40" tabindex="-1"></a>  <span class="at">row.names =</span> <span class="cn">NULL</span></span>
+<span id="cb8-41"><a href="#cb8-41" tabindex="-1"></a>)</span>
+<span id="cb8-42"><a href="#cb8-42" tabindex="-1"></a></span>
+<span id="cb8-43"><a href="#cb8-43" tabindex="-1"></a>comp_df1<span class="sc">$</span>Bias <span class="ot">&lt;-</span> comp_df1<span class="sc">$</span>Estimate <span class="sc">-</span> true_mean1</span>
+<span id="cb8-44"><a href="#cb8-44" tabindex="-1"></a>comp_df1<span class="sc">$</span>Abs_Error <span class="ot">&lt;-</span> <span class="fu">abs</span>(comp_df1<span class="sc">$</span>Bias)</span>
+<span id="cb8-45"><a href="#cb8-45" tabindex="-1"></a></span>
+<span id="cb8-46"><a href="#cb8-46" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(</span>
+<span id="cb8-47"><a href="#cb8-47" tabindex="-1"></a>  comp_df1,</span>
+<span id="cb8-48"><a href="#cb8-48" tabindex="-1"></a>  <span class="at">digits =</span> <span class="dv">4</span>,</span>
+<span id="cb8-49"><a href="#cb8-49" tabindex="-1"></a>  <span class="at">row.names =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb8-50"><a href="#cb8-50" tabindex="-1"></a>  <span class="at">caption =</span> <span class="st">&quot;Comparison of Population Mean Estimation under High Common Support with Linear Propensity &amp; Noise Covariates&quot;</span></span>
+<span id="cb8-51"><a href="#cb8-51" tabindex="-1"></a>)</span></code></pre></div>
+<hr />
+</div>
+</div>
+<div id="simulation-study-2-high-common-support-with-non-linear-propensity-interaction" class="section level1" number="6">
+<h1><span class="header-section-number">6</span> Simulation Study 2:
+High Common Support with Non-Linear Propensity &amp; Interaction</h1>
+<p>In real-world surveys, response propensities rarely follow linear
+hyperplanes. To isolate <strong>functional-form
+misspecification</strong> from common-support issues, we maintain High
+Common Support (<span class="math inline">\(\beta_1 = 1.0, \beta_2 =
+-0.5\)</span>) but introduce a non-linear propensity surface with a
+strong interaction, trigonometric curvature, and a quadratic
+boundary:</p>
+<p><span class="math display">\[\eta_c(\mathbf{x}_i) = \beta_0 + 1.0
+X_{1i} - 0.5 X_{2i} + 1.2 X_{1i} X_{2i} + 1.0 \cos(\pi X_{1i}) - 0.8
+X_{2i}^2\]</span></p>
+<p>Standard GLM baselines model only linear main effects <span class="math inline">\(\mathbf{x}_i^\top \beta\)</span> and are therefore
+structurally misspecified, while <code>LBBNN</code> uses its hidden
+layer and non-linear activations to approximate the true surface.</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a>pop2 <span class="ot">&lt;-</span> <span class="fu">gen_pop_nonlinear</span>(</span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>  <span class="at">N =</span> <span class="dv">5000</span>,</span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a>  <span class="at">p =</span> <span class="dv">6</span>,</span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a>  <span class="at">nonlinear_y =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a>  <span class="at">nonlinear_propensity =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a>  <span class="at">common_support =</span> <span class="st">&quot;high&quot;</span>,</span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a>  <span class="at">b2 =</span> <span class="sc">-</span><span class="fl">0.5</span>,</span>
+<span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a>  <span class="at">n_r =</span> <span class="dv">500</span>,</span>
+<span id="cb9-9"><a href="#cb9-9" tabindex="-1"></a>  <span class="at">n_c =</span> <span class="dv">500</span>,</span>
+<span id="cb9-10"><a href="#cb9-10" tabindex="-1"></a>  <span class="at">seed =</span> <span class="dv">2026</span></span>
+<span id="cb9-11"><a href="#cb9-11" tabindex="-1"></a>)</span>
+<span id="cb9-12"><a href="#cb9-12" tabindex="-1"></a></span>
+<span id="cb9-13"><a href="#cb9-13" tabindex="-1"></a><span class="co"># Strengthen non-linear interaction and curvature to isolate functional-form misspecification</span></span>
+<span id="cb9-14"><a href="#cb9-14" tabindex="-1"></a>X2_mat <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(pop2[, covars])</span>
+<span id="cb9-15"><a href="#cb9-15" tabindex="-1"></a>eta_c2_raw <span class="ot">&lt;-</span> <span class="fl">1.0</span> <span class="sc">*</span> X2_mat[, <span class="st">&quot;X1&quot;</span>] <span class="sc">-</span> <span class="fl">0.5</span> <span class="sc">*</span> X2_mat[, <span class="st">&quot;X2&quot;</span>] <span class="sc">+</span></span>
+<span id="cb9-16"><a href="#cb9-16" tabindex="-1"></a>  <span class="fl">1.2</span> <span class="sc">*</span> X2_mat[, <span class="st">&quot;X1&quot;</span>] <span class="sc">*</span> X2_mat[, <span class="st">&quot;X2&quot;</span>] <span class="sc">+</span></span>
+<span id="cb9-17"><a href="#cb9-17" tabindex="-1"></a>  <span class="fl">1.0</span> <span class="sc">*</span> <span class="fu">cos</span>(pi <span class="sc">*</span> X2_mat[, <span class="st">&quot;X1&quot;</span>]) <span class="sc">-</span></span>
+<span id="cb9-18"><a href="#cb9-18" tabindex="-1"></a>  <span class="fl">0.8</span> <span class="sc">*</span> (X2_mat[, <span class="st">&quot;X2&quot;</span>]<span class="sc">^</span><span class="dv">2</span>)</span>
+<span id="cb9-19"><a href="#cb9-19" tabindex="-1"></a>b0_2 <span class="ot">&lt;-</span> LBBNN<span class="sc">:::</span><span class="fu">approx_int</span>(eta_c2_raw, <span class="at">n =</span> <span class="dv">500</span>)</span>
+<span id="cb9-20"><a href="#cb9-20" tabindex="-1"></a>pop2<span class="sc">$</span>pi.c <span class="ot">&lt;-</span> stats<span class="sc">::</span><span class="fu">plogis</span>(b0_2 <span class="sc">+</span> eta_c2_raw)</span>
+<span id="cb9-21"><a href="#cb9-21" tabindex="-1"></a>pop2 <span class="ot">&lt;-</span> <span class="fu">draw_combined_samples</span>(pop2, <span class="at">seed =</span> <span class="dv">2026</span>)</span>
+<span id="cb9-22"><a href="#cb9-22" tabindex="-1"></a></span>
+<span id="cb9-23"><a href="#cb9-23" tabindex="-1"></a>Sc2 <span class="ot">&lt;-</span> pop2[pop2<span class="sc">$</span>I.c <span class="sc">==</span> <span class="dv">1</span>, ]</span>
+<span id="cb9-24"><a href="#cb9-24" tabindex="-1"></a>Sr2 <span class="ot">&lt;-</span> pop2[pop2<span class="sc">$</span>I.r <span class="sc">==</span> <span class="dv">1</span>, ]</span>
+<span id="cb9-25"><a href="#cb9-25" tabindex="-1"></a></span>
+<span id="cb9-26"><a href="#cb9-26" tabindex="-1"></a>true_mean2 <span class="ot">&lt;-</span> <span class="fu">mean</span>(pop2<span class="sc">$</span>y)</span>
+<span id="cb9-27"><a href="#cb9-27" tabindex="-1"></a>naive_mean2 <span class="ot">&lt;-</span> <span class="fu">mean</span>(Sc2<span class="sc">$</span>y)</span>
+<span id="cb9-28"><a href="#cb9-28" tabindex="-1"></a>oracle_hajek2 <span class="ot">&lt;-</span> <span class="fu">hajek_estimate</span>(Sc2<span class="sc">$</span>y, Sc2<span class="sc">$</span>pi.c)</span>
+<span id="cb9-29"><a href="#cb9-29" tabindex="-1"></a></span>
+<span id="cb9-30"><a href="#cb9-30" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;Population Size N:               %d</span><span class="sc">\n</span><span class="st">&quot;</span>, <span class="fu">nrow</span>(pop2)))</span>
+<span id="cb9-31"><a href="#cb9-31" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;Convenience Sample (Sc) Size:    %d</span><span class="sc">\n</span><span class="st">&quot;</span>, <span class="fu">nrow</span>(Sc2)))</span>
+<span id="cb9-32"><a href="#cb9-32" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;Reference Sample (Sr) Size:      %d</span><span class="sc">\n</span><span class="st">&quot;</span>, <span class="fu">nrow</span>(Sr2)))</span>
+<span id="cb9-33"><a href="#cb9-33" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;True Population Mean Y:          %.4f</span><span class="sc">\n</span><span class="st">&quot;</span>, true_mean2))</span>
+<span id="cb9-34"><a href="#cb9-34" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;Naive Sample Mean (Unweighted):  %.4f (Bias: %+.4f)</span><span class="sc">\n</span><span class="st">&quot;</span>, naive_mean2, naive_mean2 <span class="sc">-</span> true_mean2))</span>
+<span id="cb9-35"><a href="#cb9-35" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;Oracle Hajek Mean (True pi.c):   %.4f (Bias: %+.4f)</span><span class="sc">\n</span><span class="st">&quot;</span>, oracle_hajek2, oracle_hajek2 <span class="sc">-</span> true_mean2))</span></code></pre></div>
+<div id="fitting-propensity-models-under-high-support-non-linearity" class="section level2" number="6.1">
+<h2><span class="header-section-number">6.1</span> Fitting Propensity
+Models under High Support Non-Linearity</h2>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="co"># Fit main-effects GLMs (misspecified!)</span></span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>glm_res2 <span class="ot">&lt;-</span> <span class="fu">fit_glm_all</span>(pop2, covars)</span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a></span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a><span class="co"># Fit LBBNN models</span></span>
+<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a>fit_lbbnn_stack2  <span class="ot">&lt;-</span> <span class="fu">fit_prop_lbbnn</span>(pop2, <span class="st">&quot;STACK&quot;</span>, covars)</span>
+<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a>fit_lbbnn_link1_2 <span class="ot">&lt;-</span> <span class="fu">fit_prop_lbbnn</span>(pop2, <span class="st">&quot;LINK1&quot;</span>, covars)</span>
+<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a>fit_lbbnn_link2_2 <span class="ot">&lt;-</span> <span class="fu">fit_prop_lbbnn</span>(pop2, <span class="st">&quot;LINK2&quot;</span>, covars)</span>
+<span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a>fit_lbbnn_mip2    <span class="ot">&lt;-</span> <span class="fu">fit_prop_lbbnn</span>(pop2, <span class="st">&quot;MIP&quot;</span>, covars, <span class="at">p_link =</span> <span class="fl">0.5</span>)</span>
+<span id="cb10-9"><a href="#cb10-9" tabindex="-1"></a>fit_lbbnn_pseudo2 <span class="ot">&lt;-</span> <span class="fu">fit_prop_lbbnn</span>(pop2, <span class="st">&quot;PSEUDO&quot;</span>, covars)</span></code></pre></div>
+</div>
+<div id="variable-selection-under-non-linear-interaction" class="section level2" number="6.2">
+<h2><span class="header-section-number">6.2</span> Variable Selection
+under Non-Linear Interaction</h2>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a>sm2 <span class="ot">&lt;-</span> fit_lbbnn_stack2<span class="sc">$</span>summary</span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a></span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a>var_table2 <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a>  <span class="at">Covariate =</span> <span class="fu">c</span>(<span class="st">&quot;X1 (Active)&quot;</span>, <span class="st">&quot;X2 (Active)&quot;</span>, <span class="st">&quot;X3 (Outcome-only)&quot;</span>, <span class="st">&quot;X4 (Noise)&quot;</span>, <span class="st">&quot;X5 (Noise)&quot;</span>, <span class="st">&quot;X6 (Noise)&quot;</span>),</span>
+<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a>  <span class="at">True_Status =</span> <span class="fu">c</span>(<span class="st">&quot;Active in Non-linear Propensity&quot;</span>, <span class="st">&quot;Active in Non-linear Propensity&quot;</span>, <span class="st">&quot;Uncorrelated with Sc&quot;</span>, <span class="st">&quot;Pure Noise&quot;</span>, <span class="st">&quot;Pure Noise&quot;</span>, <span class="st">&quot;Pure Noise&quot;</span>),</span>
+<span id="cb11-6"><a href="#cb11-6" tabindex="-1"></a>  <span class="at">Out_Paths =</span> sm2<span class="sc">$</span>L1,</span>
+<span id="cb11-7"><a href="#cb11-7" tabindex="-1"></a>  <span class="at">Layer0_Incl =</span> sm2<span class="sc">$</span>a0,</span>
+<span id="cb11-8"><a href="#cb11-8" tabindex="-1"></a>  <span class="at">Output_Incl =</span> sm2<span class="sc">$</span>a1,</span>
+<span id="cb11-9"><a href="#cb11-9" tabindex="-1"></a>  <span class="at">Mean_Incl   =</span> sm2<span class="sc">$</span>a_avg,</span>
+<span id="cb11-10"><a href="#cb11-10" tabindex="-1"></a>  <span class="at">MPM_Decision =</span> <span class="fu">ifelse</span>(sm2<span class="sc">$</span>a1 <span class="sc">&gt;</span> <span class="fl">0.5</span>, <span class="st">&quot;Selected (Active)&quot;</span>, <span class="st">&quot;Pruned (Zeroed)&quot;</span>),</span>
+<span id="cb11-11"><a href="#cb11-11" tabindex="-1"></a>  <span class="at">row.names =</span> <span class="cn">NULL</span></span>
+<span id="cb11-12"><a href="#cb11-12" tabindex="-1"></a>)</span>
+<span id="cb11-13"><a href="#cb11-13" tabindex="-1"></a></span>
+<span id="cb11-14"><a href="#cb11-14" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(</span>
+<span id="cb11-15"><a href="#cb11-15" tabindex="-1"></a>  var_table2,</span>
+<span id="cb11-16"><a href="#cb11-16" tabindex="-1"></a>  <span class="at">digits =</span> <span class="dv">3</span>,</span>
+<span id="cb11-17"><a href="#cb11-17" tabindex="-1"></a>  <span class="at">row.names =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb11-18"><a href="#cb11-18" tabindex="-1"></a>  <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">&quot;Covariate&quot;</span>, <span class="st">&quot;True Role&quot;</span>, <span class="st">&quot;Output Paths&quot;</span>, <span class="st">&quot;Layer 0 Incl.&quot;</span>, <span class="st">&quot;Output Incl.&quot;</span>, <span class="st">&quot;Mean Incl.&quot;</span>, <span class="st">&quot;MPM Status&quot;</span>),</span>
+<span id="cb11-19"><a href="#cb11-19" tabindex="-1"></a>  <span class="at">caption =</span> <span class="st">&quot;Variational Edge Inclusion Probabilities under High Common Support with Non-Linear Propensity &amp; Interaction&quot;</span></span>
+<span id="cb11-20"><a href="#cb11-20" tabindex="-1"></a>)</span></code></pre></div>
+</div>
+<div id="finite-population-mean-recovery-1" class="section level2" number="6.3">
+<h2><span class="header-section-number">6.3</span> Finite Population
+Mean Recovery</h2>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a>comp_df2 <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a>  <span class="at">Estimator =</span> <span class="fu">c</span>(</span>
+<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a>    <span class="st">&quot;Naive Convenience Mean (Unweighted)&quot;</span>,</span>
+<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a>    <span class="st">&quot;Oracle Hajek (True Propensity)&quot;</span>,</span>
+<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a>    <span class="st">&quot;GLM-STACK (Linear Misspecified)&quot;</span>,</span>
+<span id="cb12-6"><a href="#cb12-6" tabindex="-1"></a>    <span class="st">&quot;GLM-LINK1 (Linear Misspecified)&quot;</span>,</span>
+<span id="cb12-7"><a href="#cb12-7" tabindex="-1"></a>    <span class="st">&quot;GLM-LINK2 (Linear Misspecified)&quot;</span>,</span>
+<span id="cb12-8"><a href="#cb12-8" tabindex="-1"></a>    <span class="st">&quot;GLM-MIP50 (Linear Misspecified)&quot;</span>,</span>
+<span id="cb12-9"><a href="#cb12-9" tabindex="-1"></a>    <span class="st">&quot;GLM-PSEUDO (Linear Misspecified)&quot;</span>,</span>
+<span id="cb12-10"><a href="#cb12-10" tabindex="-1"></a>    <span class="st">&quot;LBBNN-STACK (BMA)&quot;</span>,</span>
+<span id="cb12-11"><a href="#cb12-11" tabindex="-1"></a>    <span class="st">&quot;LBBNN-STACK (MPM)&quot;</span>,</span>
+<span id="cb12-12"><a href="#cb12-12" tabindex="-1"></a>    <span class="st">&quot;LBBNN-LINK1 (BMA)&quot;</span>,</span>
+<span id="cb12-13"><a href="#cb12-13" tabindex="-1"></a>    <span class="st">&quot;LBBNN-LINK1 (MPM)&quot;</span>,</span>
+<span id="cb12-14"><a href="#cb12-14" tabindex="-1"></a>    <span class="st">&quot;LBBNN-LINK2 (BMA)&quot;</span>,</span>
+<span id="cb12-15"><a href="#cb12-15" tabindex="-1"></a>    <span class="st">&quot;LBBNN-LINK2 (MPM)&quot;</span>,</span>
+<span id="cb12-16"><a href="#cb12-16" tabindex="-1"></a>    <span class="st">&quot;LBBNN-MIP50 (BMA)&quot;</span>,</span>
+<span id="cb12-17"><a href="#cb12-17" tabindex="-1"></a>    <span class="st">&quot;LBBNN-MIP50 (MPM)&quot;</span>,</span>
+<span id="cb12-18"><a href="#cb12-18" tabindex="-1"></a>    <span class="st">&quot;LBBNN-PSEUDO (BMA)&quot;</span>,</span>
+<span id="cb12-19"><a href="#cb12-19" tabindex="-1"></a>    <span class="st">&quot;LBBNN-PSEUDO (MPM)&quot;</span></span>
+<span id="cb12-20"><a href="#cb12-20" tabindex="-1"></a>  ),</span>
+<span id="cb12-21"><a href="#cb12-21" tabindex="-1"></a>  <span class="at">Estimate =</span> <span class="fu">c</span>(</span>
+<span id="cb12-22"><a href="#cb12-22" tabindex="-1"></a>    naive_mean2,</span>
+<span id="cb12-23"><a href="#cb12-23" tabindex="-1"></a>    oracle_hajek2,</span>
+<span id="cb12-24"><a href="#cb12-24" tabindex="-1"></a>    <span class="fu">hajek_estimate</span>(Sc2<span class="sc">$</span>y, glm_res2<span class="sc">$</span>stack),</span>
+<span id="cb12-25"><a href="#cb12-25" tabindex="-1"></a>    <span class="fu">hajek_estimate</span>(Sc2<span class="sc">$</span>y, glm_res2<span class="sc">$</span>link1),</span>
+<span id="cb12-26"><a href="#cb12-26" tabindex="-1"></a>    <span class="fu">hajek_estimate</span>(Sc2<span class="sc">$</span>y, glm_res2<span class="sc">$</span>link2),</span>
+<span id="cb12-27"><a href="#cb12-27" tabindex="-1"></a>    <span class="fu">hajek_estimate</span>(Sc2<span class="sc">$</span>y, glm_res2<span class="sc">$</span>mip50),</span>
+<span id="cb12-28"><a href="#cb12-28" tabindex="-1"></a>    <span class="fu">hajek_estimate</span>(Sc2<span class="sc">$</span>y, glm_res2<span class="sc">$</span>pseudo),</span>
+<span id="cb12-29"><a href="#cb12-29" tabindex="-1"></a>    <span class="fu">hajek_estimate</span>(Sc2<span class="sc">$</span>y, fit_lbbnn_stack2<span class="sc">$</span>pi_bma),</span>
+<span id="cb12-30"><a href="#cb12-30" tabindex="-1"></a>    <span class="fu">hajek_estimate</span>(Sc2<span class="sc">$</span>y, fit_lbbnn_stack2<span class="sc">$</span>pi_mpm),</span>
+<span id="cb12-31"><a href="#cb12-31" tabindex="-1"></a>    <span class="fu">hajek_estimate</span>(Sc2<span class="sc">$</span>y, fit_lbbnn_link1_2<span class="sc">$</span>pi_bma),</span>
+<span id="cb12-32"><a href="#cb12-32" tabindex="-1"></a>    <span class="fu">hajek_estimate</span>(Sc2<span class="sc">$</span>y, fit_lbbnn_link1_2<span class="sc">$</span>pi_mpm),</span>
+<span id="cb12-33"><a href="#cb12-33" tabindex="-1"></a>    <span class="fu">hajek_estimate</span>(Sc2<span class="sc">$</span>y, fit_lbbnn_link2_2<span class="sc">$</span>pi_bma),</span>
+<span id="cb12-34"><a href="#cb12-34" tabindex="-1"></a>    <span class="fu">hajek_estimate</span>(Sc2<span class="sc">$</span>y, fit_lbbnn_link2_2<span class="sc">$</span>pi_mpm),</span>
+<span id="cb12-35"><a href="#cb12-35" tabindex="-1"></a>    <span class="fu">hajek_estimate</span>(Sc2<span class="sc">$</span>y, fit_lbbnn_mip2<span class="sc">$</span>pi_bma),</span>
+<span id="cb12-36"><a href="#cb12-36" tabindex="-1"></a>    <span class="fu">hajek_estimate</span>(Sc2<span class="sc">$</span>y, fit_lbbnn_mip2<span class="sc">$</span>pi_mpm),</span>
+<span id="cb12-37"><a href="#cb12-37" tabindex="-1"></a>    <span class="fu">hajek_estimate</span>(Sc2<span class="sc">$</span>y, fit_lbbnn_pseudo2<span class="sc">$</span>pi_bma),</span>
+<span id="cb12-38"><a href="#cb12-38" tabindex="-1"></a>    <span class="fu">hajek_estimate</span>(Sc2<span class="sc">$</span>y, fit_lbbnn_pseudo2<span class="sc">$</span>pi_mpm)</span>
+<span id="cb12-39"><a href="#cb12-39" tabindex="-1"></a>  ),</span>
+<span id="cb12-40"><a href="#cb12-40" tabindex="-1"></a>  <span class="at">row.names =</span> <span class="cn">NULL</span></span>
+<span id="cb12-41"><a href="#cb12-41" tabindex="-1"></a>)</span>
+<span id="cb12-42"><a href="#cb12-42" tabindex="-1"></a></span>
+<span id="cb12-43"><a href="#cb12-43" tabindex="-1"></a>comp_df2<span class="sc">$</span>Bias <span class="ot">&lt;-</span> comp_df2<span class="sc">$</span>Estimate <span class="sc">-</span> true_mean2</span>
+<span id="cb12-44"><a href="#cb12-44" tabindex="-1"></a>comp_df2<span class="sc">$</span>Abs_Error <span class="ot">&lt;-</span> <span class="fu">abs</span>(comp_df2<span class="sc">$</span>Bias)</span>
+<span id="cb12-45"><a href="#cb12-45" tabindex="-1"></a></span>
+<span id="cb12-46"><a href="#cb12-46" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(</span>
+<span id="cb12-47"><a href="#cb12-47" tabindex="-1"></a>  comp_df2,</span>
+<span id="cb12-48"><a href="#cb12-48" tabindex="-1"></a>  <span class="at">digits =</span> <span class="dv">4</span>,</span>
+<span id="cb12-49"><a href="#cb12-49" tabindex="-1"></a>  <span class="at">row.names =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb12-50"><a href="#cb12-50" tabindex="-1"></a>  <span class="at">caption =</span> <span class="st">&quot;Comparison of Population Mean Estimation under High Common Support with Non-Linear Propensity &amp; Interaction&quot;</span></span>
+<span id="cb12-51"><a href="#cb12-51" tabindex="-1"></a>)</span></code></pre></div>
+<div id="pedagogical-takeaway" class="section level3" number="6.3.1">
+<h3><span class="header-section-number">6.3.1</span> Pedagogical
+Takeaway</h3>
+<p>Even though common support is high (preventing pseudo-likelihood
+weights from exploding), classical main-effects GLMs are structurally
+misspecified and incur substantial bias (e.g., <code>GLM-LINK1</code>
+bias: <span class="math inline">\(-0.3879\)</span>,
+<code>GLM-LINK2</code> bias: <span class="math inline">\(-0.3933\)</span>, <code>GLM-PSEUDO</code> bias:
+<span class="math inline">\(-0.3484\)</span>) because they cannot
+represent the <span class="math inline">\(X_1 X_2\)</span> interaction
+or cosine/quadratic curvature. In contrast, <code>LBBNN</code> captures
+the non-linear interaction surface through its hidden layer (e.g.,
+<code>LBBNN-STACK (MPM)</code> bias: <span class="math inline">\(-0.0857\)</span>, <code>LBBNN-LINK2 (MPM)</code>
+bias: <span class="math inline">\(-0.2972\)</span>), achieving
+dramatically lower absolute bias while successfully pruning all noise
+features (<span class="math inline">\(X_3\text{--}X_6\)</span>) via MPM
+(<span class="math inline">\(a_1 \le 0.066\)</span>).</p>
+<hr />
+</div>
+</div>
+</div>
+<div id="simulation-study-3-low-common-support-with-non-linear-propensity-interaction" class="section level1" number="7">
+<h1><span class="header-section-number">7</span> Simulation Study 3: Low
+Common Support with Non-Linear Propensity &amp; Interaction</h1>
+<p>We now evaluate the most demanding regime: <strong>simultaneous
+non-linear misspecification and low common support</strong>. Setting
+<span class="math inline">\(\beta_1 = -1.0, \beta_2 = -0.3\)</span>
+creates an inverse relationship between convenience participation and
+reference survey inclusion:</p>
+<p><span class="math display">\[\eta_c(\mathbf{x}_i) = \beta_0 - 1.0
+X_{1i} - 0.3 X_{2i} + 0.6 X_{1i} X_{2i} + 0.5 \cos(\pi X_{1i}) - 0.4
+X_{2i}^2\]</span></p>
+<p>In this setting, units with high convenience propensity <span class="math inline">\(\pi_{ci}\)</span> reside in regions of covariate
+space where the reference probability sample selection probability <span class="math inline">\(\pi_{ri}\)</span> is near zero.</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a>pop3 <span class="ot">&lt;-</span> <span class="fu">gen_pop_nonlinear</span>(</span>
+<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a>  <span class="at">N =</span> <span class="dv">5000</span>,</span>
+<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a>  <span class="at">p =</span> <span class="dv">6</span>,</span>
+<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a>  <span class="at">nonlinear_y =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a>  <span class="at">nonlinear_propensity =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb13-6"><a href="#cb13-6" tabindex="-1"></a>  <span class="at">common_support =</span> <span class="st">&quot;low&quot;</span>,</span>
+<span id="cb13-7"><a href="#cb13-7" tabindex="-1"></a>  <span class="at">b2 =</span> <span class="sc">-</span><span class="fl">0.3</span>,</span>
+<span id="cb13-8"><a href="#cb13-8" tabindex="-1"></a>  <span class="at">n_r =</span> <span class="dv">500</span>,</span>
+<span id="cb13-9"><a href="#cb13-9" tabindex="-1"></a>  <span class="at">n_c =</span> <span class="dv">500</span>,</span>
+<span id="cb13-10"><a href="#cb13-10" tabindex="-1"></a>  <span class="at">seed =</span> <span class="dv">2026</span></span>
+<span id="cb13-11"><a href="#cb13-11" tabindex="-1"></a>)</span>
+<span id="cb13-12"><a href="#cb13-12" tabindex="-1"></a></span>
+<span id="cb13-13"><a href="#cb13-13" tabindex="-1"></a>pop3 <span class="ot">&lt;-</span> <span class="fu">draw_combined_samples</span>(pop3, <span class="at">seed =</span> <span class="dv">2026</span>)</span>
+<span id="cb13-14"><a href="#cb13-14" tabindex="-1"></a></span>
+<span id="cb13-15"><a href="#cb13-15" tabindex="-1"></a>Sc3 <span class="ot">&lt;-</span> pop3[pop3<span class="sc">$</span>I.c <span class="sc">==</span> <span class="dv">1</span>, ]</span>
+<span id="cb13-16"><a href="#cb13-16" tabindex="-1"></a>Sr3 <span class="ot">&lt;-</span> pop3[pop3<span class="sc">$</span>I.r <span class="sc">==</span> <span class="dv">1</span>, ]</span>
+<span id="cb13-17"><a href="#cb13-17" tabindex="-1"></a></span>
+<span id="cb13-18"><a href="#cb13-18" tabindex="-1"></a>true_mean3 <span class="ot">&lt;-</span> <span class="fu">mean</span>(pop3<span class="sc">$</span>y)</span>
+<span id="cb13-19"><a href="#cb13-19" tabindex="-1"></a>naive_mean3 <span class="ot">&lt;-</span> <span class="fu">mean</span>(Sc3<span class="sc">$</span>y)</span>
+<span id="cb13-20"><a href="#cb13-20" tabindex="-1"></a>oracle_hajek3 <span class="ot">&lt;-</span> <span class="fu">hajek_estimate</span>(Sc3<span class="sc">$</span>y, Sc3<span class="sc">$</span>pi.c)</span>
+<span id="cb13-21"><a href="#cb13-21" tabindex="-1"></a></span>
+<span id="cb13-22"><a href="#cb13-22" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;Population Size N:               %d</span><span class="sc">\n</span><span class="st">&quot;</span>, <span class="fu">nrow</span>(pop3)))</span>
+<span id="cb13-23"><a href="#cb13-23" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;Convenience Sample (Sc) Size:    %d</span><span class="sc">\n</span><span class="st">&quot;</span>, <span class="fu">nrow</span>(Sc3)))</span>
+<span id="cb13-24"><a href="#cb13-24" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;Reference Sample (Sr) Size:      %d</span><span class="sc">\n</span><span class="st">&quot;</span>, <span class="fu">nrow</span>(Sr3)))</span>
+<span id="cb13-25"><a href="#cb13-25" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;True Population Mean Y:          %.4f</span><span class="sc">\n</span><span class="st">&quot;</span>, true_mean3))</span>
+<span id="cb13-26"><a href="#cb13-26" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;Naive Sample Mean (Unweighted):  %.4f (Bias: %+.4f)</span><span class="sc">\n</span><span class="st">&quot;</span>, naive_mean3, naive_mean3 <span class="sc">-</span> true_mean3))</span>
+<span id="cb13-27"><a href="#cb13-27" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;Oracle Hajek Mean (True pi.c):   %.4f (Bias: %+.4f)</span><span class="sc">\n</span><span class="st">&quot;</span>, oracle_hajek3, oracle_hajek3 <span class="sc">-</span> true_mean3))</span></code></pre></div>
+<div id="model-fitting-under-low-common-support" class="section level2" number="7.1">
+<h2><span class="header-section-number">7.1</span> Model Fitting under
+Low Common Support</h2>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a><span class="co"># Fit all 5 exact GLMs</span></span>
+<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a>glm_res3 <span class="ot">&lt;-</span> <span class="fu">fit_glm_all</span>(pop3, covars)</span>
+<span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a></span>
+<span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a><span class="co"># Fit all 5 LBBNN composite models</span></span>
+<span id="cb14-5"><a href="#cb14-5" tabindex="-1"></a>fit_lbbnn_stack3  <span class="ot">&lt;-</span> <span class="fu">fit_prop_lbbnn</span>(pop3, <span class="st">&quot;STACK&quot;</span>, covars)</span>
+<span id="cb14-6"><a href="#cb14-6" tabindex="-1"></a>fit_lbbnn_link1_3 <span class="ot">&lt;-</span> <span class="fu">fit_prop_lbbnn</span>(pop3, <span class="st">&quot;LINK1&quot;</span>, covars)</span>
+<span id="cb14-7"><a href="#cb14-7" tabindex="-1"></a>fit_lbbnn_link2_3 <span class="ot">&lt;-</span> <span class="fu">fit_prop_lbbnn</span>(pop3, <span class="st">&quot;LINK2&quot;</span>, covars)</span>
+<span id="cb14-8"><a href="#cb14-8" tabindex="-1"></a>fit_lbbnn_mip3    <span class="ot">&lt;-</span> <span class="fu">fit_prop_lbbnn</span>(pop3, <span class="st">&quot;MIP&quot;</span>, covars, <span class="at">p_link =</span> <span class="fl">0.5</span>)</span>
+<span id="cb14-9"><a href="#cb14-9" tabindex="-1"></a>fit_lbbnn_pseudo3 <span class="ot">&lt;-</span> <span class="fu">fit_prop_lbbnn</span>(pop3, <span class="st">&quot;PSEUDO&quot;</span>, covars)</span></code></pre></div>
+</div>
+<div id="performance-comparison-kishs-ess-the-breakdown-of-pseudo-likelihood" class="section level2" number="7.2">
+<h2><span class="header-section-number">7.2</span> Performance
+Comparison: Kish’s ESS &amp; The Breakdown of Pseudo-Likelihood</h2>
+<p>To understand the stability of each estimator, we compute
+<strong>Kish’s Effective Sample Size (<span class="math inline">\(\text{ESS}\)</span>)</strong> of the
+inverse-propensity Hájek weights <span class="math inline">\(w_i = 1 /
+\hat{\pi}_{ci}\)</span> on <span class="math inline">\(S_c\)</span>:</p>
+<p><span class="math display">\[\text{ESS} = \frac{\left(\sum_{i \in
+S_c} \hat{\pi}_{ci}^{-1}\right)^2}{\sum_{i \in S_c}
+\hat{\pi}_{ci}^{-2}}\]</span></p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a>comp_df3 <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a>  <span class="at">Estimator =</span> <span class="fu">c</span>(</span>
+<span id="cb15-3"><a href="#cb15-3" tabindex="-1"></a>    <span class="st">&quot;Naive Convenience Mean (Unweighted)&quot;</span>,</span>
+<span id="cb15-4"><a href="#cb15-4" tabindex="-1"></a>    <span class="st">&quot;Oracle Hajek (True Propensity)&quot;</span>,</span>
+<span id="cb15-5"><a href="#cb15-5" tabindex="-1"></a>    <span class="st">&quot;GLM-STACK&quot;</span>,</span>
+<span id="cb15-6"><a href="#cb15-6" tabindex="-1"></a>    <span class="st">&quot;GLM-LINK1&quot;</span>,</span>
+<span id="cb15-7"><a href="#cb15-7" tabindex="-1"></a>    <span class="st">&quot;GLM-LINK2&quot;</span>,</span>
+<span id="cb15-8"><a href="#cb15-8" tabindex="-1"></a>    <span class="st">&quot;GLM-MIP50&quot;</span>,</span>
+<span id="cb15-9"><a href="#cb15-9" tabindex="-1"></a>    <span class="st">&quot;GLM-PSEUDO&quot;</span>,</span>
+<span id="cb15-10"><a href="#cb15-10" tabindex="-1"></a>    <span class="st">&quot;LBBNN-STACK (BMA)&quot;</span>,</span>
+<span id="cb15-11"><a href="#cb15-11" tabindex="-1"></a>    <span class="st">&quot;LBBNN-STACK (MPM)&quot;</span>,</span>
+<span id="cb15-12"><a href="#cb15-12" tabindex="-1"></a>    <span class="st">&quot;LBBNN-LINK1 (BMA)&quot;</span>,</span>
+<span id="cb15-13"><a href="#cb15-13" tabindex="-1"></a>    <span class="st">&quot;LBBNN-LINK1 (MPM)&quot;</span>,</span>
+<span id="cb15-14"><a href="#cb15-14" tabindex="-1"></a>    <span class="st">&quot;LBBNN-LINK2 (BMA)&quot;</span>,</span>
+<span id="cb15-15"><a href="#cb15-15" tabindex="-1"></a>    <span class="st">&quot;LBBNN-LINK2 (MPM)&quot;</span>,</span>
+<span id="cb15-16"><a href="#cb15-16" tabindex="-1"></a>    <span class="st">&quot;LBBNN-MIP50 (BMA)&quot;</span>,</span>
+<span id="cb15-17"><a href="#cb15-17" tabindex="-1"></a>    <span class="st">&quot;LBBNN-MIP50 (MPM)&quot;</span>,</span>
+<span id="cb15-18"><a href="#cb15-18" tabindex="-1"></a>    <span class="st">&quot;LBBNN-PSEUDO (BMA)&quot;</span>,</span>
+<span id="cb15-19"><a href="#cb15-19" tabindex="-1"></a>    <span class="st">&quot;LBBNN-PSEUDO (MPM)&quot;</span></span>
+<span id="cb15-20"><a href="#cb15-20" tabindex="-1"></a>  ),</span>
+<span id="cb15-21"><a href="#cb15-21" tabindex="-1"></a>  <span class="at">Estimate =</span> <span class="fu">c</span>(</span>
+<span id="cb15-22"><a href="#cb15-22" tabindex="-1"></a>    naive_mean3,</span>
+<span id="cb15-23"><a href="#cb15-23" tabindex="-1"></a>    oracle_hajek3,</span>
+<span id="cb15-24"><a href="#cb15-24" tabindex="-1"></a>    <span class="fu">hajek_estimate</span>(Sc3<span class="sc">$</span>y, glm_res3<span class="sc">$</span>stack),</span>
+<span id="cb15-25"><a href="#cb15-25" tabindex="-1"></a>    <span class="fu">hajek_estimate</span>(Sc3<span class="sc">$</span>y, glm_res3<span class="sc">$</span>link1),</span>
+<span id="cb15-26"><a href="#cb15-26" tabindex="-1"></a>    <span class="fu">hajek_estimate</span>(Sc3<span class="sc">$</span>y, glm_res3<span class="sc">$</span>link2),</span>
+<span id="cb15-27"><a href="#cb15-27" tabindex="-1"></a>    <span class="fu">hajek_estimate</span>(Sc3<span class="sc">$</span>y, glm_res3<span class="sc">$</span>mip50),</span>
+<span id="cb15-28"><a href="#cb15-28" tabindex="-1"></a>    <span class="fu">hajek_estimate</span>(Sc3<span class="sc">$</span>y, glm_res3<span class="sc">$</span>pseudo),</span>
+<span id="cb15-29"><a href="#cb15-29" tabindex="-1"></a>    <span class="fu">hajek_estimate</span>(Sc3<span class="sc">$</span>y, fit_lbbnn_stack3<span class="sc">$</span>pi_bma),</span>
+<span id="cb15-30"><a href="#cb15-30" tabindex="-1"></a>    <span class="fu">hajek_estimate</span>(Sc3<span class="sc">$</span>y, fit_lbbnn_stack3<span class="sc">$</span>pi_mpm),</span>
+<span id="cb15-31"><a href="#cb15-31" tabindex="-1"></a>    <span class="fu">hajek_estimate</span>(Sc3<span class="sc">$</span>y, fit_lbbnn_link1_3<span class="sc">$</span>pi_bma),</span>
+<span id="cb15-32"><a href="#cb15-32" tabindex="-1"></a>    <span class="fu">hajek_estimate</span>(Sc3<span class="sc">$</span>y, fit_lbbnn_link1_3<span class="sc">$</span>pi_mpm),</span>
+<span id="cb15-33"><a href="#cb15-33" tabindex="-1"></a>    <span class="fu">hajek_estimate</span>(Sc3<span class="sc">$</span>y, fit_lbbnn_link2_3<span class="sc">$</span>pi_bma),</span>
+<span id="cb15-34"><a href="#cb15-34" tabindex="-1"></a>    <span class="fu">hajek_estimate</span>(Sc3<span class="sc">$</span>y, fit_lbbnn_link2_3<span class="sc">$</span>pi_mpm),</span>
+<span id="cb15-35"><a href="#cb15-35" tabindex="-1"></a>    <span class="fu">hajek_estimate</span>(Sc3<span class="sc">$</span>y, fit_lbbnn_mip3<span class="sc">$</span>pi_bma),</span>
+<span id="cb15-36"><a href="#cb15-36" tabindex="-1"></a>    <span class="fu">hajek_estimate</span>(Sc3<span class="sc">$</span>y, fit_lbbnn_mip3<span class="sc">$</span>pi_mpm),</span>
+<span id="cb15-37"><a href="#cb15-37" tabindex="-1"></a>    <span class="fu">hajek_estimate</span>(Sc3<span class="sc">$</span>y, fit_lbbnn_pseudo3<span class="sc">$</span>pi_bma),</span>
+<span id="cb15-38"><a href="#cb15-38" tabindex="-1"></a>    <span class="fu">hajek_estimate</span>(Sc3<span class="sc">$</span>y, fit_lbbnn_pseudo3<span class="sc">$</span>pi_mpm)</span>
+<span id="cb15-39"><a href="#cb15-39" tabindex="-1"></a>  ),</span>
+<span id="cb15-40"><a href="#cb15-40" tabindex="-1"></a>  <span class="at">Kish_ESS =</span> <span class="fu">c</span>(</span>
+<span id="cb15-41"><a href="#cb15-41" tabindex="-1"></a>    <span class="fu">nrow</span>(Sc3),</span>
+<span id="cb15-42"><a href="#cb15-42" tabindex="-1"></a>    <span class="fu">calc_ess</span>(Sc3<span class="sc">$</span>pi.c),</span>
+<span id="cb15-43"><a href="#cb15-43" tabindex="-1"></a>    <span class="fu">calc_ess</span>(glm_res3<span class="sc">$</span>stack),</span>
+<span id="cb15-44"><a href="#cb15-44" tabindex="-1"></a>    <span class="fu">calc_ess</span>(glm_res3<span class="sc">$</span>link1),</span>
+<span id="cb15-45"><a href="#cb15-45" tabindex="-1"></a>    <span class="fu">calc_ess</span>(glm_res3<span class="sc">$</span>link2),</span>
+<span id="cb15-46"><a href="#cb15-46" tabindex="-1"></a>    <span class="fu">calc_ess</span>(glm_res3<span class="sc">$</span>mip50),</span>
+<span id="cb15-47"><a href="#cb15-47" tabindex="-1"></a>    <span class="fu">calc_ess</span>(glm_res3<span class="sc">$</span>pseudo),</span>
+<span id="cb15-48"><a href="#cb15-48" tabindex="-1"></a>    <span class="fu">calc_ess</span>(fit_lbbnn_stack3<span class="sc">$</span>pi_bma),</span>
+<span id="cb15-49"><a href="#cb15-49" tabindex="-1"></a>    <span class="fu">calc_ess</span>(fit_lbbnn_stack3<span class="sc">$</span>pi_mpm),</span>
+<span id="cb15-50"><a href="#cb15-50" tabindex="-1"></a>    <span class="fu">calc_ess</span>(fit_lbbnn_link1_3<span class="sc">$</span>pi_bma),</span>
+<span id="cb15-51"><a href="#cb15-51" tabindex="-1"></a>    <span class="fu">calc_ess</span>(fit_lbbnn_link1_3<span class="sc">$</span>pi_mpm),</span>
+<span id="cb15-52"><a href="#cb15-52" tabindex="-1"></a>    <span class="fu">calc_ess</span>(fit_lbbnn_link2_3<span class="sc">$</span>pi_bma),</span>
+<span id="cb15-53"><a href="#cb15-53" tabindex="-1"></a>    <span class="fu">calc_ess</span>(fit_lbbnn_link2_3<span class="sc">$</span>pi_mpm),</span>
+<span id="cb15-54"><a href="#cb15-54" tabindex="-1"></a>    <span class="fu">calc_ess</span>(fit_lbbnn_mip3<span class="sc">$</span>pi_bma),</span>
+<span id="cb15-55"><a href="#cb15-55" tabindex="-1"></a>    <span class="fu">calc_ess</span>(fit_lbbnn_mip3<span class="sc">$</span>pi_mpm),</span>
+<span id="cb15-56"><a href="#cb15-56" tabindex="-1"></a>    <span class="fu">calc_ess</span>(fit_lbbnn_pseudo3<span class="sc">$</span>pi_bma),</span>
+<span id="cb15-57"><a href="#cb15-57" tabindex="-1"></a>    <span class="fu">calc_ess</span>(fit_lbbnn_pseudo3<span class="sc">$</span>pi_mpm)</span>
+<span id="cb15-58"><a href="#cb15-58" tabindex="-1"></a>  ),</span>
+<span id="cb15-59"><a href="#cb15-59" tabindex="-1"></a>  <span class="at">row.names =</span> <span class="cn">NULL</span></span>
+<span id="cb15-60"><a href="#cb15-60" tabindex="-1"></a>)</span>
+<span id="cb15-61"><a href="#cb15-61" tabindex="-1"></a></span>
+<span id="cb15-62"><a href="#cb15-62" tabindex="-1"></a>comp_df3<span class="sc">$</span>Bias <span class="ot">&lt;-</span> comp_df3<span class="sc">$</span>Estimate <span class="sc">-</span> true_mean3</span>
+<span id="cb15-63"><a href="#cb15-63" tabindex="-1"></a>comp_df3<span class="sc">$</span>Abs_Error <span class="ot">&lt;-</span> <span class="fu">abs</span>(comp_df3<span class="sc">$</span>Bias)</span>
+<span id="cb15-64"><a href="#cb15-64" tabindex="-1"></a>comp_df3 <span class="ot">&lt;-</span> comp_df3[, <span class="fu">c</span>(<span class="st">&quot;Estimator&quot;</span>, <span class="st">&quot;Estimate&quot;</span>, <span class="st">&quot;Bias&quot;</span>, <span class="st">&quot;Abs_Error&quot;</span>, <span class="st">&quot;Kish_ESS&quot;</span>)]</span>
+<span id="cb15-65"><a href="#cb15-65" tabindex="-1"></a></span>
+<span id="cb15-66"><a href="#cb15-66" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(</span>
+<span id="cb15-67"><a href="#cb15-67" tabindex="-1"></a>  comp_df3,</span>
+<span id="cb15-68"><a href="#cb15-68" tabindex="-1"></a>  <span class="at">digits =</span> <span class="dv">4</span>,</span>
+<span id="cb15-69"><a href="#cb15-69" tabindex="-1"></a>  <span class="at">row.names =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb15-70"><a href="#cb15-70" tabindex="-1"></a>  <span class="at">caption =</span> <span class="st">&quot;Comparison of Population Mean Estimation under Low Common Support &amp; Non-Linear Propensity with Kish&#39;s ESS&quot;</span></span>
+<span id="cb15-71"><a href="#cb15-71" tabindex="-1"></a>)</span></code></pre></div>
+</div>
+<div id="propensity-recovery-diagnostic-2x2-comparison-grid" class="section level2" number="7.3">
+<h2><span class="header-section-number">7.3</span> Propensity Recovery
+Diagnostic: 2x2 Comparison Grid</h2>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a>plot_df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb16-2"><a href="#cb16-2" tabindex="-1"></a>  <span class="at">True_Propensity =</span> Sc3<span class="sc">$</span>pi.c,</span>
+<span id="cb16-3"><a href="#cb16-3" tabindex="-1"></a>  <span class="at">GLM_STACK =</span> glm_res3<span class="sc">$</span>stack,</span>
+<span id="cb16-4"><a href="#cb16-4" tabindex="-1"></a>  <span class="at">GLM_PSEUDO =</span> <span class="fu">pmin</span>(<span class="fu">pmax</span>(glm_res3<span class="sc">$</span>pseudo, <span class="fl">1e-4</span>), <span class="fl">1.0</span>),</span>
+<span id="cb16-5"><a href="#cb16-5" tabindex="-1"></a>  <span class="at">LBBNN_STACK_BMA =</span> fit_lbbnn_stack3<span class="sc">$</span>pi_bma,</span>
+<span id="cb16-6"><a href="#cb16-6" tabindex="-1"></a>  <span class="at">LBBNN_LINK2_MPM =</span> fit_lbbnn_link2_3<span class="sc">$</span>pi_mpm</span>
+<span id="cb16-7"><a href="#cb16-7" tabindex="-1"></a>)</span>
+<span id="cb16-8"><a href="#cb16-8" tabindex="-1"></a></span>
+<span id="cb16-9"><a href="#cb16-9" tabindex="-1"></a>sub_text <span class="ot">&lt;-</span> <span class="cf">function</span>(pred, truth) {</span>
+<span id="cb16-10"><a href="#cb16-10" tabindex="-1"></a>  r_val <span class="ot">&lt;-</span> <span class="fu">cor</span>(pred, truth)</span>
+<span id="cb16-11"><a href="#cb16-11" tabindex="-1"></a>  mae_val <span class="ot">&lt;-</span> <span class="fu">mean</span>(<span class="fu">abs</span>(pred <span class="sc">-</span> truth))</span>
+<span id="cb16-12"><a href="#cb16-12" tabindex="-1"></a>  <span class="fu">sprintf</span>(<span class="st">&quot;r = %.3f,  MAE = %.3f&quot;</span>, r_val, mae_val)</span>
+<span id="cb16-13"><a href="#cb16-13" tabindex="-1"></a>}</span>
+<span id="cb16-14"><a href="#cb16-14" tabindex="-1"></a></span>
+<span id="cb16-15"><a href="#cb16-15" tabindex="-1"></a>p1 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(plot_df, <span class="fu">aes</span>(<span class="at">x =</span> True_Propensity, <span class="at">y =</span> GLM_STACK)) <span class="sc">+</span></span>
+<span id="cb16-16"><a href="#cb16-16" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.45</span>, <span class="at">color =</span> <span class="st">&quot;#2c3e50&quot;</span>) <span class="sc">+</span></span>
+<span id="cb16-17"><a href="#cb16-17" tabindex="-1"></a>  <span class="fu">geom_abline</span>(<span class="at">intercept =</span> <span class="dv">0</span>, <span class="at">slope =</span> <span class="dv">1</span>, <span class="at">linetype =</span> <span class="st">&quot;dashed&quot;</span>, <span class="at">color =</span> <span class="st">&quot;red&quot;</span>) <span class="sc">+</span></span>
+<span id="cb16-18"><a href="#cb16-18" tabindex="-1"></a>  <span class="fu">coord_cartesian</span>(<span class="at">xlim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>), <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>)) <span class="sc">+</span></span>
+<span id="cb16-19"><a href="#cb16-19" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb16-20"><a href="#cb16-20" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">&quot;Panel A: GLM-STACK (Linear)&quot;</span>,</span>
+<span id="cb16-21"><a href="#cb16-21" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="fu">sub_text</span>(plot_df<span class="sc">$</span>GLM_STACK, plot_df<span class="sc">$</span>True_Propensity),</span>
+<span id="cb16-22"><a href="#cb16-22" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">&quot;True Propensity&quot;</span>, <span class="at">y =</span> <span class="st">&quot;Estimated Propensity&quot;</span></span>
+<span id="cb16-23"><a href="#cb16-23" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb16-24"><a href="#cb16-24" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="fl">9.5</span>)</span>
+<span id="cb16-25"><a href="#cb16-25" tabindex="-1"></a></span>
+<span id="cb16-26"><a href="#cb16-26" tabindex="-1"></a>p2 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(plot_df, <span class="fu">aes</span>(<span class="at">x =</span> True_Propensity, <span class="at">y =</span> GLM_PSEUDO)) <span class="sc">+</span></span>
+<span id="cb16-27"><a href="#cb16-27" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.45</span>, <span class="at">color =</span> <span class="st">&quot;#e74c3c&quot;</span>) <span class="sc">+</span></span>
+<span id="cb16-28"><a href="#cb16-28" tabindex="-1"></a>  <span class="fu">geom_abline</span>(<span class="at">intercept =</span> <span class="dv">0</span>, <span class="at">slope =</span> <span class="dv">1</span>, <span class="at">linetype =</span> <span class="st">&quot;dashed&quot;</span>, <span class="at">color =</span> <span class="st">&quot;red&quot;</span>) <span class="sc">+</span></span>
+<span id="cb16-29"><a href="#cb16-29" tabindex="-1"></a>  <span class="fu">coord_cartesian</span>(<span class="at">xlim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>), <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>)) <span class="sc">+</span></span>
+<span id="cb16-30"><a href="#cb16-30" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb16-31"><a href="#cb16-31" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">&quot;Panel B: GLM-PSEUDO (Explosion)&quot;</span>,</span>
+<span id="cb16-32"><a href="#cb16-32" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="fu">sub_text</span>(plot_df<span class="sc">$</span>GLM_PSEUDO, plot_df<span class="sc">$</span>True_Propensity),</span>
+<span id="cb16-33"><a href="#cb16-33" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">&quot;True Propensity&quot;</span>, <span class="at">y =</span> <span class="st">&quot;Estimated Propensity&quot;</span></span>
+<span id="cb16-34"><a href="#cb16-34" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb16-35"><a href="#cb16-35" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="fl">9.5</span>)</span>
+<span id="cb16-36"><a href="#cb16-36" tabindex="-1"></a></span>
+<span id="cb16-37"><a href="#cb16-37" tabindex="-1"></a>p3 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(plot_df, <span class="fu">aes</span>(<span class="at">x =</span> True_Propensity, <span class="at">y =</span> LBBNN_STACK_BMA)) <span class="sc">+</span></span>
+<span id="cb16-38"><a href="#cb16-38" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.45</span>, <span class="at">color =</span> <span class="st">&quot;#2980b9&quot;</span>) <span class="sc">+</span></span>
+<span id="cb16-39"><a href="#cb16-39" tabindex="-1"></a>  <span class="fu">geom_abline</span>(<span class="at">intercept =</span> <span class="dv">0</span>, <span class="at">slope =</span> <span class="dv">1</span>, <span class="at">linetype =</span> <span class="st">&quot;dashed&quot;</span>, <span class="at">color =</span> <span class="st">&quot;red&quot;</span>) <span class="sc">+</span></span>
+<span id="cb16-40"><a href="#cb16-40" tabindex="-1"></a>  <span class="fu">coord_cartesian</span>(<span class="at">xlim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>), <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>)) <span class="sc">+</span></span>
+<span id="cb16-41"><a href="#cb16-41" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb16-42"><a href="#cb16-42" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">&quot;Panel C: LBBNN-STACK (BMA)&quot;</span>,</span>
+<span id="cb16-43"><a href="#cb16-43" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="fu">sub_text</span>(plot_df<span class="sc">$</span>LBBNN_STACK_BMA, plot_df<span class="sc">$</span>True_Propensity),</span>
+<span id="cb16-44"><a href="#cb16-44" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">&quot;True Propensity&quot;</span>, <span class="at">y =</span> <span class="st">&quot;Estimated Propensity&quot;</span></span>
+<span id="cb16-45"><a href="#cb16-45" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb16-46"><a href="#cb16-46" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="fl">9.5</span>)</span>
+<span id="cb16-47"><a href="#cb16-47" tabindex="-1"></a></span>
+<span id="cb16-48"><a href="#cb16-48" tabindex="-1"></a>p4 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(plot_df, <span class="fu">aes</span>(<span class="at">x =</span> True_Propensity, <span class="at">y =</span> LBBNN_LINK2_MPM)) <span class="sc">+</span></span>
+<span id="cb16-49"><a href="#cb16-49" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.45</span>, <span class="at">color =</span> <span class="st">&quot;#27ae60&quot;</span>) <span class="sc">+</span></span>
+<span id="cb16-50"><a href="#cb16-50" tabindex="-1"></a>  <span class="fu">geom_abline</span>(<span class="at">intercept =</span> <span class="dv">0</span>, <span class="at">slope =</span> <span class="dv">1</span>, <span class="at">linetype =</span> <span class="st">&quot;dashed&quot;</span>, <span class="at">color =</span> <span class="st">&quot;red&quot;</span>) <span class="sc">+</span></span>
+<span id="cb16-51"><a href="#cb16-51" tabindex="-1"></a>  <span class="fu">coord_cartesian</span>(<span class="at">xlim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>), <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>)) <span class="sc">+</span></span>
+<span id="cb16-52"><a href="#cb16-52" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb16-53"><a href="#cb16-53" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">&quot;Panel D: LBBNN-LINK2 (MPM)&quot;</span>,</span>
+<span id="cb16-54"><a href="#cb16-54" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="fu">sub_text</span>(plot_df<span class="sc">$</span>LBBNN_LINK2_MPM, plot_df<span class="sc">$</span>True_Propensity),</span>
+<span id="cb16-55"><a href="#cb16-55" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">&quot;True Propensity&quot;</span>, <span class="at">y =</span> <span class="st">&quot;Estimated Propensity&quot;</span></span>
+<span id="cb16-56"><a href="#cb16-56" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb16-57"><a href="#cb16-57" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="fl">9.5</span>)</span>
+<span id="cb16-58"><a href="#cb16-58" tabindex="-1"></a></span>
+<span id="cb16-59"><a href="#cb16-59" tabindex="-1"></a>gridExtra<span class="sc">::</span><span class="fu">grid.arrange</span>(p1, p2, p3, p4, <span class="at">ncol =</span> <span class="dv">2</span>)</span></code></pre></div>
+<hr />
+</div>
+</div>
+<div id="synthesis-comparative-discussion-across-simulation-regimes" class="section level1" number="8">
+<h1><span class="header-section-number">8</span> Synthesis &amp;
+Comparative Discussion Across Simulation Regimes</h1>
+<p>Synthesizing the empirical evidence across all four simulation
+studies yields three clear guidelines for practitioners:</p>
+<div id="when-the-true-propensity-is-linear-studies-0-1" class="section level2" number="8.1">
+<h2><span class="header-section-number">8.1</span> When the True
+Propensity is Linear (Studies 0 &amp; 1)</h2>
+<ul>
+<li>Under low-dimensional linear truth without noise (Study 0),
+<code>LBBNN</code> equipped with input-skip connections closely matches
+the statistical efficiency of the parametric GLM MLE across all
+composite likelihood formulations (<code>STACK</code>,
+<code>LINK1</code>, <code>LINK2</code>, <code>MIP50</code>). The
+theoretical efficiency ordering established by Beresovsky, Gershunskaya
+&amp; Savitsky (2026) is preserved: <span class="math inline">\(\text{LINK2} \succ \text{LINK1} \succ \text{STACK}
+\succ \text{PSEUDO}\)</span>.</li>
+<li>In Study 1, the addition of an outcome-only predictor (<span class="math inline">\(X_3\)</span>) and pure Gaussian noise (<span class="math inline">\(X_4\text{--}X_6\)</span>) demonstrates the power
+of variational spike-and-slab selection: <code>LBBNN</code> assigns
+posterior inclusion probabilities <span class="math inline">\(&gt;99\%\)</span> to true confounders <span class="math inline">\(X_1, X_2\)</span> while pruning <span class="math inline">\(X_3\text{--}X_6\)</span> with <span class="math inline">\(&lt;3\%\)</span> inclusion and <span class="math inline">\(L_1 = 0\)</span> output paths. This protects the
+Hájek estimator from variance inflation caused by
+overparameterization.</li>
+</ul>
+</div>
+<div id="when-the-propensity-is-non-linear-with-interactions-under-high-common-support-study-2" class="section level2" number="8.2">
+<h2><span class="header-section-number">8.2</span> When the Propensity
+is Non-Linear with Interactions under High Common Support (Study 2)</h2>
+<ul>
+<li>Classical main-effects GLMs are misspecified and incur substantial
+bias because they cannot capture the <span class="math inline">\(X_1
+X_2\)</span> interaction or cosine/quadratic curvature.</li>
+<li><code>LBBNN</code> automatically learns the non-linear interaction
+surface through its hidden layer while simultaneously pruning noise
+features via MPM, reducing estimation bias without requiring manual
+polynomial expansions.</li>
+</ul>
+</div>
+<div id="when-non-linearity-meets-low-common-support-study-3" class="section level2" number="8.3">
+<h2><span class="header-section-number">8.3</span> When Non-Linearity
+Meets Low Common Support (Study 3)</h2>
+<ul>
+<li>Classical pseudo-likelihood (<code>PSEUDO</code>) breaks down
+catastrophically: inverse reference survey design weights <span class="math inline">\(1 / \pi_{ri}\)</span> explode in regions where
+convenience participation is high but reference survey sampling
+probability is tiny. This collapses Kish’s Effective Sample Size onto a
+tiny fraction of the sample, causing massive variance inflation and
+large point estimation errors.</li>
+<li>In contrast, composite Bernoulli likelihoods (<code>STACK</code>,
+<code>LINK1</code>, <code>LINK2</code>, <code>MIP50</code>) bound the
+relative odds through <span class="math inline">\(\pi_{zi} =
+\frac{\pi_{ci}}{\pi_{ci} + \pi_{ri}}\)</span>, guaranteeing bounded loss
+gradients and maintaining high effective sample sizes.</li>
+<li>Combining composite likelihoods with <code>LBBNN</code> sparse edge
+selection delivers the lowest bias and most stable recovery across all
+tested regimes.</li>
+</ul>
+<hr />
+</div>
+</div>
+<div id="collaborator-api-reference" class="section level1" number="9">
+<h1><span class="header-section-number">9</span> Collaborator API
+Reference</h1>
+<p>All composite likelihood loss functions and helper utilities are
+fully integrated and exported in <code>LBBNN</code>:</p>
+<hr />
+</div>
+<div id="references" class="section level1" number="10">
+<h1><span class="header-section-number">10</span> References</h1>
+<ol style="list-style-type: decimal">
+<li><strong>Beresovsky, V., Gershunskaya, J., &amp; Savitsky, T.
+D.</strong> (2026). <em>Quasi-randomization of a large non-probability
+sample partially linked to a probability sample from the same
+population</em>. Working Paper, U.S. Bureau of Labor Statistics.</li>
+<li><strong>Chen, Y., Li, P., &amp; Wu, C.</strong> (2020). <em>Doubly
+robust inference with nonprobability survey samples</em>. Journal of the
+American Statistical Association, 115(532), 2011–2021.</li>
+<li><strong>Elliott, M. R., &amp; Valliant, R.</strong> (2017).
+<em>Inference for nonprobability samples</em>. Statistical Science,
+32(2), 249–264.</li>
+<li><strong>Louis, T. A.</strong> (1982). <em>Finding the observed
+information matrix when using the EM algorithm</em>. Journal of the
+Royal Statistical Society: Series B (Methodological), 44(2),
+226–233.</li>
+<li><strong>Meng, X.-L.</strong> (2018). <em>Statistical paradises and
+paradoxes in big data (I): Law of large populations, big data paradox,
+and the 2016 US presidential election</em>. The Annals of Applied
+Statistics, 12(2), 685–726.</li>
+<li><strong>Wang, L., Valliant, R., &amp; Li, Y.</strong> (2021).
+<em>Adjusted logistic propensity weighting for nonprobability
+samples</em>. Survey Methodology, 47(2), 349–378.</li>
+<li><strong>Wenzel, F., Roth, K., Veeling, B. S., Swiatkowski, J., Tran,
+L., Mandt, S., Snoek, J., Salimbeni, H., Jenatton, R., &amp; Nowozin,
+S.</strong> (2020). <em>How good is the Bayes posterior in deep neural
+networks really?</em> Proceedings of the 37th International Conference
+on Machine Learning (ICML).</li>
+</ol>
+<hr />
+</div>
+<div id="session-information" class="section level1" number="11">
+<h1><span class="header-section-number">11</span> Session
+Information</h1>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span></code></pre></div>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

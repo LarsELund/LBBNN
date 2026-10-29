@@ -66,8 +66,9 @@ nll_link2 <- function(input, target, reduction = "sum") {
 #' @description Constructs a composite loss function for probabilistically linked stacked samples
 #' \eqn{S = S_c \oplus S_r} with linkage informativeness \eqn{p_{\text{link}} \in [0, 1]}.
 #' Under the Missing Information Principle, the soft target indicator for \eqn{S_r} units is
-#' \eqn{p_i = p_{\text{link}} I_{ci} + (1 - p_{\text{link}}) \hat{\pi}_{ci}}.
-#' @param p_link Numeric between 0 and 1 specifying linkage informativeness.
+#' \eqn{p_i = p_{\text{link}} I_{ci} + (1 - p_{\text{link}}) \hat{\pi}_{ci}}. Supports either a global scalar
+#' \eqn{p_{\text{link}}} or a user-supplied unit-level marginal linkage probability vector \eqn{\tilde{\mathbf{p}} = (\tilde{p}_1, \dots, \tilde{p}_n)^\top}.
+#' @param p_link Numeric between 0 and 1 specifying linkage informativeness (scalar or vector).
 #' Default is 0.5 (intermediate probabilistic linkage). When 1, coincides with exact linkage (LINK2);
 #' when 0, represents unlinked data.
 #' @return A closure function accepting \code{(input, target, reduction = "sum")}.
@@ -80,8 +81,17 @@ make_nll_mip <- function(p_link = 0.5) {
     I_c_true <- target[, 2]
     pi_r <- target[, 3]
 
+    # If target has 4 columns, column 4 is the unit-level linkage probability vector
+    if (target$shape[2] >= 4) {
+      p_link_eff <- target[, 4]
+    } else if (is.numeric(p_link) && length(p_link) > 1) {
+      p_link_eff <- torch::torch_tensor(p_link, dtype = target$dtype, device = target$device)
+    } else {
+      p_link_eff <- p_link
+    }
+
     # Expected overlap indicator under Missing Information Principle
-    p_i <- (p_link * I_c_true) + ((1 - p_link) * pi_c$detach())
+    p_i <- (p_link_eff * I_c_true) + ((1 - p_link_eff) * pi_c$detach())
     I_z_mip <- is_Sc + (1 - is_Sc) * p_i
 
     pi_z <- (pi_c * (1 + pi_r)) / (pi_c + pi_r + 1e-12)
@@ -227,21 +237,45 @@ draw_combined_samples <- function(pop, seed = NULL) {
 
 #' @title Construct Training Dataset for Composite Propensity Estimators
 #' @description Formats covariates and target matrices for the 5 composite likelihood methods
-#' (\code{"STACK"}, \code{"LINK1"}, \code{"LINK2"}, \code{"MIP"}, \code{"PSEUDO"}).
-#' @param pop Data frame with drawn samples (\code{I.c} and \code{I.r}).
-#' @param method Character string: \code{"STACK"}, \code{"LINK1"}, \code{"LINK2"}, \code{"MIP"}, or \code{"PSEUDO"}.
-#' @param covar_cols Character vector of covariate column names. Default is \code{paste0("X", 1:10)}.
+#' @param p_link Optional numeric scalar or vector of linkage probabilities for \code{"MIP"}.
+#' If a vector, it can have length \eqn{n_r} (for reference sample \eqn{S_r}) or length \eqn{n_c + n_r}.
 #' @return A list containing:
 #'   \item{data}{A \code{data.frame} with covariates and the target columns packed at the end.}
-#'   \item{target_cols}{Integer number of target columns (2 for STACK/LINK1/LINK2/PSEUDO, 3 for MIP).}
+#'   \item{target_cols}{Integer number of target columns (2 for STACK/LINK1/LINK2/PSEUDO, 3 or 4 for MIP).}
 #'   \item{Sc_indices}{Row indices in \code{data} corresponding to the convenience sample \eqn{S_c}.}
 #' @export
 build_propensity_dataset <- function(
-    pop,
+    pop = NULL,
     method = c("STACK", "LINK1", "LINK2", "MIP", "PSEUDO"),
-    covar_cols = paste0("X", 1:10)
+    covar_cols = paste0("X", 1:10),
+    p_link = NULL,
+    X_c = NULL,
+    X_r = NULL,
+    pi_r = NULL
 ) {
   method <- match.arg(method)
+  if (is.null(pop)) {
+    if (is.null(X_c) || is.null(X_r) || is.null(pi_r)) {
+      stop("Must provide either pop data.frame or (X_c, X_r, pi_r)")
+    }
+    nc <- nrow(X_c)
+    nr <- nrow(X_r)
+    p_dim <- ncol(X_c)
+    covar_cols <- paste0("X", 1:p_dim)
+    colnames(X_c) <- covar_cols
+    colnames(X_r) <- covar_cols
+    df_c <- as.data.frame(X_c)
+    df_c$I.c <- 1
+    df_c$I.r <- 0
+    df_c$pi.r <- 0.1
+    df_c$id <- 1:nc
+    df_r <- as.data.frame(X_r)
+    df_r$I.c <- 0
+    df_r$I.r <- 1
+    df_r$pi.r <- if (length(pi_r) == 1) rep(pi_r, nr) else as.numeric(pi_r)
+    df_r$id <- (nc + 1):(nc + nr)
+    pop <- rbind(df_c, df_r)
+  }
   Sc <- pop[pop$I.c == 1, ]
   Sr <- pop[pop$I.r == 1, ]
 
@@ -270,11 +304,29 @@ build_propensity_dataset <- function(
     return(list(data = combined, target_cols = 2, Sc_indices = 1:nrow(df_c)))
 
   } else if (method == "MIP") {
-    # Stacked Sc (+) Sr with 3-column target: is_Sc, I_c_true, pi_r
-    df_c <- data.frame(Sc[, covar_cols, drop = FALSE], is_Sc = 1, I_c_true = 1, pi_r = Sc$pi.r)
-    df_r <- data.frame(Sr[, covar_cols, drop = FALSE], is_Sc = 0, I_c_true = as.numeric(Sr$I.c == 1), pi_r = Sr$pi.r)
-    combined <- rbind(df_c, df_r)
-    return(list(data = combined, target_cols = 3, Sc_indices = 1:nrow(df_c)))
+    if (!is.null(p_link) && length(p_link) > 1) {
+      # Vectorized unit-level marginal linkage probabilities
+      if (length(p_link) == nrow(Sr)) {
+        p_vec_c <- rep(1.0, nrow(Sc))
+        p_vec_r <- as.numeric(p_link)
+      } else if (length(p_link) == nrow(Sc) + nrow(Sr)) {
+        p_vec_c <- as.numeric(p_link[1:nrow(Sc)])
+        p_vec_r <- as.numeric(p_link[(nrow(Sc) + 1):length(p_link)])
+      } else {
+        stop(sprintf("length(p_link) (%d) must match nrow(Sr) (%d) or nrow(Sc) + nrow(Sr) (%d)",
+                     length(p_link), nrow(Sr), nrow(Sc) + nrow(Sr)))
+      }
+      df_c <- data.frame(Sc[, covar_cols, drop = FALSE], is_Sc = 1, I_c_true = 1, pi_r = Sc$pi.r, p_link = p_vec_c)
+      df_r <- data.frame(Sr[, covar_cols, drop = FALSE], is_Sc = 0, I_c_true = as.numeric(Sr$I.c == 1), pi_r = Sr$pi.r, p_link = p_vec_r)
+      combined <- rbind(df_c, df_r)
+      return(list(data = combined, target_cols = 4, Sc_indices = 1:nrow(df_c)))
+    } else {
+      # Scalar or default MIP (3-column target)
+      df_c <- data.frame(Sc[, covar_cols, drop = FALSE], is_Sc = 1, I_c_true = 1, pi_r = Sc$pi.r)
+      df_r <- data.frame(Sr[, covar_cols, drop = FALSE], is_Sc = 0, I_c_true = as.numeric(Sr$I.c == 1), pi_r = Sr$pi.r)
+      combined <- rbind(df_c, df_r)
+      return(list(data = combined, target_cols = 3, Sc_indices = 1:nrow(df_c)))
+    }
 
   } else if (method == "PSEUDO") {
     # Stacked Sc (+) Sr: is_Sc = 1 for Sc, 0 for Sr; pi_r
@@ -285,16 +337,122 @@ build_propensity_dataset <- function(
   }
 }
 
-#' @title Compute Hajek Estimate of Population Mean
-#' @description Computes the self-normalizing Hajek estimator \eqn{\hat{\bar{Y}}_{\text{Hajek}} = \frac{\sum_{i \in S_c} w_i y_i}{\sum_{i \in S_c} w_i}}
-#' using estimated propensity weights \eqn{w_i = 1 / \hat{\pi}_{ci}}.
-#' @param y Numeric vector of observed responses \eqn{y_i} in the convenience sample \eqn{S_c}.
-#' @param pi_hat Numeric vector of estimated participation propensities \eqn{\hat{\pi}_{ci}} in \eqn{S_c}.
-#' @param clip_min Numeric minimum bound for \eqn{\hat{\pi}_{ci}} to prevent division by zero or extreme weight inflation. Default 1e-4.
-#' @return Numeric scalar Hajek estimate of the population mean.
+#' @title Compute Hajek Estimate of Population Mean and Domain Totals
+#' @description Computes the self-normalizing Hajek estimator \eqn{\hat{\bar{Y}}_{\text{Hajek}} = \frac{\sum_{i} w_i y_i}{\sum_{i} w_i}}
+#' using estimated propensity weights \eqn{w_i = 1 / \hat{\pi}_{ci}} or direct observation weights \eqn{w_i}.
+#' Supports domain-level breakdowns via \code{domain_matrix} and finite-population uncertainty quantification
+#' via Dirichlet Bayesian bootstrap draws (\code{dirichlet_uq = TRUE}) per Savitsky & Toth (2016).
+#'
+#' @param y Numeric vector of observed responses \eqn{y_i} in the sample.
+#' @param pi_hat Optional numeric vector of estimated participation propensities \eqn{\hat{\pi}_{ci}}.
+#' If provided, weights are \eqn{w_i = 1 / \max(\hat{\pi}_{ci}, \text{clip\_min})}.
+#' @param weights Optional numeric vector of weights \eqn{w_i}. If NULL, computed from \code{pi_hat}.
+#' @param clip_min Numeric minimum bound for \eqn{\hat{\pi}_{ci}} to prevent division by zero (default 1e-4).
+#' @param domain_matrix Optional binary/fractional domain membership matrix \eqn{\mathbf{G} \in \mathbb{R}^{n \times D}}
+#' or factor/character/integer vector of domain assignments.
+#' @param dirichlet_uq Logical, whether to evaluate design uncertainty via Dirichlet Bayesian bootstrap
+#' draws \eqn{\boldsymbol{\xi}^{(s)} \sim \text{Dirichlet}(1, \dots, 1)} (default FALSE).
+#' @param n_draws Integer, number of Dirichlet draws if \code{dirichlet_uq = TRUE} (default 100).
+#' @return If \code{domain_matrix} is NULL and \code{dirichlet_uq = FALSE}, returns a numeric scalar.
+#' Otherwise returns a \code{data.frame} of estimates (domain, mean, sd, credible intervals, totals).
 #' @export
-hajek_estimate <- function(y, pi_hat, clip_min = 1e-4) {
-  pi_clipped <- pmax(as.numeric(pi_hat), clip_min)
-  weights <- 1.0 / pi_clipped
-  sum(weights * y) / sum(weights)
+hajek_estimate <- function(y, pi_hat = NULL, weights = NULL, clip_min = 1e-4,
+                           domain_matrix = NULL, dirichlet_uq = FALSE, n_draws = 100,
+                           pi = NULL, draws = NULL) {
+  if (!is.null(pi)) pi_hat <- pi
+  if (!is.null(draws)) n_draws <- draws
+  y_vec <- as.numeric(y)
+  n <- length(y_vec)
+
+  if (is.null(weights)) {
+    if (is.null(pi_hat)) {
+      stop("Must provide either pi_hat or weights to hajek_estimate()")
+    }
+    pi_clipped <- pmax(as.numeric(pi_hat), clip_min)
+    weights <- 1.0 / pi_clipped
+  } else {
+    weights <- as.numeric(weights)
+  }
+
+  if (length(weights) != n) {
+    stop(sprintf("length(weights) (%d) must match length(y) (%d)", length(weights), n))
+  }
+
+  # Case 1: Simple overall scalar estimate
+  if (is.null(domain_matrix) && !dirichlet_uq) {
+    return(sum(weights * y_vec) / sum(weights))
+  }
+
+  # Build domain matrix G
+  if (!is.null(domain_matrix)) {
+    if (is.matrix(domain_matrix) || is.data.frame(domain_matrix)) {
+      G <- as.matrix(domain_matrix)
+      domain_names <- colnames(G)
+      if (is.null(domain_names)) domain_names <- paste0("Domain_", seq_len(ncol(G)))
+    } else {
+      fac <- as.factor(domain_matrix)
+      domain_names <- levels(fac)
+      G <- stats::model.matrix(~ 0 + fac)
+      colnames(G) <- domain_names
+    }
+  } else {
+    # Overall population as a single domain
+    G <- matrix(1, nrow = n, ncol = 1)
+    domain_names <- "Overall"
+    colnames(G) <- domain_names
+  }
+  n_domains <- ncol(G)
+
+  if (!dirichlet_uq) {
+    d_means <- numeric(n_domains)
+    d_totals <- numeric(n_domains)
+    for (d in seq_len(n_domains)) {
+      eff_w <- weights * G[, d]
+      denom <- sum(eff_w)
+      d_means[d] <- if (denom > 1e-12) sum(eff_w * y_vec) / denom else NA_real_
+      d_totals[d] <- sum(eff_w * y_vec)
+    }
+    return(data.frame(
+      domain = domain_names,
+      n_units = colSums(G > 0),
+      mean = d_means,
+      total_est = d_totals,
+      row.names = NULL,
+      stringsAsFactors = FALSE
+    ))
+  }
+
+  # Case with Dirichlet UQ
+  d_means_draws <- matrix(NA_real_, nrow = n_domains, ncol = n_draws)
+  d_totals_draws <- matrix(NA_real_, nrow = n_domains, ncol = n_draws)
+
+  for (s in seq_len(n_draws)) {
+    exp_draws <- stats::rexp(n, rate = 1)
+    xi_s <- exp_draws / sum(exp_draws)
+    w_s <- xi_s * weights * n
+
+    for (d in seq_len(n_domains)) {
+      eff_w <- w_s * G[, d]
+      denom <- sum(eff_w)
+      d_means_draws[d, s] <- if (denom > 1e-12) sum(eff_w * y_vec) / denom else NA_real_
+      d_totals_draws[d, s] <- sum(eff_w * y_vec)
+    }
+  }
+
+  results <- data.frame(
+    domain = domain_names,
+    n_units = colSums(G > 0),
+    mean = apply(d_means_draws, 1, mean, na.rm = TRUE),
+    sd = apply(d_means_draws, 1, stats::sd, na.rm = TRUE),
+    ci_lower = apply(d_means_draws, 1, stats::quantile, probs = 0.025, na.rm = TRUE),
+    ci_upper = apply(d_means_draws, 1, stats::quantile, probs = 0.975, na.rm = TRUE),
+    total_est = apply(d_totals_draws, 1, mean, na.rm = TRUE),
+    total_sd = apply(d_totals_draws, 1, stats::sd, na.rm = TRUE),
+    total_ci_lower = apply(d_totals_draws, 1, stats::quantile, probs = 0.025, na.rm = TRUE),
+    total_ci_upper = apply(d_totals_draws, 1, stats::quantile, probs = 0.975, na.rm = TRUE),
+    row.names = NULL,
+    stringsAsFactors = FALSE
+  )
+  return(results)
 }
+

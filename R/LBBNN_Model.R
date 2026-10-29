@@ -83,7 +83,10 @@
 lbbnn_net <- torch::nn_module(
   "lbbnn_net",
 
-  initialize = function(problem_type, sizes, prior, std, inclusion_inits,
+  initialize = function(problem_type, sizes,
+                        prior = rep(0.5, length(sizes) - 1),
+                        std = rep(1.0, length(sizes) - 1),
+                        inclusion_inits = "balanced",
                         input_skip = FALSE, flow = FALSE, num_transforms = 2,
                         dims = c(200, 200), device = "cpu", raw_output = FALSE,
                         custom_act = NULL, link = NULL, nll = NULL, sigma = NULL,

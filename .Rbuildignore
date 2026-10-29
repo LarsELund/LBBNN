@@ -16,3 +16,5 @@
 ^docs$
 ^CRAN-SUBMISSION$
 ^cran-comments\.md$
+^bls_collaboration$
+^bls_lbbnn_presentation\.pdf$

@@ -151,23 +151,29 @@ $$\pi_{zi}^{\text{LINK2}} = \frac{\pi_{ci}(1 + \pi_{ri})}{\pi_{ci} + \pi_{ri}}$$
 
 $$\mathcal{L}_{\text{LINK2}}(\theta) = -\sum_{i \in S_c \oplus S_r} \left[ I_{zi} \log(\pi_{zi}^{\text{LINK2}}) + (1 - I_{zi}) \log(1 - \pi_{zi}^{\text{LINK2}}) \right]$$
 
-### Missing Information Principle (`MIP`)
+### Missing Information Principle (`MIP`) with Vectorized Marginal Linkage Probabilities
 
-In administrative and survey practice, exact deterministic matching is rarely available; linkages are typically probabilistic (e.g., via Fellegi-Sunter record linkage or `fastLink`), yielding an estimated linkage probability $p_{\text{link}} \in [0, 1]$.
+In administrative and survey practice, exact deterministic matching is rarely available; linkages are typically probabilistic (e.g., via Fellegi-Sunter record linkage or bipartite distance matching), yielding an estimated linkage probability. Rather than restricting analysts to a single global scalar $p_{\text{link}} \in [0, 1]$, `LBBNN` supports **vectorized unit-level marginal linkage probabilities**:
+
+$$\tilde{\mathbf{p}} = (\tilde{p}_1, \dots, \tilde{p}_{n_r})^\top \in [0, 1]^{n_r}$$
+
+where $\tilde{p}_i = \sum_{j \in S_c} m_{ij} \in [0, 1]$ is the marginal probability that reference record $i \in S_r$ matched to some record in the convenience sample $S_c$ based on pairwise match probabilities $m_{ij} = \mathbb{P}(i \sim j \mid \mathbf{x}_i, \mathbf{x}_j)$.
 
 Under Louis's (1982) Missing Information Principle:
-- If linkage were perfectly deterministic ($p_{\text{link}} = 1$), $I_{ci} \in \{0, 1\}$ would be fully observed for all reference units $i \in S_r$, allowing direct evaluation of the complete-data `LINK2` score with indicator $I_{zi}^{\text{LINK2}} = D_i + (1 - D_i)I_{ci}$.
-- When linkage is imperfect ($p_{\text{link}} \in [0, 1]$), the true indicator $I_{ci}$ on $S_r$ is partially latent. Analogous to the Expectation step of an EM algorithm, we project the complete-data score onto the observed data by replacing $I_{ci}$ with its conditional expectation:
+- If linkage were perfectly deterministic ($\tilde{p}_i = 1$ for matches, $0$ otherwise), $I_{ci} \in \{0, 1\}$ would be fully observed for all reference units $i \in S_r$, allowing direct evaluation of the complete-data `LINK2` score with indicator $I_{zi}^{\text{LINK2}} = D_i + (1 - D_i)I_{ci}$.
+- When linkage is imperfect, the true indicator $I_{ci}$ on $S_r$ is partially latent. Analogous to the Expectation step of an EM algorithm, we project the complete-data score onto the observed data by replacing $I_{ci}$ with each unit's marginal linkage expectation:
 
-$$\tilde{p}_i = p_{\text{link}} I_{ci} + (1 - p_{\text{link}}) \text{sg}\big(\pi_{ci}(\mathbf{x}_i; \theta)\big), \qquad \tilde{I}_{zi}^{\text{MIP}} = D_i + (1 - D_i)\tilde{p}_i$$
+$$\tilde{I}_{zi}^{\text{MIP}} = D_i + (1 - D_i)\tilde{p}_i$$
 
-where $\text{sg}(\cdot)$ denotes the stop-gradient (`$detach()`) operator. This ensures that $\tilde{p}_i$ acts as a fixed target during backpropagation while gradients flow through the composite model probability $\pi_{zi} = \frac{\pi_{ci}(1 + \pi_{ri})}{\pi_{ci} + \pi_{ri}}$:
+where $\tilde{p}_i$ is passed as a unit-level vector (or constant scalar) into `build_propensity_dataset(..., method = "MIP", p_link = p_vec)` and packed into a 4-column target tensor $[D_i, I_{ci}, \pi_{ri}, \tilde{p}_i]$. During variational training, `make_nll_mip()` consumes $\tilde{p}_i$ elementwise in LibTorch tensors:
 
 $$\mathcal{L}_{\text{MIP}}(\theta) = -\sum_{i \in S_c \oplus S_r} \left[ \tilde{I}_{zi}^{\text{MIP}} \log(\pi_{zi}) + (1 - \tilde{I}_{zi}^{\text{MIP}}) \log(1 - \pi_{zi}) \right]$$
 
-Importantly, `MIP` continuously interpolates between the unlinked and deterministically linked extremes:
-- When $p_{\text{link}} = 1$, $\tilde{I}_{zi}^{\text{MIP}} = I_{zi}^{\text{LINK2}}$, reproducing `LINK2` exactly.
-- When $p_{\text{link}} = 0$ (zero linkage information), $\tilde{p}_i = \hat{\pi}_{ci}$, and the stationary score equation of `MIP` reduces algebraically to that of `STACK`.
+where $\pi_{zi} = \frac{\pi_{ci}(1 + \pi_{ri})}{\pi_{ci} + \pi_{ri}}$.
+
+Importantly, `MIP` continuously interpolates between the unlinked and deterministically linked extremes on a **record-by-record basis**:
+- High-certainty match records ($\tilde{p}_i \approx 1$) pull gradient updates toward the low-variance `LINK2` score surface.
+- Unmatched or ambiguous records ($\tilde{p}_i \approx 0$) safely revert to the robust unlinked `STACK` formulation.
 
 ### Pseudo-Log-Likelihood (`PSEUDO`, Chen, Li & Wu 2020)
 
@@ -178,6 +184,21 @@ $$\ell_{\text{pseudo}}(\theta) = \sum_{i \in S_c} \log\left(\frac{\pi_{ci}}{1 - 
 Recognizing that $\log\big(\frac{\pi_{ci}}{1 - \pi_{ci}}\big) = \eta_\theta(\mathbf{x}_i)$ (the unconstrained neural network logit) and $\log(1 - \pi_{ci}) = -\text{softplus}(\eta_\theta(\mathbf{x}_i))$, we express this loss in an infinitely numerically stable form:
 
 $$\text{NLL}_{\text{pseudo}}(\theta) = -\sum_{i \in S_c} \eta_\theta(\mathbf{x}_i) + \sum_{i \in S_r} \frac{1}{\pi_{ri}} \text{softplus}\big(\eta_\theta(\mathbf{x}_i)\big)$$
+
+#### Why `PSEUDO` Collapses Under Low Common Support (Studies 0 & 3)
+Under low common support, reference units located in regions with low convenience participation have tiny design probabilities $\pi_{ri} \to 0$, causing inverse design weights $\pi_{ri}^{-1} \to \infty$. Multiplying $\pi_{ri}^{-1}$ by $\text{softplus}(\eta_\theta(\mathbf{x}_i))$ causes catastrophic gradient explosion during backpropagation, destabilizing the variational posterior and collapsing Kish's Effective Sample Size ($\text{ESS} = 6.6$ out of $n_c = 521$), resulting in huge bias ($+5.06$) and RMSE ($1.02$). In contrast, composite likelihoods (`STACK`, `LINK1`, `LINK2`, `MIP`) evaluate relative odds fractions $\frac{\pi_{ci}}{\pi_{ci} + \pi_{ri}}$ that naturally bound gradients regardless of common support.
+
+### The Oracle Benchmark & Stein's Phenomenon
+The **Oracle Benchmark** is the theoretical limit that plugs the true, known data-generating propensities $\pi_{ci}$ directly into the Hájek estimator $\hat{\bar{Y}}_{\text{Oracle}} = \frac{\sum_{i \in S_c} \pi_{ci}^{-1} y_i}{\sum_{i \in S_c} \pi_{ci}^{-1}}$, completely bypassing estimation error. 
+
+In Study 0 Panel B (Low Common Support), regularized models (`LBBNN` and low-dimensional composite GLMs) achieve **lower RMSE than the Oracle benchmark**. This occurs due to **Stein's phenomenon (finite-sample bias-variance tradeoff)**: under low common support, true propensities near 0 produce extreme inverse weights $1/\pi_{ci}$ with huge finite-sample sampling variance across Monte Carlo replicates. Regularized propensity estimates shrink extreme tail weights, trading an imperceptible amount of bias for a massive reduction in sampling variance ($\text{RMSE} = \sqrt{\text{Bias}^2 + \text{Var}}$).
+
+### Doubly Robust Pseudo-Posterior Imputation: Bridging Track 2 to Track 1
+Once propensity scores $\hat{\pi}_{ci}$ are estimated in Stage 1 (Track 2), two options exist for downstream outcome analysis:
+1. **Quasi-Randomization (Track 2 Standard)**: Apply outcome-agnostic Hájek weights $\hat{w}_i = \hat{\pi}_{ci}^{-1}$ to any continuous outcome $y_i$. Here, pruning outcome-only predictors $X_3$ in Stage 1 is crucial because including $X_3$ does not reduce selection bias but inflates weight variance.
+2. **Doubly Robust Pseudo-Posterior Imputation (Bridging Track 2 $\to$ Track 1)**: Normalize inverse propensity weights to sample size:
+   $$\tilde{w}_i = \hat{\pi}_{ci}^{-1} \frac{n_c}{\sum_{j \in S_c} \hat{\pi}_{cj}^{-1}}$$
+   and feed them as observation weights $u_i = \tilde{w}_i$ into a **Track 1 LBBNN regression model** for $y_i$. This achieves **Double Robustness**: the resulting population and domain estimators are asymptotically unbiased if *either* the propensity model $\hat{\pi}_{ci}$ *or* the outcome model $\mu_\theta(\mathbf{x}_i)$ is correctly specified. Furthermore, while $X_3$ was pruned from the propensity model, it is actively retained by the spike-and-slab outcome model, maximizing predictive accuracy.
 
 While computationally convenient, `PSEUDO` is vulnerable to catastrophic variance inflation when common support is low: if units in $S_c$ have very small reference inclusion probabilities $\pi_{ri} \approx 0$, the inverse weights $1 / \pi_{ri}$ explode.
 

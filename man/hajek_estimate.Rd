@@ -2,21 +2,43 @@
 % Please edit documentation in R/propensity_crisp.R
 \name{hajek_estimate}
 \alias{hajek_estimate}
-\title{Compute Hajek Estimate of Population Mean}
+\title{Compute Hajek Estimate of Population Mean and Domain Totals}
 \usage{
-hajek_estimate(y, pi_hat, clip_min = 1e-04)
+hajek_estimate(
+  y,
+  pi_hat = NULL,
+  weights = NULL,
+  clip_min = 1e-04,
+  domain_matrix = NULL,
+  dirichlet_uq = FALSE,
+  n_draws = 100
+)
 }
 \arguments{
-\item{y}{Numeric vector of observed responses \eqn{y_i} in the convenience sample \eqn{S_c}.}
+\item{y}{Numeric vector of observed responses \eqn{y_i} in the sample.}
 
-\item{pi_hat}{Numeric vector of estimated participation propensities \eqn{\hat{\pi}_{ci}} in \eqn{S_c}.}
+\item{pi_hat}{Optional numeric vector of estimated participation propensities \eqn{\hat{\pi}_{ci}}.
+If provided, weights are \eqn{w_i = 1 / \max(\hat{\pi}_{ci}, \text{clip\_min})}.}
 
-\item{clip_min}{Numeric minimum bound for \eqn{\hat{\pi}_{ci}} to prevent division by zero or extreme weight inflation. Default 1e-4.}
+\item{weights}{Optional numeric vector of weights \eqn{w_i}. If NULL, computed from \code{pi_hat}.}
+
+\item{clip_min}{Numeric minimum bound for \eqn{\hat{\pi}_{ci}} to prevent division by zero (default 1e-4).}
+
+\item{domain_matrix}{Optional binary/fractional domain membership matrix \eqn{\mathbf{G} \in \mathbb{R}^{n \times D}}
+or factor/character/integer vector of domain assignments.}
+
+\item{dirichlet_uq}{Logical, whether to evaluate design uncertainty via Dirichlet Bayesian bootstrap
+draws \eqn{\boldsymbol{\xi}^{(s)} \sim \text{Dirichlet}(1, \dots, 1)} (default FALSE).}
+
+\item{n_draws}{Integer, number of Dirichlet draws if \code{dirichlet_uq = TRUE} (default 100).}
 }
 \value{
-Numeric scalar Hajek estimate of the population mean.
+If \code{domain_matrix} is NULL and \code{dirichlet_uq = FALSE}, returns a numeric scalar.
+Otherwise returns a \code{data.frame} of estimates (domain, mean, sd, credible intervals, totals).
 }
 \description{
-Computes the self-normalizing Hajek estimator \eqn{\hat{\bar{Y}}_{\text{Hajek}} = \frac{\sum_{i \in S_c} w_i y_i}{\sum_{i \in S_c} w_i}}
-using estimated propensity weights \eqn{w_i = 1 / \hat{\pi}_{ci}}.
+Computes the self-normalizing Hajek estimator \eqn{\hat{\bar{Y}}_{\text{Hajek}} = \frac{\sum_{i} w_i y_i}{\sum_{i} w_i}}
+using estimated propensity weights \eqn{w_i = 1 / \hat{\pi}_{ci}} or direct observation weights \eqn{w_i}.
+Supports domain-level breakdowns via \code{domain_matrix} and finite-population uncertainty quantification
+via Dirichlet Bayesian bootstrap draws (\code{dirichlet_uq = TRUE}) per Savitsky & Toth (2016).
 }

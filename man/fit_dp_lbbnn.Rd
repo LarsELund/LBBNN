@@ -2,7 +2,7 @@
 % Please edit documentation in R/loglik_contributions.R
 \name{fit_dp_lbbnn}
 \alias{fit_dp_lbbnn}
-\title{Two-Pass Differential Privacy Pseudo-Posterior Synthesizer}
+\title{Multi-Stage Differential Privacy Pseudo-Posterior Synthesizer}
 \usage{
 fit_dp_lbbnn(
   model_spec,
@@ -12,8 +12,13 @@ fit_dp_lbbnn(
   lr = 0.01,
   batch_size = 64,
   S = 100,
+  stage1_method = c("linear", "percentile", "target_clip"),
+  stage2_method = c("surgical", "hard_trunc", "vector_upscale", "none"),
   c_scale = 1,
   g_shift = 0,
+  p_L = 0.05,
+  p_R = 0.95,
+  Delta_goal = NULL,
   M_thresh = NULL,
   sigma = NULL,
   device = "cpu",
@@ -37,12 +42,21 @@ or a zero-argument function that returns a fresh \code{lbbnn_net}.}
 
 \item{S}{Integer, number of posterior draws for sensitivity extraction (default 100).}
 
+\item{stage1_method}{Character string for Stage 1 normalization: \code{"linear"} (default), \code{"percentile"}, or \code{"target_clip"}.}
+
+\item{stage2_method}{Character string for Stage 2 adjustment: \code{"surgical"} (default), \code{"hard_trunc"}, \code{"vector_upscale"}, or \code{"none"}.}
+
 \item{c_scale}{Numeric, scaling factor for risk weights (default 1.0).}
 
 \item{g_shift}{Numeric, shift parameter for risk weights (default 0.0).}
 
-\item{M_thresh}{Optional numeric threshold \eqn{M}. If provided, any record where
-\eqn{\alpha_i f_i > M} has its weight forced to 0.}
+\item{p_L}{Numeric left quantile level for percentile normalization (default 0.05).}
+
+\item{p_R}{Numeric right quantile level for percentile normalization (default 0.95).}
+
+\item{Delta_goal}{Optional numeric sensitivity goal \eqn{\Delta_{\text{goal}} > 0} for target clipping.}
+
+\item{M_thresh}{Optional numeric threshold \eqn{M_{\text{thresh}} > 0}.}
 
 \item{sigma}{Optional numeric standard deviation for Gaussian regression log-likelihood.
 If NULL (default), automatically estimated after Pass 1 from the posterior mean residuals.}
@@ -56,23 +70,30 @@ If NULL (default), automatically estimated after Pass 1 from the posterior mean 
 \value{
 A list containing:
 \describe{
-\item{model}{The final private model from Pass 2 trained with weights \eqn{\alpha}.}
+\item{model}{The final private model trained with weights \eqn{\alpha}.}
 \item{model_unweighted}{The baseline unweighted model from Pass 1.}
 \item{alpha}{Numeric vector of length \eqn{n} containing risk weights \eqn{\alpha_i \in [0, 1]}.}
+\item{alpha_stage1}{Numeric vector of intermediate Stage 1 weights.}
 \item{f_vec}{Numeric vector of length \eqn{n} containing record-level maximum sensitivities.}
-\item{delta_alpha}{Local Lipschitz bound \eqn{\Delta_{\alpha, x}}.}
-\item{epsilon_local}{Local DP guarantee \eqn{\epsilon_x = 2\Delta_{\alpha, x}}.}
+\item{stage1_method}{Character string of Stage 1 method used.}
+\item{stage2_method}{Character string of Stage 2 method used.}
+\item{delta_alpha}{Local Lipschitz bound \eqn{\Delta_{\alpha, \mathbf{y}}}.}
+\item{epsilon_local}{Local DP guarantee \eqn{\epsilon_{\mathbf{y}} = 2\Delta_{\alpha, \mathbf{y}}}.}
 \item{sigma_hat}{Calibrated observation residual standard deviation.}
 \item{L_pass1}{Log-likelihood contributions matrix from Pass 1.}
 \item{L_pass2}{Log-likelihood contributions matrix from Pass 2.}
+\item{L_pass3}{Log-likelihood contributions matrix from Pass 3 (if vector_upscale was used).}
+\item{dp_weights_info}{List output from \code{compute_dp_weights()}.}
 }
 }
 \description{
-Implements the two-pass risk-weighted pseudo-posterior mechanism
-from Savitsky, Williams, and Hu (2024). In Pass 1, fits an unweighted LBBNN model
-to evaluate record-level disclosure risk / sensitivity. Constructs record-specific
-privacy weights \eqn{\alpha_i \in [0, 1]}, downweighting sensitive records (or removing
-them if exceeding threshold \code{M_thresh}). In Pass 2, trains a fresh model under
-the \eqn{\alpha}-weighted pseudo-posterior objective and calculates the local Lipschitz
-privacy guarantee \eqn{\epsilon_x}.
+Implements the risk-weighted pseudo-posterior mechanism
+from Savitsky, Williams, and Hu (2022) with the modular two-stage normalization
+framework of Savitsky (Oct 28, 2026). In Pass 1, fits an unweighted LBBNN model
+to evaluate record-level disclosure sensitivities \eqn{f_i = \max_s |\ell_i(\theta_s)|}.
+In Stage 1, computes initial privacy weights \eqn{\alpha_i \in [0, 1]}. In Stage 2,
+applies second-stage reweighting (\code{"hard_trunc"}, \code{"vector_upscale"}, or \code{"surgical"}).
+Under vector upward rescaling, executes an additional training pass targeting the reweighted
+pseudo-posterior to verify the final local Lipschitz bound \eqn{\Delta_{\alpha, \mathbf{y}}}
+and differential privacy guarantee \eqn{\epsilon_{\mathbf{y}} = 2\Delta_{\alpha, \mathbf{y}}}.
 }

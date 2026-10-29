@@ -308,19 +308,51 @@ $$\text{ELBO}(q; \mathbf{u}) = \sum_{i=1}^n u_i \, \mathbb{E}_{q(\theta)}\!\left
 \vspace{-0.2em}
 \textbf{Distributional Recovery}: Survey-weighted LBBNN models (green/blue curves) accurately reconstruct the full population density (black solid curve) across all 2,000 units, completely correcting the severe rightward shift of the observed sample (red dotted curve).
 
+## Track 1A — Domain Estimation, Imputation & Dirichlet Bootstrap UQ
+
+\vspace{0.1em}
+\begin{columns}
+\begin{column}{0.50\textwidth}
+\textbf{Domain Totals \& De-Noising:}
+\begin{itemize}
+  \item \textbf{Domain Membership Matrix} $\mathbf{G} \in \mathbb{R}^{n \times D_{\text{dom}}}$ defines sub-populations (industries, regions):
+  \small
+  $$\hat{\bar{Y}}_d^{\text{BNN}(s)} = \frac{\sum_{i=1}^n w_i G_{i,d} \, \hat{\mu}_i^{(s)}}{\sum_{i=1}^n w_i G_{i,d}}$$
+  \normalsize
+  \item \textbf{Removing Observation Noise}: Using latent conditional mean $\hat{\mu}_i^{(s)} = \mu_{\theta^{(s)}}(\mathbf{x}_i)$ explicitly strips additive measurement error $\varepsilon_i \sim \mathcal{N}(0, \sigma^2)$, recovering pure regression surfaces.
+  \item \textbf{Item Non-Response Imputation}: Missing outcomes ($y_i = \text{NA}$) are filled via posterior predictive draws $\tilde{y}_i^{(s)} \sim \mathcal{N}(\mu_{\theta^{(s)}}(\mathbf{x}_i), \sigma^2)$ (\texttt{impute\_response\_lbbnn}).
+\end{itemize}
+\end{column}
+
+\begin{column}{0.50\textwidth}
+\textbf{Dirichlet Bayesian Bootstrap UQ:}
+\begin{itemize}
+  \item \textbf{The Pseudo-Posterior Variance Deficit}: Pseudo-posteriors condition on fixed sample $S$, underestimating design-based sampling variance.
+  \item \textbf{Dirichlet Perturbations} (Savitsky \& Toth, 2016): For each draw $s \in \{1, \dots, S\}$, sample flat Dirichlet perturbations:
+  \small
+  $$\boldsymbol{\xi}^{(s)} = (\xi_1^{(s)}, \dots, \xi_n^{(s)}) \sim \text{Dirichlet}(1, \dots, 1)$$
+  $$\hat{\bar{Y}}_d^{(s)} = \frac{\sum_{i=1}^n \xi_i^{(s)} w_i G_{i,d} \, y_i^{(s)}}{\sum_{i=1}^n \xi_i^{(s)} w_i G_{i,d}}$$
+  \normalsize
+  \item Restores exact finite-population frequentist coverage in credible intervals (\texttt{dirichlet\_uq = TRUE}).
+\end{itemize}
+\end{column}
+\end{columns}
+
 ## Pipeline & Return Structures: Survey-Weighted LBBNN (Track 1A)
 
 \vspace{-0.3em}
 \scriptsize
 ```r
-# 1. Package design weights; auto-normalize to sample size (sum w_i = n)
-dl_train <- get_dataloaders(x = X_samp, y = y_samp, weights = w_design,
-                            normalize_weights = TRUE, batch_size = 64)
+# 1. Package design weights & allow missing response values (y_i = NA)
+dl_train <- get_dataloaders(df_survey, weights = w_design, normalize_weights = TRUE,
+                            allow_missing = TRUE, train_batch_size = 64, test_batch_size = 32)
 # 2. Build LBBNN with calibrated residual noise scale sigma (protects T=1)
-net <- lbbnn_net(problem_type = "regression", sizes = c(p, 16, 1), sigma = 1.0, input_skip = TRUE)
-# 3. Train unit-weighted ELBO; predict via sparse MPM (hard-prunes a_k <= 0.5)
-fit   <- train_lbbnn(LBBNN = net, train_dl = dl_train, epochs = 100, lr = 0.01)
-y_hat <- predict(net, newdata = dl_test, model_type = "mpm")
+net <- lbbnn_net(problem_type = "regression", sizes = c(p, 16, 1), sigma = 0.4, input_skip = TRUE)
+fit <- train_lbbnn(LBBNN = net, train_dl = dl_train$train_loader, epochs = 100, lr = 0.01)
+# 3. Domain predictions & Bayesian imputation with Dirichlet uncertainty draws
+dom_est <- predict_domains_lbbnn(net, X, domain_matrix = G, weights = w_design,
+                                 type = "latent_mean", dirichlet_uq = TRUE, draws = 50)
+imp_res <- impute_response_lbbnn(net, newdata = df_survey, target_col = "y", draws = 50)
 ```
 \normalsize
 
@@ -329,14 +361,14 @@ y_hat <- predict(net, newdata = dl_test, model_type = "mpm")
 \renewcommand{\arraystretch}{1.15}
 \begin{table}[ht]
 \centering
-\begin{tabular}{p{0.14\textwidth}p{0.20\textwidth}p{0.15\textwidth}p{0.45\textwidth}}
+\begin{tabular}{p{0.20\textwidth}p{0.18\textwidth}p{0.14\textwidth}p{0.44\textwidth}}
 \toprule
 \textbf{Step / Object} & \textbf{R Class / Type} & \textbf{Dimensions} & \textbf{Statistical Contents \& Role} \\
 \midrule
-\texttt{dl\_train} & \texttt{torch::dataloader} & Batches: $B=64$ & Tensors \texttt{x} $[B, p]$, \texttt{y} $[B, 1]$, and weights \texttt{w} $[B, 1]$ ($\sum \tilde{w}_i = n$). \\
+\texttt{dl\_train\$train\_loader} & \texttt{torch::dataloader} & Batches: $B=64$ & Tensors \texttt{x} $[B, p]$, \texttt{y} $[B, 1]$, and weights \texttt{w} $[B, 1]$ ($\sum \tilde{w}_i = n$). \\
 \texttt{net} & \texttt{lbbnn\_net} (R6) & $p \to 16 \to 1$ & Variational weights $\mu_W, \sigma_W$, logits $\psi$; direct skips $\mathbf{x} \to h_j, \zeta$. \\
-\texttt{fit} & \texttt{list} & Length 2 & Convergence history \texttt{\$loss} (numeric 100) and trained model \texttt{\$LBBNN}. \\
-\texttt{y\_hat} & \texttt{torch\_tensor} & $[N_{\text{test}}, 1]$ & MPM predictions with inactive features ($a_k \le 0.5$) zeroed out. \\
+\texttt{dom\_est} & \texttt{data.frame} & $D_{\text{dom}} \times 10$ & Domain means, totals, posterior SDs, and 95\% Dirichlet credible bounds. \\
+\texttt{imp\_res\$completed\_data} & \texttt{data.frame} & $n \times (p+1)$ & Completed dataset with missing $y_i$ replaced by posterior mean $\hat{\mu}_i$. \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -347,7 +379,7 @@ y_hat <- predict(net, newdata = dl_test, model_type = "mpm")
 \begin{itemize}
   \setlength{\itemsep}{1pt}
   \item \textbf{Survey Normalization}: \texttt{normalize\_weights = TRUE} enforces $\sum \tilde{w}_i = n$ (Savitsky \& Toth, 2016).
-  \item \textbf{Cold-Posterior Protection}: Calibrated $\sigma = 1.0$ maintains true likelihood temperature $T = 1$.
+  \item \textbf{Latent Mean De-Noising}: \texttt{type = "latent\_mean"} eliminates observation error $\varepsilon_i \sim \mathcal{N}(0, \sigma^2)$.
 \end{itemize}
 \normalsize
 
@@ -411,6 +443,85 @@ Guarantees local Lipschitz bound $\Delta_{\alpha, \mathbf{y}} = \max_{s,i} |\alp
 \end{column}
 \end{columns}
 
+## Track 1B — Two-Stage Privacy Weight Normalization (Savitsky, 2026)
+
+\vspace{0.1em}
+\begin{columns}
+\begin{column}{0.50\textwidth}
+\textbf{Record Sensitivity Proxy:}
+\begin{itemize}
+  \item Extract worst-case empirical log-likelihood sensitivity from unweighted Pass 1:
+  \small
+  $$f_i = \max_{s \in \{1, \dots, S\}} |\ell_i(\theta^{(s)})|, \quad \tilde{\alpha}_i = \frac{1}{f_i}$$
+  \normalsize
+\end{itemize}
+
+\vspace{0.3em}
+\textbf{Stage 1: Initial Normalization Options:}
+\begin{enumerate}
+  \item \textbf{Global Linear Min-Max} (\texttt{"linear"}):
+  \small
+  $$\alpha_i^{\text{lin}} = \text{clip}_{[0, 1]}\!\left(c \cdot \frac{\tilde{\alpha}_i - \tilde{\alpha}_{\min}}{\tilde{\alpha}_{\max} - \tilde{\alpha}_{\min}} + g\right)$$
+  \normalsize
+  \item \textbf{Percentile Deficit Truncation} (\texttt{"percentile"}):
+  \small
+  $$\alpha_i^{\text{pct}} = \min\!\left(1, \, \max\!\left(0, \, \frac{\tilde{\alpha}_i - q_{p_L}(\tilde{\alpha})}{q_{p_R}(\tilde{\alpha}) - q_{p_L}(\tilde{\alpha})}\right)\right)$$
+  \normalsize
+  \item \textbf{Target Ratio Clipping} (\texttt{"target\_clip"}):
+  \small
+  $$\alpha_i^{\text{clip}} = \min\!\left(1, \, \frac{\Delta_{i, \text{goal}}}{f_i}\right)$$
+  \normalsize
+\end{enumerate}
+\end{column}
+
+\begin{column}{0.50\textwidth}
+\textbf{Theoretical Properties (Proposition 1):}
+\begin{itemize}
+  \item \textbf{Min-Max Vulnerability}: Inliers ($f_{j^*} \to 0 \implies \tilde{\alpha}_{\max} \to \infty$) uniformly deflate intermediate sample weights.
+  \item \textbf{Percentile Deficit}: Truncates bottom $p_L$ tail risk and boosts intermediate sample size ($\sum \alpha_i$), but requires Stage 2 to bound $\alpha_i f_i$.
+  \item \textbf{Exact Sensitivity Control}: Target clipping guarantees $\alpha_i^{\text{clip}} f_i = \min(f_i, \Delta_{\text{goal}}) \le \Delta_{\text{goal}}$ by construction, leaving all low-sensitivity records untouched at $\alpha_i = 1$.
+\end{itemize}
+\end{column}
+\end{columns}
+
+## Track 1B — Stage 2: Hard Truncation vs. Vector-Weighted Upward Rescaling
+
+\vspace{0.1em}
+\begin{columns}
+\begin{column}{0.50\textwidth}
+\textbf{Scheme 1: Hard Truncation (\texttt{"hard\_trunc"}):}
+\begin{itemize}
+  \item Post-hoc zeroing of records exceeding threshold:
+  \small
+  $$\alpha_i^{\text{trunc}} = \alpha_i \, \mathbb{I}(\alpha_i f_i \le M_{\text{thresh}})$$
+  \normalsize
+  \item \textbf{Limitation}: Single-pass truncation completely discards tail observations and leaves unspent privacy slack $M_{\text{thresh}} - \alpha_i f_i > 0$.
+\end{itemize}
+
+\vspace{0.3em}
+\textbf{Scheme 2: Vector Rescaling (\texttt{"vector\_upscale"}):}
+\begin{itemize}
+  \item Upward rescaling to full threshold capacity:
+  \small
+  $$\alpha_i^{\text{vec}} = \min\!\left(1, \, \alpha_i \cdot \frac{M_{\text{thresh}}}{\alpha_i f_i}\right) = \min\!\left(1, \, \frac{M_{\text{thresh}}}{f_i}\right)$$
+  \normalsize
+  \item Pointwise dominates hard truncation: $\alpha_i^{\text{vec}} \ge \alpha_i^{\text{trunc}}$ for all $i \in \{1, \dots, n\}$.
+\end{itemize}
+\end{column}
+
+\begin{column}{0.50\textwidth}
+\textbf{Information Dominance (Proposition 2):}
+\begin{itemize}
+  \item Because $\alpha_i^{\text{vec}} \ge \alpha_i^{\text{trunc}}$ everywhere, vector upward rescaling strictly maximizes Fisher information:
+  \small
+  $$\mathcal{I}_{\boldsymbol{\alpha}^{\text{vec}}}(\theta) \succeq \mathcal{I}_{\boldsymbol{\alpha}^{\text{trunc}}}(\theta)$$
+  \normalsize
+  in the Loewner partial order.
+  \item \textbf{Pass 3 Execution}: Upward rescaling shifts pseudo-posterior geometry $\xi_{\alpha^{\text{vec}}}(\theta \mid D)$; \texttt{fit\_dp\_lbbnn} executes an additional variational pass targeting $\xi_{\alpha^{\text{vec}}}$ to ensure calibration and bound verification.
+\end{itemize}
+\end{column}
+\end{columns}
+
 ## Track 1B — Synthetic Microdata Utility vs. Outlier Protection
 
 \includegraphics[width=0.92\textwidth]{figures/track1_synth_utility_panels.pdf}
@@ -427,13 +538,15 @@ Guarantees local Lipschitz bound $\Delta_{\alpha, \mathbf{y}} = \max_{s,i} |\alp
 \vspace{-0.3em}
 \scriptsize
 ```r
-# 1. Automated two-pass DP estimation with monotone surgical downweighting
+# 1. Calibrate privacy weights: Stage 1 target clipping + Stage 2 vector upward rescaling
+dp_w <- compute_dp_weights(f_sens, stage1_method = "target_clip", stage2_method = "vector_upscale",
+                           M_thresh = 5.5, Delta_goal = 5.5)
+# 2. End-to-end multi-pass DP estimation (executes Pass 3 for vector upscale geometry)
 dp_fit <- fit_dp_lbbnn(model_spec = list(sizes = c(p, 16, 1), problem_type = "regression"),
-                       X = x_micro, y = y_sensitive, M_thresh = 5.5, epochs = 100, lr = 0.01)
-# 2. Inspect record risk weights alpha_i and guaranteed privacy budget
-cat(sprintf("Guaranteed Budget: eps = %.2f (Delta = %.2f)\n", dp_fit$epsilon_local, dp_fit$delta_alpha))
+                       X = x_micro, y = y_sensitive, stage1_method = "target_clip",
+                       stage2_method = "vector_upscale", M_thresh = 5.5, epochs = 100, lr = 0.01)
 # 3. Generate private synthetic microdata via post-processing theorem
-synth_micro <- sample_synthetic_lbbnn(dp_fit$model, n_syn = 2000, draws = 50)
+synth_micro <- sample_synthetic_lbbnn(dp_fit, newdata = x_micro, draws = 50)
 ```
 \normalsize
 
@@ -442,14 +555,14 @@ synth_micro <- sample_synthetic_lbbnn(dp_fit$model, n_syn = 2000, draws = 50)
 \renewcommand{\arraystretch}{1.15}
 \begin{table}[ht]
 \centering
-\begin{tabular}{p{0.16\textwidth}p{0.18\textwidth}p{0.15\textwidth}p{0.45\textwidth}}
+\begin{tabular}{p{0.18\textwidth}p{0.18\textwidth}p{0.15\textwidth}p{0.43\textwidth}}
 \toprule
 \textbf{Step / Object} & \textbf{R Class / Type} & \textbf{Dimensions} & \textbf{Statistical Contents \& Role} \\
 \midrule
-\texttt{dp\_fit\$model} & \texttt{lbbnn\_net} (R6) & $p \to 16 \to 1$ & Pass 2 private model trained with surgical weights $\alpha_i \in [0, 1]$. \\
-\texttt{dp\_fit\$alpha} & \texttt{numeric} vector & $[n]$ records & Risk weights $\alpha_i \in [0.34, 0.85]$; tail outliers zeroed ($\alpha_i = 0.0$). \\
-\texttt{dp\_fit\$epsilon} & \texttt{numeric} scalar & Scalar $\epsilon_{\mathbf{y}}$ & Finite-sample local DP bound $\epsilon_{\mathbf{y}} = 2\Delta_{\alpha, \mathbf{y}} = 8.63 \le 2M_{\text{thresh}}$. \\
-\texttt{synth\_micro} & \texttt{matrix} & $[2000, 50]$ & 50 private synthetic replicates drawn with calibrated $\hat{\sigma}$. \\
+\texttt{dp\_fit\$model} & \texttt{lbbnn\_net} (R6) & $p \to 16 \to 1$ & Final private model targeting calibrated pseudo-posterior $\xi_{\boldsymbol{\alpha}^{\text{vec}}}$. \\
+\texttt{dp\_fit\$alpha} & \texttt{numeric} vector & $[n]$ records & Upward-rescaled weights $\alpha_i^{\text{vec}} = \min(1, M_{\text{thresh}} / f_i) \in [0, 1]$. \\
+\texttt{dp\_fit\$epsilon} & \texttt{numeric} scalar & Scalar $\epsilon_{\mathbf{y}}$ & Finite-sample local DP bound $\epsilon_{\mathbf{y}} = 2\Delta_{\alpha, \mathbf{y}} \le 2M_{\text{thresh}}$. \\
+\texttt{synth\_micro} & \texttt{matrix} & $[n, 50]$ & 50 private synthetic replicates drawn with calibrated $\hat{\sigma}$. \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -459,7 +572,7 @@ synth_micro <- sample_synthetic_lbbnn(dp_fit$model, n_syn = 2000, draws = 50)
 \scriptsize
 \begin{itemize}
   \setlength{\itemsep}{1pt}
-  \item \textbf{Monotone Surgical Weights}: $\alpha_i = \min(\alpha_i^{\text{raw}}, M/f_i)$ bounds sensitivity $\Delta_{\alpha, \mathbf{y}} \le M_{\text{thresh}}$.
+  \item \textbf{Loewner Dominance}: \texttt{"vector\_upscale"} pointwise dominates hard truncation and maximizes Fisher information.
   \item \textbf{Post-Processing Theorem}: Downstream analysts query \texttt{synth\_micro} with zero disclosure risk.
 \end{itemize}
 \normalsize
@@ -474,77 +587,115 @@ synth_micro <- sample_synthetic_lbbnn(dp_fit$model, n_syn = 2000, draws = 50)
   \item Let $U = \{1, \dots, N\}$ denote the finite target population of size $N$.
   \item In convenience/opt-in samples $S_c \subset U$, sample inclusion $I_{ci} \in \{0, 1\}$ is non-random and driven by unobserved self-selection mechanisms.
   \item \textbf{Meng's Law of Large Populations (2018)}:
+  \small
   $$\text{Bias}(\bar{y}_c) = \frac{\text{Cov}_U(I_c, Y)}{\bar{\pi}_c} = \rho_{I_c, Y} \cdot \sigma_Y \cdot \sqrt{\frac{N - n_c}{n_c}}$$
-  where $\text{Cov}_U$ denotes finite-population covariance across all units in $U$.
-  \item A tiny correlation $\rho_{I_c, Y} \neq 0$ creates selection bias that scales with $\sqrt{N}$.
-  \item Merely increasing convenience sample size $n_c$ shrinks variance around a severely biased estimate (the Big Data Paradox).
+  \normalsize
+  \item \textbf{Exact Definitions}:
+  \begin{itemize}
+    \item $\pi_{ci} = \mathbb{P}(I_{ci} = 1 \mid \mathbf{x}_i)$: Unknown propensity that unit $i$ with covariates $\mathbf{x}_i$ self-selects into $S_c$.
+    \item $\bar{\pi}_c = \frac{1}{N}\sum_{i \in U} \pi_{ci}$: Average participation propensity across the entire target population $U$.
+  \end{itemize}
+  \item A tiny correlation $\rho_{I_c, Y} \neq 0$ creates selection bias scaling with $\sqrt{N}$; increasing sample size $n_c$ merely concentrates error around a severely biased estimate.
 \end{itemize}
 
 ## The Identification Barrier & The Conditioning Trick (Beresovsky et al., 2026)
 
-\vspace{0.2em}
+\vspace{0.1em}
 \textbf{The Identification Barrier:}
 \begin{itemize}
-  \item Covariates $\mathbf{x}_i$ are observed only on convenience sample $S_c$ (unknown $\pi_{ci}$) and reference survey $S_r$ (known design probability $\pi_{ri}$).
-  \item Units in the unobserved population remainder $U \setminus (S_c \cup S_r)$ are never observed (where $U = \{1, \dots, N\}$ is the finite target population).
+  \item Covariates $\mathbf{x}_i$ are observed only on convenience sample $S_c$ (unknown $\pi_{ci}$) and reference survey $S_r$ (known design probability $\pi_{ri}$). Non-sampled units $U \setminus (S_c \cup S_r)$ are never observed.
 \end{itemize}
 
-\vspace{0.3em}
-\textbf{The Conditioning Trick:}
+\vspace{0.2em}
+\textbf{The Conditioning Trick \& Structural Offset Derivation:}
 \begin{itemize}
   \item Pool $S_c$ and $S_r$ into a combined sample $S$, and model membership indicator $D_i = \mathbb{I}(i \in S_c)$:
+  \small
   $$\pi_{zi}^{\text{STACK}} = \mathbb{P}(D_i = 1 \mid \mathbf{x}_i, i \in S) = \frac{\pi_{ci}}{\pi_{ci} + \pi_{ri}}$$
-  \item The known reference probability $\pi_{ri}$ acts as an \textbf{exact structural offset}, anchoring neural network logits $\eta_\theta(\mathbf{x}_i)$ to the true population scale.
+  \normalsize
+  \item \textbf{Step-by-Step Log-Odds (Logit) Expansion}:
+  \small
+  $$\log\left(\frac{\pi_{zi}^{\text{STACK}}}{1 - \pi_{zi}^{\text{STACK}}}\right) = \log\left(\frac{\pi_{ci}}{\pi_{ri}}\right) = \log \pi_{ci} - \log \pi_{ri} = \eta_\theta(\mathbf{x}_i) - \log \pi_{ri}$$
+  \normalsize
+  \item \textbf{Exact Structural Offset}: Because $\pi_{ri}$ is known by survey design, $-\log \pi_{ri}$ enters as an \textbf{exact, fixed offset} in the binary cross-entropy loss, anchoring unconstrained neural network logits $\eta_\theta(\mathbf{x}_i)$ to the true population scale.
 \end{itemize}
 
-## The Five Sample Combination Formulations (Beresovsky et al., 2026)
+## Intuition & Torch Training Link for All Five Estimators
 
 \vspace{0.1em}
-\renewcommand{\arraystretch}{1.35}
-\footnotesize
+\renewcommand{\arraystretch}{1.20}
+\scriptsize
 \begin{table}[ht]
 \centering
-\begin{tabular}{llll}
+\begin{tabular}{p{0.13\textwidth}p{0.22\textwidth}p{0.22\textwidth}p{0.36\textwidth}}
 \toprule
-\textbf{Estimator} & \textbf{Sample Domain} & \textbf{Target Indicator} & \textbf{Composite Probability $\pi_{zi}$} \\
+\textbf{Estimator} & \textbf{Sample Overlap} & \textbf{Composite Prob $\pi_{zi}$} & \textbf{Torch Backprop \& Loss Link} \\
 \midrule
-\texttt{STACK} & $S_c \oplus S_r$ (Unlinked) & $I_{zi} = D_i$ (sample source) & $\frac{\pi_{ci}}{\pi_{ci} + \pi_{ri}}$ \\[4pt]
-\texttt{LINK1} & $S_c \cup (S_r \setminus S_c)$ & $I_{zi} = I_{ci}$ (deduplicated) & $\frac{\pi_{ci}}{\pi_{ci} + \pi_{ri} - \pi_{ci}\pi_{ri}}$ \\[4pt]
-\texttt{LINK2} & $S_c \oplus S_r$ (Linked Stacked) & $I_{zi} = D_i + (1-D_i)I_{ci}$ & $\frac{\pi_{ci}(1 + \pi_{ri})}{\pi_{ci} + \pi_{ri}}$ \\[4pt]
-\texttt{MIP} & Missing Information & $\tilde{I}_{zi}^{\text{MIP}} = D_i + (1-D_i)\tilde{p}_i$ & Bridges \texttt{STACK} and \texttt{LINK2} \\[4pt]
-\texttt{PSEUDO} & Survey Weighted & Score: $\nabla \ell_{\text{pseudo}} = 0$ & Design-weighted: $\sum_{S_r} \pi_{ri}^{-1}\text{softplus}(\eta_i)$ \\
+\texttt{STACK} & $S_c \oplus S_r$ (Unlinked) & $\frac{\pi_{ci}}{\pi_{ci} + \pi_{ri}}$ & Offset $\text{logit}(\pi_{zi}) = \eta_\theta(\mathbf{x}_i) - \log \pi_{ri}$ in Bernoulli NLL. \\
+\texttt{LINK1} & $S_c \cup (S_r \setminus S_c)$ & $\frac{\pi_{ci}}{\pi_{ci} + \pi_{ri} - \pi_{ci}\pi_{ri}}$ & Deduplicated union; backprops through $-\pi_{ci}\pi_{ri}$ overlap adjustment. \\
+\texttt{LINK2} & $S_c \oplus S_r$ (Linked Stack) & $\frac{\pi_{ci}(1 + \pi_{ri})}{\pi_{ci} + \pi_{ri}}$ & Exact indicator $I_{zi} = D_i + (1-D_i)I_{ci}$; maximizes Fisher info. \\
+\texttt{MIP} & Missing Information & Bridges \texttt{STACK} \& \texttt{LINK2} & Evaluates expectation $\tilde{I}_{zi}^{\text{MIP}} = D_i + (1-D_i)\tilde{p}_i$ with $\tilde{p}_i \in [0, 1]$. \\
+\texttt{PSEUDO} & Survey-Weighted & Design pseudo-likelihood & Score: $\sum_{S_r} \pi_{ri}^{-1}\text{softplus}(\eta_i) + \sum_{S_c} \log(1 + e^{-\eta_i}) = 0$. \\
 \bottomrule
 \end{tabular}
 \end{table}
 \normalsize
 
-## How `MIP` Bridges `STACK` and `LINK2` vs. Why `PSEUDO` Explodes
-
-\vspace{0.2em}
-\textbf{Louis's (1982) Missing Information Principle (\texttt{MIP}):}
+\vspace{-0.3em}
+\scriptsize
 \begin{itemize}
-  \item Imputes linkage expectations on unlinked reference units:
-  $$\tilde{p}_i = p_{\text{link}} I_{ci} + (1 - p_{\text{link}})\text{sg}(\pi_{ci}), \qquad \tilde{I}_{zi}^{\text{MIP}} = D_i + (1 - D_i)\tilde{p}_i$$
-  \item Continuously bridges unlinked \texttt{STACK} ($p_{\text{link}} = 0$) and deterministically linked \texttt{LINK2} ($p_{\text{link}} = 1$).
+  \setlength{\itemsep}{1pt}
+  \item \textbf{Composite vs. Pseudo}: Composite likelihoods (\texttt{STACK}, \texttt{LINK1}, \texttt{LINK2}, \texttt{MIP}) form relative odds fractions that naturally bound loss gradients, whereas \texttt{PSEUDO} multiplies unconstrained logits by $\pi_{ri}^{-1}$.
 \end{itemize}
+\normalsize
 
-\vspace{0.4em}
-\textbf{The Pseudo-Likelihood (\texttt{PSEUDO}) Breakdown:}
+## Where Marginal Linkage Weights $\tilde{p}_i$ Come From in MIP
+
+\vspace{0.1em}
+\begin{columns}
+\begin{column}{0.50\textwidth}
+\textbf{Probabilistic Record Linkage Origin:}
 \begin{itemize}
-  \item \texttt{PSEUDO} scores reference units with inverse design weights $\pi_{ri}^{-1}$.
-  \item Under low common support (where $\pi_{ci} \gg 0$ but $\pi_{ri} \approx 0$), weights $\pi_{ri}^{-1} \to \infty$, causing loss gradients and parameter variance to explode.
+  \item In agency applications, deterministic matching is often precluded by privacy regulations or noisy identifiers (names, addresses).
+  \item An auxiliary probabilistic record linkage model (e.g., Fellegi-Sunter) estimates pairwise match probabilities:
+  \small
+  $$m_{ij} = \mathbb{P}(i \sim j \mid \mathbf{x}_i, \mathbf{x}_j) \in [0, 1]$$
+  \normalsize
+  \item Marginalizing across reference candidates yields each unit's linkage probability:
+  \small
+  $$\tilde{p}_i = \sum_{j \in S_r} m_{ij} \in [0, 1]$$
+  \normalsize
 \end{itemize}
+\end{column}
+
+\begin{column}{0.50\textwidth}
+\textbf{Vectorized Unit Linkage in `LBBNN`:}
+\begin{itemize}
+  \item Analysts supply the unit-level linkage vector:
+  \small
+  $$\tilde{\mathbf{p}} = (\tilde{p}_1, \dots, \tilde{p}_n)^\top$$
+  \normalsize
+  directly into \texttt{make\_nll\_mip(p\_link = p\_vec)}.
+  \item \textbf{Adaptive Gradient Pull}:
+  \begin{itemize}
+    \item High-certainty matches ($\tilde{p}_i \approx 1$) pull gradient updates toward the low-variance \texttt{LINK2} surface.
+    \item Ambiguous/unmatched units ($\tilde{p}_i \approx 0$) safely revert to the robust \texttt{STACK} formulation.
+  \end{itemize}
+  \item Smoothly bridges deterministic linkage and unlinked stacking record-by-record.
+\end{itemize}
+\end{column}
+\end{columns}
 
 ## Study 0 — Exact Linear Baseline Monte Carlo ($R = 20$, Visual Benchmark)
 
 \includegraphics[width=0.91\textwidth]{figures/track2_study0_rmse_bars.pdf}
 
-\vspace{0.05em}
-\textbf{Empirical Findings Across Methods \& Propensity Formulations}:
+\vspace{-0.1em}
+\textbf{Empirical Findings, The Oracle Benchmark, \& Stein's Phenomenon}:
 \begin{itemize}
-  \item \textbf{Efficiency Hierarchy}: $\text{LINK2} \succ \text{LINK1} \succ \text{STACK} \succ \text{PSEUDO}$ across both GLM and LBBNN.
-  \item \textbf{Pseudo-Likelihood Breakdown}: Under low common support, \texttt{GLM-PSEUDO} explodes to $\text{RMSE} = 1.015$, while all composite formulations remain bounded ($\text{RMSE} \approx 0.16\text{--}0.33$).
-  \item \textbf{LBBNN Agreement}: On linear truth, \texttt{LBBNN} matches GLM efficiency across all 5 formulations (e.g., \texttt{LINK2} RMSE: $0.23$ vs. $0.24$ High Support; $0.17$ vs. $0.14$ Low Support).
+  \item \textbf{The Oracle Benchmark}: Theoretical bound plugging true data-generating propensities $\pi_{ci}$ directly into H\'{a}jek weighting (bypassing propensity estimation).
+  \item \textbf{Why LBBNN Beats the Oracle in Panel B (Low Support)}: Under low common support, true propensities near 0 create extreme $1/\pi_{ci}$ weights and high sampling variance. \texttt{LBBNN} regularization smooths tail weights, trading tiny bias for a large variance reduction (Stein's phenomenon).
+  \item \textbf{Pseudo-Likelihood Breakdown}: Under low support, \texttt{GLM-PSEUDO} explodes to $\text{RMSE} = 1.015$ (weight variance and gradient explosion), while composite formulations remain bounded ($\text{RMSE} \approx 0.16\text{--}0.33$).
 \end{itemize}
 
 ## Study 1 — Automated Confounder Selection & Noise Pruning ($p = 6$)
@@ -562,8 +713,8 @@ synth_micro <- sample_synthetic_lbbnn(dp_fit$model, n_syn = 2000, draws = 50)
 \vspace{0.3em}
 \textbf{Why Variable Selection Matters}:
 \begin{itemize}
-  \item Including non-propensity predictors $X_3\text{--}X_6$ inflates H\'{a}jek weight variance without reducing confounding bias.
-  \item \texttt{LBBNN} automatically prunes them.
+  \item In propensity modeling, forcing outcome-only $X_3$ does \textbf{not} reduce selection bias, but \textbf{inflates H\'{a}jek weight variance}.
+  \item \texttt{LBBNN} automatically prunes $X_3$ ($\alpha_3 = 0.028 \ll 0.50$) along with pure noise $X_4\text{--}X_6$, isolating true selection confounders ($X_1, X_2$).
 \end{itemize}
 \end{column}
 
@@ -590,7 +741,7 @@ synth_micro <- sample_synthetic_lbbnn(dp_fit$model, n_syn = 2000, draws = 50)
 \vspace{0.05em}
 \textbf{Catastrophic Breakdown of Pseudo-Likelihood vs. Composite LBBNN}:
 \begin{itemize}
-  \item \texttt{PSEUDO} collapses Kish ESS ($\le 8.3$ of $n_c = 521$) and explodes bias ($|\text{Bias}| = 4.82\text{--}5.44$) across all methods.
+  \item \texttt{PSEUDO} collapses Kish ESS ($\text{ESS} = 6.6$ out of $n_c = 521$) and explodes bias ($|\text{Bias}| = 4.82\text{--}5.44$) due to inverse weight variance and gradient explosion.
   \item Composite formulations remain stable; \textbf{\texttt{LBBNN-LINK2 (MPM)}} achieves the \textbf{lowest bias (+0.61)} and \textbf{highest effective sample size (Kish ESS = 136.0)}.
   \item On \texttt{MIP50}, LBBNN restores ESS from $45.1$ to $129.4$ and cuts bias from $1.90$ to $0.71$.
 \end{itemize}
@@ -608,16 +759,16 @@ synth_micro <- sample_synthetic_lbbnn(dp_fit$model, n_syn = 2000, draws = 50)
 \vspace{-0.3em}
 \scriptsize
 ```r
-# 1. Format combined sample (S_c (+) S_r) & build dataloader with composite targets
-prep    <- build_propensity_dataset(pop, method = "LINK2", covar_cols = paste0("X", 1:p))
-dl_prop <- get_dataloaders(prep$data, target_cols = prep$target_cols, batch_size = 64)
+# 1. Format combined sample with vectorized linkage probabilities p_vec
+prep    <- build_propensity_dataset(pop, method = "MIP", covar_cols = paste0("X", 1:p), p_link = p_vec_r)
+dl_prop <- get_dataloaders(prep$data, target_cols = prep$target_cols, train_batch_size = 64, test_batch_size = 32)
 # 2. Fit LBBNN with composite Bernoulli loss anchored by pi_ri offset
-net_prop <- lbbnn_net(problem_type = "custom", sizes = c(p, 8, 1),
-                      link = torch::torch_sigmoid, nll = nll_link2)
-train_lbbnn(LBBNN = net_prop, train_dl = dl_prop, epochs = 150, lr = 0.02)
+net_prop <- lbbnn_net(problem_type = "custom", sizes = c(p, 8, 1), raw_output = TRUE, nll = make_nll_mip())
+train_lbbnn(LBBNN = net_prop, train_dl = dl_prop$train_loader, epochs = 150, lr = 0.02)
 # 3. Predict convenience propensities pi_c_hat & compute debiased Hajek mean
-pi_c_hat <- predict(net_prop, newdata = dl_prop, model_type = "mpm")[prep$Sc_indices]
-y_bar_hajek <- hajek_estimate(y = pop$y[pop$I.c == 1], pi_hat = pi_c_hat)
+logits_c    <- predict(net_prop, newdata = prep$data[prep$Sc_indices, 1:p], mpm = TRUE)
+pi_c_hat    <- as.numeric(torch::torch_sigmoid(torch::torch_tensor(logits_c)))
+y_bar_hajek <- hajek_estimate(y = pop$y[pop$I.c == 1], pi_hat = pi_c_hat, dirichlet_uq = TRUE)
 ```
 \normalsize
 
@@ -626,14 +777,14 @@ y_bar_hajek <- hajek_estimate(y = pop$y[pop$I.c == 1], pi_hat = pi_c_hat)
 \renewcommand{\arraystretch}{1.15}
 \begin{table}[ht]
 \centering
-\begin{tabular}{p{0.15\textwidth}p{0.18\textwidth}p{0.16\textwidth}p{0.45\textwidth}}
+\begin{tabular}{p{0.18\textwidth}p{0.18\textwidth}p{0.15\textwidth}p{0.43\textwidth}}
 \toprule
 \textbf{Step / Object} & \textbf{R Class / Type} & \textbf{Dimensions} & \textbf{Statistical Contents \& Role} \\
 \midrule
-\texttt{prep\$data} & \texttt{data.frame} & $[n_c + n_r, p + 2]$ & Covariates $\mathbf{X}$ and composite target columns $[I_{zi}, \pi_{ri}]$. \\
+\texttt{prep\$data} & \texttt{data.frame} & $[n_c + n_r, p + 4]$ & Covariates $\mathbf{X}$ and composite target columns $[D_i, I_{ci}, \pi_{ri}, \tilde{p}_i]$. \\
 \texttt{net\_prop} & \texttt{lbbnn\_net} (R6) & $p \to 8 \to 1$ & Custom net with composite Bernoulli loss and structural offset $\pi_{ri}$. \\
 \texttt{pi\_c\_hat} & \texttt{numeric} vector & $[n_c]$ & Estimated convenience propensities $\hat{\pi}_{ci} \in (0, 1)$ on $S_c$. \\
-\texttt{y\_bar\_hajek} & \texttt{numeric} scalar & Population mean & Self-normalizing debiased mean $\sum w_i y_i / \sum w_i$ ($w_i = \hat{\pi}_{ci}^{-1}$). \\
+\texttt{y\_bar\_hajek} & \texttt{data.frame} & Summary table & Debiased H\'{a}jek mean with 95\% Dirichlet Bayesian bootstrap credible interval. \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -643,10 +794,41 @@ y_bar_hajek <- hajek_estimate(y = pop$y[pop$I.c == 1], pi_hat = pi_c_hat)
 \scriptsize
 \begin{itemize}
   \setlength{\itemsep}{1pt}
-  \item \textbf{Offset Conditioning}: Exact reference probability $\pi_{ri}$ grounds unconstrained network logits $\eta_i$.
-  \item \textbf{Loss Stability}: Composite Bernoulli likelihood prevents the gradient explosion of pseudo-likelihood.
+  \item \textbf{Vectorized Linkage}: \texttt{make\_nll\_mip()} ingests unit-level linkage vector $\tilde{\mathbf{p}}$ elementwise during batching.
+  \item \textbf{Loss Stability}: Relative odds fractions naturally bound gradients, avoiding \texttt{PSEUDO} explosion.
 \end{itemize}
 \normalsize
+
+## Discussion — Bridging Track 2 Propensity Weights with Track 1 Regression
+
+\vspace{0.1em}
+\begin{columns}
+\begin{column}{0.50\textwidth}
+\textbf{Two-Stage Quasi-Randomization (Track 2):}
+\begin{itemize}
+  \item \textbf{Stage 1}: \texttt{LBBNN} propensity model estimates $\hat{\pi}_{ci} = \mathbb{P}(I_{ci} = 1 \mid \mathbf{x}_i)$.
+  \item \textbf{Stage 2}: Apply outcome-agnostic H\'{a}jek weights:
+  \small
+  $$\hat{w}_i = \hat{\pi}_{ci}^{-1}, \qquad \hat{\bar{Y}}_{\text{Hajek}} = \frac{\sum_{i \in S_c} \hat{w}_i y_i}{\sum_{i \in S_c} \hat{w}_i}$$
+  \normalsize
+  to any survey response variable $y_i$.
+  \item \textbf{Outcome-Only Sparsity}: Pruning $X_3$ (which predicts $Y$ but not $I_c$) prevents weight variance inflation.
+\end{itemize}
+\end{column}
+
+\begin{column}{0.50\textwidth}
+\textbf{Doubly Robust Pseudo-Posterior Imputation:}
+\begin{itemize}
+  \item \textbf{Bridging Track 2 $\to$ Track 1}: Normalize inverse propensity weights to sample size:
+  \small
+  $$\tilde{w}_i = \hat{\pi}_{ci}^{-1} \frac{n_c}{\sum_{j \in S_c} \hat{\pi}_{cj}^{-1}}$$
+  \normalsize
+  and feed $u_i = \tilde{w}_i$ directly into a \textbf{Track 1 LBBNN regression model} for $y_i$.
+  \item \textbf{Double Robustness}: Consistent if \emph{either} propensity model \emph{or} outcome regression is correctly specified.
+  \item Outcome model retains $X_3$ via spike-and-slab, recovering optimal predictive accuracy!
+\end{itemize}
+\end{column}
+\end{columns}
 
 # PART IV: Software Architecture, Key Takeaways & Synthesis
 
@@ -656,21 +838,23 @@ y_bar_hajek <- hajek_estimate(y = pop$y[pop$I.c == 1], pi_hat = pi_c_hat)
 \tiny
 \begin{table}[ht]
 \centering
-\begin{tabular}{p{3.6cm}p{2.6cm}p{7.0cm}}
+\begin{tabular}{p{3.8cm}p{2.4cm}p{7.2cm}}
 \toprule
 \textbf{Function / Module} & \textbf{Operational Track} & \textbf{Description \& Statistical Role} \\
 \midrule
-\texttt{get\_dataloaders()} & Track 1 \& 2 & Handles non-trainable weights $u_i \ge 0$, normalization, and multi-targets. \\
+\texttt{get\_dataloaders()} & Track 1 \& 2 & Handles non-trainable weights $u_i \ge 0$, normalization, missing $y_i$, and multi-targets. \\
 \texttt{lbbnn\_net(sigma, ...)} & Track 1 \& 2 & ELBO likelihood scaling by error variance $\sigma^2$ (cold-posterior protection). \\
-\texttt{loglik\_contributions()} & Track 1B (Privacy) & Computes $S \times n$ record-level log-likelihood contributions $L_{s, i}$. \\
-\texttt{fit\_dp\_lbbnn()} & Track 1B (Privacy) & Two-pass monotone surgical downweighting with Lipschitz bound $\Delta_{\alpha}$. \\
-\texttt{sample\_synthetic\_lbbnn()} & Track 1B (Privacy) & Generates $(\epsilon, \delta)$-DP synthetic microdata via post-processing theorem. \\
+\texttt{predict\_domains\_lbbnn()} & Track 1A (Surveys) & Vectorized domain means/totals, latent mean de-noising ($\hat{\mu}_i$), and Dirichlet UQ. \\
+\texttt{impute\_response\_lbbnn()} & Track 1A (Surveys) & Bayesian multiple imputation for missing outcomes ($y_i = \text{NA}$) via posterior predictive draws. \\
+\texttt{compute\_dp\_weights()} & Track 1B (Privacy) & Modular Stage 1 (\texttt{linear}, \texttt{percentile}, \texttt{target\_clip}) $\times$ Stage 2 (\texttt{hard\_trunc}, \texttt{vector\_upscale}). \\
+\texttt{fit\_dp\_lbbnn()} & Track 1B (Privacy) & Multi-pass $(\epsilon, \delta)$-PDP estimation; executes Pass 3 under vector upward rescaling. \\
+\texttt{sample\_synthetic\_lbbnn()} & Track 1B (Privacy) & Generates $(\epsilon, \delta)$-DP synthetic microdata via the post-processing theorem. \\
 \midrule
+\texttt{make\_nll\_mip(p\_link)} & Track 2 (Propensity) & Missing Information Principle NLL supporting scalar or vectorized unit-level linkage $\tilde{\mathbf{p}}$. \\
 \texttt{nll\_link1()} / \texttt{nll\_link2()} & Track 2 (Propensity) & Composite Bernoulli NLL on singly matched and matched-pair samples. \\
-\texttt{make\_nll\_mip(p\_link)} & Track 2 (Propensity) & Factory producing composite NLL under Missing Information Principle. \\
 \texttt{nll\_stack()} / \texttt{nll\_pseudo()} & Track 2 (Propensity) & Stacked pooled sample NLL and survey design-weighted pseudo-NLL. \\
 \texttt{build\_propensity\_dataset()} & Track 2 (Propensity) & Formats covariates and targets for any of the 5 estimation methods. \\
-\texttt{hajek\_estimate()} & Track 2 (Propensity) & Computes self-normalizing H\'{a}jek estimator $\sum w_i y_i / \sum w_i$ with $w_i = \hat{\pi}_{ci}^{-1}$. \\
+\texttt{hajek\_estimate()} & Track 1 \& 2 & Self-normalizing H\'{a}jek mean with optional domain matrix $\mathbf{G}$ and Dirichlet bootstrap UQ. \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -688,7 +872,7 @@ y_bar_hajek <- hajek_estimate(y = pop$y[pop$I.c == 1], pi_hat = pi_c_hat)
   \vspace{0.3em}
   \item \textbf{Two-Pass $(\epsilon, \delta)$-PDP Microdata Synthesis (Track 1B)}:
     \begin{itemize}
-      \item Monotone surgical downweighting (\texttt{fit\_dp\_lbbnn}) eliminates disclosure risk from extreme tail outliers ($\alpha_i = 0$) while preserving high utility ($\alpha_i \in [0.34, 0.85]$) on normal records.
+      \item Monotone surgical downweighting and vector upward rescaling (\texttt{fit\_dp\_lbbnn}) eliminate disclosure risk from extreme tail outliers ($\alpha_i = 0$) while preserving high utility ($\alpha_i \in [0.34, 0.85]$) on normal records.
     \end{itemize}
   \vspace{0.3em}
   \item \textbf{Composite Non-Probability Sample Integration (Track 2)}:
@@ -709,8 +893,8 @@ y_bar_hajek <- hajek_estimate(y = pop$y[pop$I.c == 1], pi_hat = pi_c_hat)
   \item \textbf{Beresovsky, V., Gershunskaya, J., \& Savitsky, T. D.} (2024). \textit{Review of quasi-randomization approaches for estimation from non-probability samples}. Statistical Science (arXiv:2312.05383).
   \item \textbf{Savitsky, T. D., Williams, M. R., \& Hu, J.} (2022). \textit{Bayesian pseudo posterior mechanism under asymptotic differential privacy}. Journal of Machine Learning Research, 23(232), 1--37.
   \item \textbf{Savitsky, T. D., \& Toth, D.} (2016). \textit{Bayesian estimation under informative sampling}. Electronic Journal of Statistics, 10(1), 1677--1708.
+  \item \textbf{Savitsky, T. D.} (2026). \textit{Privacy weight normalization and second-stage reweighting strategies in asymptotic differential privacy}. U.S. Bureau of Labor Statistics Report.
   \item \textbf{Meng, X.-L.} (2018). \textit{Statistical paradises and paradoxes in big data (I): Law of large populations, big data paradox, and the 2016 US presidential election}. The Annals of Applied Statistics, 12(2), 685--726.
-  \item \textbf{Chen, Y., Li, P., \& Wu, C.} (2020). \textit{Doubly robust inference with nonprobability survey samples}. Journal of the American Statistical Association, 115(532), 2011--2021.
 \end{enumerate}
 \normalsize
 \end{column}
@@ -720,6 +904,7 @@ y_bar_hajek <- hajek_estimate(y = pop$y[pop$I.c == 1], pi_hat = pi_c_hat)
 \begin{enumerate}
   \setlength{\itemsep}{1.5pt}
   \setcounter{enumi}{5}
+  \item \textbf{Chen, Y., Li, P., \& Wu, C.} (2020). \textit{Doubly robust inference with nonprobability survey samples}. Journal of the American Statistical Association, 115(532), 2011--2021.
   \item \textbf{Skaaret-Lund, L., H{\o}yheim, E., \& Hubin, A.} (2026). \textit{LBBNN: An R Package for Sparse and Explainable Bayesian Deep Learning with Latent Binary Bayesian Neural Networks}. The R Journal, 18(3), RJ-2026-048.
   \item \textbf{Hubin, A., \& Storvik, G.} (2024). \textit{Sparse Bayesian neural networks: Bridging model and parameter uncertainty through scalable variational learning}. Mathematics, 12(6), 788.
   \item \textbf{Skaaret-Lund, L., Storvik, G., \& Hubin, A.} (2024). \textit{Sparsifying Bayesian neural networks with latent binary variables and normalizing flows}. Transactions on Machine Learning Research, ISSN: 2835-8856.

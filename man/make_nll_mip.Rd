@@ -7,7 +7,7 @@
 make_nll_mip(p_link = 0.5)
 }
 \arguments{
-\item{p_link}{Numeric between 0 and 1 specifying linkage informativeness.
+\item{p_link}{Numeric between 0 and 1 specifying linkage informativeness (scalar or vector).
 Default is 0.5 (intermediate probabilistic linkage). When 1, coincides with exact linkage (LINK2);
 when 0, represents unlinked data.}
 }
@@ -18,5 +18,6 @@ A closure function accepting \code{(input, target, reduction = "sum")}.
 Constructs a composite loss function for probabilistically linked stacked samples
 \eqn{S = S_c \oplus S_r} with linkage informativeness \eqn{p_{\text{link}} \in [0, 1]}.
 Under the Missing Information Principle, the soft target indicator for \eqn{S_r} units is
-\eqn{p_i = p_{\text{link}} I_{ci} + (1 - p_{\text{link}}) \hat{\pi}_{ci}}.
+\eqn{p_i = p_{\text{link}} I_{ci} + (1 - p_{\text{link}}) \hat{\pi}_{ci}}. Supports either a global scalar
+\eqn{p_{\text{link}}} or a user-supplied unit-level marginal linkage probability vector \eqn{\tilde{\mathbf{p}} = (\tilde{p}_1, \dots, \tilde{p}_n)^\top}.
 }

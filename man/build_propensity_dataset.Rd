@@ -7,23 +7,20 @@
 build_propensity_dataset(
   pop,
   method = c("STACK", "LINK1", "LINK2", "MIP", "PSEUDO"),
-  covar_cols = paste0("X", 1:10)
+  covar_cols = paste0("X", 1:10),
+  p_link = NULL
 )
 }
 \arguments{
-\item{pop}{Data frame with drawn samples (\code{I.c} and \code{I.r}).}
-
-\item{method}{Character string: \code{"STACK"}, \code{"LINK1"}, \code{"LINK2"}, \code{"MIP"}, or \code{"PSEUDO"}.}
-
-\item{covar_cols}{Character vector of covariate column names. Default is \code{paste0("X", 1:10)}.}
+\item{p_link}{Optional numeric scalar or vector of linkage probabilities for \code{"MIP"}.
+If a vector, it can have length \eqn{n_r} (for reference sample \eqn{S_r}) or length \eqn{n_c + n_r}.}
 }
 \value{
 A list containing:
 \item{data}{A \code{data.frame} with covariates and the target columns packed at the end.}
-\item{target_cols}{Integer number of target columns (2 for STACK/LINK1/LINK2/PSEUDO, 3 for MIP).}
+\item{target_cols}{Integer number of target columns (2 for STACK/LINK1/LINK2/PSEUDO, 3 or 4 for MIP).}
 \item{Sc_indices}{Row indices in \code{data} corresponding to the convenience sample \eqn{S_c}.}
 }
 \description{
 Formats covariates and target matrices for the 5 composite likelihood methods
-(\code{"STACK"}, \code{"LINK1"}, \code{"LINK2"}, \code{"MIP"}, \code{"PSEUDO"}).
 }
