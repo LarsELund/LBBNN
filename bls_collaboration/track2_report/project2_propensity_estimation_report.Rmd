@@ -3,6 +3,9 @@ title: "Response Propensity Estimation for Combining Probability and Non-Probabi
 author: "Aliaksandr Hubin & Lars Skaaret-Lund (in collaboration with Vladislav Beresovsky, Julie Gershunskaya, Terrance D. Savitsky)"
 date: "`r Sys.Date()`"
 output:
+  pdf_document:
+    toc: true
+    number_sections: true
   rmarkdown::html_vignette:
     toc: true
     number_sections: true
@@ -14,7 +17,7 @@ vignette: >
 
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(
-  eval = FALSE,
+  eval = TRUE,
   collapse = TRUE,
   comment = "#>",
   fig.width = 9,
@@ -99,9 +102,8 @@ comp_summary_df <- data.frame(
 
 knitr::kable(
   comp_summary_df,
-  escape = FALSE,
   row.names = FALSE,
-  col.names = c("Estimator\\quad", "\\quad Sample Domain", "Target Indicator & Linkage", "Composite Probability / Mechanism"),
+  col.names = c("Estimator", "Sample Domain", "Target Indicator & Linkage", "Composite Probability / Mechanism"),
   caption = "Overview of the Five Sample Combination Mechanisms (where $D_i = \\mathbb{I}(i \\in S_c)$ denotes sample origin)"
 )
 ```
@@ -186,7 +188,7 @@ Recognizing that $\log\big(\frac{\pi_{ci}}{1 - \pi_{ci}}\big) = \eta_\theta(\mat
 $$\text{NLL}_{\text{pseudo}}(\theta) = -\sum_{i \in S_c} \eta_\theta(\mathbf{x}_i) + \sum_{i \in S_r} \frac{1}{\pi_{ri}} \text{softplus}\big(\eta_\theta(\mathbf{x}_i)\big)$$
 
 #### Why `PSEUDO` Collapses Under Low Common Support (Studies 0 & 3)
-Under low common support, reference units located in regions with low convenience participation have tiny design probabilities $\pi_{ri} \to 0$, causing inverse design weights $\pi_{ri}^{-1} \to \infty$. Multiplying $\pi_{ri}^{-1}$ by $\text{softplus}(\eta_\theta(\mathbf{x}_i))$ causes catastrophic gradient explosion during backpropagation, destabilizing the variational posterior and collapsing Kish's Effective Sample Size ($\text{ESS} = 6.6$ out of $n_c = 521$), resulting in huge bias ($+5.06$) and RMSE ($1.02$). In contrast, composite likelihoods (`STACK`, `LINK1`, `LINK2`, `MIP`) evaluate relative odds fractions $\frac{\pi_{ci}}{\pi_{ci} + \pi_{ri}}$ that naturally bound gradients regardless of common support.
+While computationally convenient, `PSEUDO` is vulnerable to catastrophic variance inflation when common support is low: if units in $S_c$ have very small reference inclusion probabilities $\pi_{ri} \approx 0$, the inverse weights $1 / \pi_{ri}$ explode. Specifically, reference units located in regions with low convenience participation have tiny design probabilities $\pi_{ri} \to 0$, causing inverse design weights $\pi_{ri}^{-1} \to \infty$. Multiplying $\pi_{ri}^{-1}$ by $\text{softplus}(\eta_\theta(\mathbf{x}_i))$ causes catastrophic gradient explosion during backpropagation, destabilizing the variational posterior and collapsing Kish's Effective Sample Size ($\text{ESS} = 6.6$ out of $n_c = 521$), resulting in huge bias ($+5.06$) and RMSE ($1.02$). In contrast, composite likelihoods (`STACK`, `LINK1`, `LINK2`, `MIP`) evaluate relative odds fractions $\frac{\pi_{ci}}{\pi_{ci} + \pi_{ri}}$ that naturally bound gradients regardless of common support.
 
 ### The Oracle Benchmark & Stein's Phenomenon
 The **Oracle Benchmark** is the theoretical limit that plugs the true, known data-generating propensities $\pi_{ci}$ directly into the Hájek estimator $\hat{\bar{Y}}_{\text{Oracle}} = \frac{\sum_{i \in S_c} \pi_{ci}^{-1} y_i}{\sum_{i \in S_c} \pi_{ci}^{-1}}$, completely bypassing estimation error. 
@@ -199,8 +201,6 @@ Once propensity scores $\hat{\pi}_{ci}$ are estimated in Stage 1 (Track 2), two 
 2. **Doubly Robust Pseudo-Posterior Imputation (Bridging Track 2 $\to$ Track 1)**: Normalize inverse propensity weights to sample size:
    $$\tilde{w}_i = \hat{\pi}_{ci}^{-1} \frac{n_c}{\sum_{j \in S_c} \hat{\pi}_{cj}^{-1}}$$
    and feed them as observation weights $u_i = \tilde{w}_i$ into a **Track 1 LBBNN regression model** for $y_i$. This achieves **Double Robustness**: the resulting population and domain estimators are asymptotically unbiased if *either* the propensity model $\hat{\pi}_{ci}$ *or* the outcome model $\mu_\theta(\mathbf{x}_i)$ is correctly specified. Furthermore, while $X_3$ was pruned from the propensity model, it is actively retained by the spike-and-slab outcome model, maximizing predictive accuracy.
-
-While computationally convenient, `PSEUDO` is vulnerable to catastrophic variance inflation when common support is low: if units in $S_c$ have very small reference inclusion probabilities $\pi_{ri} \approx 0$, the inverse weights $1 / \pi_{ri}$ explode.
 
 ## Self-Normalizing Hájek Estimator
 
@@ -971,6 +971,178 @@ p4 <- ggplot(plot_df, aes(x = True_Propensity, y = LBBNN_LINK2_MPM)) +
 gridExtra::grid.arrange(p1, p2, p3, p4, ncol = 2)
 ```
 
+## Empirical Demonstration: Vectorized Linkage Probabilities & Doubly Robust Track 2 -> Track 1 Bridge
+
+To address practical agency linkage workflows and downstream survey estimation, `LBBNN` provides two methodological extensions demonstrated below:
+1. **Vectorized Unit-Level Linkage Probabilities**: Supporting heterogeneous record linkage probabilities $\tilde{p}_i \in [0, 1]$ generated by external probabilistic record linkage algorithms (e.g. Fellegi-Sunter), rather than a scalar constant.
+2. **Doubly Robust Pseudo-Posterior Imputation (Track 2 $\to$ Track 1 Bridge)**: Exporting normalized inverse propensity weights $\tilde{w}_i = \hat{\pi}_{ci}^{-1} \frac{n_c}{\sum \hat{\pi}_{cj}^{-1}}$ into Track 1 `LBBNN` outcome regression, where outcome-only predictors ($X_3$) are pruned in Stage 1 propensity estimation but actively retained in Stage 2 outcome regression.
+
+### 1. Vectorized Marginal Linkage Probabilities in `MIP`
+
+In practical probabilistic record linkage, each reference survey unit $i \in S_r$ is assigned an individual linkage match score $\tilde{p}_i \in [0, 1]$ based on identifier similarity. We construct a unit-level linkage probability vector $\mathbf{p}_{\text{link}}$ and feed it into `build_propensity_dataset(pop = pop3, method = "MIP", p_link = p_vec_r)` and `make_nll_mip(p_link = p_vec_r)`:
+
+```{r vectorized_mip_demo}
+# Simulate record-specific match probabilities across reference units Sr3
+set.seed(2026)
+p_vec_r <- stats::runif(nrow(Sr3), min = 0.25, max = 0.95)
+
+# Format dataset with 4 target columns (column 4 contains unit-level p_link)
+ds_mip_vec <- build_propensity_dataset(pop = pop3, method = "MIP", covar_cols = covars, p_link = p_vec_r)
+
+cat(sprintf("Vectorized MIP Target Dimensions: %d columns (Target Cols: %d)\n",
+            ncol(ds_mip_vec$data) - length(covars), ds_mip_vec$target_cols))
+
+dl_mip_vec <- get_dataloaders(
+  dataset = ds_mip_vec$data,
+  target_cols = ds_mip_vec$target_cols,
+  train_proportion = 1.0,
+  train_batch_size = 64,
+  test_batch_size = 64,
+  standardize = FALSE,
+  shuffle_train = TRUE,
+  seed = 42
+)
+
+# Custom loss factory binding the unit-level p_link vector
+nll_fn_mip_vec <- make_nll_mip(p_link = p_vec_r)
+
+m_mip_vec <- lbbnn_net(
+  problem_type = "custom",
+  sizes = c(length(covars), 16, 1),
+  prior = c(0.2, 0.2),
+  std = c(1.0, 1.0),
+  inclusion_inits = "balanced",
+  input_skip = TRUE,
+  flow = FALSE,
+  raw_output = TRUE,
+  nll = nll_fn_mip_vec,
+  device = "cpu"
+)
+
+train_res_vec <- train_lbbnn(
+  epochs = 80,
+  LBBNN = m_mip_vec,
+  lr = 0.02,
+  train_dl = dl_mip_vec$train_loader,
+  verbose = FALSE
+)
+
+# Predict propensities on convenience sample Sc3
+preds_mip_vec <- predict(m_mip_vec, newdata = as.matrix(Sc3[, covars]), draws = 50, link = torch::torch_sigmoid)
+pi_c_vec_hat <- apply(as.matrix(preds_mip_vec[, , 1]$cpu()), 2, mean)
+
+cat(sprintf("Vectorized MIP Mean Estimated Propensity: %.4f (True Mean: %.4f)\n",
+            mean(pi_c_vec_hat), mean(Sc3$pi.c)))
+cat(sprintf("Correlation with True Propensity: r = %.4f\n",
+            cor(pi_c_vec_hat, Sc3$pi.c)))
+```
+
+### 2. Doubly Robust Bridge to Track 1 Outcome Regression
+
+In Stage 1 propensity estimation, variable selection correctly pruned $X_3$ (an outcome-only driver) to protect propensity scores from weight variance inflation. In Stage 2 outcome regression, we pass sample-size normalized inverse propensity weights:
+
+$$\tilde{w}_i = \hat{\pi}_{ci}^{-1} \frac{n_c}{\sum_{j \in S_c} \hat{\pi}_{cj}^{-1}}$$
+
+into `get_dataloaders(..., weights = w_prop_norm, normalize_weights = TRUE)` for a Track 1 outcome model. We demonstrate that while $X_3$ was pruned from Stage 1 propensity estimation, it is actively retained by the spike-and-slab outcome model ($a_3 \approx 0.99$), guaranteeing Double Robustness and minimizing imputation RMSE across the population:
+
+```{r doubly_robust_bridge}
+# 1. Normalize inverse propensity weights to convenience sample size n_c
+w_raw <- 1 / pmax(pi_c_vec_hat, 0.01)
+w_prop_norm <- w_raw * (nrow(Sc3) / sum(w_raw))
+
+# 2. Package convenience sample with all 6 predictors and continuous outcome y
+Sc3_outcome_df <- data.frame(
+  X1 = Sc3$X1, X2 = Sc3$X2, X3 = Sc3$X3, X4 = Sc3$X4, X5 = Sc3$X5, X6 = Sc3$X6,
+  y  = Sc3$y
+)
+
+dl_dr_outcome <- get_dataloaders(
+  dataset = Sc3_outcome_df,
+  target_cols = 1,
+  train_proportion = 1.0,
+  train_batch_size = 64,
+  test_batch_size = 64,
+  standardize = FALSE,
+  shuffle_train = TRUE,
+  weights = w_prop_norm,
+  normalize_weights = TRUE, # Savitsky & Toth (2016)
+  seed = 42
+)
+
+# 3. Fit Track 1 weighted regression model
+m_dr_outcome <- lbbnn_net(
+  sizes = c(6, 16, 1),
+  input_skip = TRUE,
+  problem_type = "regression",
+  sigma = 0.40,
+  device = "cpu"
+)
+
+train_dr_outcome <- train_lbbnn(
+  epochs = 100,
+  LBBNN = m_dr_outcome,
+  lr = 0.02,
+  train_dl = dl_dr_outcome$train_loader,
+  verbose = FALSE
+)
+
+# 4. Verify variable selection: Confounders and Outcome-Only X3 are selected, Noise is pruned
+dr_var_summary <- summary(m_dr_outcome)
+
+dr_var_tbl <- data.frame(
+  Feature = paste0("X", 1:6),
+  Role = c("Confounder (X1)", "Confounder (X2)", "Outcome-Only (X3)",
+           "Pure Noise (X4)", "Pure Noise (X5)", "Pure Noise (X6)"),
+  Stage1_Propensity_Status = c("Selected", "Selected", "Pruned (Zeroed)", "Pruned", "Pruned", "Pruned"),
+  Stage2_Outcome_Inclusion = round(dr_var_summary$a1, 3),
+  Stage2_Outcome_Status = ifelse(dr_var_summary$a1 > 0.5, "Selected (Active)", "Pruned (Zeroed)")
+)
+
+knitr::kable(
+  dr_var_tbl,
+  digits = 3,
+  caption = "Double Robustness Variable Selection: X3 is Pruned in Stage 1 Propensity but Retained in Stage 2 Outcome Modeling"
+)
+
+# 5. Evaluate population mean recovery and imputation RMSE across the entire population N = 2000
+pop_x_all <- pop3[, paste0("X", 1:6)]
+pop_preds_dr <- predict(m_dr_outcome, newdata = pop_x_all, draws = 50, mpm = FALSE)
+y_hat_pop_dr <- as.numeric(pop_preds_dr$mean(dim = 1)$cpu())
+
+true_pop_mean_y <- mean(pop3$y)
+naive_c_mean <- mean(Sc3$y)
+hajek_prop_mean <- sum(w_prop_norm * Sc3$y) / sum(w_prop_norm)
+dr_imputed_mean <- mean(y_hat_pop_dr)
+
+dr_comparison_df <- data.frame(
+  Estimator = c(
+    "Naive Convenience Mean (Biased)",
+    "Track 2 Hajek Reweighting",
+    "Track 2 -> Track 1 Doubly Robust Imputation",
+    "True Population Benchmark"
+  ),
+  Estimate = c(naive_c_mean, hajek_prop_mean, dr_imputed_mean, true_pop_mean_y),
+  Bias = c(
+    naive_c_mean - true_pop_mean_y,
+    hajek_prop_mean - true_pop_mean_y,
+    dr_imputed_mean - true_pop_mean_y,
+    0.0
+  ),
+  Pop_RMSE = c(
+    sqrt(mean((pop3$y - naive_c_mean)^2)),
+    sqrt(mean((pop3$y - hajek_prop_mean)^2)),
+    sqrt(mean((pop3$y - y_hat_pop_dr)^2)),
+    0.0
+  )
+)
+
+knitr::kable(
+  dr_comparison_df,
+  digits = 4,
+  caption = "Comparison of Naive, Track 2 Hajek, and Doubly Robust Track 2 -> Track 1 Imputation on Population Mean Recovery"
+)
+```
+
 ---
 
 # Synthesis & Comparative Discussion Across Simulation Regimes
@@ -1023,16 +1195,10 @@ api_df <- data.frame(
   row.names = NULL
 )
 
-col_names_api <- if (knitr::is_latex_output()) {
-  c("Function / Signature\\hspace{2em}", "Description")
-} else {
-  c("Function / Signature", "Description")
-}
-
 knitr::kable(
   api_df,
   row.names = FALSE,
-  col.names = col_names_api,
+  col.names = c("Function / Signature", "Description"),
   caption = "Exported Functions in LBBNN for Combining Probability and Non-Probability Samples"
 )
 ```

@@ -67,7 +67,7 @@ p_slide6 <- ggplot(grid_df, aes(x = x1, y = x2, fill = Region)) +
     legend.text = element_text(size = 7.5),
     plot.title = element_text(size = 9.5, face = "bold"),
     plot.subtitle = element_text(size = 7.5),
-    plot.margin = margin(5, 10, 5, 5)
+    plot.margin = margin(8, 8, 8, 10)
   )
 
 save_fig("jsm_polyhedral_regions.pdf", p_slide6, width = 5.6, height = 4.0)
@@ -379,7 +379,7 @@ s0_colors <- c("GLM (Linear)" = "#e74c3c", "LBBNN (BMA)" = "#2980b9", "LBBNN (MP
 p23_a <- ggplot(df_s0_h, aes(x = Formulation, y = RMSE, fill = Method)) +
   geom_col(position = position_dodge(width = 0.78), width = 0.70) +
   geom_hline(yintercept = 0.204, linetype = "dashed", color = "#2c3e50", linewidth = 0.7) +
-  annotate("text", x = 5.2, y = 0.204, label = "Oracle (0.204)", vjust = -0.4, hjust = 1.0, size = 2.4, color = "#2c3e50", fontface = "bold") +
+  annotate("text", x = 5.4, y = 0.204, label = "Oracle (0.204)", vjust = -0.7, hjust = 1.0, size = 2.4, color = "#2c3e50", fontface = "bold") +
   geom_text(aes(label = sprintf("%.2f", RMSE)), position = position_dodge(width = 0.78),
             vjust = -0.3, size = 2.1, fontface = "bold") +
   scale_fill_manual(values = s0_colors) +
@@ -401,7 +401,7 @@ p23_a <- ggplot(df_s0_h, aes(x = Formulation, y = RMSE, fill = Method)) +
 p23_b <- ggplot(df_s0_l, aes(x = Formulation, y = RMSE, fill = Method)) +
   geom_col(position = position_dodge(width = 0.78), width = 0.70) +
   geom_hline(yintercept = 0.224, linetype = "dashed", color = "#2c3e50", linewidth = 0.7) +
-  annotate("text", x = 1.0, y = 0.224, label = "Oracle (0.224)", vjust = -0.4, hjust = 0.0, size = 2.4, color = "#2c3e50", fontface = "bold") +
+  annotate("text", x = 5.4, y = 0.224, label = "Oracle (0.224)", vjust = -0.7, hjust = 1.0, size = 2.4, color = "#2c3e50", fontface = "bold") +
   geom_text(aes(label = sprintf("%.2f", RMSE)), position = position_dodge(width = 0.78),
             vjust = -0.3, size = 2.1, fontface = "bold") +
   scale_fill_manual(values = s0_colors) +
@@ -459,7 +459,8 @@ p_slide24 <- ggplot(s1_vars, aes(x = Prob, y = Variable, color = Status)) +
     legend.title = element_blank(),
     legend.text = element_text(size = 8),
     plot.title = element_text(size = 9.5, face = "bold"),
-    plot.subtitle = element_text(size = 7.5)
+    plot.subtitle = element_text(size = 7.5),
+    plot.margin = margin(8, 8, 8, 10)
   )
 
 save_fig("track2_study1_lollipop.pdf", p_slide24, width = 5.6, height = 3.8)
@@ -488,7 +489,7 @@ p25_a <- ggplot(grid_p2, aes(x = x1, y = x2, fill = pi_c)) +
     legend.key.width = unit(0.8, "cm"),
     legend.key.height = unit(0.25, "cm"),
     plot.title = element_text(size = 9.0, face = "bold"),
-    plot.margin = margin(8, 8, 5, 5)
+    plot.margin = margin(8, 8, 8, 10)
   )
 
 prep_s2 <- function(df) {
@@ -510,7 +511,7 @@ s2_colors <- c("GLM (Linear)" = "#e74c3c", "LBBNN (BMA)" = "#2980b9", "LBBNN (MP
 p25_b <- ggplot(df_s2, aes(x = Formulation, y = Abs_Error, fill = Method)) +
   geom_col(position = position_dodge(width = 0.78), width = 0.70) +
   geom_hline(yintercept = 0.205, linetype = "dashed", color = "#2c3e50", linewidth = 0.7) +
-  annotate("text", x = 1.0, y = 0.205, label = "Oracle (|Bias| = 0.205)", vjust = -0.4, hjust = 0.0, size = 2.4, color = "#2c3e50", fontface = "bold") +
+  annotate("text", x = 5.4, y = 0.205, label = "Oracle (|Bias| = 0.205)", vjust = -0.7, hjust = 1.0, size = 2.4, color = "#2c3e50", fontface = "bold") +
   geom_text(aes(label = sprintf("%.2f", Abs_Error)), position = position_dodge(width = 0.78),
             vjust = -0.3, size = 2.1, fontface = "bold") +
   scale_fill_manual(values = s2_colors) +
@@ -526,7 +527,7 @@ p25_b <- ggplot(df_s2, aes(x = Formulation, y = Abs_Error, fill = Method)) +
     legend.key.size = unit(0.35, "cm"),
     plot.title = element_text(size = 8.5, face = "bold"),
     plot.subtitle = element_text(size = 7.0, color = "#27ae60"),
-    plot.margin = margin(5, 5, 5, 5)
+    plot.margin = margin(8, 8, 8, 10)
   )
 
 p_slide25 <- plot_grid(p25_a, p25_b, ncol = 2, rel_widths = c(0.85, 1.25))
@@ -556,7 +557,7 @@ s3_colors <- c("GLM (Linear)" = "#e74c3c", "LBBNN (BMA)" = "#2980b9", "LBBNN (MP
 p26_a <- ggplot(df_s3, aes(x = Formulation, y = Kish_ESS, fill = Method)) +
   geom_col(position = position_dodge(width = 0.78), width = 0.70) +
   geom_hline(yintercept = 183.7, linetype = "dashed", color = "#2c3e50", linewidth = 0.7) +
-  annotate("text", x = 1.0, y = 183.7, label = "Oracle ESS = 183.7", vjust = -0.4, hjust = 0.0, size = 2.4, color = "#2c3e50", fontface = "bold") +
+  annotate("text", x = 5.4, y = 183.7, label = "Oracle ESS = 183.7", vjust = -0.7, hjust = 1.0, size = 2.4, color = "#2c3e50", fontface = "bold") +
   geom_text(aes(label = sprintf("%.0f", Kish_ESS)), position = position_dodge(width = 0.78),
             vjust = -0.3, size = 2.1, fontface = "bold") +
   scale_fill_manual(values = s3_colors) +
@@ -572,13 +573,13 @@ p26_a <- ggplot(df_s3, aes(x = Formulation, y = Kish_ESS, fill = Method)) +
     legend.key.size = unit(0.35, "cm"),
     plot.title = element_text(size = 8.5, face = "bold"),
     plot.subtitle = element_text(size = 7.0, color = "#2980b9"),
-    plot.margin = margin(5, 5, 5, 5)
+    plot.margin = margin(8, 8, 8, 10)
   )
 
 p26_b <- ggplot(df_s3, aes(x = Formulation, y = Abs_Error, fill = Method)) +
   geom_col(position = position_dodge(width = 0.78), width = 0.70) +
   geom_hline(yintercept = 0.040, linetype = "dashed", color = "#2c3e50", linewidth = 0.7) +
-  annotate("text", x = 1.0, y = 0.040, label = "Oracle (|Bias| = 0.04)", vjust = -0.4, hjust = 0.0, size = 2.4, color = "#2c3e50", fontface = "bold") +
+  annotate("text", x = 5.4, y = 0.040, label = "Oracle (|Bias| = 0.04)", vjust = -0.7, hjust = 1.0, size = 2.4, color = "#2c3e50", fontface = "bold") +
   geom_text(aes(label = sprintf("%.2f", Abs_Error)), position = position_dodge(width = 0.78),
             vjust = -0.3, size = 2.1, fontface = "bold") +
   scale_fill_manual(values = s3_colors) +

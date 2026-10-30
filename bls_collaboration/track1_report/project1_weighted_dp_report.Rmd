@@ -4,6 +4,9 @@ subtitle: "Technical Report & Collaborative Vignette (BLS - LBBNN Track 1)"
 author: "Aliaksandr Hubin & Lars Skaaret-Lund (in collaboration with Terrance D. Savitsky, Matthew R. Williams, Vladislav Beresovsky)"
 date: "`r Sys.Date()`"
 output:
+  pdf_document:
+    toc: true
+    number_sections: true
   rmarkdown::html_vignette:
     toc: true
     number_sections: true
@@ -15,7 +18,7 @@ vignette: >
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
-  eval = FALSE,
+  eval = TRUE,
   echo = TRUE,
   message = FALSE,
   warning = FALSE,
@@ -506,6 +509,73 @@ ggplot(plot_df, aes(x = Y, color = Source, fill = Source)) +
   )
 ```
 
+### Domain-Level Estimation, Missing Response Imputation, and Dirichlet UQ
+
+To support official statistical operations requiring sub-population domain estimation and item non-response imputation under informative sampling (Savitsky & Toth, 2016), `LBBNN` provides `predict_domains_lbbnn()` and `impute_response_lbbnn()`.
+
+#### Domain-Level Sub-Population Estimation with Dirichlet UQ
+
+We partition sample units into three geographic regions (North, Central, South) defined by covariate $X_1$, constructing a 3-domain indicator matrix $\mathbf{G}_{\text{dom}} \in \mathbb{R}^{n \times 3}$. Using the trained survey-weighted model `m_weighted` with design weights `weights_survey`, we evaluate domain means, totals, standard errors, and credible intervals equipped with Dirichlet Bayesian bootstrap uncertainty quantification ($\boldsymbol{\xi}^{(s)} \sim \text{Dirichlet}(1, \dots, 1)$):
+
+```{r domain_estimation}
+# 1. Construct 3-domain indicator matrix G_dom based on regional covariate x1
+dom_factor <- cut(
+  sample_df$x1,
+  breaks = c(-Inf, -0.4, 0.4, Inf),
+  labels = c("Region_North", "Region_Central", "Region_South")
+)
+G_dom <- stats::model.matrix(~ dom_factor - 1)
+colnames(G_dom) <- c("Region_North", "Region_Central", "Region_South")
+
+# 2. Run domain estimation with Dirichlet UQ and latent mean predictions
+domain_est <- predict_domains_lbbnn(
+  object = m_weighted,
+  newdata = sample_df[, 1:4],
+  domain_matrix = G_dom,
+  weights = weights_survey,
+  type = "latent_mean",
+  dirichlet_uq = TRUE,
+  draws = 50
+)
+
+knitr::kable(
+  domain_est,
+  digits = 3,
+  row.names = FALSE,
+  caption = "Domain-Level Posterior Estimates with Dirichlet Bayesian Bootstrap Uncertainty Quantification"
+)
+```
+
+#### Bayesian Response Imputation for Missing Outcomes ($y_i = \text{NA}$)
+
+When survey units experience item non-response, `impute_response_lbbnn()` performs Bayesian multiple imputation via posterior predictive draws $\tilde{y}_i^{(s)} \sim \mathcal{N}(\mu_\theta(\mathbf{x}_i), \hat{\sigma}^2)$ conditioned on observed covariates $\mathbf{x}_i$. To evaluate imputation RMSE empirically against known ground truth, we randomly mask $10\%$ of observed response values in `sample_df`:
+
+```{r response_imputation}
+# 1. Randomly mask 10% of response values to simulate item non-response
+set.seed(2026)
+sample_df_masked <- sample_df
+n_masked <- round(0.10 * nrow(sample_df))
+masked_idx <- sample(seq_len(nrow(sample_df)), size = n_masked)
+true_masked_y <- sample_df$y[masked_idx]
+sample_df_masked$y[masked_idx] <- NA
+
+# 2. Perform Bayesian multiple predictive imputation
+impute_out <- impute_response_lbbnn(
+  object = m_weighted,
+  newdata = sample_df_masked,
+  target_col = "y",
+  draws = 50,
+  type = "predictive"
+)
+
+# 3. Compute imputation RMSE on the masked subset
+imputed_y_hat <- impute_out$completed_data$y[masked_idx]
+impute_rmse <- sqrt(mean((imputed_y_hat - true_masked_y)^2))
+
+cat(sprintf("Total Masked Units: %d (10.0%% of sample)\n", n_masked))
+cat(sprintf("Missing Response Imputation RMSE: %.4f (Data Noise Floor sigma = 0.40)\n", impute_rmse))
+```
+
 ---
 
 # Example 2: Two-Pass Differential Privacy Pseudo-Posterior Synthesizer
@@ -629,7 +699,7 @@ The monotone surgical construction performs cleanly:
 
 ### Comparing Stage 1 & Stage 2 Weight Calibration Schemes (Savitsky, Oct 29, 2026)
 
-To understand how each Stage 1 normalization and Stage 2 reweighting strategy behaves on this sensitive expenditure dataset, we calibrate weights across the four key strategies proposed by Savitsky (2026) using `compute_dp_weights()` at $M_{\text{thresh}} = 5.5$:
+To understand how each Stage 1 normalization and Stage 2 reweighting strategy behaves on this sensitive expenditure dataset ($n = 300$), we calibrate weights across the key strategies proposed by Savitsky (Oct 29, 2026) using `compute_dp_weights()` at $M_{\text{thresh}} = 5.5$:
 
 ```{r dp_compare_schemes}
 f_curr <- dp_results$f_vec
@@ -643,36 +713,46 @@ sch_pct_hard <- compute_dp_weights(f_curr, stage1_method = "percentile", stage2_
                                     M_thresh = M_curr)
 sch_clip_vec <- compute_dp_weights(f_curr, stage1_method = "target_clip", stage2_method = "vector_upscale",
                                     Delta_goal = M_curr, M_thresh = M_curr)
+sch_recip_lin <- compute_dp_weights(f_curr, stage1_method = "reciprocal_linear", stage2_method = "surgical",
+                                     c_scale = 0.85, M_thresh = M_curr)
 
 comp_df <- data.frame(
-  `Stage 1 Method` = c("linear (c=0.85)", "linear (c=0.85)", "percentile (p=0.05, 0.95)", "target_clip"),
-  `Stage 2 Method` = c("surgical (Baseline)", "hard_trunc", "hard_trunc", "vector_upscale"),
+  `Stage 1 Method` = c("linear (c=0.85)", "linear (c=0.85)", "percentile (p=0.05, 0.95)",
+                       "target_clip", "reciprocal_linear (Remark 1)"),
+  `Stage 2 Method` = c("surgical (Baseline)", "hard_trunc", "hard_trunc",
+                       "vector_upscale", "surgical"),
   `Effective N (sum alpha)` = c(round(sum(sch_lin_surg$alpha), 1), round(sum(sch_lin_hard$alpha), 1),
-                                round(sum(sch_pct_hard$alpha), 1), round(sum(sch_clip_vec$alpha), 1)),
+                                round(sum(sch_pct_hard$alpha), 1), round(sum(sch_clip_vec$alpha), 1),
+                                round(sum(sch_recip_lin$alpha), 1)),
   `Full Weight (alpha=1)` = c(sprintf("%.1f%%", 100 * mean(sch_lin_surg$alpha >= 0.999)),
                               sprintf("%.1f%%", 100 * mean(sch_lin_hard$alpha >= 0.999)),
                               sprintf("%.1f%%", 100 * mean(sch_pct_hard$alpha >= 0.999)),
-                              sprintf("%.1f%%", 100 * mean(sch_clip_vec$alpha >= 0.999))),
+                              sprintf("%.1f%%", 100 * mean(sch_clip_vec$alpha >= 0.999)),
+                              sprintf("%.1f%%", 100 * mean(sch_recip_lin$alpha >= 0.999))),
   `Zeroed (alpha=0)` = c(sum(sch_lin_surg$alpha == 0), sum(sch_lin_hard$alpha == 0),
-                         sum(sch_pct_hard$alpha == 0), sum(sch_clip_vec$alpha == 0)),
+                         sum(sch_pct_hard$alpha == 0), sum(sch_clip_vec$alpha == 0),
+                         sum(sch_recip_lin$alpha == 0)),
   `Realized Delta` = c(round(sch_lin_surg$delta_alpha, 2), round(sch_lin_hard$delta_alpha, 2),
-                       round(sch_pct_hard$delta_alpha, 2), round(sch_clip_vec$delta_alpha, 2)),
+                       round(sch_pct_hard$delta_alpha, 2), round(sch_clip_vec$delta_alpha, 2),
+                       round(sch_recip_lin$delta_alpha, 2)),
   `Local Epsilon` = c(round(sch_lin_surg$epsilon_local, 2), round(sch_lin_hard$epsilon_local, 2),
-                      round(sch_pct_hard$epsilon_local, 2), round(sch_clip_vec$epsilon_local, 2)),
+                      round(sch_pct_hard$epsilon_local, 2), round(sch_clip_vec$epsilon_local, 2),
+                      round(sch_recip_lin$epsilon_local, 2)),
   check.names = FALSE
 )
 
 knitr::kable(
   comp_df,
-  caption = "Comparison of Stage 1 Normalization and Stage 2 Reweighting Strategies (Savitsky, Oct 29, 2026)"
+  caption = "Comparison of Stage 1 Normalization and Stage 2 Reweighting Strategies on n = 300 (Savitsky, Oct 29, 2026)"
 )
 ```
 
 **Key Takeaways from Calibration Comparison**:
-1. **Target Ratio Clipping with Vector Upward Rescaling (`target_clip` + `vector_upscale`)** achieves the highest Effective Sample Size and retains full weight ($\alpha_i = 1$) on the vast majority of non-outlier units ($f_i \le M_{\text{thresh}}$), zeroing zero records and smoothly spending the privacy budget via $\min(1, M_{\text{thresh}}/f_i)$.
-2. **Percentile Deficit Truncation (`percentile` + `hard_trunc`)** aggressively boosts weights on low-sensitivity units to $\alpha_i = 1$, but hard-truncates the top $5\%$ tail outliers to $\alpha_i = 0$.
+1. **Target Ratio Clipping with Vector Upward Rescaling (`target_clip` + `vector_upscale`)** achieves the highest Effective Sample Size ($\text{ESS} = 284.6 / 300$) and retains full weight ($\alpha_i = 1$) on $84.3\%$ of non-outlier units ($f_i \le M_{\text{thresh}}$), zeroing zero records and smoothly spending the privacy budget via $\min(1, M_{\text{thresh}}/f_i)$.
+2. **Percentile Deficit Truncation (`percentile` + `hard_trunc`)** aggressively boosts weights on low-sensitivity units to $\alpha_i = 1$, but hard-truncates the top $5\%$ tail outliers ($15$ records) to $\alpha_i = 0$, achieving maximum tail protection ($\epsilon_{\text{local}} = 5.10$).
 3. **Linear Min-Max (`linear`)** scales intermediate units proportionally, and pairing with `surgical` capping prevents sudden threshold discontinuities compared to `hard_trunc`.
-4. Crucially, all four schemes guarantee exact sensitivity control $\Delta_{\alpha, \mathbf{y}} \le M_{\text{thresh}} = 5.50$, proving mathematical $(\epsilon_{\mathbf{y}}, \delta)$-probabilistic differential privacy.
+4. **Reciprocal Linear (Remark 1)** induces hyperbolic $(f_{\min}/f_i)$ attenuation, collapsing effective sample size to $\text{ESS} = 62.9$, confirming Savitsky's (2026) preference for direct $1 - \tilde{f}_i$ normalization.
+5. Crucially, all schemes guarantee exact sensitivity control $\Delta_{\alpha, \mathbf{y}} \le M_{\text{thresh}} = 5.50$, proving mathematical $(\epsilon_{\mathbf{y}}, \delta)$-probabilistic differential privacy.
 
 ## Generating and Benchmarking Synthetic Datasets
 
@@ -828,8 +908,11 @@ api_df <- data.frame(
     "`train_lbbnn()`",
     "`lbbnn_net()`",
     "`loglik_contributions()`",
+    "`compute_dp_weights()`",
     "`fit_dp_lbbnn()`",
     "`sample_synthetic_lbbnn()`",
+    "`predict_domains_lbbnn()`",
+    "`impute_response_lbbnn()`",
     "`predict.lbbnn_net()`"
   ),
   Description = c(
@@ -837,20 +920,20 @@ api_df <- data.frame(
     "Optimizes the unit-weighted ELBO $-\\sum_i u_i \\log f(y_i) + \\frac{1}{M}\\text{KL}(q \\parallel p)$ across mini-batches at temperature $T = 1.0$.",
     "Constructs LBBNN networks. Supports exact Gaussian likelihood scaling via explicit `sigma` and user-defined `link`/`nll` closures via `problem_type = 'custom'`.",
     "Extracts the $S \\times n$ matrix of pointwise log-likelihood contributions $L_{s, i} = \\log f(y_i \\mid \\theta^{(s)})$ across posterior draws.",
-    "Automates the two-pass $(\\epsilon, \\delta)$-PDP synthesizer: Pass 1 unweighted fit $\\rightarrow$ sensitivity extraction $\\rightarrow$ monotone surgical weights $\\alpha_i \\rightarrow$ Pass 2 weighted fit $\\rightarrow$ privacy guarantee $\\epsilon_{\\mathbf{y}} = 2\\Delta_{\\alpha, \\mathbf{y}}$.",
-    "Draws synthetic microdata replicates from the Pass 2 posterior predictive distribution with calibrated observation noise $\\hat{\\sigma}$, returning an $n \\times \\text{draws}$ matrix.",
+    "Implements the two-stage privacy weight calibration framework from Savitsky (Oct 29, 2026): Stage 1 (`linear`, `percentile`, `target_clip`, `reciprocal_linear`) + Stage 2 (`surgical`, `hard_trunc`, `vector_upscale`).",
+    "Automates the multi-pass $(\\epsilon, \\delta)$-PDP synthesizer: Pass 1 unweighted fit $\\rightarrow$ sensitivity extraction $\\rightarrow$ calibrated weights $\\alpha_i \\rightarrow$ Pass 2 weighted fit (and optional Pass 3 for vector upscale) $\\rightarrow$ privacy guarantee $\\epsilon_{\\mathbf{y}} = 2\\Delta_{\\alpha, \\mathbf{y}}$.",
+    "Draws synthetic microdata replicates from the Pass 2/3 posterior predictive distribution with calibrated observation noise $\\hat{\\sigma}$, returning an $n \\times \\text{draws}$ matrix.",
+    "Computes domain-level posterior means, totals, standard errors, and credible intervals with Dirichlet Bayesian bootstrap UQ ($\\boldsymbol{\\xi} \\sim \\text{Dirichlet}(1, \\dots, 1)$) per Savitsky & Toth (2016).",
+    "Performs Bayesian multiple imputation for missing survey response values ($y_i = \\text{NA}$) using posterior predictive draws from a trained LBBNN model.",
     "Generates posterior predictive draws under full Bayesian Model Averaging (BMA) or the sparse Median Probability Model (MPM)."
   ),
   row.names = NULL
 )
 
-api_df$Function_Signature <- sprintf("%-45s", api_df$Function_Signature)
-
 knitr::kable(
   api_df,
-  escape = FALSE,
   row.names = FALSE,
-  col.names = c(sprintf("%-45s", "Function / Signature"), "Description"),
+  col.names = c("Function / Signature", "Description"),
   caption = "Exported Functions and Methods in LBBNN for Observation-Weighted Inference and Differential Privacy"
 )
 ```

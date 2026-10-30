@@ -153,7 +153,7 @@ options(knitr.table.format = "latex")
   
   % Pruned edge
   \draw[->, dotted, gray!60] (X3) -- (H2);
-  \node[right, gray!70] at (0.5, 0.0) {\tiny $L=0$ (Pruned)};
+  \node[right, gray!70] at (0.6, 0.25) {\tiny $L=0$ (Pruned)};
 \end{tikzpicture}
 \end{center}
 \end{column}
@@ -537,13 +537,13 @@ Guarantees local Lipschitz bound $\Delta_{\alpha, \mathbf{y}} = \max_{s,i} |\alp
 
 \vspace{-0.2em}
 \scriptsize
-\textbf{Empirical Comparison of Privacy Weight Schemes ($M_{\text{thresh}} = 5.5, n = 200$):}
+\textbf{Empirical Comparison of Privacy Weight Schemes ($M_{\text{thresh}} = 5.5, n = 300$):}
 \begin{itemize}
   \setlength{\itemsep}{1.5pt}
-  \item \textbf{Target Clip + Vector Upscale}: Retains highest Effective Sample Size ($\sum \alpha_i = 189.9 / 200$, $76\%$ units with $\alpha_i = 1$, $0$ zeroed) while strictly capping sensitivity at $M_{\text{thresh}} = 5.5$, matching clean distribution moments almost perfectly (Mean $\$7.29$, Std Dev $\$8.12$ vs. Clean $\$6.70$, $\$7.23$).
+  \item \textbf{Target Clip + Vector Upscale}: Retains highest Effective Sample Size ($\sum \alpha_i = 284.6 / 300$, $84.3\%$ units with $\alpha_i = 1$, $0$ zeroed) while strictly capping sensitivity at $M_{\text{thresh}} = 5.5$, matching clean distribution moments almost perfectly (Mean $\$7.29$, Std Dev $\$8.12$ vs. Clean $\$6.70$, $\$7.23$).
   \item \textbf{Linear + Surgical (Baseline)}: Surgically zeroes all 3 extreme outliers ($f_i > 3M_{\text{thresh}}$), recovering the clean distribution body (Mean $\$7.99$) and shielding standard deviation from catastrophic explosion ($\$13.95$ vs. $\$46.75$).
-  \item \textbf{Percentile Deficit Truncation}: Aggressively caps the upper tail (10 records zeroed, Mean $\$7.25$, $\epsilon_{\text{local}} = 4.46$), trading sample size ($\text{ESS} = 117.7$) for maximum tail disclosure protection.
-  \item \textbf{Reciprocal Linear (Remark 1)}: Collapses effective sample size ($\text{ESS} = 57.5$) due to hyperbolic $(f_{\min}/f_i)$ attenuation, empirically confirming Savitsky's (2026) preference for direct $1 - \tilde{f}_i$.
+  \item \textbf{Percentile Deficit Truncation}: Aggressively caps the upper tail (15 records zeroed, Mean $\$7.25$, $\epsilon_{\text{local}} = 5.10$), trading sample size ($\text{ESS} = 217.5$) for maximum tail disclosure protection.
+  \item \textbf{Reciprocal Linear (Remark 1)}: Collapses effective sample size ($\text{ESS} = 62.9$) due to hyperbolic $(f_{\min}/f_i)$ attenuation, empirically confirming Savitsky's (2026) preference for direct $1 - \tilde{f}_i$.
 \end{itemize}
 \normalsize
 
@@ -620,19 +620,22 @@ synth_micro <- sample_synthetic_lbbnn(dp_fit, newdata = x_micro, draws = 50)
   \item Covariates $\mathbf{x}_i$ are observed only on convenience sample $S_c$ (unknown $\pi_{ci}$) and reference survey $S_r$ (known design probability $\pi_{ri}$). Non-sampled units $U \setminus (S_c \cup S_r)$ are never observed.
 \end{itemize}
 
-\vspace{0.2em}
+\vspace{-0.25em}
 \textbf{The Conditioning Trick \& Structural Offset Derivation:}
+\footnotesize
 \begin{itemize}
+  \setlength{\itemsep}{1.5pt}
   \item Pool $S_c$ and $S_r$ into a combined sample $S$, and model membership indicator $D_i = \mathbb{I}(i \in S_c)$:
   \small
   $$\pi_{zi}^{\text{STACK}} = \mathbb{P}(D_i = 1 \mid \mathbf{x}_i, i \in S) = \frac{\pi_{ci}}{\pi_{ci} + \pi_{ri}}$$
-  \normalsize
+  \footnotesize
   \item \textbf{Step-by-Step Log-Odds (Logit) Expansion}:
-  \small
-  $$\log\left(\frac{\pi_{zi}^{\text{STACK}}}{1 - \pi_{zi}^{\text{STACK}}}\right) = \log\left(\frac{\pi_{ci}}{\pi_{ri}}\right) = \log \pi_{ci} - \log \pi_{ri} = \eta_\theta(\mathbf{x}_i) - \log \pi_{ri}$$
-  \normalsize
+  \scriptsize
+  $$\log\left(\frac{\pi_{zi}^{\text{STACK}}}{1 - \pi_{zi}^{\text{STACK}}}\right) = \log \pi_{ci} - \log \pi_{ri} = \eta_\theta(\mathbf{x}_i) - \log(1 + e^{\eta_\theta(\mathbf{x}_i)}) - \log \pi_{ri} \approx \eta_\theta(\mathbf{x}_i) - \log \pi_{ri}$$
+  \footnotesize
   \item \textbf{Exact Structural Offset}: Because $\pi_{ri}$ is known by survey design, $-\log \pi_{ri}$ enters as an \textbf{exact, fixed offset} in the binary cross-entropy loss, anchoring unconstrained neural network logits $\eta_\theta(\mathbf{x}_i)$ to the true population scale.
 \end{itemize}
+\normalsize
 
 ## Intuition & Torch Training Link for All Five Estimators
 
@@ -869,18 +872,17 @@ y_bar_hajek <- hajek_estimate(y = pop$y[pop$I.c == 1], pi_hat = pi_c_hat, dirich
 \begin{columns}
 \begin{column}{0.48\textwidth}
 \textbf{End-to-End Joint Learning:}
+\vspace{-0.3em}
 \footnotesize
 \begin{itemize}
-  \setlength{\itemsep}{2pt}
+  \setlength{\itemsep}{1pt}
   \item \textbf{Shared Representation}: Covariates $\mathbf{x} \in \mathbb{R}^p$ pass through shared latent binary spike-and-slab layers $\mathbf{z}_{\text{shared}}$ with direct ISLaB skips.
   \item \textbf{Head 1 (Propensity $\hat{\pi}_{ci}$)}: Predicts $\hat{\pi}_{ci} = \sigma(\eta_\theta^{(\pi)}(\mathbf{x}_i))$ trained via composite likelihood ($\mathcal{L}_{\text{comp}}$: \texttt{MIP} or \texttt{STACK}).
-  \item \textbf{Head 2 (Outcome $\hat{y}_i$)}: Predicts survey outcome $\hat{y}_i = \mu_\theta^{(y)}(\mathbf{x}_i, \hat{\pi}_{ci})$ using $\hat{\pi}_{ci}$ as a balancing control function, weighted by $\hat{\pi}_{ci}^{-1}$.
+  \item \textbf{Head 2 (Outcome $\hat{y}_i$)}: Predicts survey outcome $\hat{y}_i = \mu_\theta^{(y)}(\mathbf{x}_i, \hat{\pi}_{ci})$ using $\hat{\pi}_{ci}$ as a balancing control function, weighted by $\text{sg}(\hat{\pi}_{ci}^{-1})$.
   \item \textbf{Joint Variational ELBO}:
   \vspace{-0.2em}
   \scriptsize
-  $$\mathcal{L}_{\text{joint}}(q) = \mathbb{E}_q\!\left[\mathcal{L}_{\text{comp}}(\hat{\pi}_c) + \sum_{i \in S_c} \hat{\pi}_{ci}^{-1}\log p(y_i \mid \mathbf{x}_i, \hat{\pi}_{ci})\right]$$
-  \vspace{-0.3em}
-  $$\qquad\qquad\qquad\qquad\quad -\;\text{KL}(q(\theta) \parallel p(\theta))$$
+  $$\mathcal{L}_{\text{joint}}(q) = \mathbb{E}_q\!\left[\mathcal{L}_{\text{comp}}(\hat{\pi}_c) + \sum_{i \in S_c} \text{sg}(\hat{\pi}_{ci}^{-1})\log p(y_i \mid \mathbf{x}_i, \hat{\pi}_{ci})\right] - \text{KL}(q(\theta) \parallel p(\theta))$$
   \footnotesize
   \vspace{-0.2em}
   \item \textbf{Unified Feature Attribution}: Confounders ($X_1, X_2$) are shared; outcome-only drivers ($X_3$) feed directly into Head 2 without inflating propensity variance!
@@ -940,7 +942,7 @@ y_bar_hajek <- hajek_estimate(y = pop$y[pop$I.c == 1], pi_hat = pi_c_hat, dirich
   \draw[->, thick, green!70!black] (HeadY) -- (OutY);
 
   % Feedback / weight from Pi to Head Y
-  \draw[->, very thick, red!70, dashed] (OutPi) to[bend left=55] node[right, red!85] {\tiny $\hat{\pi}_{ci}^{-1}$ Weights} (HeadY.east);
+  \draw[->, very thick, red!70, dashed] (OutPi) to[bend left=55] node[right, red!85] {\tiny $\text{sg}(\hat{\pi}_{ci}^{-1})$ Weights} (HeadY.east);
 
   % Skip connection for X3 directly to Head 2 underneath Shared
   \draw[->, thick, purple!80, dashed] (X3) to[bend right=20] node[below, purple!90, sloped] {\tiny Direct Skip ($a_3^{(y)}=1, a_3^{(\pi)}=0$)} (HeadY.south west);
@@ -991,7 +993,7 @@ y_bar_hajek <- hajek_estimate(y = pop$y[pop$I.c == 1], pi_hat = pi_c_hat, dirich
   \vspace{0.3em}
   \item \textbf{Two-Pass $(\epsilon, \delta)$-PDP Microdata Synthesis (Track 1B)}:
     \begin{itemize}
-      \item Monotone surgical downweighting and vector upward rescaling (\texttt{fit\_dp\_lbbnn}) eliminate disclosure risk from extreme tail outliers ($\alpha_i = 0$) while preserving high utility ($\alpha_i \in [0.34, 0.85]$) on normal records.
+      \item Monotone surgical downweighting and percentile schemes zero extreme tail outliers ($\alpha_i = 0$), while target ratio clipping with vector upward rescaling retains full weight ($\alpha_i = 1$) on all safe non-outlier records and strictly caps outlier sensitivity at $\alpha_i f_i = M_{\text{thresh}}$, guaranteeing exact $(\epsilon_{\mathbf{y}}, \delta)$-probabilistic differential privacy.
     \end{itemize}
   \vspace{0.3em}
   \item \textbf{Composite Non-Probability Sample Integration (Track 2)}:
