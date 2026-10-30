@@ -1185,26 +1185,26 @@ All composite likelihood loss functions and helper utilities are fully integrate
 ```{r api_table, echo = FALSE}
 api_df <- data.frame(
   Function_Signature = c(
-    "`nll_stack()`",
-    "`nll_link1()`",
-    "`nll_link2()`",
-    "`make_nll_mip()`",
-    "`nll_pseudo()`",
-    "`gen_pop_nonlinear()`",
-    "`draw_combined_samples()`",
-    "`build_propensity_dataset()`",
-    "`hajek_estimate()`"
+    "\\texttt{nll\\_stack()}",
+    "\\texttt{nll\\_link1()}",
+    "\\texttt{nll\\_link2()}",
+    "\\texttt{make\\_nll\\_mip()}",
+    "\\texttt{nll\\_pseudo()}",
+    "\\texttt{gen\\_pop\\_nonlinear()}",
+    "\\texttt{draw\\_combined\\_samples()}",
+    "\\texttt{build\\_propensity\\_dataset()}",
+    "\\texttt{hajek\\_estimate()}"
   ),
   Description = c(
-    "Composite Bernoulli NLL on unlinked stacked sample S_c (+) S_r (pi_z = pi_c / (pi_c + pi_r)).",
-    "Composite Bernoulli NLL on deterministically linked union S_c U (S_r \\ S_c).",
-    "Composite Bernoulli NLL on deterministically linked stacked sample S_c (+) S_r.",
-    "Factory producing composite NLL under Missing Information Principle with informativeness p_link.",
-    "Numerically stable pseudo-log-likelihood NLL (Chen, Li & Wu 2020) using survey weights 1/pi_r.",
+    "Composite Bernoulli NLL on unlinked stacked sample $S_c \\oplus S_r$ ($\\pi_{zi} = \\pi_{ci} / (\\pi_{ci} + \\pi_{ri})$).",
+    "Composite Bernoulli NLL on deterministically linked union $S_c \\cup (S_r \\setminus S_c)$.",
+    "Composite Bernoulli NLL on deterministically linked stacked sample $S_c \\oplus S_r$.",
+    "Factory producing composite NLL under Missing Information Principle with scalar or vectorized $\\tilde{\\mathbf{p}} \\in [0, 1]^{n_r}$.",
+    "Numerically stable pseudo-log-likelihood NLL (Chen, Li \\& Wu 2020) using survey weights $1 / \\pi_{ri}$.",
     "Generates synthetic finite population supporting high/low common support and non-linear interactions.",
-    "Draws systematic PPS probability sample S_r and Bernoulli convenience sample S_c.",
-    "Formats covariates and targets for any of the 5 estimation methods.",
-    "Computes self-normalizing Hajek estimator sum(w_i * y_i) / sum(w_i) with w_i = 1 / pi_hat."
+    "Draws systematic PPS probability sample $S_r$ and Bernoulli convenience sample $S_c$.",
+    "Formats covariates and targets for any of the 5 estimation methods (including vectorized unit-level \\texttt{p\\_link}).",
+    "Computes self-normalizing H\\'{a}jek estimator $\\sum w_i y_i / \\sum w_i$ ($w_i = 1 / \\hat{\\pi}_{ci}$) with optional domain matrix $\\mathbf{G}$ and Dirichlet UQ."
   ),
   row.names = NULL
 )
@@ -1213,11 +1213,12 @@ kableExtra::kbl(
   api_df,
   format = "latex",
   booktabs = TRUE,
+  escape = FALSE,
   row.names = FALSE,
   col.names = c("Function / Signature", "Description"),
   caption = "Exported Functions in LBBNN for Combining Probability and Non-Probability Samples"
 ) |>
-  kableExtra::kable_styling(latex_options = "hold_position") |>
+  kableExtra::kable_styling(latex_options = "HOLD_position", font_size = 9) |>
   kableExtra::column_spec(1, width = "5.0cm") |>
   kableExtra::column_spec(2, width = "10.0cm")
 ```

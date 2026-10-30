@@ -809,7 +809,7 @@ knitr::kable(
 
 The benchmark table demonstrates the utility and privacy advantages of the two-pass synthesizer:
 - In the raw data, the 3 extreme outliers (`Max = $529.57`) distort the sample mean (`$11.30` vs. `$6.70` clean) and explode the sample standard deviation (`$46.75` vs. `$7.23` clean).
-- The `DP-Private Synthetic` data closely matches the **clean population distribution** across the mean (`$6.89`), standard deviation (`$11.58`), median (`$3.69`), and 90th percentile (`$14.13`), while completely eliminating the extreme `$529.57` outlier disclosure risk.
+- The `DP-Private Synthetic` data closely matches the **clean population distribution** across the mean (`$`r sprintf("%.2f", priv_stats[1])``), standard deviation (`$`r sprintf("%.2f", priv_stats[2])``), median (`$`r sprintf("%.2f", priv_stats[4])``), and 90th percentile (`$`r sprintf("%.2f", priv_stats[6])``), while completely eliminating the extreme `$529.57` outlier disclosure risk.
 
 ```{r synth_plot, fig.cap="Empirical Cumulative Distribution Functions (ECDF) showing close utility preservation across the population body while protecting extreme outlier records."}
 ecdf_df <- data.frame(
@@ -909,26 +909,26 @@ All observation-weighted and differential privacy utilities are exported in `LBB
 ```{r api_table, echo = FALSE}
 api_df <- data.frame(
   Function_Signature = c(
-    "`get_dataloaders()`",
-    "`train_lbbnn()`",
-    "`lbbnn_net()`",
-    "`loglik_contributions()`",
-    "`compute_dp_weights()`",
-    "`fit_dp_lbbnn()`",
-    "`sample_synthetic_lbbnn()`",
-    "`predict_domains_lbbnn()`",
-    "`impute_response_lbbnn()`",
-    "`predict.lbbnn_net()`"
+    "\\texttt{get\\_dataloaders()}",
+    "\\texttt{train\\_lbbnn()}",
+    "\\texttt{lbbnn\\_net()}",
+    "\\texttt{loglik\\_contributions()}",
+    "\\texttt{compute\\_dp\\_weights()}",
+    "\\texttt{fit\\_dp\\_lbbnn()}",
+    "\\texttt{sample\\_synthetic\\_lbbnn()}",
+    "\\texttt{predict\\_domains\\_lbbnn()}",
+    "\\texttt{impute\\_response\\_lbbnn()}",
+    "\\texttt{predict.lbbnn\\_net()}"
   ),
   Description = c(
-    "Packs observation weights $w_i$ or $\\alpha_i$ into dataloaders; normalizes survey weights to $n$ when `normalize_weights = TRUE` (Savitsky & Toth 2016). Supports multi-column targets via `target_cols`.",
+    "Packs observation weights $w_i$ or $\\alpha_i$ into dataloaders; normalizes survey weights to $n$ when \\texttt{normalize\\_weights = TRUE} (Savitsky \\& Toth 2016). Supports multi-column targets via \\texttt{target\\_cols}.",
     "Optimizes the unit-weighted ELBO $-\\sum_i u_i \\log f(y_i) + \\frac{1}{M}\\text{KL}(q \\parallel p)$ across mini-batches at temperature $T = 1.0$.",
-    "Constructs LBBNN networks. Supports exact Gaussian likelihood scaling via explicit `sigma` and user-defined `link`/`nll` closures via `problem_type = 'custom'`.",
+    "Constructs LBBNN networks. Supports exact Gaussian likelihood scaling via explicit \\texttt{sigma} and user-defined \\texttt{link}/\\texttt{nll} closures via \\texttt{problem\\_type = 'custom'}.",
     "Extracts the $S \\times n$ matrix of pointwise log-likelihood contributions $L_{s, i} = \\log f(y_i \\mid \\theta^{(s)})$ across posterior draws.",
-    "Implements the two-stage privacy weight calibration framework from Savitsky (Oct 29, 2026): Stage 1 (`linear`, `percentile`, `target_clip`, `reciprocal_linear`) + Stage 2 (`surgical`, `hard_trunc`, `vector_upscale`).",
+    "Implements the two-stage privacy weight calibration framework from Savitsky (Oct 29, 2026): Stage 1 (\\texttt{linear}, \\texttt{percentile}, \\texttt{target\\_clip}, \\texttt{reciprocal\\_linear}) + Stage 2 (\\texttt{surgical}, \\texttt{hard\\_trunc}, \\texttt{vector\\_upscale}).",
     "Automates the multi-pass $(\\epsilon, \\delta)$-PDP synthesizer: Pass 1 unweighted fit $\\rightarrow$ sensitivity extraction $\\rightarrow$ calibrated weights $\\alpha_i \\rightarrow$ Pass 2 weighted fit (and optional Pass 3 for vector upscale) $\\rightarrow$ privacy guarantee $\\epsilon_{\\mathbf{y}} = 2\\Delta_{\\alpha, \\mathbf{y}}$.",
     "Draws synthetic microdata replicates from the Pass 2/3 posterior predictive distribution with calibrated observation noise $\\hat{\\sigma}$, returning an $n \\times \\text{draws}$ matrix.",
-    "Computes domain-level posterior means, totals, standard errors, and credible intervals with Dirichlet Bayesian bootstrap UQ ($\\boldsymbol{\\xi} \\sim \\text{Dirichlet}(1, \\dots, 1)$) per Savitsky & Toth (2016).",
+    "Computes domain-level posterior means, totals, standard errors, and credible intervals with Dirichlet Bayesian bootstrap UQ ($\\boldsymbol{\\xi} \\sim \\text{Dirichlet}(1, \\dots, 1)$) per Savitsky \\& Toth (2016).",
     "Performs Bayesian multiple imputation for missing survey response values ($y_i = \\text{NA}$) using posterior predictive draws from a trained LBBNN model.",
     "Generates posterior predictive draws under full Bayesian Model Averaging (BMA) or the sparse Median Probability Model (MPM)."
   ),
@@ -939,11 +939,12 @@ kableExtra::kbl(
   api_df,
   format = "latex",
   booktabs = TRUE,
+  escape = FALSE,
   row.names = FALSE,
   col.names = c("Function / Signature", "Description"),
   caption = "Exported Functions and Methods in LBBNN for Observation-Weighted Inference and Differential Privacy"
 ) |>
-  kableExtra::kable_styling(latex_options = "hold_position") |>
+  kableExtra::kable_styling(latex_options = "HOLD_position", font_size = 9) |>
   kableExtra::column_spec(1, width = "4.8cm") |>
   kableExtra::column_spec(2, width = "10.2cm")
 ```
