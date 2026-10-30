@@ -67,7 +67,7 @@ p_slide6 <- ggplot(grid_df, aes(x = x1, y = x2, fill = Region)) +
     legend.text = element_text(size = 7.5),
     plot.title = element_text(size = 9.5, face = "bold"),
     plot.subtitle = element_text(size = 7.5),
-    plot.margin = margin(8, 8, 8, 10)
+    plot.margin = margin(t = 14, r = 10, b = 8, l = 10)
   )
 
 save_fig("jsm_polyhedral_regions.pdf", p_slide6, width = 5.6, height = 4.0)
@@ -460,7 +460,7 @@ p_slide24 <- ggplot(s1_vars, aes(x = Prob, y = Variable, color = Status)) +
     legend.text = element_text(size = 8),
     plot.title = element_text(size = 9.5, face = "bold"),
     plot.subtitle = element_text(size = 7.5),
-    plot.margin = margin(8, 8, 8, 10)
+    plot.margin = margin(t = 14, r = 10, b = 8, l = 10)
   )
 
 save_fig("track2_study1_lollipop.pdf", p_slide24, width = 5.6, height = 3.8)
@@ -511,7 +511,7 @@ s2_colors <- c("GLM (Linear)" = "#e74c3c", "LBBNN (BMA)" = "#2980b9", "LBBNN (MP
 p25_b <- ggplot(df_s2, aes(x = Formulation, y = Abs_Error, fill = Method)) +
   geom_col(position = position_dodge(width = 0.78), width = 0.70) +
   geom_hline(yintercept = 0.205, linetype = "dashed", color = "#2c3e50", linewidth = 0.7) +
-  annotate("text", x = 5.4, y = 0.205, label = "Oracle (|Bias| = 0.205)", vjust = -0.7, hjust = 1.0, size = 2.4, color = "#2c3e50", fontface = "bold") +
+  annotate("text", x = 1.15, y = 0.205, label = "Oracle (|Bias| = 0.205)", vjust = -0.6, hjust = 0, size = 2.4, color = "#2c3e50", fontface = "bold") +
   geom_text(aes(label = sprintf("%.2f", Abs_Error)), position = position_dodge(width = 0.78),
             vjust = -0.3, size = 2.1, fontface = "bold") +
   scale_fill_manual(values = s2_colors) +

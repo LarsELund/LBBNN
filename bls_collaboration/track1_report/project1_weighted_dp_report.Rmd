@@ -542,6 +542,7 @@ knitr::kable(
   domain_est,
   digits = 3,
   row.names = FALSE,
+  col.names = c("Domain", "n", "Mean", "SD", "CI Low", "CI High", "Total", "Tot SD", "Tot Low", "Tot High"),
   caption = "Domain-Level Posterior Estimates with Dirichlet Bayesian Bootstrap Uncertainty Quantification"
 )
 ```
@@ -586,6 +587,7 @@ Following Savitsky, Williams & Hu (2022, Section 5 & Appendix B), financial expe
 
 ```{r dp_sim}
 set.seed(42)
+torch::torch_manual_seed(42)
 n_dp <- 300
 p_dp <- 4
 
@@ -619,6 +621,9 @@ We synthesize on the properly specified log scale $\log(Y)$ using `fit_dp_lbbnn(
 - **Guarantee**: Evaluates the local Lipschitz bound $\Delta_{\alpha, \mathbf{y}} \le M_{\text{thresh}}$ and local differential privacy parameter $\epsilon_{\mathbf{y}} = 2 \Delta_{\alpha, \mathbf{y}}$.
 
 ```{r run_dp}
+set.seed(42)
+torch::torch_manual_seed(42)
+
 spec_dp <- list(
   problem_type = "regression",
   sizes = c(p_dp, 16, 16, 1),
@@ -695,7 +700,7 @@ gridExtra::grid.arrange(p1, p2, ncol = 2)
 The monotone surgical construction performs cleanly:
 - Standard records receive privacy weights $\alpha_i \approx 0.65 - 0.85$, allowing them to contribute fully to model training.
 - As expenditure increases into the moderate tail, weights are smoothly capped at $\alpha_i \le M_{\text{thresh}} / f_i$.
-- All three injected extreme outliers ($Y \in [\$400, \$530]$) produce sensitivities $f_i > 25.0 > 3 M_{\text{thresh}}$ and are **surgically truncated to $\alpha_i = 0$**, strictly guaranteeing $\Delta_{\alpha, \mathbf{y}} = 4.32 \le M_{\text{thresh}}$ and $\epsilon_{\mathbf{y}} = 8.63$.
+- All extreme outliers ($Y \in [\$400, \$530]$) produce sensitivities $f_i > 16.5 = 3 M_{\text{thresh}}$ and are **surgically truncated to $\alpha_i = 0$**, strictly guaranteeing $\Delta_{\alpha, \mathbf{y}} = `r round(dp_results$delta_alpha, 2)` \le M_{\text{thresh}}$ and $\epsilon_{\mathbf{y}} = `r round(dp_results$epsilon_local, 2)`$.
 
 ### Comparing Stage 1 & Stage 2 Weight Calibration Schemes (Savitsky, Oct 29, 2026)
 
@@ -748,10 +753,10 @@ knitr::kable(
 ```
 
 **Key Takeaways from Calibration Comparison**:
-1. **Target Ratio Clipping with Vector Upward Rescaling (`target_clip` + `vector_upscale`)** achieves the highest Effective Sample Size ($\text{ESS} = 284.6 / 300$) and retains full weight ($\alpha_i = 1$) on $84.3\%$ of non-outlier units ($f_i \le M_{\text{thresh}}$), zeroing zero records and smoothly spending the privacy budget via $\min(1, M_{\text{thresh}}/f_i)$.
-2. **Percentile Deficit Truncation (`percentile` + `hard_trunc`)** aggressively boosts weights on low-sensitivity units to $\alpha_i = 1$, but hard-truncates the top $5\%$ tail outliers ($15$ records) to $\alpha_i = 0$, achieving maximum tail protection ($\epsilon_{\text{local}} = 5.10$).
-3. **Linear Min-Max (`linear`)** scales intermediate units proportionally, and pairing with `surgical` capping prevents sudden threshold discontinuities compared to `hard_trunc`.
-4. **Reciprocal Linear (Remark 1)** induces hyperbolic $(f_{\min}/f_i)$ attenuation, collapsing effective sample size to $\text{ESS} = 62.9$, confirming Savitsky's (2026) preference for direct $1 - \tilde{f}_i$ normalization.
+1. **Target Ratio Clipping with Vector Upward Rescaling (`target_clip` + `vector_upscale`)** achieves the highest Effective Sample Size ($\text{ESS} = `r round(sum(sch_clip_vec$alpha), 1)` / 300$) and retains full weight ($\alpha_i = 1$) on $`r sprintf("%.1f%%", 100 * mean(sch_clip_vec$alpha >= 0.999))`$ of non-outlier units ($f_i \le M_{\text{thresh}}$), zeroing zero records and smoothly spending the privacy budget via $\min(1, M_{\text{thresh}}/f_i)$.
+2. **Percentile Deficit Truncation (`percentile` + `hard_trunc`)** aggressively boosts weights on low-sensitivity units to $\alpha_i = 1$, but hard-truncates the top $5\%$ tail outliers ($`r sum(sch_pct_hard$alpha == 0)`$ records) to $\alpha_i = 0$, achieving maximum tail protection ($\epsilon_{\text{local}} = `r round(sch_pct_hard$epsilon_local, 2)`$).
+3. **Linear Min-Max (`linear`)** scales intermediate units proportionally, and pairing with `surgical` capping prevents sudden threshold discontinuities compared to `hard_trunc` ($\text{ESS} = `r round(sum(sch_lin_surg$alpha), 1)`$ vs. $`r round(sum(sch_lin_hard$alpha), 1)`$, with $`r sum(sch_lin_surg$alpha == 0)`$ vs. $`r sum(sch_lin_hard$alpha == 0)`$ records zeroed).
+4. **Reciprocal Linear (Remark 1)** induces hyperbolic $(f_{\min}/f_i)$ attenuation, collapsing effective sample size to $\text{ESS} = `r round(sum(sch_recip_lin$alpha), 1)`$, confirming Savitsky's (2026) preference for direct $1 - \tilde{f}_i$ normalization.
 5. Crucially, all schemes guarantee exact sensitivity control $\Delta_{\alpha, \mathbf{y}} \le M_{\text{thresh}} = 5.50$, proving mathematical $(\epsilon_{\mathbf{y}}, \delta)$-probabilistic differential privacy.
 
 ## Generating and Benchmarking Synthetic Datasets
@@ -804,7 +809,7 @@ knitr::kable(
 
 The benchmark table demonstrates the utility and privacy advantages of the two-pass synthesizer:
 - In the raw data, the 3 extreme outliers (`Max = $529.57`) distort the sample mean (`$11.30` vs. `$6.70` clean) and explode the sample standard deviation (`$46.75` vs. `$7.23` clean).
-- The `DP-Private Synthetic` data closely matches the **clean population distribution** across the mean (`$7.99`), standard deviation (`$13.95`), median (`$4.13`), and 90th percentile (`$17.10`), while completely eliminating the extreme `$529.57` outlier disclosure risk.
+- The `DP-Private Synthetic` data closely matches the **clean population distribution** across the mean (`$6.89`), standard deviation (`$11.58`), median (`$3.69`), and 90th percentile (`$14.13`), while completely eliminating the extreme `$529.57` outlier disclosure risk.
 
 ```{r synth_plot, fig.cap="Empirical Cumulative Distribution Functions (ECDF) showing close utility preservation across the population body while protecting extreme outlier records."}
 ecdf_df <- data.frame(
@@ -930,12 +935,17 @@ api_df <- data.frame(
   row.names = NULL
 )
 
-knitr::kable(
+kableExtra::kbl(
   api_df,
+  format = "latex",
+  booktabs = TRUE,
   row.names = FALSE,
   col.names = c("Function / Signature", "Description"),
   caption = "Exported Functions and Methods in LBBNN for Observation-Weighted Inference and Differential Privacy"
-)
+) |>
+  kableExtra::kable_styling(latex_options = "hold_position") |>
+  kableExtra::column_spec(1, width = "4.8cm") |>
+  kableExtra::column_spec(2, width = "10.2cm")
 ```
 
 ---

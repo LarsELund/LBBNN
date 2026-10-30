@@ -880,11 +880,14 @@ y_bar_hajek <- hajek_estimate(y = pop$y[pop$I.c == 1], pi_hat = pi_c_hat, dirich
   \item \textbf{Head 1 (Propensity $\hat{\pi}_{ci}$)}: Predicts $\hat{\pi}_{ci} = \sigma(\eta_\theta^{(\pi)}(\mathbf{x}_i))$ trained via composite likelihood ($\mathcal{L}_{\text{comp}}$: \texttt{MIP} or \texttt{STACK}).
   \item \textbf{Head 2 (Outcome $\hat{y}_i$)}: Predicts survey outcome $\hat{y}_i = \mu_\theta^{(y)}(\mathbf{x}_i, \hat{\pi}_{ci})$ using $\hat{\pi}_{ci}$ as a balancing control function, weighted by $\text{sg}(\hat{\pi}_{ci}^{-1})$.
   \item \textbf{Joint Variational ELBO}:
-  \vspace{-0.2em}
+  \vspace{-0.3em}
   \scriptsize
-  $$\mathcal{L}_{\text{joint}}(q) = \mathbb{E}_q\!\left[\mathcal{L}_{\text{comp}}(\hat{\pi}_c) + \sum_{i \in S_c} \text{sg}(\hat{\pi}_{ci}^{-1})\log p(y_i \mid \mathbf{x}_i, \hat{\pi}_{ci})\right] - \text{KL}(q(\theta) \parallel p(\theta))$$
+  $$\begin{aligned}
+  \mathcal{L}_{\text{joint}}(q) &= \mathbb{E}_q\!\left[\mathcal{L}_{\text{comp}}(\hat{\pi}_c) + \sum_{i \in S_c} \text{sg}(\hat{\pi}_{ci}^{-1})\log p(y_i \mid \mathbf{x}_i, \hat{\pi}_{ci})\right] \\
+  &\quad - \text{KL}\big(q(\theta) \parallel p(\theta)\big)
+  \end{aligned}$$
   \footnotesize
-  \vspace{-0.2em}
+  \vspace{-0.3em}
   \item \textbf{Unified Feature Attribution}: Confounders ($X_1, X_2$) are shared; outcome-only drivers ($X_3$) feed directly into Head 2 without inflating propensity variance!
 \end{itemize}
 \normalsize

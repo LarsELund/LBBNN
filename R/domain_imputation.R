@@ -20,6 +20,7 @@
 #' Dirichlet Bayesian bootstrap perturbations \eqn{\boldsymbol{\xi}^{(s)} \sim \text{Dirichlet}(1, \dots, 1)} (default FALSE).
 #' @param sigma Optional numeric residual error standard deviation \eqn{\sigma}. If NULL, uses \code{object$sigma}
 #' or defaults to 1.0.
+#' @param level Numeric credible interval coverage level (default 0.95 for 95% CIs).
 #' @param device Character string, device for neural network computation ("cpu", "cuda", "mps").
 #' @return A \code{data.frame} with one row per domain containing:
 #' \describe{
@@ -27,12 +28,12 @@
 #'   \item{n_units}{Number of sample units belonging to the domain.}
 #'   \item{mean}{Posterior expectation of domain mean \eqn{\hat{\bar{Y}}_d}.}
 #'   \item{sd}{Posterior standard deviation of domain mean.}
-#'   \item{ci_lower}{Lower 2.5% credible bound for domain mean.}
-#'   \item{ci_upper}{Upper 97.5% credible bound for domain mean.}
+#'   \item{ci_lower}{Lower credible bound for domain mean.}
+#'   \item{ci_upper}{Upper credible bound for domain mean.}
 #'   \item{total_est}{Estimated domain total \eqn{\hat{Y}_{\text{total}, d}}.}
 #'   \item{total_sd}{Posterior standard deviation of domain total.}
-#'   \item{total_ci_lower}{Lower 2.5% credible bound for domain total.}
-#'   \item{total_ci_upper}{Upper 97.5% credible bound for domain total.}
+#'   \item{total_ci_lower}{Lower credible bound for domain total.}
+#'   \item{total_ci_upper}{Upper credible bound for domain total.}
 #' }
 #' @importFrom stats predict rnorm rexp quantile sd model.matrix
 #' @export
@@ -46,10 +47,14 @@ predict_domains_lbbnn <- function(
     type = c("latent_mean", "predictive"),
     dirichlet_uq = FALSE,
     sigma = NULL,
+    level = 0.95,
     device = "cpu"
 ) {
   type <- match.arg(type)
   device <- resolve_device(device)
+  stopifnot(is.numeric(level), length(level) == 1, level > 0, level < 1)
+  q_low <- (1 - level) / 2
+  q_high <- 1 - q_low
 
   # 1. Obtain posterior draws of predictions: shape (draws, n, 1) or (draws, n)
   preds_draws <- stats::predict(object, newdata = newdata, draws = draws, mpm = mpm, device = device)
@@ -133,17 +138,22 @@ predict_domains_lbbnn <- function(
   }
 
   # 6. Aggregate results into summary data frame
+  mean_ci_low <- apply(domain_means, 1, stats::quantile, probs = q_low, na.rm = TRUE)
+  mean_ci_high <- apply(domain_means, 1, stats::quantile, probs = q_high, na.rm = TRUE)
+  tot_ci_low <- apply(domain_totals, 1, stats::quantile, probs = q_low, na.rm = TRUE)
+  tot_ci_high <- apply(domain_totals, 1, stats::quantile, probs = q_high, na.rm = TRUE)
+
   results <- data.frame(
     domain = domain_names,
     n_units = colSums(G > 0),
     mean = apply(domain_means, 1, mean, na.rm = TRUE),
     sd = apply(domain_means, 1, stats::sd, na.rm = TRUE),
-    ci_lower = apply(domain_means, 1, stats::quantile, probs = 0.025, na.rm = TRUE),
-    ci_upper = apply(domain_means, 1, stats::quantile, probs = 0.975, na.rm = TRUE),
+    ci_lower = pmin(mean_ci_low, mean_ci_high),
+    ci_upper = pmax(mean_ci_low, mean_ci_high),
     total_est = apply(domain_totals, 1, mean, na.rm = TRUE),
     total_sd = apply(domain_totals, 1, stats::sd, na.rm = TRUE),
-    total_ci_lower = apply(domain_totals, 1, stats::quantile, probs = 0.025, na.rm = TRUE),
-    total_ci_upper = apply(domain_totals, 1, stats::quantile, probs = 0.975, na.rm = TRUE),
+    total_ci_lower = pmin(tot_ci_low, tot_ci_high),
+    total_ci_upper = pmax(tot_ci_low, tot_ci_high),
     row.names = NULL,
     stringsAsFactors = FALSE
   )

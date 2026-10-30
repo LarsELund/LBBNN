@@ -100,12 +100,20 @@ comp_summary_df <- data.frame(
   row.names = NULL
 )
 
-knitr::kable(
+kableExtra::kbl(
   comp_summary_df,
+  format = "latex",
+  booktabs = TRUE,
+  escape = FALSE,
   row.names = FALSE,
-  col.names = c("Estimator", "Sample Domain", "Target Indicator & Linkage", "Composite Probability / Mechanism"),
+  col.names = c("Estimator", "Sample Domain", "Target Indicator \\& Linkage", "Composite Probability / Mechanism"),
   caption = "Overview of the Five Sample Combination Mechanisms (where $D_i = \\mathbb{I}(i \\in S_c)$ denotes sample origin)"
-)
+) |>
+  kableExtra::kable_styling(latex_options = "hold_position") |>
+  kableExtra::column_spec(1, width = "2.2cm") |>
+  kableExtra::column_spec(2, width = "3.0cm") |>
+  kableExtra::column_spec(3, width = "4.8cm") |>
+  kableExtra::column_spec(4, width = "5.2cm")
 ```
 
 ### Unlinked Stacked Sample (`STACK`)
@@ -1072,9 +1080,13 @@ dl_dr_outcome <- get_dataloaders(
 # 3. Fit Track 1 weighted regression model
 m_dr_outcome <- lbbnn_net(
   sizes = c(6, 16, 1),
+  prior = c(0.2, 0.2),
+  std = c(1.0, 1.0),
+  inclusion_inits = "balanced",
   input_skip = TRUE,
+  flow = FALSE,
   problem_type = "regression",
-  sigma = 0.40,
+  sigma = 1.0,
   device = "cpu"
 )
 
@@ -1101,10 +1113,12 @@ dr_var_tbl <- data.frame(
 knitr::kable(
   dr_var_tbl,
   digits = 3,
+  row.names = FALSE,
+  col.names = c("Feature", "True Role", "Stage 1 (Propensity)", "Stage 2 Incl.", "Stage 2 (Outcome)"),
   caption = "Double Robustness Variable Selection: X3 is Pruned in Stage 1 Propensity but Retained in Stage 2 Outcome Modeling"
 )
 
-# 5. Evaluate population mean recovery and imputation RMSE across the entire population N = 2000
+# 5. Evaluate population mean recovery and imputation RMSE across the entire population N = 5000
 pop_x_all <- pop3[, paste0("X", 1:6)]
 pop_preds_dr <- predict(m_dr_outcome, newdata = pop_x_all, draws = 50, mpm = FALSE)
 y_hat_pop_dr <- as.numeric(pop_preds_dr$mean(dim = 1)$cpu())
@@ -1195,12 +1209,17 @@ api_df <- data.frame(
   row.names = NULL
 )
 
-knitr::kable(
+kableExtra::kbl(
   api_df,
+  format = "latex",
+  booktabs = TRUE,
   row.names = FALSE,
   col.names = c("Function / Signature", "Description"),
   caption = "Exported Functions in LBBNN for Combining Probability and Non-Probability Samples"
-)
+) |>
+  kableExtra::kable_styling(latex_options = "hold_position") |>
+  kableExtra::column_spec(1, width = "5.0cm") |>
+  kableExtra::column_spec(2, width = "10.0cm")
 ```
 
 ---

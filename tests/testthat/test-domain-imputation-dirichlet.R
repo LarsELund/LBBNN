@@ -59,7 +59,9 @@ testthat::test_that("predict_domains_lbbnn evaluates domain-level posterior metr
   )
   testthat::expect_s3_class(res_mean, "data.frame")
   testthat::expect_equal(nrow(res_mean), 2)
-  testthat::expect_true(all(c("domain", "n_units", "mean", "sd", "ci_lower", "ci_upper") %in% names(res_mean)))
+  testthat::expect_true(all(c("domain", "n_units", "mean", "sd", "ci_lower", "ci_upper", "total_est", "total_sd", "total_ci_lower", "total_ci_upper") %in% names(res_mean)))
+  testthat::expect_true(all(res_mean$ci_lower <= res_mean$ci_upper))
+  testthat::expect_true(all(res_mean$total_ci_lower <= res_mean$total_ci_upper))
 
   # Predictive with Dirichlet UQ
   res_pred_uq <- predict_domains_lbbnn(
@@ -69,7 +71,8 @@ testthat::test_that("predict_domains_lbbnn evaluates domain-level posterior metr
   testthat::expect_s3_class(res_pred_uq, "data.frame")
   testthat::expect_equal(nrow(res_pred_uq), 2)
   testthat::expect_true(all(res_pred_uq$sd > 0))
-  testthat::expect_true(all(res_pred_uq$ci_lower < res_pred_uq$ci_upper))
+  testthat::expect_true(all(res_pred_uq$ci_lower <= res_pred_uq$ci_upper))
+  testthat::expect_true(all(res_pred_uq$total_ci_lower <= res_pred_uq$total_ci_upper))
 })
 
 testthat::test_that("impute_response_lbbnn and get_dataloaders handle missing values", {
