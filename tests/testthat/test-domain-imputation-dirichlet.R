@@ -52,11 +52,18 @@ testthat::test_that("predict_domains_lbbnn evaluates domain-level posterior metr
                    sigma = 0.5, input_skip = TRUE)
   train_lbbnn(LBBNN = net, train_dl = dl$train_loader, epochs = 10, lr = 0.05)
 
-  # Latent mean without Dirichlet UQ
+  # Conditional mean (default) vs latent_mean alias without Dirichlet UQ
+  if (requireNamespace("torch", quietly = TRUE)) torch::torch_manual_seed(123)
   res_mean <- predict_domains_lbbnn(
+    object = net, newdata = df[, 1:p], domain_matrix = domains,
+    draws = 20, type = "conditional_mean", dirichlet_uq = FALSE
+  )
+  if (requireNamespace("torch", quietly = TRUE)) torch::torch_manual_seed(123)
+  res_latent <- predict_domains_lbbnn(
     object = net, newdata = df[, 1:p], domain_matrix = domains,
     draws = 20, type = "latent_mean", dirichlet_uq = FALSE
   )
+  testthat::expect_equal(res_mean, res_latent)
   testthat::expect_s3_class(res_mean, "data.frame")
   testthat::expect_equal(nrow(res_mean), 2)
   testthat::expect_true(all(c("domain", "n_units", "mean", "sd", "ci_lower", "ci_upper", "total_est", "total_sd", "total_ci_lower", "total_ci_upper") %in% names(res_mean)))

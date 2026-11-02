@@ -449,7 +449,7 @@ p_slide24 <- ggplot(s1_vars, aes(x = Prob, y = Variable, color = Status)) +
   scale_color_manual(values = c("Selected (Paths = 1)" = "#27ae60", "Pruned (Paths = 0)" = "#7f8c8d")) +
   scale_x_continuous(limits = c(0, 1.12), breaks = seq(0, 1, by = 0.25)) +
   labs(
-    title = "Posterior Inclusion Probabilities (p = 6)",
+    title = "Posterior Inclusion Probabilities (p = 6, LBBNN-STACK)",
     subtitle = "Outcome-only X3 and noise X4-X6 completely pruned to zero active paths",
     x = expression("Posterior Inclusion Probability " * a[k]), y = ""
   ) +

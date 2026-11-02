@@ -136,7 +136,7 @@ In `LBBNN`, we combine the design weights with posterior draws of the regression
 
 $$\hat{\bar{Y}}_d^{\text{BNN}(s)} = \frac{\sum_{i=1}^n w_i G_{i,d} \hat{\mu}_i^{(s)}}{\sum_{i=1}^n w_i G_{i,d}}$$
 
-**Observation Noise De-Noising**: While spike-and-slab edge selection prunes pure noise *covariates* ($X_3, X_4$), additive unit-level observation error $\varepsilon_i \sim \mathcal{N}(0, \sigma^2)$ in $y_i = \mu(\mathbf{x}_i) + \varepsilon_i$ cannot be isolated from idiosyncratic unit variation without repeated measurements. However, by substituting the posterior conditional expectation $\hat{\mu}_i^{(s)} = \mu_{\theta^{(s)}}(\mathbf{x}_i)$ (`type = "latent_mean"`) in place of noisy predictive draws $\tilde{y}_i^{(s)} = \mu_{\theta^{(s)}}(\mathbf{x}_i) + \varepsilon_i^{(s)}$ (`type = "predictive"`), `predict_domains_lbbnn()` explicitly removes additive measurement noise, yielding an error-free estimate of the underlying latent regression surface.
+**Model-Assisted Conditional Expectation**: While spike-and-slab edge selection prunes pure noise *covariates* ($X_3, X_4$), additive unit-level observation error $\varepsilon_i \sim \mathcal{N}(0, \sigma^2)$ in $y_i = \mu(\mathbf{x}_i) + \varepsilon_i$ cannot be isolated from unobserved unit heterogeneity in cross-sectional data without repeated measurements. However, by evaluating the posterior conditional expectation $\hat{\mu}_i^{(s)} = \mathbb{E}[Y_i \mid \mathbf{x}_i, \theta^{(s)}] = \mu_{\theta^{(s)}}(\mathbf{x}_i)$ (`type = "conditional_mean"`) rather than drawing noisy predictive samples $\tilde{y}_i^{(s)} = \mu_{\theta^{(s)}}(\mathbf{x}_i) + \varepsilon_i^{(s)}$ (`type = "predictive"`), `predict_domains_lbbnn()` avoids adding posterior predictive simulation noise, yielding a smooth estimate of the underlying regression surface.
 
 ### Bayesian Imputation for Missing Survey Responses ($y_i = \text{NA}$)
 
@@ -527,13 +527,13 @@ dom_factor <- cut(
 G_dom <- stats::model.matrix(~ dom_factor - 1)
 colnames(G_dom) <- c("Region_North", "Region_Central", "Region_South")
 
-# 2. Run domain estimation with Dirichlet UQ and latent mean predictions
+# 2. Run domain estimation with Dirichlet UQ and conditional mean predictions
 domain_est <- predict_domains_lbbnn(
   object = m_weighted,
   newdata = sample_df[, 1:4],
   domain_matrix = G_dom,
   weights = weights_survey,
-  type = "latent_mean",
+  type = "conditional_mean",
   dirichlet_uq = TRUE,
   draws = 50
 )

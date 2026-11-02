@@ -11,9 +11,10 @@ predict_domains_lbbnn(
   weights = NULL,
   draws = 100,
   mpm = FALSE,
-  type = c("latent_mean", "predictive"),
+  type = c("conditional_mean", "predictive", "latent_mean"),
   dirichlet_uq = FALSE,
   sigma = NULL,
+  level = 0.95,
   device = "cpu"
 )
 }
@@ -33,15 +34,17 @@ If NULL, uniform weights \eqn{w_i = 1} are used.}
 
 \item{mpm}{Logical, whether to evaluate predictions under the sparse Median Probability Model (default FALSE).}
 
-\item{type}{Character string, either \code{"latent_mean"} (default, uses \eqn{\mu_{\theta^{(s)}}(\mathbf{x}_i)}
-which strips out idiosyncratic observation measurement error \eqn{\varepsilon_i}) or \code{"predictive"}
-(includes additive observation noise \eqn{\varepsilon_i^{(s)} \sim \mathcal{N}(0, \sigma^2)}).}
+\item{type}{Character string, either \code{"conditional_mean"} (default, evaluates \eqn{\hat{\mu}_i^{(s)} = \mathbb{E}[Y_i \mid \mathbf{x}_i, \theta^{(s)}]}
+without adding residual simulation noise), \code{"predictive"} (includes additive observation noise \eqn{\varepsilon_i^{(s)} \sim \mathcal{N}(0, \sigma^2)}),
+or \code{"latent_mean"} (alias for backward compatibility, behaves identically to \code{"conditional_mean"}).}
 
 \item{dirichlet_uq}{Logical, whether to incorporate design-based finite-population uncertainty via
 Dirichlet Bayesian bootstrap perturbations \eqn{\boldsymbol{\xi}^{(s)} \sim \text{Dirichlet}(1, \dots, 1)} (default FALSE).}
 
 \item{sigma}{Optional numeric residual error standard deviation \eqn{\sigma}. If NULL, uses \code{object$sigma}
 or defaults to 1.0.}
+
+\item{level}{Numeric credible interval coverage level (default 0.95 for 95\% CIs).}
 
 \item{device}{Character string, device for neural network computation ("cpu", "cuda", "mps").}
 }
@@ -52,12 +55,12 @@ A \code{data.frame} with one row per domain containing:
 \item{n_units}{Number of sample units belonging to the domain.}
 \item{mean}{Posterior expectation of domain mean \eqn{\hat{\bar{Y}}_d}.}
 \item{sd}{Posterior standard deviation of domain mean.}
-\item{ci_lower}{Lower 2.5\% credible bound for domain mean.}
-\item{ci_upper}{Upper 97.5\% credible bound for domain mean.}
+\item{ci_lower}{Lower credible bound for domain mean.}
+\item{ci_upper}{Upper credible bound for domain mean.}
 \item{total_est}{Estimated domain total \eqn{\hat{Y}_{\text{total}, d}}.}
 \item{total_sd}{Posterior standard deviation of domain total.}
-\item{total_ci_lower}{Lower 2.5\% credible bound for domain total.}
-\item{total_ci_upper}{Upper 97.5\% credible bound for domain total.}
+\item{total_ci_lower}{Lower credible bound for domain total.}
+\item{total_ci_upper}{Upper credible bound for domain total.}
 }
 }
 \description{

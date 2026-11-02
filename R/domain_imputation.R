@@ -13,9 +13,9 @@
 #' If NULL, uniform weights \eqn{w_i = 1} are used.
 #' @param draws Integer, number of posterior parameter draws \eqn{S} (default 100).
 #' @param mpm Logical, whether to evaluate predictions under the sparse Median Probability Model (default FALSE).
-#' @param type Character string, either \code{"latent_mean"} (default, uses \eqn{\mu_{\theta^{(s)}}(\mathbf{x}_i)}
-#' which strips out idiosyncratic observation measurement error \eqn{\varepsilon_i}) or \code{"predictive"}
-#' (includes additive observation noise \eqn{\varepsilon_i^{(s)} \sim \mathcal{N}(0, \sigma^2)}).
+#' @param type Character string, either \code{"conditional_mean"} (default, evaluates \eqn{\hat{\mu}_i^{(s)} = \mathbb{E}[Y_i \mid \mathbf{x}_i, \theta^{(s)}]}
+#' without adding residual simulation noise), \code{"predictive"} (includes additive observation noise \eqn{\varepsilon_i^{(s)} \sim \mathcal{N}(0, \sigma^2)}),
+#' or \code{"latent_mean"} (alias for backward compatibility, behaves identically to \code{"conditional_mean"}).
 #' @param dirichlet_uq Logical, whether to incorporate design-based finite-population uncertainty via
 #' Dirichlet Bayesian bootstrap perturbations \eqn{\boldsymbol{\xi}^{(s)} \sim \text{Dirichlet}(1, \dots, 1)} (default FALSE).
 #' @param sigma Optional numeric residual error standard deviation \eqn{\sigma}. If NULL, uses \code{object$sigma}
@@ -44,13 +44,14 @@ predict_domains_lbbnn <- function(
     weights = NULL,
     draws = 100,
     mpm = FALSE,
-    type = c("latent_mean", "predictive"),
+    type = c("conditional_mean", "predictive", "latent_mean"),
     dirichlet_uq = FALSE,
     sigma = NULL,
     level = 0.95,
     device = "cpu"
 ) {
   type <- match.arg(type)
+  if (type == "latent_mean") type <- "conditional_mean"
   device <- resolve_device(device)
   stopifnot(is.numeric(level), length(level) == 1, level > 0, level < 1)
   q_low <- (1 - level) / 2
