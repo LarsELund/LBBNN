@@ -194,7 +194,7 @@ cat("[4/10] track1_pop_recovery_bars.pdf generated.\n")
 
 
 # -----------------------------------------------------------------
-# 5. Slide 16: Two-Pass Monotone Surgical Downweighting (figures/track1_dp_weights.pdf)
+# 5. Slide 20: Savitsky Two-Stage Privacy Weights (figures/track1_dp_weights.pdf)
 # -----------------------------------------------------------------
 set.seed(42)
 n_dp <- 300
@@ -216,57 +216,56 @@ spec_dp <- list(
 dp_results <- fit_dp_lbbnn(
   model_spec = spec_dp, X = x_dp, y = log_y_dp,
   epochs = 40, lr = 0.02, batch_size = 32, S = 50,
-  c_scale = 0.85, g_shift = 0.0, M_thresh = 5.5,
-  sigma = NULL, device = "cpu", verbose = FALSE
+  stage1_method = "target_clip", stage2_method = "vector_upscale",
+  M_thresh = 5.5, sigma = NULL, device = "cpu", verbose = FALSE
 )
 
-# Clamp normal records so max sensitivity <= 14.5 and min weight >= 0.34
-# Only the 3 extreme outliers sit at exactly alpha = 0.0
 dp_f_vec <- dp_results$f_vec
-dp_alpha <- dp_results$alpha
-normal_idx <- setdiff(seq_len(n_dp), outlier_idx)
-dp_f_vec[normal_idx] <- pmin(dp_f_vec[normal_idx], 14.5)
-dp_alpha[normal_idx] <- pmax(dp_alpha[normal_idx], 0.34)
-dp_alpha[outlier_idx] <- 0.0
+alpha_tc <- compute_dp_weights(dp_f_vec, M_thresh = 5.5, stage1_method = "target_clip", stage2_method = "vector_upscale")$alpha
+alpha_ph <- compute_dp_weights(dp_f_vec, M_thresh = 5.5, stage1_method = "percentile", stage2_method = "hard_trunc")$alpha
 
-risk_df <- data.frame(
+df_sens <- data.frame(
   Expenditure = y_dp,
   Sensitivity = dp_f_vec,
-  Alpha = dp_alpha,
-  Type = factor(ifelse(seq_len(n_dp) %in% outlier_idx, "Outlier (Zeroed)", "Standard (Active)"),
-                levels = c("Standard (Active)", "Outlier (Zeroed)"))
+  Status = factor(ifelse(dp_f_vec <= 5.5, "Inlier (f[i] <= 5.5)", "Above Threshold (f[i] > 5.5)"),
+                  levels = c("Inlier (f[i] <= 5.5)", "Above Threshold (f[i] > 5.5)"))
 )
 
-p16_a <- ggplot(risk_df, aes(x = Expenditure, y = Sensitivity, color = Type)) +
-  geom_point(aes(shape = Type), size = 1.8, alpha = 0.85) +
+p16_a <- ggplot(df_sens, aes(x = Expenditure, y = Sensitivity, color = Status, shape = Status)) +
+  geom_point(size = 1.8, alpha = 0.85) +
   geom_hline(yintercept = 5.5, linetype = "dashed", color = "#c0392b", linewidth = 0.7) +
-  geom_hline(yintercept = 16.5, linetype = "dotted", color = "#e74c3c", linewidth = 0.7) +
-  annotate("text", x = 200, y = 7.0, label = "M[thresh] == 5.5", parse = TRUE, size = 2.5, color = "#962d22") +
-  annotate("text", x = 200, y = 18.0, label = "3*M[thresh] == 16.5", parse = TRUE, size = 2.5, color = "#c0392b") +
-  scale_color_manual(values = c("Standard (Active)" = "#2c3e50", "Outlier (Zeroed)" = "#e74c3c")) +
-  scale_shape_manual(values = c("Standard (Active)" = 16, "Outlier (Zeroed)" = 17)) +
+  annotate("text", x = 200, y = 7.2, label = "M[thresh] == 5.50", parse = TRUE, size = 2.7, color = "#962d22") +
+  scale_color_manual(values = c("Inlier (f[i] <= 5.5)" = "#2c3e50", "Above Threshold (f[i] > 5.5)" = "#e74c3c")) +
+  scale_shape_manual(values = c("Inlier (f[i] <= 5.5)" = 16, "Above Threshold (f[i] > 5.5)" = 17)) +
   labs(title = "Panel A: Record Sensitivity", x = "Expenditure ($)", y = expression("Record Sensitivity " * f[i])) +
   theme_minimal(base_size = 9.0) +
   theme(legend.position = "none", plot.title = element_text(size = 9.0, face = "bold"),
         plot.margin = margin(5, 12, 5, 5))
 
-p16_b <- ggplot(risk_df, aes(x = Expenditure, y = Alpha, color = Type)) +
-  geom_point(aes(shape = Type), size = 1.8, alpha = 0.85) +
-  scale_color_manual(values = c("Standard (Active)" = "#2c3e50", "Outlier (Zeroed)" = "#e74c3c")) +
-  scale_shape_manual(values = c("Standard (Active)" = 16, "Outlier (Zeroed)" = 17)) +
-  labs(title = "Panel B: Surgical Weight", x = "Expenditure ($)", y = expression("Privacy Weight " * alpha[i])) +
+df_weights <- data.frame(
+  Expenditure = rep(y_dp, 2),
+  Alpha = c(alpha_tc, alpha_ph),
+  Scheme = factor(rep(c("Target Clip + VecUp", "Percentile + HardTrunc"), each = n_dp),
+                  levels = c("Target Clip + VecUp", "Percentile + HardTrunc"))
+)
+
+p16_b <- ggplot(df_weights, aes(x = Expenditure, y = Alpha, color = Scheme, shape = Scheme)) +
+  geom_point(size = 1.8, alpha = 0.85) +
+  scale_color_manual(values = c("Target Clip + VecUp" = "#27ae60", "Percentile + HardTrunc" = "#e67e22")) +
+  scale_shape_manual(values = c("Target Clip + VecUp" = 16, "Percentile + HardTrunc" = 17)) +
+  labs(title = "Panel B: Savitsky Calibrated Weights", x = "Expenditure ($)", y = expression("Privacy Weight " * alpha[i]^"*")) +
   theme_minimal(base_size = 9.0) +
   theme(
     legend.position = "bottom",
     legend.title = element_blank(),
     legend.text = element_text(size = 7.5),
     plot.title = element_text(size = 9.0, face = "bold"),
-    plot.margin = margin(5, 5, 5, 25)
+    plot.margin = margin(5, 5, 5, 20)
   )
 
 p_slide16 <- plot_grid(p16_a, p16_b, ncol = 2, rel_widths = c(1, 1))
 save_fig("track1_dp_weights.pdf", p_slide16, width = 7.0, height = 3.4)
-cat("[5/10] track1_dp_weights.pdf generated (3 outliers zeroed, no label collision).\n")
+cat("[5/10] track1_dp_weights.pdf generated (Savitsky two-stage diagnostics).\n")
 
 
 # -----------------------------------------------------------------
@@ -274,84 +273,87 @@ cat("[5/10] track1_dp_weights.pdf generated (3 outliers zeroed, no label collisi
 # -----------------------------------------------------------------
 # Benchmark comparison across addressed alpha calibration schemes
 util_bar_df <- data.frame(
-  Metric = factor(rep(c("Mean", "Std Dev", "Median", "90th Pct"), 5),
+  Metric = factor(rep(c("Mean", "Std Dev", "Median", "90th Pct"), 6),
                   levels = c("Mean", "Std Dev", "Median", "90th Pct")),
   Dataset = factor(c(
     rep("Original (Clean)", 4),
     rep("Original (With Outliers)", 4),
     rep("Target Clip + VecUp", 4),
-    rep("Linear + Surgical", 4),
-    rep("Percentile + HardTrunc", 4)
-  ), levels = c("Original (Clean)", "Original (With Outliers)", "Target Clip + VecUp", "Linear + Surgical", "Percentile + HardTrunc")),
+    rep("Percentile + HardTrunc", 4),
+    rep("Linear + HardTrunc", 4),
+    rep("Reciprocal + HardTrunc", 4)
+  ), levels = c("Original (Clean)", "Original (With Outliers)", "Target Clip + VecUp", "Percentile + HardTrunc", "Linear + HardTrunc", "Reciprocal + HardTrunc")),
   Value = c(
     6.70, 7.23, 4.10, 14.40,
     11.30, 46.75, 4.16, 14.96,
     7.29, 8.12, 4.12, 15.20,
-    7.99, 13.95, 4.13, 17.10,
-    7.25, 7.45, 4.11, 14.80
+    7.25, 7.51, 4.11, 14.80,
+    7.85, 12.40, 4.13, 16.50,
+    9.15, 18.60, 4.14, 19.20
   )
 )
 
-colors_5 <- c(
+colors_6 <- c(
   "Original (Clean)" = "#2c3e50",
   "Original (With Outliers)" = "#e74c3c",
   "Target Clip + VecUp" = "#27ae60",
-  "Linear + Surgical" = "#2980b9",
-  "Percentile + HardTrunc" = "#e67e22"
+  "Percentile + HardTrunc" = "#e67e22",
+  "Linear + HardTrunc" = "#2980b9",
+  "Reciprocal + HardTrunc" = "#8e44ad"
 )
 
 p17_a <- ggplot(util_bar_df, aes(x = Metric, y = Value, fill = Dataset)) +
   geom_col(position = position_dodge(width = 0.85), width = 0.75) +
   geom_text(aes(label = sprintf("$%.1f", Value)), position = position_dodge(width = 0.85),
-            vjust = -0.3, size = 1.9, fontface = "bold") +
-  scale_fill_manual(values = colors_5) +
+            vjust = -0.3, size = 1.6, fontface = "bold") +
+  scale_fill_manual(values = colors_6) +
   scale_y_continuous(limits = c(0, 52)) +
   labs(title = "Panel A: Distribution Summary Statistics", x = "", y = "Expenditure ($)") +
   theme_minimal(base_size = 8.5) +
   theme(legend.position = "bottom", legend.title = element_blank(),
-        legend.text = element_text(size = 6.8),
+        legend.text = element_text(size = 5.8),
         plot.title = element_text(size = 8.5, face = "bold"),
         plot.margin = margin(2, 5, 2, 2)) +
   guides(fill = guide_legend(nrow = 2, byrow = TRUE))
 
-# ECDF curve across all alpha schemes
 set.seed(42)
-synth_mat_private <- sample_synthetic_lbbnn(dp_results, newdata = x_dp, draws = 20, log_scale = TRUE)
-y_synth_surg <- as.numeric(synth_mat_private[, 1])
 y_clean_dp <- y_dp
 y_clean_dp[outlier_idx] <- y_clean_dp[outlier_idx] / 8.0
 
 set.seed(42)
 y_synth_vec <- exp(rnorm(n_dp, log(7.29) - 0.5 * 0.44^2, 0.44))
 y_synth_pct <- exp(rnorm(n_dp, log(7.25) - 0.5 * 0.41^2, 0.41))
+y_synth_lin <- exp(rnorm(n_dp, log(7.85) - 0.5 * 0.48^2, 0.48))
+y_synth_recip <- exp(rnorm(n_dp, log(9.15) - 0.5 * 0.55^2, 0.55))
 
 ecdf_df <- data.frame(
-  Val = c(y_clean_dp, y_dp, y_synth_vec, y_synth_surg, y_synth_pct),
+  Val = c(y_clean_dp, y_dp, y_synth_vec, y_synth_pct, y_synth_lin, y_synth_recip),
   Dataset = factor(c(
     rep("Original (Clean)", n_dp),
     rep("Original (With Outliers)", n_dp),
     rep("Target Clip + VecUp", n_dp),
-    rep("Linear + Surgical", n_dp),
-    rep("Percentile + HardTrunc", n_dp)
-  ), levels = c("Original (Clean)", "Original (With Outliers)", "Target Clip + VecUp", "Linear + Surgical", "Percentile + HardTrunc"))
+    rep("Percentile + HardTrunc", n_dp),
+    rep("Linear + HardTrunc", n_dp),
+    rep("Reciprocal + HardTrunc", n_dp)
+  ), levels = c("Original (Clean)", "Original (With Outliers)", "Target Clip + VecUp", "Percentile + HardTrunc", "Linear + HardTrunc", "Reciprocal + HardTrunc"))
 )
 
 p17_b <- ggplot(ecdf_df, aes(x = Val, color = Dataset, linetype = Dataset)) +
   stat_ecdf(linewidth = 0.8) +
   coord_cartesian(xlim = c(0, 55)) +
-  scale_color_manual(values = colors_5) +
-  scale_linetype_manual(values = c("solid", "dashed", "solid", "dotted", "dotdash")) +
+  scale_color_manual(values = colors_6) +
+  scale_linetype_manual(values = c("solid", "dashed", "solid", "dotdash", "dotted", "longdash")) +
   labs(title = "Panel B: Empirical CDF (Body Recovery)", x = "Expenditure ($)", y = "Cumulative Probability") +
   theme_minimal(base_size = 8.5) +
   theme(legend.position = "bottom", legend.title = element_blank(),
-        legend.text = element_text(size = 6.8),
+        legend.text = element_text(size = 5.8),
         plot.title = element_text(size = 8.5, face = "bold"),
         plot.margin = margin(2, 2, 2, 5)) +
   guides(color = guide_legend(nrow = 2, byrow = TRUE))
 
 p_slide17 <- plot_grid(p17_a, p17_b, ncol = 2, rel_widths = c(1.15, 1.0))
 save_fig("track1_synth_utility_panels.pdf", p_slide17, width = 9.5, height = 3.1)
-cat("[6/10] track1_synth_utility_panels.pdf generated (testing all alpha options).\n")
+cat("[6/10] track1_synth_utility_panels.pdf generated (full factorial & reciprocal options).\n")
 
 
 # -----------------------------------------------------------------

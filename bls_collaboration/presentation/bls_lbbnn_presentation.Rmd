@@ -36,21 +36,24 @@ options(knitr.table.format = "latex")
 
 # PART I: Foundations of LBBNN & Input-Skip Architecture (ISLaB)
 
-## Motivation — Why Sparse & Explainable BNNs in Official Statistics?
+## Motivation — What Official Statistics Truly Requires
 
-\vspace{0.2em}
-\textbf{The Black-Box \& Over-Parameterization Dilemma:}
+\vspace{0.1em}
+\textbf{The Primary Mandate of Official Statistics:}
 \begin{itemize}
-  \item Modern deep neural networks capture complex multi-way interactions, but lack calibrated uncertainty quantification and interpretable feature attributions.
-  \item Standard dense BNNs quantify parameter uncertainty, but retain all noise covariates, inflating variance in downstream survey estimators.
+  \setlength{\itemsep}{1.5pt}
+  \item \textbf{Unbiased Finite Population \& Domain Inference}: The fundamental goal is calibrated, design-consistent estimation of finite-population parameters (means, totals, sub-domain distributions) alongside valid uncertainty quantification.
+  \item \textbf{Dual Transparency (Global \& Local)}: Agency stakeholders demand structural feature selection at the population level (global sparsity) and verifiable respondent-level sensitivity attributions (local polyhedral GLMs).
 \end{itemize}
 
-\vspace{0.5em}
-\textbf{What Official Statistics Requires:}
+\vspace{0.35em}
+\textbf{The Reality of Complex Modern Data Regimes:}
 \begin{itemize}
-  \item \textbf{Structural Sparsity}: Combine model selection (spike-and-slab edge pruning) and parameter uncertainty in a single variational framework.
-  \item \textbf{Explainable Depth}: Automatically adapt between simple linear GLMs ($\text{Depth} = 1$) and deep non-linear interaction surfaces ($\text{Depth} > 1$).
-  \item \textbf{Survey \& Privacy Rigor}: Rigorous integration with informative sampling weights, differential privacy ($\epsilon, \delta$), and non-probability samples.
+  \setlength{\itemsep}{2pt}
+  \item \textbf{Non-Linear Participation Bias}: In opt-in and administrative sources ($S_c$), self-selection mechanisms are complex, non-linear functions of respondent covariates—standard linear logit models are structurally misspecified.
+  \item \textbf{Differential Stratification \& Informative Designs}: Sample inclusion probabilities differ across demographic strata, requiring \textbf{pseudo-posterior likelihood reweighting} to correct selection bias.
+  \item \textbf{Formal Differential Privacy ($\epsilon, \delta$)}: Skewed economic microdata (wages, firm revenues) contain extreme leverage records that threaten re-identification, requiring privacy calibration that preserves distributional shape.
+  \item \textbf{Weight-Variance Protection}: Dense deep models retain pure noise covariates, triggering severe variance inflation in downstream Horvitz-Thompson and H\'{a}jek weighting.
 \end{itemize}
 
 ## From Dense BNNs to Latent Binary BNNs (Hubin & Storvik, 2024)
@@ -276,7 +279,7 @@ $$\text{ELBO}(q; \mathbf{u}) = \sum_{i=1}^n u_i \, \mathbb{E}_{q(\theta)}\!\left
   where $\varepsilon_i \sim \mathcal{N}(0, 0.4^2)$, and $X_3, X_4 \sim \mathcal{N}(0, 1)$ are pure noise.
   \item \textbf{Informative Selection Mechanism}:
   \small
-  $$\pi_i = \text{logit}^{-1}(-1.0 + 1.2 Y_i)$$
+  $$\pi_i = \sigma(-1.0 + 1.2 Y_i), \qquad \sigma(z) = \frac{1}{1 + e^{-z}}$$
   \normalsize
   Draws $n = 737$ units favoring high $Y_i$.
   \item Unweighted sample mean is \textbf{+2.009} (True population mean: \textbf{0.000}).
@@ -474,28 +477,23 @@ $$\sup_{\theta \in \Theta_\delta} \left|\log \frac{q_{\boldsymbol{\alpha}}(\thet
 
 ## Track 1B — Stage 2: Enforcing the Threshold ($\alpha_i^* f_i \le M_{\text{thresh}}$)
 
-\vspace{-0.25em}
+\vspace{-0.2em}
 \begin{columns}
 \begin{column}{0.52\textwidth}
 \textbf{Second-Stage Reweighting Schemes ($\alpha_i^{(1)} \to \alpha_i^*$):}
-\scriptsize
+\footnotesize
 \begin{enumerate}
-  \setlength{\itemsep}{1.5pt}
+  \setlength{\itemsep}{4pt}
   \item \textbf{Hard Truncation (\texttt{"hard\_trunc"})}:
-  \vspace{-0.2em}
+  \vspace{-0.15em}
   $$\alpha_i^{\text{trunc}} = \alpha_i^{(1)} \, \mathbb{I}\!\left(\alpha_i^{(1)} f_i \le M_{\text{thresh}}\right)$$
-  \vspace{-0.2em}
-  Post-hoc zeroing of records exceeding $M_{\text{thresh}}$; leaves unspent privacy slack $M_{\text{thresh}} - \alpha_i^{(1)} f_i > 0$.
+  \vspace{-0.15em}
+  Post-hoc zeroing of records where $\alpha_i^{(1)} f_i > M_{\text{thresh}}$; leaves unspent privacy capacity $M_{\text{thresh}} - \alpha_i^{(1)} f_i > 0$ on surviving units.
   \item \textbf{Vector Upward Rescaling (\texttt{"vector\_upscale"})}:
-  \vspace{-0.2em}
+  \vspace{-0.15em}
   $$\alpha_i^{\text{vec}} = \min\!\left(1, \, \alpha_i^{(1)} \cdot \frac{M_{\text{thresh}}}{\alpha_i^{(1)} f_i}\right) = \min\!\left(1, \, \frac{M_{\text{thresh}}}{f_i}\right)$$
-  \vspace{-0.2em}
-  Pointwise dominates hard truncation: $\alpha_i^{\text{vec}} \ge \alpha_i^{\text{trunc}}$ for all $i$.
-  \item \textbf{Surgical Monotone Capping (\texttt{"surgical"})}:
-  \vspace{-0.2em}
-  $$\alpha_i^{\text{surg}} = \min\!\left(\alpha_i^{(1)}, \, \frac{M_{\text{thresh}}}{f_i}\right) \mathbb{I}(f_i \le 3M_{\text{thresh}})$$
-  \vspace{-0.2em}
-  Smoothly caps intermediate units while zeroing extreme tail outliers ($f_i > 3M_{\text{thresh}}$).
+  \vspace{-0.15em}
+  Inflates all active weights ($\alpha_i^{(1)} > 0$) up to the privacy threshold boundary; pointwise dominates hard truncation ($\alpha_i^{\text{vec}} \ge \alpha_i^{\text{trunc}}$).
 \end{enumerate}
 \normalsize
 \end{column}
@@ -504,55 +502,85 @@ $$\sup_{\theta \in \Theta_\delta} \left|\log \frac{q_{\boldsymbol{\alpha}}(\thet
 \textbf{Information Dominance \& Multi-Pass Geometry:}
 \footnotesize
 \begin{itemize}
-  \setlength{\itemsep}{2pt}
+  \setlength{\itemsep}{2.5pt}
+  \item \textbf{Algebraic Cancellation Insight}: For any record with $\alpha_i^{(1)} > 0$, $\alpha_i^{(1)}$ cancels in $\alpha_i^{\text{vec}}$, collapsing directly to $\min(1, M_{\text{thresh}}/f_i)$ (\texttt{target\_clip}). If Stage 1 zeroes tail units (\texttt{percentile}), those zeroes remain preserved.
   \item \textbf{Loewner Fisher Dominance (Prop. 2)}: Because $\alpha_i^{\text{vec}} \ge \alpha_i^{\text{trunc}}$ everywhere, vector upward rescaling strictly maximizes Fisher information:
   \vspace{-0.2em}
   $$\mathcal{I}_{\boldsymbol{\alpha}^{\text{vec}}}(\theta) \succeq \mathcal{I}_{\boldsymbol{\alpha}^{\text{trunc}}}(\theta)$$
   \vspace{-0.2em}
-  in the Loewner partial order.
-  \item \textbf{Why Pass 3 Is Executed}: Upward rescaling alters the relative weight profile and shifts the pseudo-posterior geometry $\xi_{\boldsymbol{\alpha}^{\text{vec}}}(\theta \mid D)$; \texttt{fit\_dp\_lbbnn()} automatically runs Pass 3 on $\alpha_i^{\text{vec}}$ to verify $\Delta_{\alpha, \mathbf{y}} \le M_{\text{thresh}}$ on the final draws.
+  \item \textbf{Why Pass 3 Is Executed}: Upward rescaling shifts the pseudo-posterior geometry $\xi_{\boldsymbol{\alpha}^{\text{vec}}}(\theta \mid D)$; \texttt{fit\_dp\_lbbnn()} executes Pass 3 on $\alpha_i^{\text{vec}}$ to verify $\Delta_{\alpha, \mathbf{y}} \le M_{\text{thresh}}$ on the final variational draws.
 \end{itemize}
 \normalsize
 \end{column}
 \end{columns}
 
-## Track 1B — Record Sensitivity & Surgical Downweighting Diagnostic
+## Track 1B — Record Sensitivity & Savitsky Two-Stage Weight Diagnostics
 
 \vspace{0.1em}
 \begin{columns}
-\begin{column}{0.60\textwidth}
+\begin{column}{0.58\textwidth}
 \includegraphics[width=\linewidth]{figures/track1_dp_weights.pdf}
 \end{column}
 
-\begin{column}{0.40\textwidth}
-\textbf{Empirical DP Metrics (\texttt{linear + surgical}):}
+\begin{column}{0.42\textwidth}
+\textbf{Empirical DP Calibration ($n = 300, M_{\text{thresh}} = 5.5$):}
 \footnotesize
 \begin{itemize}
   \setlength{\itemsep}{2pt}
-  \item \textbf{Skewed Microdata}: $n = 300$, median $\$4.16$, with 3 extreme outliers ($\$400\text{--}\$530$).
-  \item \textbf{Pass 1 Sensitivity ($f_i$)}: Inliers have $f_i \le 15$; the 3 extreme outliers reach $f_i \in [25.3, 38.1] > 3M_{\text{thresh}}$.
-  \item \textbf{Standard Records}: Retain high weights $\alpha_i^* \in [0.34, 0.85]$ (median $0.81$).
-  \item \textbf{Tail Outliers}: Surgically zeroed ($\alpha_i^* = 0.0$).
-  \item \textbf{Realized Privacy Guarantee}:\\
-  $\Delta_{\alpha, \mathbf{y}} = 4.32 \le 5.50 \implies \boldsymbol{\epsilon_{\mathbf{y}} = 8.63}$.
+  \item \textbf{Skewed Microdata}: Median $\$4.16$, contaminated with 3 extreme outliers ($\$400\text{--}\$530$, $f_i \in [25.3, 38.1]$).
+  \item \textbf{Likelihood Mass ESS}: In DP pseudo-posteriors, $\alpha_i^* \in [0, 1]$ acts as a likelihood exponent, so total retained information mass is $\text{ESS} = \sum_{i=1}^n \alpha_i^*$.
+  \item \textbf{\texttt{target\_clip + vector\_upscale}}: Retains $\alpha_i^* = 1.0$ on $84.3\%$ of sample ($\text{ESS} = 284.6/300$, $0$ zeroed); caps outliers exactly at $M_{\text{thresh}}/f_i \in [0.14, 0.22]$.
+  \item \textbf{\texttt{percentile + hard\_trunc}}: Boosts lower $95\%$ while hard-zeroing the top $5\%$ tail ($15$ units zeroed, $\text{ESS} = 217.5/300$, $\epsilon_{\mathbf{y}} = 5.07$).
 \end{itemize}
 \normalsize
 \end{column}
 \end{columns}
 
-## Track 1B — Synthetic Microdata Utility Across Privacy Weight Schemes
+## Track 1B — Full Factorial Benchmark Across Privacy Weight Schemes
 
-\includegraphics[width=0.92\textwidth, height=0.46\textheight, keepaspectratio]{figures/track1_synth_utility_panels.pdf}
+\vspace{-0.25em}
+\begin{columns}
+\begin{column}{0.54\textwidth}
+\includegraphics[width=\linewidth]{figures/track1_synth_utility_panels.pdf}
+\end{column}
+
+\begin{column}{0.46\textwidth}
+\textbf{Full $3 \times 2$ Factorial + Reciprocal ($n=300, M_{\text{thresh}}=5.5$):}
+\vspace{-0.3em}
+\tiny
+\setlength{\tabcolsep}{2.2pt}
+\renewcommand{\arraystretch}{1.12}
+\begin{table}[ht]
+\centering
+\begin{tabular}{llcccc}
+\toprule
+\textbf{Stage 1} & \textbf{Stage 2} & $\mathbf{ESS} (\sum \alpha_i^*)$ & \textbf{Zeroed} & $\boldsymbol{\epsilon_{\mathbf{y}}}$ & \textbf{Mean (SD)} \\
+\midrule
+Clean Ref & — & $300.0$ & $0$ & — & $\$6.70$ ($\$7.23$) \\
+Contam. ($u_i=1$) & — & $300.0$ & $0$ & $76.20$ & $\$11.30$ ($\$46.75$) \\
+\midrule
+\texttt{target\_clip} & \texttt{vec\_upscale} & $\mathbf{284.6}$ & $\mathbf{0}$ & $11.00$ & $\mathbf{\$7.29}$ ($\mathbf{\$8.12}$) \\
+\texttt{target\_clip} & \texttt{hard\_trunc} & $284.6$ & $0$ & $11.00$ & $\$7.29$ ($\$8.12$) \\
+\texttt{linear} & \texttt{vec\_upscale} & $284.6$ & $0$ & $11.00$ & $\$7.29$ ($\$8.12$) \\
+\texttt{linear} & \texttt{hard\_trunc} & $230.1$ & $4$ & $10.56$ & $\$7.85$ ($\$12.40$) \\
+\texttt{percentile} & \texttt{vec\_upscale} & $270.8$ & $15$ & $11.00$ & $\$7.26$ ($\$7.68$) \\
+\texttt{percentile} & \texttt{hard\_trunc} & $217.5$ & $15$ & $\mathbf{5.07}$ & $\$7.25$ ($\$7.51$) \\
+\midrule
+\texttt{reciprocal} & \texttt{hard\_trunc} & $62.9$ & $2$ & $10.82$ & $\$9.15$ ($\$18.60$) \\
+\bottomrule
+\end{tabular}
+\end{table}
+\normalsize
+\end{column}
+\end{columns}
 
 \vspace{-0.2em}
 \scriptsize
-\textbf{Empirical Comparison of Privacy Weight Schemes ($M_{\text{thresh}} = 5.5, n = 300$):}
 \begin{itemize}
-  \setlength{\itemsep}{1.5pt}
-  \item \textbf{Target Clip + Vector Upscale}: Retains highest Effective Sample Size ($\sum \alpha_i^* = 284.6 / 300$, $84.3\%$ units with $\alpha_i^* = 1$, $0$ zeroed) while strictly capping sensitivity at $M_{\text{thresh}} = 5.5$, matching clean distribution moments almost perfectly (Mean $\$7.29$, Std Dev $\$8.12$ vs. Clean $\$6.70$, $\$7.23$).
-  \item \textbf{Linear + Surgical (Baseline)}: Surgically zeroes all 3 extreme outliers ($f_i > 3M_{\text{thresh}}$), recovering the clean distribution body (Mean $\$7.99$) and shielding standard deviation from catastrophic explosion ($\$13.95$ vs. $\$46.75$).
-  \item \textbf{Percentile Deficit Truncation}: Aggressively caps the upper tail (15 records zeroed, Mean $\$7.25$, $\epsilon_{\text{local}} = 5.10$), trading sample size ($\text{ESS} = 217.5$) for maximum tail disclosure protection.
-  \item \textbf{Reciprocal Linear (Remark 1)}: Collapses effective sample size ($\text{ESS} = 62.9$) due to hyperbolic $(f_{\min}/f_i)$ attenuation, empirically confirming Savitsky's (2026) preference for direct $1 - \tilde{f}_i$.
+  \setlength{\itemsep}{1pt}
+  \item \textbf{Equivalence Under \texttt{vector\_upscale}}: Confirming Savitsky's cancellation rule, \texttt{target\_clip + vec\_upscale}, \texttt{target\_clip + hard\_trunc}, and \texttt{linear + vec\_upscale} converge to the exact same optimal profile ($\text{ESS} = 284.6$, Mean $\$7.29$, SD $\$8.12$).
+  \item \textbf{Percentile Tail Excision}: Zeroing the top $5\%$ in Stage 1 followed by \texttt{vec\_upscale} boosts surviving inliers to $\alpha_i^* = 1$ ($\text{ESS} = 270.8$), whereas \texttt{hard\_trunc} yields the tightest privacy guarantee ($\epsilon_{\mathbf{y}} = 5.07$).
+  \item \textbf{Remark 1 Validated}: Reciprocal $1/f_i$ normalization suffers severe hyperbolic attenuation ($\text{ESS} = 62.9/300$), inflating variance (SD $\$18.60$).
 \end{itemize}
 \normalsize
 
@@ -621,28 +649,27 @@ synth_micro <- sample_synthetic_lbbnn(dp_fit, newdata = x_micro, draws = 50)
   \item A tiny correlation $\rho_{I_c, Y} \neq 0$ creates selection bias scaling with $\sqrt{N}$; increasing sample size $n_c$ merely concentrates error around a severely biased estimate.
 \end{itemize}
 
-## The Identification Barrier & The Conditioning Trick (Beresovsky et al., 2026)
+## The Identification Barrier & The Conditioning Principle (Beresovsky et al., 2026)
 
-\vspace{0.05em}
-\textbf{The Identification Barrier:}
-\footnotesize
+\vspace{0.1em}
+\textbf{The Missing Mass \& Identification Barrier:}
 \begin{itemize}
-  \item Covariates $\mathbf{x}_i$ are observed only on convenience sample $S_c$ (unknown $\pi_{ci}$) and reference survey $S_r$ (known design probability $\pi_{ri}$). Non-sampled units $U \setminus (S_c \cup S_r)$ are never observed.
+  \setlength{\itemsep}{2.5pt}
+  \item Let $U = \{1, \dots, N\}$ denote the finite target population. We observe covariates $\mathbf{x}_i \in \mathbb{R}^p$ on two samples:
+  \begin{enumerate}
+    \item \textbf{Convenience Sample $S_c$ ($n_c$ units)}: Self-selected with \emph{unknown} propensity $\pi_{ci} = \mathbb{P}(I_{ci} = 1 \mid \mathbf{x}_i) = \sigma(\eta_\theta(\mathbf{x}_i))$, where $\sigma(z) = \frac{1}{1 + e^{-z}}$, and observed survey outcome $y_i$.
+    \item \textbf{Reference Probability Survey $S_r$ ($n_r$ units)}: Selected with \emph{known} design inclusion probability $\pi_{ri} = \mathbb{P}(I_{ri} = 1 \mid \mathbf{x}_i) > 0$, measuring shared covariates $\mathbf{x}_i$ (outcomes $y_i$ unobserved).
+  \end{enumerate}
+  \item \textbf{Why Direct Binary Classification Fails}: Fitting a direct Bernoulli likelihood for $I_{ci} \in \{0, 1\}$ across $U$ is impossible because non-sampled population units $i \in U \setminus (S_c \cup S_r)$ are completely unobserved.
 \end{itemize}
 
-\vspace{-0.2em}
-\textbf{The Conditioning Trick \& Structural Offset Derivation:}
+\vspace{0.3em}
+\textbf{The Conditioning Resolution (Quasi-Randomization vs. Pseudo-Likelihood):}
 \begin{itemize}
-  \setlength{\itemsep}{1.5pt}
-  \item Pool $S_c$ and $S_r$ into a combined sample $S$, and model membership indicator $D_i = \mathbb{I}(i \in S_c)$:
-  \vspace{-0.2em}
-  $$\pi_{zi}^{\text{STACK}} = \mathbb{P}(D_i = 1 \mid \mathbf{x}_i, i \in S) = \frac{\pi_{ci}}{\pi_{ci} + \pi_{ri}}, \qquad \text{where } \pi_{ci} = \sigma\big(\eta_\theta(\mathbf{x}_i)\big) = \frac{e^{\eta_\theta(\mathbf{x}_i)}}{1 + e^{\eta_\theta(\mathbf{x}_i)}}$$
-  \vspace{-0.2em}
-  \item \textbf{Log-Odds Expansion \& Rare-Event Approximation ($\pi_{ci} \ll 1$)}:
-  $$\log\left(\frac{\pi_{zi}^{\text{STACK}}}{1 - \pi_{zi}^{\text{STACK}}}\right) = \log \pi_{ci} - \log \pi_{ri} = \eta_\theta(\mathbf{x}_i) - \underbrace{\log\big(1 + e^{\eta_\theta(\mathbf{x}_i)}\big)}_{\approx 0 \text{ when } \pi_{ci} \ll 1} - \log \pi_{ri} \approx \eta_\theta(\mathbf{x}_i) - \log \pi_{ri}$$
-  \item \textbf{Exact Implementation in \texttt{LBBNN}}: When $\pi_{ci} \ll 1$ ($n_c \ll N$), $\text{logit}(\pi_{ci}) \approx \log \pi_{ci}$, so $-\log \pi_{ri}$ acts as a structural offset. In \texttt{nll\_stack()}, we evaluate the \textbf{exact} composite probability $\frac{\sigma(\eta_\theta(\mathbf{x}_i))}{\sigma(\eta_\theta(\mathbf{x}_i)) + \pi_{ri}}$ without dropping $\log(1 + e^{\eta_\theta(\mathbf{x}_i)})$, ensuring exact calibration for any sampling fraction.
+  \setlength{\itemsep}{2.5pt}
+  \item \textbf{Composite Conditioning}: Pool $S_c$ and $S_r$ into a combined sample $S$, and condition on observed sample inclusion $i \in S$. Known design probabilities $\pi_{ri}$ enter the conditional composite probability $\pi_{zi} = \mathbb{P}(I_{zi} = 1 \mid \mathbf{x}_i, i \in S)$ as a known structural anchor, rendering $\eta_\theta(\mathbf{x}_i)$ fully identifiable!
+  \item \textbf{Survey Design Pseudo-Likelihood}: Approximate the unobserved population log-likelihood over $U$ via Horvitz–Thompson inverse design weights $w_{ri} = \pi_{ri}^{-1}$ on $S_r$ (Chen, Li \& Wu, 2020).
 \end{itemize}
-\normalsize
 
 ## Intuition & Torch Training Link for All Five Estimators
 
@@ -676,43 +703,41 @@ synth_micro <- sample_synthetic_lbbnn(dp_fit, newdata = x_micro, draws = 50)
 
 ## Implementation in `LBBNN` (1/5): `STACK` (Unlinked Stacked Sample)
 
-\vspace{-0.15em}
+\vspace{-0.2em}
 \begin{columns}
-\begin{column}{0.52\textwidth}
+\begin{column}{0.53\textwidth}
 \textbf{Statistical Formulation ($S = S_c \oplus S_r$):}
 \footnotesize
 \begin{itemize}
-  \setlength{\itemsep}{2pt}
-  \item \textbf{No Record Linkage Required}: Convenience sample $S_c$ ($n_c$) and reference survey $S_r$ ($n_r$) are stacked into a multiset of size $n = n_c + n_r$ (overlapping units $i \in S_c \cap S_r$ appear twice).
-  \item \textbf{Target Indicator}: Sample origin $I_{zi} = D_i = \mathbb{I}(i \in S_c) \in \{0, 1\}$.
-  \item \textbf{Exact Composite Probability}:
-  $$\pi_{zi}^{\text{STACK}} = \frac{\pi_{ci}}{\pi_{ci} + \pi_{ri}}, \qquad \pi_{ci} = \sigma\big(\eta_\theta(\mathbf{x}_i)\big)$$
-  \item \textbf{Bernoulli Composite NLL}:
+  \setlength{\itemsep}{1.5pt}
+  \item \textbf{Unlinked Multiset}: Pool $S_c$ ($n_c$) and $S_r$ ($n_r$) into a stacked multiset of size $n = n_c + n_r$ with sample origin indicator $I_{zi} = D_i = \mathbb{I}(i \in S_c) \in \{0, 1\}$:
+  \vspace{-0.15em}
+  $$\pi_{zi}^{\text{STACK}} = \mathbb{P}(D_i = 1 \mid \mathbf{x}_i, i \in S_c \oplus S_r) = \frac{\pi_{ci}}{\pi_{ci} + \pi_{ri}}$$
+  \vspace{-0.15em}
+  where $\pi_{ci} = \sigma\big(\eta_\theta(\mathbf{x}_i)\big) = \frac{1}{1 + e^{-\eta_\theta(\mathbf{x}_i)}}$.
+  \item \textbf{Log-Odds \& Rare-Event Offset ($\pi_{ci} \ll 1$)}:
   \vspace{-0.2em}
   \scriptsize
-  $$\begin{aligned}
-  \mathcal{L}_{\text{STACK}}(\theta) &= -\sum_{i \in S_c \oplus S_r} \Big[ D_i \log \pi_{zi}^{\text{STACK}} \\
-  &\quad + (1 - D_i)\log(1 - \pi_{zi}^{\text{STACK}}) \Big]
-  \end{aligned}$$
+  $$\log\!\left(\frac{\pi_{zi}^{\text{STACK}}}{1 - \pi_{zi}^{\text{STACK}}}\right) = \log \pi_{ci} - \log \pi_{ri} = \eta_\theta(\mathbf{x}_i) - \underbrace{\log\big(1 + e^{\eta_\theta(\mathbf{x}_i)}\big)}_{\approx 0 \text{ when } \pi_{ci} \ll 1} - \log \pi_{ri}$$
   \footnotesize
-  \vspace{-0.2em}
+  When $\pi_{ci} \ll 1$ ($n_c \ll N$), $-\log \pi_{ri}$ acts as an additive offset.
+  \item \textbf{Exact Composite NLL}: In \texttt{nll\_stack()}, we evaluate the exact fraction $\frac{\sigma(\eta_i)}{\sigma(\eta_i) + \pi_{ri}}$ without dropping $\log(1 + e^{\eta_i})$, guaranteeing exact calibration at any sampling fraction.
 \end{itemize}
 \normalsize
 \end{column}
 
-\begin{column}{0.48\textwidth}
+\begin{column}{0.47\textwidth}
 \textbf{LibTorch Architecture (\texttt{nll\_stack}):}
 \footnotesize
 \begin{itemize}
   \setlength{\itemsep}{2pt}
-  \item \textbf{Dataset Packaging}: \texttt{build\_propensity\_dataset(pop, method = "STACK")} binds covariates $\mathbf{X}$ with a 2-column target tensor $\mathbf{Y} = [D_i, \pi_{ri}] \in \mathbb{R}^{(n_c + n_r) \times 2}$.
-  \item \textbf{Forward \& Loss Evaluation}:
-  \begin{enumerate}
-    \footnotesize
-    \item Network outputs unconstrained logits $\eta_i = \eta_\theta(\mathbf{x}_i)$ (\texttt{raw\_output = TRUE}).
-    \item Apply sigmoid $\hat{\pi}_{ci} = \text{torch\_sigmoid}(\eta_i)$.
-    \item Form $\hat{\pi}_{zi} = \text{clamp}\!\left(\frac{\hat{\pi}_{ci}}{\hat{\pi}_{ci} + \pi_{ri}}, \epsilon, 1-\epsilon\right)$.
-  \end{enumerate}
+  \item \textbf{Dataset Packaging}: \texttt{build\_propensity\_dataset(pop, method = "STACK")} binds covariates $\mathbf{X}$ with target tensor $\mathbf{Y} = [D_i, \pi_{ri}] \in \mathbb{R}^{(n_c + n_r) \times 2}$.
+  \item \textbf{Bernoulli Composite Loss}:
+  \vspace{-0.2em}
+  \scriptsize
+  $$\mathcal{L}_{\text{STACK}}(\theta) = -\sum_{i \in S_c \oplus S_r} \Big[ D_i \log \hat{\pi}_{zi}^{\text{STACK}} + (1 - D_i)\log(1 - \hat{\pi}_{zi}^{\text{STACK}}) \Big]$$
+  \footnotesize
+  \vspace{-0.2em}
   \item \textbf{Bounded Gradients}: Because $\pi_{ri} > 0$ sits inside the denominator $\hat{\pi}_{ci} + \pi_{ri}$, loss gradients with respect to $\eta_i$ are strictly bounded in $[-1, 1]$ even when $\pi_{ri} \to 0$.
 \end{itemize}
 \normalsize
@@ -759,24 +784,27 @@ synth_micro <- sample_synthetic_lbbnn(dp_fit, newdata = x_micro, draws = 50)
 
 ## Implementation in `LBBNN` (3/5): `LINK2` (Deterministically Linked Stack)
 
-\vspace{-0.15em}
+\vspace{-0.2em}
 \begin{columns}
-\begin{column}{0.52\textwidth}
-\textbf{Statistical Formulation ($S = S_c \oplus S_r$):}
+\begin{column}{0.53\textwidth}
+\textbf{Deterministic Linking on Stacked Multiset ($S_c \oplus S_r$):}
 \footnotesize
 \begin{itemize}
-  \setlength{\itemsep}{2pt}
-  \item \textbf{Full Sample Size + Linkage}: Retains all $n = n_c + n_r$ stacked records without discarding duplicates, while using deterministic linkage to re-label overlapping units in $S_r$.
-  \item \textbf{Re-Labeled Target Indicator}:
+  \setlength{\itemsep}{1.5pt}
+  \item \textbf{Multiset Retention ($n = n_c + n_r$)}: Unlike \texttt{LINK1} (which drops duplicates), \texttt{LINK2} retains all stacked records—units in $S_c \cap S_r$ physically appear twice (once in $S_c$ with $D_i=1$, once in $S_r$ with $D_i=0$).
+  \item \textbf{Deterministic Re-Labeling via Unique IDs}: Exact identifiers reveal $I_{ci} = \mathbb{I}(i \in S_c) \in \{0, 1\}$ for every unit in $S_r$. We define the composite indicator:
+  \vspace{-0.15em}
   $$I_{zi}^{\text{LINK2}} = D_i + (1 - D_i)I_{ci} \in \{0, 1\}$$
-  All $S_c$ records and any $S_r$ record that also participated in $S_c$ ($I_{ci}=1$) receive $I_{zi}=1$; only non-participating $S_r$ records receive $I_{zi}=0$.
-  \item \textbf{Composite Probability}:
-  $$\pi_{zi}^{\text{LINK2}} = \frac{\mathbb{E}[I_{ci} + I_{ri}I_{ci} \mid \mathbf{x}_i]}{\mathbb{E}[I_{ci} + I_{ri} \mid \mathbf{x}_i]} = \frac{\pi_{ci}(1 + \pi_{ri})}{\pi_{ci} + \pi_{ri}}$$
+  \vspace{-0.15em}
+  Both copies of overlapping units ($D_i=1$ and matched $D_i=0, I_{ci}=1$) receive label $I_{zi}=1$; only confirmed non-participants ($D_i=0, I_{ci}=0$) receive $I_{zi}=0$.
+  \item \textbf{Expected Instance Ratio}: Expected count of $I_{zi}=1$ instances is $\pi_{ci} + \pi_{ri}\pi_{ci} = \pi_{ci}(1+\pi_{ri})$ out of $\pi_{ci} + \pi_{ri}$ total instances:
+  \vspace{-0.15em}
+  $$\pi_{zi}^{\text{LINK2}} = \frac{\pi_{ci}(1 + \pi_{ri})}{\pi_{ci} + \pi_{ri}}$$
 \end{itemize}
 \normalsize
 \end{column}
 
-\begin{column}{0.48\textwidth}
+\begin{column}{0.47\textwidth}
 \textbf{LibTorch Architecture (\texttt{nll\_link2}):}
 \footnotesize
 \begin{itemize}
@@ -786,12 +814,12 @@ synth_micro <- sample_synthetic_lbbnn(dp_fit, newdata = x_micro, draws = 50)
   \vspace{-0.2em}
   \scriptsize
   $$\begin{aligned}
-  \mathcal{L}_{\text{LINK2}}(\theta) &= -\sum_{i \in S_c \oplus S_r} \bigg[ I_{zi}^{\text{LINK2}} \log\left(\frac{\hat{\pi}_{ci}(1+\pi_{ri})}{\hat{\pi}_{ci}+\pi_{ri}}\right) \\
-  &\quad + (1-I_{zi}^{\text{LINK2}})\log\left(\frac{\pi_{ri}(1-\hat{\pi}_{ci})}{\hat{\pi}_{ci}+\pi_{ri}}\right) \bigg]
+  \mathcal{L}_{\text{LINK2}}(\theta) &= -\sum_{i \in S_c \oplus S_r} \bigg[ I_{zi}^{\text{LINK2}} \log\!\left(\frac{\hat{\pi}_{ci}(1+\pi_{ri})}{\hat{\pi}_{ci}+\pi_{ri}}\right) \\
+  &\quad + (1-I_{zi}^{\text{LINK2}})\log\!\left(\frac{\pi_{ri}(1-\hat{\pi}_{ci})}{\hat{\pi}_{ci}+\pi_{ri}}\right) \bigg]
   \end{aligned}$$
   \footnotesize
   \vspace{-0.2em}
-  \item \textbf{Fisher Information Optimality}: Maximizes Fisher information among all composite estimators by combining full multiset sample size with exact overlap identification.
+  \item \textbf{Fisher Information Optimality}: Resolves label ambiguity on overlapping records in $S_r$, strictly maximizing Fisher information across all composite estimators.
 \end{itemize}
 \normalsize
 \end{column}
@@ -799,23 +827,27 @@ synth_micro <- sample_synthetic_lbbnn(dp_fit, newdata = x_micro, draws = 50)
 
 ## Implementation in `LBBNN` (4/5): `MIP` (Missing Information Principle)
 
-\vspace{-0.15em}
+\vspace{-0.2em}
 \begin{columns}
-\begin{column}{0.51\textwidth}
+\begin{column}{0.52\textwidth}
 \textbf{Probabilistic Record Linkage Origin:}
 \footnotesize
 \begin{itemize}
-  \setlength{\itemsep}{2pt}
-  \item When privacy rules or noisy identifiers preclude deterministic matching, an auxiliary linkage model (e.g., Fellegi-Sunter) estimates pairwise match probabilities $m_{ij} = \mathbb{P}(i \sim j \mid \mathbf{x}_i, \mathbf{x}_j)$.
-  \item Marginalizing over convenience candidates yields each reference unit's linkage probability:
+  \setlength{\itemsep}{1.5pt}
+  \item \textbf{Latent Overlap ($I_{ci}$ Missing on $S_r$)}: When noisy quasi-identifiers or privacy rules preclude deterministic linking, an upstream linkage model (e.g., Fellegi–Sunter) estimates pairwise match probabilities $m_{ij} = \mathbb{P}(i \sim j \mid \mathbf{x}_i, \mathbf{x}_j)$, yielding marginal reference linkage probabilities:
+  \vspace{-0.15em}
   $$\tilde{p}_i = \sum_{j \in S_c} m_{ij} \in [0, 1], \qquad \tilde{\mathbf{p}} = (\tilde{p}_1, \dots, \tilde{p}_{n_r})^\top$$
-  \item \textbf{EM-Style Expectation Projection (Louis, 1982)}: Replace latent $I_{ci}$ on $S_r$ with its conditional expectation $\tilde{p}_i$:
+  \vspace{-0.15em}
+  \item \textbf{EM Expectation Projection (Louis, 1982)}: Replace latent $I_{ci}$ in $I_{zi}^{\text{LINK2}}$ with its conditional expectation $\mathbb{E}[I_{ci} \mid \text{linkage}] = \tilde{p}_i$:
+  \vspace{-0.15em}
   $$\tilde{I}_{zi}^{\text{MIP}} = D_i + (1 - D_i)\tilde{p}_i \in [0, 1]$$
+  \vspace{-0.15em}
+  \item \textbf{Benchmark DGPs vs. Production}: In production, $\tilde{\mathbf{p}}$ is ingested from agency linkage software. In Studies 0–3, we simulate known $\tilde{p}_i = \sigma(\gamma_0 + \gamma_1 I_{ci} + e_i)$ across linkage sharpness regimes ($\gamma_1 \gg 0 \to \text{\texttt{LINK2}}$, $\gamma_1 = 0 \to \text{\texttt{STACK}}$).
 \end{itemize}
 \normalsize
 \end{column}
 
-\begin{column}{0.49\textwidth}
+\begin{column}{0.48\textwidth}
 \textbf{LibTorch Architecture (\texttt{make\_nll\_mip}):}
 \footnotesize
 \begin{itemize}
@@ -830,11 +862,11 @@ synth_micro <- sample_synthetic_lbbnn(dp_fit, newdata = x_micro, draws = 50)
   \end{aligned}$$
   \footnotesize
   \vspace{-0.2em}
-  \item \textbf{Record-by-Record Interpolation}:
+  \item \textbf{Record-by-Record Score Interpolation}:
   \begin{itemize}
     \scriptsize
     \item High-certainty matches ($\tilde{p}_i \approx 1$) pull gradients toward the high-efficiency \texttt{LINK2} score.
-    \item Unmatched units ($\tilde{p}_i \approx 0$) safely revert to the unlinked \texttt{STACK} score.
+    \item Unmatched units ($\tilde{p}_i \approx 0$) safely revert toward the unlinked \texttt{STACK} score.
   \end{itemize}
 \end{itemize}
 \normalsize
@@ -843,30 +875,51 @@ synth_micro <- sample_synthetic_lbbnn(dp_fit, newdata = x_micro, draws = 50)
 
 ## Implementation in `LBBNN` (5/5): `PSEUDO` (Design-Weighted Pseudo-NLL)
 
-\vspace{-0.15em}
+\vspace{-0.2em}
 \begin{columns}
-\begin{column}{0.51\textwidth}
-\textbf{Statistical Formulation (Chen, Li \& Wu, 2020):}
+\begin{column}{0.53\textwidth}
+\textbf{Census Approximation (Chen, Li \& Wu, 2020):}
 \footnotesize
 \begin{itemize}
-  \setlength{\itemsep}{2pt}
-  \item Approximates the population census log-likelihood using survey design weights $w_{ri} = \pi_{ri}^{-1}$ on $S_r$:
-  $$\ell_{\text{pseudo}}(\theta) = \sum_{i \in S_c} \log\left(\frac{\pi_{ci}}{1 - \pi_{ci}}\right) + \sum_{i \in S_r} \frac{1}{\pi_{ri}}\log(1 - \pi_{ci})$$
-  \item Substituting $\log\frac{\pi_{ci}}{1-\pi_{ci}} = \eta_\theta(\mathbf{x}_i)$ and $\log(1-\pi_{ci}) = -\text{softplus}(\eta_\theta(\mathbf{x}_i))$ yields the exact negative log-likelihood:
-  $$\text{NLL}_{\text{pseudo}}(\theta) = -\sum_{i \in S_c} \eta_\theta(\mathbf{x}_i) + \sum_{i \in S_r} \frac{1}{\pi_{ri}}\log\!\big(1 + e^{\eta_\theta(\mathbf{x}_i)}\big)$$
+  \setlength{\itemsep}{1.5pt}
+  \item \textbf{Step 1: Unobservable Population Target ($U$)}: If $I_{ci}$ were observed across all $U$, the census Bernoulli log-likelihood would be:
+  \vspace{-0.2em}
+  \scriptsize
+  $$\begin{aligned}
+  \ell_U(\theta) &= \sum_{i \in U} \Big[ I_{ci}\log \pi_{ci} + (1 - I_{ci})\log(1 - \pi_{ci}) \Big] \\
+  &= \sum_{i \in S_c} \log\!\left(\frac{\pi_{ci}}{1 - \pi_{ci}}\right) + \sum_{i \in U} \log(1 - \pi_{ci})
+  \end{aligned}$$
+  \footnotesize
+  \vspace{-0.15em}
+  \item \textbf{Step 2: Horvitz–Thompson Substitution on $S_r$}: Approximate the unobserved population total $\sum_{i \in U} \log(1 - \pi_{ci})$ via inverse reference design weights $w_{ri} = \pi_{ri}^{-1}$:
+  \vspace{-0.15em}
+  $$\ell_{\text{pseudo}}(\theta) = \sum_{i \in S_c} \log\!\left(\frac{\pi_{ci}}{1 - \pi_{ci}}\right) + \sum_{i \in S_r} \frac{1}{\pi_{ri}}\log(1 - \pi_{ci})$$
+  \vspace{-0.15em}
+  \item \textbf{Step 3: Exact Logit \& Softplus NLL}: With $\eta_\theta(\mathbf{x}_i) = \log\frac{\pi_{ci}}{1-\pi_{ci}}$ and $\log(1-\pi_{ci}) = -\text{softplus}(\eta_\theta(\mathbf{x}_i)) = -\log(1 + e^{\eta_\theta(\mathbf{x}_i)})$:
+  \vspace{-0.15em}
+  $$\text{NLL}_{\text{pseudo}}(\theta) = -\sum_{i \in S_c} \eta_\theta(\mathbf{x}_i) + \sum_{i \in S_r} \frac{1}{\pi_{ri}}\,\text{softplus}\big(\eta_\theta(\mathbf{x}_i)\big)$$
 \end{itemize}
 \normalsize
 \end{column}
 
-\begin{column}{0.49\textwidth}
+\begin{column}{0.47\textwidth}
 \textbf{LibTorch Architecture \& Low-Support Breakdown:}
 \footnotesize
 \begin{itemize}
   \setlength{\itemsep}{2pt}
-  \item \textbf{Torch Closure (\texttt{nll\_pseudo})}: Evaluates \texttt{torch\_softplus(eta)} weighted by $\pi_{ri}^{-1}$ on reference units $D_i = 0$ and $-\eta_i$ on convenience units $D_i = 1$.
-  \item \textbf{Why \texttt{PSEUDO} Explodes Under Low Support}:
+  \item \textbf{Vectorized Closure (\texttt{nll\_pseudo})}:
+  \vspace{-0.15em}
+  $$\mathcal{L}_{\text{PSEUDO}}(\theta) = \sum_{i \in S_c \oplus S_r} \Big[ -D_i \eta_i + (1 - D_i)\pi_{ri}^{-1}\,\text{softplus}(\eta_i) \Big]$$
+  \vspace{-0.15em}
+  \item \textbf{Why \texttt{PSEUDO} Explodes Under Low Common Support}:
+  \vspace{-0.15em}
   $$\frac{\partial \text{NLL}_{\text{pseudo}}}{\partial \eta_i} = -D_i + (1 - D_i)\frac{\hat{\pi}_{ci}}{\pi_{ri}}$$
-  When convenience units prefer regions where reference inclusion $\pi_{ri} \to 0$, the gradient multiplier $\hat{\pi}_{ci} / \pi_{ri} \to \infty$, destabilizing variational updates and collapsing Kish's ESS!
+  \vspace{-0.15em}
+  \begin{itemize}
+    \scriptsize
+    \item When convenience respondents concentrate in strata where reference inclusion $\pi_{ri} \to 0$, the raw gradient multiplier $\hat{\pi}_{ci}/\pi_{ri} \to \infty$.
+    \item Unlike composite likelihoods (whose gradients are bounded in $[-1, 1]$), unbounded gradients destabilize variational ELBO updates and collapse Kish's ESS!
+  \end{itemize}
 \end{itemize}
 \normalsize
 \end{column}
@@ -880,7 +933,7 @@ synth_micro <- sample_synthetic_lbbnn(dp_fit, newdata = x_micro, draws = 50)
 \begin{itemize}
   \setlength{\itemsep}{0.5pt}
   \item \textbf{Covariates \& Outcome}: $(X_1, X_2, X_3)^\top \sim \mathcal{MVN}(\mathbf{0}, \boldsymbol{\Sigma})$ ($\Sigma_{ii}=1, \Sigma_{12}=0.5, \Sigma_{13}=\Sigma_{23}=0.3$); $\quad Y_i = 1 + X_{1i} + X_{2i} + X_{3i} + \varepsilon_i$, $\varepsilon_i \sim \mathcal{N}(0, 1^2)$.
-  \item \textbf{Sampling Designs ($n_r = 500, n_c \approx 500$)}: Reference PPS $\pi_{ri} \propto \text{logit}^{-1}(X_{1i} + X_{2i})$; Convenience $\text{logit}(\pi_{ci}) = \beta_0 + \beta_1 X_{1i} - 0.3 X_{2i}$ (\textbf{High Support}: $\beta_1 = +1.0$; \textbf{Low Support}: $\beta_1 = -1.0$).
+  \item \textbf{Sampling Designs ($n_r = 500, n_c \approx 500$)}: Reference PPS $\pi_{ri} \propto \sigma(X_{1i} + X_{2i})$; Convenience $\text{logit}(\pi_{ci}) = \beta_0 + \beta_1 X_{1i} - 0.3 X_{2i}$ (\textbf{High Support}: $\beta_1 = +1.0$; \textbf{Low Support}: $\beta_1 = -1.0$).
 \end{itemize}
 
 \centering
@@ -911,7 +964,7 @@ synth_micro <- sample_synthetic_lbbnn(dp_fit, newdata = x_micro, draws = 50)
   \tiny
   $$Y_i = 1 + X_{1i} + X_{2i} + X_{3i} + 0.5X_{1i}^2 - 0.5\sin(\pi X_{2i}) + \varepsilon_i$$
   \scriptsize
-  \item \textbf{Reference Survey ($S_r, n_r = 500$)}: Systematic PPS with $\pi_{ri} \propto \text{logit}^{-1}(X_{1i} + X_{2i})$.
+  \item \textbf{Reference Survey ($S_r, n_r = 500$)}: Systematic PPS with $\pi_{ri} \propto \sigma(X_{1i} + X_{2i})$.
   \item \textbf{Convenience Sample ($S_c, n_c \approx 500$)}:
   \vspace{-0.2em}
   $$\text{logit}(\pi_{ci}) = \beta_0 + 1.0 X_{1i} - 0.5 X_{2i}$$
@@ -939,7 +992,7 @@ synth_micro <- sample_synthetic_lbbnn(dp_fit, newdata = x_micro, draws = 50)
 \textbf{Non-Linear High-Support DGP ($N = 5,000, p = 6, n_r = 500, n_c = 512$):}
 \begin{itemize}
   \setlength{\itemsep}{0.5pt}
-  \item \textbf{Outcome \& Reference PPS}: Same $p=6$ non-linear $Y_i$ and reference survey $\pi_{ri} \propto \text{logit}^{-1}(X_{1i} + X_{2i})$ as Study 1.
+  \item \textbf{Outcome \& Reference PPS}: Same $p=6$ non-linear $Y_i$ and reference survey $\pi_{ri} \propto \sigma(X_{1i} + X_{2i})$ as Study 1.
   \item \textbf{True Non-Linear Convenience Propensity}: $\text{logit}(\pi_{ci}) = \beta_0 + \mathbf{1.0 X_{1i}} - 0.5 X_{2i} + 1.2 X_{1i}X_{2i} + 1.0\cos(\pi X_{1i}) - 0.8 X_{2i}^2$ (High overlap with $\pi_{ri}$ via $+1.0 X_{1i}$).
 \end{itemize}
 
@@ -964,7 +1017,7 @@ synth_micro <- sample_synthetic_lbbnn(dp_fit, newdata = x_micro, draws = 50)
 \begin{itemize}
   \setlength{\itemsep}{0.5pt}
   \item \textbf{True Non-Linear Convenience Propensity}: $\text{logit}(\pi_{ci}) = \beta_0 \mathbf{- 1.0 X_{1i}} - 0.3 X_{2i} + 0.6 X_{1i}X_{2i} + 0.5\cos(\pi X_{1i}) - 0.4 X_{2i}^2$.
-  \item \textbf{Opposing Support}: Sign reversal ($-1.0 X_{1i}$ vs. reference $\pi_{ri} \propto \text{logit}^{-1}(+X_{1i} + X_{2i})$) concentrates convenience units where $\pi_{ri} \approx 0$.
+  \item \textbf{Opposing Support}: Sign reversal ($-1.0 X_{1i}$ vs. reference $\pi_{ri} \propto \sigma(+X_{1i} + X_{2i})$) concentrates convenience units where $\pi_{ri} \approx 0$.
 \end{itemize}
 
 \centering
@@ -1198,9 +1251,10 @@ y_bar_hajek <- hajek_estimate(y = pop$y[pop$I.c == 1], pi_hat = pi_c_hat, dirich
       \item \texttt{LBBNN} achieves 5x lower population RMSE than classical H\'{a}jek weighting under informative sampling while pruning irrelevant covariates.
     \end{itemize}
   \vspace{0.3em}
-  \item \textbf{Two-Pass $(\epsilon, \delta)$-PDP Microdata Synthesis (Track 1B)}:
+  \item \textbf{Multi-Pass $(\epsilon, \delta)$-PDP Microdata Synthesis (Track 1B)}:
     \begin{itemize}
-      \item Monotone surgical downweighting and percentile schemes zero extreme tail outliers ($\alpha_i = 0$), while target ratio clipping with vector upward rescaling retains full weight ($\alpha_i = 1$) on all safe non-outlier records and strictly caps outlier sensitivity at $\alpha_i f_i = M_{\text{thresh}}$, guaranteeing exact $(\epsilon_{\mathbf{y}}, \delta)$-probabilistic differential privacy.
+      \item Full $3 \times 2$ factorial evaluation confirms Savitsky's (2026) theory: Stage 1 direct normalization ($1 - \tilde{f}_i$, \texttt{percentile}, \texttt{target\_clip}) avoids the severe ESS collapse of reciprocal $1/f_i$ weighting (Remark 1).
+      \item Stage 2 vector upward rescaling (\texttt{vector\_upscale}) Loewner-dominates hard truncation (Prop. 2), retaining full weight ($\alpha_i^* = 1$) on safe inliers ($\text{ESS} = 284.6/300$) while strictly capping sensitivity at $\Delta_{\alpha, \mathbf{y}} \le M_{\text{thresh}}$ after Pass 3 retraining.
     \end{itemize}
   \vspace{0.3em}
   \item \textbf{Composite Non-Probability Sample Integration (Track 2)}:
@@ -1209,6 +1263,56 @@ y_bar_hajek <- hajek_estimate(y = pop$y[pop$I.c == 1], pi_hat = pi_c_hat, dirich
       \item Composite Bernoulli likelihoods (\texttt{LINK2}, \texttt{LINK1}, \texttt{MIP}, \texttt{STACK}) bound loss gradients and prevent the catastrophic effective sample size collapse (\texttt{Kish ESS} $< 7$) of pseudo-likelihood under low common support.
     \end{itemize}
 \end{enumerate}
+
+## Strategic Discussion — CRAN Packaging & Ecosystem Roadmap
+
+\vspace{0.1em}
+\textbf{Architectural Question: Where Should the Official Statistics \& DP Modules Live?}
+
+\vspace{0.3em}
+\begin{columns}
+\begin{column}{0.50\textwidth}
+\textbf{Option A: Monolithic Integration (\texttt{LBBNN} on CRAN)}
+\footnotesize
+\begin{itemize}
+  \setlength{\itemsep}{2.5pt}
+  \item \textbf{Single Unified Package}: Ship unit-weighted pseudo-posteriors, \texttt{fit\_dp\_lbbnn()}, and composite propensity losses (\texttt{STACK}, \texttt{LINK1/2}, \texttt{MIP}, \texttt{PSEUDO}) directly inside core \texttt{LBBNN} (v0.2.0).
+  \item \textbf{Pros}:
+  \begin{itemize}
+    \scriptsize
+    \item Zero cross-package dependency friction; direct access to internal R6 \texttt{lbbnn\_net} and LibTorch C++ closures.
+    \item Broad visibility to the entire \texttt{LBBNN} user base.
+  \end{itemize}
+  \item \textbf{Cons}:
+  \begin{itemize}
+    \scriptsize
+    \item Expands the scope and vignette footprint of the core general-purpose BNN package.
+  \end{itemize}
+\end{itemize}
+\normalsize
+\end{column}
+
+\begin{column}{0.50\textwidth}
+\textbf{Option B: Dedicated Companion (\texttt{LBBNNsurvey})}
+\footnotesize
+\begin{itemize}
+  \setlength{\itemsep}{2.5pt}
+  \item \textbf{Modular Extension Package}: Keep core \texttt{LBBNN} focused on foundational sparse BNNs (hooks for custom weights/losses) and release \texttt{LBBNNsurvey} importing \texttt{LBBNN}.
+  \item \textbf{Pros}:
+  \begin{itemize}
+    \scriptsize
+    \item Tailored identity for official statistics agencies (BLS, Census, Statistics Norway, Eurostat).
+    \item Room to expand survey-specific tooling (Fay–Herriot small area models, Fellegi–Sunter linkage bridges, complex multi-stage bootstrap replicates, two-head joint architectures) on an independent release cycle.
+  \end{itemize}
+  \item \textbf{Cons}:
+  \begin{itemize}
+    \scriptsize
+    \item Requires maintaining two synchronized CRAN packages.
+  \end{itemize}
+\end{itemize}
+\normalsize
+\end{column}
+\end{columns}
 
 ## References & Collaborative Works
 

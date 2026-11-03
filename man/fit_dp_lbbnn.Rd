@@ -12,8 +12,8 @@ fit_dp_lbbnn(
   lr = 0.01,
   batch_size = 64,
   S = 100,
-  stage1_method = c("linear", "percentile", "target_clip", "reciprocal_linear"),
-  stage2_method = c("surgical", "hard_trunc", "vector_upscale", "none"),
+  stage1_method = c("target_clip", "linear", "percentile", "reciprocal_linear"),
+  stage2_method = c("vector_upscale", "hard_trunc", "none", "surgical"),
   c_scale = 1,
   g_shift = 0,
   p_L = 0.05,
@@ -42,9 +42,9 @@ or a zero-argument function that returns a fresh \code{lbbnn_net}.}
 
 \item{S}{Integer, number of posterior draws for sensitivity extraction (default 100).}
 
-\item{stage1_method}{Character string for Stage 1 normalization: \code{"linear"} (default), \code{"percentile"}, \code{"target_clip"}, or \code{"reciprocal_linear"}.}
+\item{stage1_method}{Character string for Stage 1 normalization: \code{"target_clip"} (default), \code{"linear"}, \code{"percentile"}, or \code{"reciprocal_linear"}.}
 
-\item{stage2_method}{Character string for Stage 2 adjustment: \code{"surgical"} (default), \code{"hard_trunc"}, \code{"vector_upscale"}, or \code{"none"}.}
+\item{stage2_method}{Character string for Stage 2 adjustment: \code{"vector_upscale"} (default), \code{"hard_trunc"}, \code{"none"}, or legacy \code{"surgical"}.}
 
 \item{c_scale}{Numeric, scaling factor for risk weights (default 1.0).}
 
@@ -92,7 +92,7 @@ from Savitsky, Williams, and Hu (2022) with the modular two-stage normalization
 framework of Savitsky (Oct 28, 2026). In Pass 1, fits an unweighted LBBNN model
 to evaluate record-level disclosure sensitivities \eqn{f_i = \max_s |\ell_i(\theta_s)|}.
 In Stage 1, computes initial privacy weights \eqn{\alpha_i \in [0, 1]}. In Stage 2,
-applies second-stage reweighting (\code{"hard_trunc"}, \code{"vector_upscale"}, or \code{"surgical"}).
+applies second-stage reweighting (\code{"vector_upscale"} \link{default}, \code{"hard_trunc"}, or \code{"none"}).
 Under vector upward rescaling, executes an additional training pass targeting the reweighted
 pseudo-posterior to verify the final local Lipschitz bound \eqn{\Delta_{\alpha, \mathbf{y}}}
 and differential privacy guarantee \eqn{\epsilon_{\mathbf{y}} = 2\Delta_{\alpha, \mathbf{y}}}.

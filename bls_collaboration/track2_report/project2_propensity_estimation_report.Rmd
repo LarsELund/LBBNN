@@ -181,19 +181,25 @@ $$\mathcal{L}_{\text{MIP}}(\theta) = -\sum_{i \in S_c \oplus S_r} \left[ \tilde{
 
 where $\pi_{zi} = \frac{\pi_{ci}(1 + \pi_{ri})}{\pi_{ci} + \pi_{ri}}$.
 
+**Benchmark DGPs vs. Production Implementation**:
+In production environments, the linkage vector $\tilde{\mathbf{p}}$ is ingested directly from upstream record linkage models. In our simulation studies (Studies 0–3), we generate synthetic linkage probabilities via:
+$$\tilde{p}_i = \sigma(\gamma_0 + \gamma_1 I_{ci} + e_i), \qquad e_i \sim \mathcal{N}(0, \sigma_e^2)$$
+where $\gamma_1$ controls linkage sharpness: large $\gamma_1 \gg 0$ recovers near-deterministic matching (`LINK2`), whereas $\gamma_1 = 0$ corresponds to non-informative linkage where `MIP` gracefully reverts to `STACK`.
+
 Importantly, `MIP` continuously interpolates between the unlinked and deterministically linked extremes on a **record-by-record basis**:
 - High-certainty match records ($\tilde{p}_i \approx 1$) pull gradient updates toward the low-variance `LINK2` score surface.
 - Unmatched or ambiguous records ($\tilde{p}_i \approx 0$) safely revert to the robust unlinked `STACK` formulation.
 
 ### Pseudo-Log-Likelihood (`PSEUDO`, Chen, Li & Wu 2020)
 
-Rather than formulating a conditional Bernoulli composite likelihood, the pseudo-likelihood approach approximates the population summation using design survey weights $w_{ri} = 1 / \pi_{ri}$ on $S_r$:
+Rather than formulating a conditional Bernoulli composite likelihood, the pseudo-likelihood approach derives from a 3-step approximation of the unobserved population census likelihood:
 
-$$\ell_{\text{pseudo}}(\theta) = \sum_{i \in S_c} \log\left(\frac{\pi_{ci}}{1 - \pi_{ci}}\right) + \sum_{i \in S_r} \frac{1}{\pi_{ri}} \log(1 - \pi_{ci})$$
-
-Recognizing that $\log\big(\frac{\pi_{ci}}{1 - \pi_{ci}}\big) = \eta_\theta(\mathbf{x}_i)$ (the unconstrained neural network logit) and $\log(1 - \pi_{ci}) = -\text{softplus}(\eta_\theta(\mathbf{x}_i))$, we express this loss in an infinitely numerically stable form:
-
-$$\text{NLL}_{\text{pseudo}}(\theta) = -\sum_{i \in S_c} \eta_\theta(\mathbf{x}_i) + \sum_{i \in S_r} \frac{1}{\pi_{ri}} \text{softplus}\big(\eta_\theta(\mathbf{x}_i)\big)$$
+- **Step 1 (Unobservable Population Target)**: If convenience participation $I_{ci} \in \{0, 1\}$ were observed across the entire finite population $U$, the census Bernoulli log-likelihood would be:
+  $$\ell_U(\theta) = \sum_{i \in U} \Big[ I_{ci}\log \pi_{ci} + (1 - I_{ci})\log(1 - \pi_{ci}) \Big] = \sum_{i \in S_c} \log\!\left(\frac{\pi_{ci}}{1 - \pi_{ci}}\right) + \sum_{i \in U} \log(1 - \pi_{ci})$$
+- **Step 2 (Horvitz–Thompson Substitution on $S_r$)**: Approximate the unobserved finite population total $\sum_{i \in U} \log(1 - \pi_{ci})$ using inverse reference design weights $w_{ri} = \pi_{ri}^{-1}$ evaluated on $S_r$:
+  $$\ell_{\text{pseudo}}(\theta) = \sum_{i \in S_c} \log\!\left(\frac{\pi_{ci}}{1 - \pi_{ci}}\right) + \sum_{i \in S_r} \frac{1}{\pi_{ri}} \log(1 - \pi_{ci})$$
+- **Step 3 (Exact Logit & Softplus Representation)**: Recognizing that $\log\big(\frac{\pi_{ci}}{1 - \pi_{ci}}\big) = \eta_\theta(\mathbf{x}_i)$ and $\log(1 - \pi_{ci}) = -\text{softplus}(\eta_\theta(\mathbf{x}_i)) = -\log(1 + e^{\eta_\theta(\mathbf{x}_i)})$, we obtain the exact vectorized negative log-likelihood:
+  $$\text{NLL}_{\text{pseudo}}(\theta) = -\sum_{i \in S_c} \eta_\theta(\mathbf{x}_i) + \sum_{i \in S_r} \frac{1}{\pi_{ri}} \text{softplus}\big(\eta_\theta(\mathbf{x}_i)\big)$$
 
 #### Why `PSEUDO` Collapses Under Low Common Support (Studies 0 & 3)
 While computationally convenient, `PSEUDO` is vulnerable to catastrophic variance inflation when common support is low: if units in $S_c$ have very small reference inclusion probabilities $\pi_{ri} \approx 0$, the inverse weights $1 / \pi_{ri}$ explode. Specifically, reference units located in regions with low convenience participation have tiny design probabilities $\pi_{ri} \to 0$, causing inverse design weights $\pi_{ri}^{-1} \to \infty$. Multiplying $\pi_{ri}^{-1}$ by $\text{softplus}(\eta_\theta(\mathbf{x}_i))$ causes catastrophic gradient explosion during backpropagation, destabilizing the variational posterior and collapsing Kish's Effective Sample Size ($\text{ESS} = 6.6$ out of $n_c = 521$), resulting in huge bias ($+5.06$) and RMSE ($1.02$). In contrast, composite likelihoods (`STACK`, `LINK1`, `LINK2`, `MIP`) evaluate relative odds fractions $\frac{\pi_{ci}}{\pi_{ci} + \pi_{ri}}$ that naturally bound gradients regardless of common support.
@@ -257,7 +263,7 @@ To establish a direct 1-to-1 comparison with the simulation results in Beresovsk
 - Target population size: $N = 5,000$.
 - Covariates: $\mathbf{X} = (X_1, X_2, X_3)^\top \sim \mathcal{MVN}(\mathbf{0}, \boldsymbol{\Sigma})$ with $\Sigma_{ii} = 1.0, \Sigma_{1, 2:3} = (0.5, 0.3), \Sigma_{2,3} = 0.3$.
 - Outcome: $Y_i \sim \mathcal{N}(1 + X_{1i} + X_{2i} + X_{3i}, 1.0^2)$.
-- Reference survey sample: $n_r = 500$ drawn via systematic PPS with size measure $\text{logit}^{-1}(X_1 + X_2)$.
+- Reference survey sample: $n_r = 500$ drawn via systematic PPS with size measure $\sigma(X_1 + X_2)$.
 - Convenience sample: $n_c = 500$ drawn with linear propensity $\text{logit}(\pi_{ci}) = \beta_0 + \beta_1 X_{1i} + \beta_2 X_{2i}$.
 - **Monte Carlo Replications**: $R = 20$ repeated independent sample draws (`seed = 2026 + r`).
 
@@ -455,7 +461,7 @@ To evaluate automated sparse variable selection when true propensities are linea
 2. **Non-Linear Outcome Model ($Y_i$)**:
    $$Y_i = 1.0 + X_{1i} + X_{2i} + X_{3i} + 0.5 X_{1i}^2 - 0.5 \sin(\pi X_{2i}) + \epsilon_i, \quad \epsilon_i \sim \mathcal{N}(0, 1)$$
 3. **Reference Probability Survey ($S_r, n_r = 500$)**:
-   Drawn via systematic PPS sampling (`sampling::UPsystematic`) with size measure $s_i = \text{logit}^{-1}(X_{1i} + X_{2i})$ and selection probabilities $\pi_{ri} = n_r s_i / \sum_{j=1}^N s_j$.
+   Drawn via systematic PPS sampling (`sampling::UPsystematic`) with size measure $s_i = \sigma(X_{1i} + X_{2i})$ and selection probabilities $\pi_{ri} = n_r s_i / \sum_{j=1}^N s_j$.
 4. **Convenience Sample ($S_c, n_c \approx 500$)**:
    Drawn via independent Bernoulli trials with linear logit propensity:
    $$\text{logit}(\pi_{ci}) = \beta_0 + \beta_1 X_{1i} + \beta_2 X_{2i}, \qquad \beta_1 = 1.0, \; \beta_2 = -0.5$$

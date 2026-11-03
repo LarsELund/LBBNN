@@ -114,15 +114,14 @@ loglik_contributions <- function(object, newdata, draws = 100, mpm = FALSE,
 #' record sensitivities \eqn{f_i = \max_s |\log f(y_i \mid \theta^{(s)})|} following the two-stage
 #' framework of Savitsky (Oct 28, 2026, \emph{Privacy Weight Normalization and Second-Stage Reweighting Strategies in Asymptotic Differential Privacy}).
 #'
-#' In Stage 1, initial weights are constructed via \code{"linear"} min-max scaling (Savitsky et al. 2022),
-#' \code{"percentile"} quantile-based deficit truncation, or \code{"target_clip"} ratio clipping.
-#' In Stage 2, weights are post-processed via \code{"hard_trunc"} (zeroing records exceeding threshold \eqn{M}),
-#' \code{"vector_upscale"} (upward rescaling to Loewner-dominate hard truncation), \code{"surgical"} (monotone tail zeroing),
-#' or \code{"none"}.
+#' In Stage 1, initial weights are constructed via \code{"target_clip"} ratio clipping (Savitsky 2026),
+#' \code{"linear"} min-max scaling (Savitsky et al. 2022), or \code{"percentile"} quantile-based deficit truncation.
+#' In Stage 2, weights are post-processed via \code{"vector_upscale"} (upward rescaling to Loewner-dominate hard truncation),
+#' \code{"hard_trunc"} (zeroing records exceeding threshold \eqn{M}), or \code{"none"}.
 #'
 #' @param f_vec Numeric vector of unit-level empirical sensitivities \eqn{f_i = \max_s |\ell_i(\theta_s)|}. Default is \code{NULL}.
-#' @param stage1_method Character string for Stage 1 initial normalization: \code{"linear"}, \code{"percentile"}, \code{"target_clip"}, or \code{"reciprocal_linear"}.
-#' @param stage2_method Character string for Stage 2 reweighting: \code{"surgical"}, \code{"hard_trunc"}, \code{"vector_upscale"}, or \code{"none"}.
+#' @param stage1_method Character string for Stage 1 initial normalization: \code{"target_clip"} (default), \code{"linear"}, \code{"percentile"}, or \code{"reciprocal_linear"}.
+#' @param stage2_method Character string for Stage 2 reweighting: \code{"vector_upscale"} (default), \code{"hard_trunc"}, \code{"none"}, or legacy \code{"surgical"}.
 #' @param c_scale Numeric scaling constant \eqn{c \in (0, 1]} for linear min-max normalization. Default is \code{1}.
 #' @param g_shift Numeric shift constant \eqn{g \ge 0} for linear min-max normalization. Default is \code{0}.
 #' @param p_L Numeric lower quantile threshold \eqn{p_L \in (0, 1)} for percentile normalization. Default is \code{0.05}.
@@ -141,8 +140,8 @@ loglik_contributions <- function(object, newdata, draws = 100, mpm = FALSE,
 #' @export
 compute_dp_weights <- function(
     f_vec = NULL,
-    stage1_method = c("linear", "percentile", "target_clip", "reciprocal_linear"),
-    stage2_method = c("surgical", "hard_trunc", "vector_upscale", "none"),
+    stage1_method = c("target_clip", "linear", "percentile", "reciprocal_linear"),
+    stage2_method = c("vector_upscale", "hard_trunc", "none", "surgical"),
     c_scale = 1.0,
     g_shift = 0.0,
     p_L = 0.05,
@@ -249,7 +248,7 @@ compute_dp_weights <- function(
 #' framework of Savitsky (Oct 28, 2026). In Pass 1, fits an unweighted LBBNN model
 #' to evaluate record-level disclosure sensitivities \eqn{f_i = \max_s |\ell_i(\theta_s)|}.
 #' In Stage 1, computes initial privacy weights \eqn{\alpha_i \in [0, 1]}. In Stage 2,
-#' applies second-stage reweighting (\code{"hard_trunc"}, \code{"vector_upscale"}, or \code{"surgical"}).
+#' applies second-stage reweighting (\code{"vector_upscale"} [default], \code{"hard_trunc"}, or \code{"none"}).
 #' Under vector upward rescaling, executes an additional training pass targeting the reweighted
 #' pseudo-posterior to verify the final local Lipschitz bound \eqn{\Delta_{\alpha, \mathbf{y}}}
 #' and differential privacy guarantee \eqn{\epsilon_{\mathbf{y}} = 2\Delta_{\alpha, \mathbf{y}}}.
@@ -262,8 +261,8 @@ compute_dp_weights <- function(
 #' @param lr Numeric, learning rate for optimizer (default 0.01).
 #' @param batch_size Integer, mini-batch size (default 64).
 #' @param S Integer, number of posterior draws for sensitivity extraction (default 100).
-#' @param stage1_method Character string for Stage 1 normalization: \code{"linear"} (default), \code{"percentile"}, \code{"target_clip"}, or \code{"reciprocal_linear"}.
-#' @param stage2_method Character string for Stage 2 adjustment: \code{"surgical"} (default), \code{"hard_trunc"}, \code{"vector_upscale"}, or \code{"none"}.
+#' @param stage1_method Character string for Stage 1 normalization: \code{"target_clip"} (default), \code{"linear"}, \code{"percentile"}, or \code{"reciprocal_linear"}.
+#' @param stage2_method Character string for Stage 2 adjustment: \code{"vector_upscale"} (default), \code{"hard_trunc"}, \code{"none"}, or legacy \code{"surgical"}.
 #' @param c_scale Numeric, scaling factor for risk weights (default 1.0).
 #' @param g_shift Numeric, shift parameter for risk weights (default 0.0).
 #' @param p_L Numeric left quantile level for percentile normalization (default 0.05).
@@ -296,8 +295,8 @@ compute_dp_weights <- function(
 fit_dp_lbbnn <- function(
     model_spec, X, y, epochs = 100, lr = 0.01,
     batch_size = 64, S = 100,
-    stage1_method = c("linear", "percentile", "target_clip", "reciprocal_linear"),
-    stage2_method = c("surgical", "hard_trunc", "vector_upscale", "none"),
+    stage1_method = c("target_clip", "linear", "percentile", "reciprocal_linear"),
+    stage2_method = c("vector_upscale", "hard_trunc", "none", "surgical"),
     c_scale = 1.0, g_shift = 0.0,
     p_L = 0.05, p_R = 0.95, Delta_goal = NULL,
     M_thresh = NULL, sigma = NULL,

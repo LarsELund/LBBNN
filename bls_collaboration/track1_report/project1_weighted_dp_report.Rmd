@@ -33,7 +33,7 @@ This technical report details the implementation, methodology, and empirical eva
 The primary objective of Track 1 is augmenting the `LBBNN` (Latent Binary Bayesian Neural Network) package in R to support two critical statistical operations in official government data production:
 
 1. **Survey-Weighted Imputation & Modeling**: Incorporating unit-indexed survey sampling weights $w_i \propto \pi_i^{-1}$ (where $\pi_i$ is the inclusion probability) into the variational Evidence Lower Bound (ELBO) objective. This allows the neural network to approximate the true population likelihood from an informatively sampled survey, eliminating bias in missing data imputation and domain estimation.
-2. **Formally Private Synthetic Data Generation**: Implementing the two-pass risk-weighted pseudo-posterior mechanism (Savitsky, Williams & Hu, 2022). In Pass 1, unweighted model posterior draws are used to extract record-level log-likelihood contributions and quantify disclosure risk. Symmetrically, record-specific privacy weights $\alpha_i \in [0, 1]$ surgically downweight high-risk outliers during Pass 2, yielding synthetic microdata equipped with a mathematically provable local $(\epsilon, \delta)$-probabilistic differential privacy (PDP) guarantee without degrading utility for safe observations.
+2. **Formally Private Synthetic Data Generation**: Implementing the two-pass risk-weighted pseudo-posterior mechanism (Savitsky, Williams & Hu, 2022). In Pass 1, unweighted model posterior draws are used to extract record-level log-likelihood contributions and quantify disclosure risk. Symmetrically, record-specific privacy weights $\alpha_i \in [0, 1]$ calibrate high-risk outliers during Pass 2, yielding synthetic microdata equipped with a mathematically provable local $(\epsilon, \delta)$-probabilistic differential privacy (PDP) guarantee without degrading utility for safe observations.
 
 ```{r libraries}
 library(LBBNN)
@@ -207,7 +207,15 @@ Given Stage 1 weights $\boldsymbol{\alpha}$ and sensitivity threshold $M_{\text{
    *Properties (Proposition 2 of Savitsky, 2026)*: Pointwise dominates hard truncation ($\alpha_i^{\text{vec}} \ge \alpha_i^{\text{trunc}}$ for all $i$), maximizing Fisher information $\mathcal{I}_{\boldsymbol{\alpha}^{\text{vec}}}(\theta) \succeq \mathcal{I}_{\boldsymbol{\alpha}^{\text{trunc}}}(\theta)$ in the Loewner partial order.
    *Multi-Pass Geometry*: Because upward rescaling shifts the pseudo-posterior $\xi_{\boldsymbol{\alpha}^{\text{vec}}}(\theta \mid D)$, `fit_dp_lbbnn()` executes Pass 3 targeting $\xi_{\boldsymbol{\alpha}^{\text{vec}}}$ to draw updated parameters and guarantee bound verification.
 
-3. **Scheme 3 (`"surgical"`)**: Monotone capping $\alpha_i = \min(\alpha_i^{\text{raw}}, M_{\text{thresh}} / f_i)$ with zeroing when $f_i > 3 M_{\text{thresh}}$ for backward reproducibility.
+### Likelihood Exponent Mass ESS & Algebraic Cancellation
+
+In differential privacy pseudo-posterior estimation, $\alpha_i^* \in [0, 1]$ acts as an observation-specific power exponent in the pseudo-likelihood. Thus, the effective sample size is defined as the total retained likelihood information mass:
+$$\text{ESS} = \sum_{i=1}^n \alpha_i^* \in [0, n]$$
+This differs fundamentally from Kish's (1965) survey design design-effect ESS $\frac{(\sum w_i)^2}{\sum w_i^2}$, which measures variance inflation caused by unequal probability sampling weights.
+
+Furthermore, under Stage 2 vector upward rescaling:
+$$\alpha_i^{\text{vec}} = \min\!\left(1, \, \alpha_i^{(1)} \cdot \frac{M_{\text{thresh}}}{\alpha_i^{(1)} f_i}\right) = \min\!\left(1, \, \frac{M_{\text{thresh}}}{f_i}\right)$$
+whenever $\alpha_i^{(1)} > 0$, the initial weight $\alpha_i^{(1)}$ algebraically cancels. Consequently, `target_clip + vector_upscale`, `target_clip + hard_trunc`, and `linear + vector_upscale` converge to the exact same weight profile on any dataset where $\alpha_i^{(1)} > 0$ for all records.
 
 ```
                      Raw Data (X, y)
@@ -227,7 +235,7 @@ Given Stage 1 weights $\boldsymbol{\alpha}$ and sensitivity threshold $M_{\text{
          Stage 1: linear / percentile / target_clip
                             |
                             v
-         Stage 2: hard_trunc / vector_upscale / surgical
+         Stage 2: hard_trunc / vector_upscale
                             |
                             v
              +------------------------------+
@@ -260,7 +268,7 @@ $$Y_i = 2.0 X_{1i} + 1.5 \sin(\pi X_{2i}) + 0.8 X_{1i} X_{2i} + \varepsilon_i, \
 
 The probability of inclusion in the sample is heavily skewed towards higher values of $Y$:
 
-$$\pi_i = \text{logit}^{-1}\big(-1.0 + 1.2 Y_i\big)$$
+$$\pi_i = \sigma\big(-1.0 + 1.2 Y_i\big), \qquad \sigma(z) = \frac{1}{1 + e^{-z}}$$
 
 ```{r survey_sim}
 # Generate population
@@ -616,8 +624,8 @@ cat(sprintf("Log scale:         Min=%.2f, Median=%.2f, 90th=%.2f, Max=%.2f\n",
 
 We synthesize on the properly specified log scale $\log(Y)$ using `fit_dp_lbbnn()`:
 - **Pass 1**: Fits an unweighted model and automatically estimates the residual noise scale $\hat{\sigma} = \text{sd}(y - \hat{y}_{\text{p1}})$ (`sigma = NULL`).
-- **Monotone Surgical Weights**: Evaluates record sensitivities $f_i = \max_s |L_{s, i}|$ with calibrated $\hat{\sigma}$, computes smooth weights $\alpha_i \in [0, 1]$ ($c_{\text{scale}} = 0.85$, $g_{\text{shift}} = 0.0$), caps weights at $M_{\text{thresh}} / f_i$, and surgically zeroes extreme tail outliers ($f_i > 3 M_{\text{thresh}}$).
-- **Pass 2**: Fits a fresh model weighted by $\alpha_i$ (`normalize_weights = FALSE`).
+- **Two-Stage Privacy Weights**: Evaluates record sensitivities $f_i = \max_s |L_{s, i}|$ with calibrated $\hat{\sigma}$, applies Stage 1 target ratio clipping (`stage1_method = "target_clip"`), and Stage 2 vector upward rescaling (`stage2_method = "vector_upscale"`).
+- **Pass 2 / Pass 3**: Fits a model weighted by $\alpha_i$ (`normalize_weights = FALSE`), automatically executing Pass 3 to align the variational pseudo-posterior with the rescaled geometry.
 - **Guarantee**: Evaluates the local Lipschitz bound $\Delta_{\alpha, \mathbf{y}} \le M_{\text{thresh}}$ and local differential privacy parameter $\epsilon_{\mathbf{y}} = 2 \Delta_{\alpha, \mathbf{y}}$.
 
 ```{r run_dp}
@@ -635,7 +643,7 @@ spec_dp <- list(
   device = "cpu"
 )
 
-# Run Two-Pass Synthesizer with automatic residual scale estimation and monotone truncation
+# Run Two-Pass Synthesizer with automatic residual scale estimation and vector upward rescaling
 dp_results <- fit_dp_lbbnn(
   model_spec = spec_dp,
   X = x_dp,
@@ -644,8 +652,8 @@ dp_results <- fit_dp_lbbnn(
   lr = 0.02,
   batch_size = 32,
   S = 50,
-  c_scale = 0.85,
-  g_shift = 0.0,
+  stage1_method = "target_clip",
+  stage2_method = "vector_upscale",
   M_thresh = 5.5,
   sigma = NULL, # Automatic residual scale calibration
   device = "cpu",
@@ -662,9 +670,9 @@ cat(sprintf("Local Lipschitz Bound (Delta_alpha):  %.3f\n", dp_results$delta_alp
 cat(sprintf("Local Privacy Guarantee (Epsilon_y):  %.3f\n", dp_results$epsilon_local))
 ```
 
-## Inspecting Record Sensitivities & Surgical Downweighting
+## Inspecting Record Sensitivities & Calibrated Downweighting
 
-```{r dp_risk_plot, fig.cap="Relationship between expenditure values, record sensitivities, and monotone surgical privacy weights."}
+```{r dp_risk_plot, fig.cap="Relationship between expenditure values, record sensitivities, and calibrated privacy weights."}
 risk_df <- data.frame(
   ObsID = seq_len(n_dp),
   Expenditure = y_dp,
@@ -689,7 +697,7 @@ p2 <- ggplot(risk_df, aes(x = Expenditure, y = Alpha, color = IsOutlier)) +
   scale_color_manual(values = c("FALSE" = "#2980b9", "TRUE" = "#c0392b"), name = "Injected Outlier") +
   theme_minimal(base_size = 11) +
   labs(
-    title = "Surgical Privacy Weights",
+    title = "Calibrated Privacy Weights",
     x = "Observed Expenditure ($)",
     y = expression("Privacy Weight " * alpha[i])
   )
@@ -697,67 +705,78 @@ p2 <- ggplot(risk_df, aes(x = Expenditure, y = Alpha, color = IsOutlier)) +
 gridExtra::grid.arrange(p1, p2, ncol = 2)
 ```
 
-The monotone surgical construction performs cleanly:
-- Standard records receive privacy weights $\alpha_i \approx 0.65 - 0.85$, allowing them to contribute fully to model training.
-- As expenditure increases into the moderate tail, weights are smoothly capped at $\alpha_i \le M_{\text{thresh}} / f_i$.
-- All extreme outliers ($Y \in [\$400, \$530]$) produce sensitivities $f_i > 16.5 = 3 M_{\text{thresh}}$ and are **surgically truncated to $\alpha_i = 0$**, strictly guaranteeing $\Delta_{\alpha, \mathbf{y}} = `r round(dp_results$delta_alpha, 2)` \le M_{\text{thresh}}$ and $\epsilon_{\mathbf{y}} = `r round(dp_results$epsilon_local, 2)`$.
+The calibrated two-stage construction performs cleanly:
+- Standard records ($f_i \le M_{\text{thresh}}$) receive full privacy weight $\alpha_i = 1.0$, allowing them to contribute unpenalized to model training.
+- As expenditure increases into the high-risk tail, weights are smoothly scaled to $\alpha_i^* = \min(1, M_{\text{thresh}} / f_i)$, ensuring that record contributions never exceed the privacy threshold.
+- Extreme outliers ($Y \in [\$400, \$530]$) produce sensitivities $f_i \in [21.8, 28.9]$ and are bounded to $\alpha_i^* \in [0.19, 0.25]$, strictly guaranteeing $\Delta_{\alpha, \mathbf{y}} = `r round(dp_results$delta_alpha, 2)` \le M_{\text{thresh}}$ and $\epsilon_{\mathbf{y}} = `r round(dp_results$epsilon_local, 2)`$.
 
-### Comparing Stage 1 & Stage 2 Weight Calibration Schemes (Savitsky, Oct 29, 2026)
+### Full Factorial Comparison of Privacy Calibration Schemes (Savitsky, Oct 29, 2026)
 
-To understand how each Stage 1 normalization and Stage 2 reweighting strategy behaves on this sensitive expenditure dataset ($n = 300$), we calibrate weights across the key strategies proposed by Savitsky (Oct 29, 2026) using `compute_dp_weights()` at $M_{\text{thresh}} = 5.5$:
+To understand how each Stage 1 normalization and Stage 2 reweighting strategy behaves on this sensitive expenditure dataset ($n = 300$), we evaluate the full $3 \times 2$ factorial grid across Stage 1 (`target_clip`, `linear`, `percentile`) $\times$ Stage 2 (`vector_upscale`, `hard_trunc`) plus the `reciprocal_linear` baseline (Savitsky, 2026, Remark 1) using `compute_dp_weights()` at $M_{\text{thresh}} = 5.5$:
 
 ```{r dp_compare_schemes}
 f_curr <- dp_results$f_vec
 M_curr <- 5.5
 
-sch_lin_surg <- compute_dp_weights(f_curr, stage1_method = "linear", stage2_method = "surgical",
-                                    c_scale = 0.85, M_thresh = M_curr)
+sch_tc_vec  <- compute_dp_weights(f_curr, stage1_method = "target_clip", stage2_method = "vector_upscale",
+                                   Delta_goal = M_curr, M_thresh = M_curr)
+sch_tc_hard <- compute_dp_weights(f_curr, stage1_method = "target_clip", stage2_method = "hard_trunc",
+                                   Delta_goal = M_curr, M_thresh = M_curr)
+sch_lin_vec <- compute_dp_weights(f_curr, stage1_method = "linear", stage2_method = "vector_upscale",
+                                   c_scale = 0.85, M_thresh = M_curr)
 sch_lin_hard <- compute_dp_weights(f_curr, stage1_method = "linear", stage2_method = "hard_trunc",
                                     c_scale = 0.85, M_thresh = M_curr)
+sch_pct_vec <- compute_dp_weights(f_curr, stage1_method = "percentile", stage2_method = "vector_upscale",
+                                   M_thresh = M_curr)
 sch_pct_hard <- compute_dp_weights(f_curr, stage1_method = "percentile", stage2_method = "hard_trunc",
                                     M_thresh = M_curr)
-sch_clip_vec <- compute_dp_weights(f_curr, stage1_method = "target_clip", stage2_method = "vector_upscale",
-                                    Delta_goal = M_curr, M_thresh = M_curr)
-sch_recip_lin <- compute_dp_weights(f_curr, stage1_method = "reciprocal_linear", stage2_method = "surgical",
-                                     c_scale = 0.85, M_thresh = M_curr)
+sch_recip_hard <- compute_dp_weights(f_curr, stage1_method = "reciprocal_linear", stage2_method = "hard_trunc",
+                                      c_scale = 0.85, M_thresh = M_curr)
 
 comp_df <- data.frame(
-  `Stage 1 Method` = c("linear (c=0.85)", "linear (c=0.85)", "percentile (p=0.05, 0.95)",
-                       "target_clip", "reciprocal_linear (Remark 1)"),
-  `Stage 2 Method` = c("surgical (Baseline)", "hard_trunc", "hard_trunc",
-                       "vector_upscale", "surgical"),
-  `Effective N (sum alpha)` = c(round(sum(sch_lin_surg$alpha), 1), round(sum(sch_lin_hard$alpha), 1),
-                                round(sum(sch_pct_hard$alpha), 1), round(sum(sch_clip_vec$alpha), 1),
-                                round(sum(sch_recip_lin$alpha), 1)),
-  `Full Weight (alpha=1)` = c(sprintf("%.1f%%", 100 * mean(sch_lin_surg$alpha >= 0.999)),
+  `Stage 1 Method` = c("target_clip", "target_clip", "linear (c=0.85)", "linear (c=0.85)",
+                       "percentile (p=0.05, 0.95)", "percentile (p=0.05, 0.95)",
+                       "reciprocal_linear (Remark 1)"),
+  `Stage 2 Method` = c("vector_upscale", "hard_trunc", "vector_upscale", "hard_trunc",
+                       "vector_upscale", "hard_trunc", "hard_trunc"),
+  `Effective N (sum alpha)` = c(round(sum(sch_tc_vec$alpha), 1), round(sum(sch_tc_hard$alpha), 1),
+                                round(sum(sch_lin_vec$alpha), 1), round(sum(sch_lin_hard$alpha), 1),
+                                round(sum(sch_pct_vec$alpha), 1), round(sum(sch_pct_hard$alpha), 1),
+                                round(sum(sch_recip_hard$alpha), 1)),
+  `Full Weight (alpha=1)` = c(sprintf("%.1f%%", 100 * mean(sch_tc_vec$alpha >= 0.999)),
+                              sprintf("%.1f%%", 100 * mean(sch_tc_hard$alpha >= 0.999)),
+                              sprintf("%.1f%%", 100 * mean(sch_lin_vec$alpha >= 0.999)),
                               sprintf("%.1f%%", 100 * mean(sch_lin_hard$alpha >= 0.999)),
+                              sprintf("%.1f%%", 100 * mean(sch_pct_vec$alpha >= 0.999)),
                               sprintf("%.1f%%", 100 * mean(sch_pct_hard$alpha >= 0.999)),
-                              sprintf("%.1f%%", 100 * mean(sch_clip_vec$alpha >= 0.999)),
-                              sprintf("%.1f%%", 100 * mean(sch_recip_lin$alpha >= 0.999))),
-  `Zeroed (alpha=0)` = c(sum(sch_lin_surg$alpha == 0), sum(sch_lin_hard$alpha == 0),
-                         sum(sch_pct_hard$alpha == 0), sum(sch_clip_vec$alpha == 0),
-                         sum(sch_recip_lin$alpha == 0)),
-  `Realized Delta` = c(round(sch_lin_surg$delta_alpha, 2), round(sch_lin_hard$delta_alpha, 2),
-                       round(sch_pct_hard$delta_alpha, 2), round(sch_clip_vec$delta_alpha, 2),
-                       round(sch_recip_lin$delta_alpha, 2)),
-  `Local Epsilon` = c(round(sch_lin_surg$epsilon_local, 2), round(sch_lin_hard$epsilon_local, 2),
-                      round(sch_pct_hard$epsilon_local, 2), round(sch_clip_vec$epsilon_local, 2),
-                      round(sch_recip_lin$epsilon_local, 2)),
+                              sprintf("%.1f%%", 100 * mean(sch_recip_hard$alpha >= 0.999))),
+  `Zeroed (alpha=0)` = c(sum(sch_tc_vec$alpha == 0), sum(sch_tc_hard$alpha == 0),
+                         sum(sch_lin_vec$alpha == 0), sum(sch_lin_hard$alpha == 0),
+                         sum(sch_pct_vec$alpha == 0), sum(sch_pct_hard$alpha == 0),
+                         sum(sch_recip_hard$alpha == 0)),
+  `Realized Delta` = c(round(sch_tc_vec$delta_alpha, 2), round(sch_tc_hard$delta_alpha, 2),
+                       round(sch_lin_vec$delta_alpha, 2), round(sch_lin_hard$delta_alpha, 2),
+                       round(sch_pct_vec$delta_alpha, 2), round(sch_pct_hard$delta_alpha, 2),
+                       round(sch_recip_hard$delta_alpha, 2)),
+  `Local Epsilon` = c(round(sch_tc_vec$epsilon_local, 2), round(sch_tc_hard$epsilon_local, 2),
+                      round(sch_lin_vec$epsilon_local, 2), round(sch_lin_hard$epsilon_local, 2),
+                      round(sch_pct_vec$epsilon_local, 2), round(sch_pct_hard$epsilon_local, 2),
+                      round(sch_recip_hard$epsilon_local, 2)),
   check.names = FALSE
 )
 
 knitr::kable(
   comp_df,
-  caption = "Comparison of Stage 1 Normalization and Stage 2 Reweighting Strategies on n = 300 (Savitsky, Oct 29, 2026)"
+  caption = "Full 3 x 2 Factorial + Reciprocal Benchmark of Stage 1 Normalization and Stage 2 Reweighting on n = 300 (Savitsky, Oct 29, 2026)"
 )
 ```
 
-**Key Takeaways from Calibration Comparison**:
-1. **Target Ratio Clipping with Vector Upward Rescaling (`target_clip` + `vector_upscale`)** achieves the highest Effective Sample Size ($\text{ESS} = `r round(sum(sch_clip_vec$alpha), 1)` / 300$) and retains full weight ($\alpha_i = 1$) on $`r sprintf("%.1f%%", 100 * mean(sch_clip_vec$alpha >= 0.999))`$ of non-outlier units ($f_i \le M_{\text{thresh}}$), zeroing zero records and smoothly spending the privacy budget via $\min(1, M_{\text{thresh}}/f_i)$.
-2. **Percentile Deficit Truncation (`percentile` + `hard_trunc`)** aggressively boosts weights on low-sensitivity units to $\alpha_i = 1$, but hard-truncates the top $5\%$ tail outliers ($`r sum(sch_pct_hard$alpha == 0)`$ records) to $\alpha_i = 0$, achieving maximum tail protection ($\epsilon_{\text{local}} = `r round(sch_pct_hard$epsilon_local, 2)`$).
-3. **Linear Min-Max (`linear`)** scales intermediate units proportionally, and pairing with `surgical` capping prevents sudden threshold discontinuities compared to `hard_trunc` ($\text{ESS} = `r round(sum(sch_lin_surg$alpha), 1)`$ vs. $`r round(sum(sch_lin_hard$alpha), 1)`$, with $`r sum(sch_lin_surg$alpha == 0)`$ vs. $`r sum(sch_lin_hard$alpha == 0)`$ records zeroed).
-4. **Reciprocal Linear (Remark 1)** induces hyperbolic $(f_{\min}/f_i)$ attenuation, collapsing effective sample size to $\text{ESS} = `r round(sum(sch_recip_lin$alpha), 1)`$, confirming Savitsky's (2026) preference for direct $1 - \tilde{f}_i$ normalization.
-5. Crucially, all schemes guarantee exact sensitivity control $\Delta_{\alpha, \mathbf{y}} \le M_{\text{thresh}} = 5.50$, proving mathematical $(\epsilon_{\mathbf{y}}, \delta)$-probabilistic differential privacy.
+**Key Takeaways from Factorial Comparison**:
+1. **Algebraic Cancellation Equivalence**: `target_clip + vector_upscale`, `target_clip + hard_trunc`, and `linear + vector_upscale` converge to the exact same optimal profile ($\text{ESS} = `r round(sum(sch_tc_vec$alpha), 1)` / 300$, $`r sprintf("%.1f%%", 100 * mean(sch_tc_vec$alpha >= 0.999))`$ units with $\alpha_i = 1$, $0$ zeroed), algebraically validating Savitsky's cancellation theorem.
+2. **Percentile Tail Excision**: `percentile + hard_trunc` zeros the top $5\%$ tail outliers ($`r sum(sch_pct_hard$alpha == 0)`$ records), yielding the tightest empirical privacy guarantee ($\epsilon_{\text{local}} = `r round(sch_pct_hard$epsilon_local, 2)`$) at the expense of retained sample size ($\text{ESS} = `r round(sum(sch_pct_hard$alpha), 1)`$).
+3. **Linear Truncation (`linear + hard_trunc`)**: Discards $`r sum(sch_lin_hard$alpha == 0)`$ records whose scaled sensitivity exceeds $M_{\text{thresh}}$, lowering information mass to $\text{ESS} = `r round(sum(sch_lin_hard$alpha), 1)`$.
+4. **Reciprocal Attenuation (Remark 1)**: Reciprocal $1/f_i$ normalization collapses effective sample size to $\text{ESS} = `r round(sum(sch_recip_hard$alpha), 1)`$, confirming that normalizing directly on $1 - \tilde{f}_i$ is necessary to avoid massive information loss.
+5. All schemes strictly guarantee mathematical sensitivity control $\Delta_{\alpha, \mathbf{y}} \le M_{\text{thresh}} = 5.50$, proving $(\epsilon_{\mathbf{y}}, \delta)$-probabilistic differential privacy.
 
 ## Generating and Benchmarking Synthetic Datasets
 
@@ -925,7 +944,7 @@ api_df <- data.frame(
     "Optimizes the unit-weighted ELBO $-\\sum_i u_i \\log f(y_i) + \\frac{1}{M}\\text{KL}(q \\parallel p)$ across mini-batches at temperature $T = 1.0$.",
     "Constructs LBBNN networks. Supports exact Gaussian likelihood scaling via explicit \\texttt{sigma} and user-defined \\texttt{link}/\\texttt{nll} closures via \\texttt{problem\\_type = 'custom'}.",
     "Extracts the $S \\times n$ matrix of pointwise log-likelihood contributions $L_{s, i} = \\log f(y_i \\mid \\theta^{(s)})$ across posterior draws.",
-    "Implements the two-stage privacy weight calibration framework from Savitsky (Oct 29, 2026): Stage 1 (\\texttt{linear}, \\texttt{percentile}, \\texttt{target\\_clip}, \\texttt{reciprocal\\_linear}) + Stage 2 (\\texttt{surgical}, \\texttt{hard\\_trunc}, \\texttt{vector\\_upscale}).",
+    "Implements the two-stage privacy weight calibration framework from Savitsky (Oct 29, 2026): Stage 1 (\\texttt{linear}, \\texttt{percentile}, \\texttt{target\\_clip}, \\texttt{reciprocal\\_linear}) + Stage 2 (\\texttt{hard\\_trunc}, \\texttt{vector\\_upscale}).",
     "Automates the multi-pass $(\\epsilon, \\delta)$-PDP synthesizer: Pass 1 unweighted fit $\\rightarrow$ sensitivity extraction $\\rightarrow$ calibrated weights $\\alpha_i \\rightarrow$ Pass 2 weighted fit (and optional Pass 3 for vector upscale) $\\rightarrow$ privacy guarantee $\\epsilon_{\\mathbf{y}} = 2\\Delta_{\\alpha, \\mathbf{y}}$.",
     "Draws synthetic microdata replicates from the Pass 2/3 posterior predictive distribution with calibrated observation noise $\\hat{\\sigma}$, returning an $n \\times \\text{draws}$ matrix.",
     "Computes domain-level posterior means, totals, standard errors, and credible intervals with Dirichlet Bayesian bootstrap UQ ($\\boldsymbol{\\xi} \\sim \\text{Dirichlet}(1, \\dots, 1)$) per Savitsky \\& Toth (2016).",
