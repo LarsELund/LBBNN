@@ -92,7 +92,7 @@ from Savitsky, Williams, and Hu (2022) with the modular two-stage normalization
 framework of Savitsky (Oct 28, 2026). In Pass 1, fits an unweighted LBBNN model
 to evaluate record-level disclosure sensitivities \eqn{f_i = \max_s |\ell_i(\theta_s)|}.
 In Stage 1, computes initial privacy weights \eqn{\alpha_i \in [0, 1]}. In Stage 2,
-applies second-stage reweighting (\code{"vector_upscale"} \link{default}, \code{"hard_trunc"}, or \code{"none"}).
+applies second-stage reweighting (\code{"vector_upscale"} (default), \code{"hard_trunc"}, or \code{"none"}).
 Under vector upward rescaling, executes an additional training pass targeting the reweighted
 pseudo-posterior to verify the final local Lipschitz bound \eqn{\Delta_{\alpha, \mathbf{y}}}
 and differential privacy guarantee \eqn{\epsilon_{\mathbf{y}} = 2\Delta_{\alpha, \mathbf{y}}}.

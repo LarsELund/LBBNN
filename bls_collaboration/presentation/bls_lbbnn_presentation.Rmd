@@ -38,23 +38,27 @@ options(knitr.table.format = "latex")
 
 ## Motivation — What Official Statistics Truly Requires
 
-\vspace{0.1em}
+\vspace{-0.15em}
 \textbf{The Primary Mandate of Official Statistics:}
+\footnotesize
 \begin{itemize}
   \setlength{\itemsep}{1.5pt}
-  \item \textbf{Unbiased Finite Population \& Domain Inference}: The fundamental goal is calibrated, design-consistent estimation of finite-population parameters (means, totals, sub-domain distributions) alongside valid uncertainty quantification.
-  \item \textbf{Dual Transparency (Global \& Local)}: Agency stakeholders demand structural feature selection at the population level (global sparsity) and verifiable respondent-level sensitivity attributions (local polyhedral GLMs).
+  \item \textbf{Unbiased Finite Population \& Domain Inference}: Calibrated, design-consistent estimation of finite-population parameters (means, totals, sub-domain distributions) with valid uncertainty quantification.
+  \item \textbf{Dual Transparency (Global \& Local)}: Structural feature selection at the population level (global sparsity) and verifiable respondent-level sensitivity attributions (local polyhedral GLMs).
 \end{itemize}
+\normalsize
 
-\vspace{0.35em}
+\vspace{0.15em}
 \textbf{The Reality of Complex Modern Data Regimes:}
+\footnotesize
 \begin{itemize}
-  \setlength{\itemsep}{2pt}
-  \item \textbf{Non-Linear Participation Bias}: In opt-in and administrative sources ($S_c$), self-selection mechanisms are complex, non-linear functions of respondent covariates—standard linear logit models are structurally misspecified.
+  \setlength{\itemsep}{1.5pt}
+  \item \textbf{Non-Linear Participation Bias}: In opt-in and administrative sources ($S_c$), self-selection mechanisms are non-linear functions of respondent covariates—standard linear logit models are structurally misspecified.
   \item \textbf{Differential Stratification \& Informative Designs}: Sample inclusion probabilities differ across demographic strata, requiring \textbf{pseudo-posterior likelihood reweighting} to correct selection bias.
   \item \textbf{Formal Differential Privacy ($\epsilon, \delta$)}: Skewed economic microdata (wages, firm revenues) contain extreme leverage records that threaten re-identification, requiring privacy calibration that preserves distributional shape.
-  \item \textbf{Weight-Variance Protection}: Dense deep models retain pure noise covariates, triggering severe variance inflation in downstream Horvitz-Thompson and H\'{a}jek weighting.
+  \item \textbf{Weight-Variance Protection}: Dense deep models retain pure noise covariates, triggering severe variance inflation in downstream Horvitz–Thompson and H\'{a}jek weighting.
 \end{itemize}
+\normalsize
 
 ## From Dense BNNs to Latent Binary BNNs (Hubin & Storvik, 2024)
 
@@ -540,33 +544,33 @@ $$\sup_{\theta \in \Theta_\delta} \left|\log \frac{q_{\boldsymbol{\alpha}}(\thet
 
 \vspace{-0.25em}
 \begin{columns}
-\begin{column}{0.54\textwidth}
+\begin{column}{0.50\textwidth}
 \includegraphics[width=\linewidth]{figures/track1_synth_utility_panels.pdf}
 \end{column}
 
-\begin{column}{0.46\textwidth}
-\textbf{Full $3 \times 2$ Factorial + Reciprocal ($n=300, M_{\text{thresh}}=5.5$):}
-\vspace{-0.3em}
+\begin{column}{0.50\textwidth}
+\textbf{\footnotesize Full $3 \times 2$ Factorial + Reciprocal ($n=300, M_{\text{thresh}}=5.5$):}
+\vspace{-0.35em}
 \tiny
-\setlength{\tabcolsep}{2.2pt}
-\renewcommand{\arraystretch}{1.12}
+\setlength{\tabcolsep}{1.5pt}
+\renewcommand{\arraystretch}{1.10}
 \begin{table}[ht]
 \centering
 \begin{tabular}{llcccc}
 \toprule
-\textbf{Stage 1} & \textbf{Stage 2} & $\mathbf{ESS} (\sum \alpha_i^*)$ & \textbf{Zeroed} & $\boldsymbol{\epsilon_{\mathbf{y}}}$ & \textbf{Mean (SD)} \\
+\textbf{Stage 1} & \textbf{Stage 2} & $\mathbf{ESS}$ & \textbf{0s} & $\boldsymbol{\epsilon_{\mathbf{y}}}$ & \textbf{Mean (SD)} \\
 \midrule
 Clean Ref & — & $300.0$ & $0$ & — & $\$6.70$ ($\$7.23$) \\
 Contam. ($u_i=1$) & — & $300.0$ & $0$ & $76.20$ & $\$11.30$ ($\$46.75$) \\
 \midrule
-\texttt{target\_clip} & \texttt{vec\_upscale} & $\mathbf{284.6}$ & $\mathbf{0}$ & $11.00$ & $\mathbf{\$7.29}$ ($\mathbf{\$8.12}$) \\
-\texttt{target\_clip} & \texttt{hard\_trunc} & $284.6$ & $0$ & $11.00$ & $\$7.29$ ($\$8.12$) \\
-\texttt{linear} & \texttt{vec\_upscale} & $284.6$ & $0$ & $11.00$ & $\$7.29$ ($\$8.12$) \\
-\texttt{linear} & \texttt{hard\_trunc} & $230.1$ & $4$ & $10.56$ & $\$7.85$ ($\$12.40$) \\
-\texttt{percentile} & \texttt{vec\_upscale} & $270.8$ & $15$ & $11.00$ & $\$7.26$ ($\$7.68$) \\
-\texttt{percentile} & \texttt{hard\_trunc} & $217.5$ & $15$ & $\mathbf{5.07}$ & $\$7.25$ ($\$7.51$) \\
+\texttt{target\_clip} & \texttt{vec\_up} & $\mathbf{285.5}$ & $\mathbf{0}$ & $11.00$ & $\mathbf{\$7.29}$ ($\mathbf{\$8.12}$) \\
+\texttt{target\_clip} & \texttt{hard\_tr} & $285.5$ & $0$ & $11.00$ & $\$7.29$ ($\$8.12$) \\
+\texttt{linear} & \texttt{vec\_up} & $285.5$ & $0$ & $11.00$ & $\$7.29$ ($\$8.12$) \\
+\texttt{linear} & \texttt{hard\_tr} & $223.2$ & $21$ & $10.74$ & $\$7.85$ ($\$12.40$) \\
+\texttt{percentile} & \texttt{vec\_up} & $279.4$ & $15$ & $11.00$ & $\$7.26$ ($\$7.68$) \\
+\texttt{percentile} & \texttt{hard\_tr} & $217.5$ & $15$ & $\mathbf{5.07}$ & $\$7.25$ ($\$7.51$) \\
 \midrule
-\texttt{reciprocal} & \texttt{hard\_trunc} & $62.9$ & $2$ & $10.82$ & $\$9.15$ ($\$18.60$) \\
+\texttt{reciprocal} & \texttt{hard\_tr} & $69.4$ & $1$ & $10.82$ & $\$9.15$ ($\$18.60$) \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -574,13 +578,13 @@ Contam. ($u_i=1$) & — & $300.0$ & $0$ & $76.20$ & $\$11.30$ ($\$46.75$) \\
 \end{column}
 \end{columns}
 
-\vspace{-0.2em}
+\vspace{-0.25em}
 \scriptsize
 \begin{itemize}
-  \setlength{\itemsep}{1pt}
-  \item \textbf{Equivalence Under \texttt{vector\_upscale}}: Confirming Savitsky's cancellation rule, \texttt{target\_clip + vec\_upscale}, \texttt{target\_clip + hard\_trunc}, and \texttt{linear + vec\_upscale} converge to the exact same optimal profile ($\text{ESS} = 284.6$, Mean $\$7.29$, SD $\$8.12$).
-  \item \textbf{Percentile Tail Excision}: Zeroing the top $5\%$ in Stage 1 followed by \texttt{vec\_upscale} boosts surviving inliers to $\alpha_i^* = 1$ ($\text{ESS} = 270.8$), whereas \texttt{hard\_trunc} yields the tightest privacy guarantee ($\epsilon_{\mathbf{y}} = 5.07$).
-  \item \textbf{Remark 1 Validated}: Reciprocal $1/f_i$ normalization suffers severe hyperbolic attenuation ($\text{ESS} = 62.9/300$), inflating variance (SD $\$18.60$).
+  \setlength{\itemsep}{0.5pt}
+  \item \textbf{Cancellation Equivalence}: Under \texttt{vector\_upscale}, any Stage 1 scheme with $\alpha_i^{(1)} > 0$ (\texttt{target\_clip}, \texttt{linear}) converges to the exact same optimal profile ($\text{ESS} = 285.5$, Mean $\$7.29$, SD $\$8.12$).
+  \item \textbf{Percentile Tail Excision}: Zeroing the top $5\%$ ($15$ units) in Stage 1 followed by \texttt{vec\_upscale} boosts surviving inliers to $\alpha_i^* = 1$ ($\text{ESS} = 279.4$), whereas \texttt{hard\_trunc} yields the tightest privacy ($\epsilon_{\mathbf{y}} = 5.07$).
+  \item \textbf{Remark 1 Validated}: Reciprocal $1/f_i$ normalization collapses effective sample size ($\text{ESS} = 69.4/300$), inflating variance (SD $\$18.60$).
 \end{itemize}
 \normalsize
 
@@ -651,25 +655,31 @@ synth_micro <- sample_synthetic_lbbnn(dp_fit, newdata = x_micro, draws = 50)
 
 ## The Identification Barrier & The Conditioning Principle (Beresovsky et al., 2026)
 
-\vspace{0.1em}
+\vspace{-0.15em}
 \textbf{The Missing Mass \& Identification Barrier:}
+\footnotesize
 \begin{itemize}
-  \setlength{\itemsep}{2.5pt}
+  \setlength{\itemsep}{1.5pt}
   \item Let $U = \{1, \dots, N\}$ denote the finite target population. We observe covariates $\mathbf{x}_i \in \mathbb{R}^p$ on two samples:
   \begin{enumerate}
+    \footnotesize
+    \setlength{\itemsep}{1pt}
     \item \textbf{Convenience Sample $S_c$ ($n_c$ units)}: Self-selected with \emph{unknown} propensity $\pi_{ci} = \mathbb{P}(I_{ci} = 1 \mid \mathbf{x}_i) = \sigma(\eta_\theta(\mathbf{x}_i))$, where $\sigma(z) = \frac{1}{1 + e^{-z}}$, and observed survey outcome $y_i$.
     \item \textbf{Reference Probability Survey $S_r$ ($n_r$ units)}: Selected with \emph{known} design inclusion probability $\pi_{ri} = \mathbb{P}(I_{ri} = 1 \mid \mathbf{x}_i) > 0$, measuring shared covariates $\mathbf{x}_i$ (outcomes $y_i$ unobserved).
   \end{enumerate}
   \item \textbf{Why Direct Binary Classification Fails}: Fitting a direct Bernoulli likelihood for $I_{ci} \in \{0, 1\}$ across $U$ is impossible because non-sampled population units $i \in U \setminus (S_c \cup S_r)$ are completely unobserved.
 \end{itemize}
+\normalsize
 
-\vspace{0.3em}
+\vspace{0.15em}
 \textbf{The Conditioning Resolution (Quasi-Randomization vs. Pseudo-Likelihood):}
+\footnotesize
 \begin{itemize}
-  \setlength{\itemsep}{2.5pt}
-  \item \textbf{Composite Conditioning}: Pool $S_c$ and $S_r$ into a combined sample $S$, and condition on observed sample inclusion $i \in S$. Known design probabilities $\pi_{ri}$ enter the conditional composite probability $\pi_{zi} = \mathbb{P}(I_{zi} = 1 \mid \mathbf{x}_i, i \in S)$ as a known structural anchor, rendering $\eta_\theta(\mathbf{x}_i)$ fully identifiable!
-  \item \textbf{Survey Design Pseudo-Likelihood}: Approximate the unobserved population log-likelihood over $U$ via Horvitz–Thompson inverse design weights $w_{ri} = \pi_{ri}^{-1}$ on $S_r$ (Chen, Li \& Wu, 2020).
+  \setlength{\itemsep}{1.5pt}
+  \item \textbf{Composite Conditioning}: Pool $S_c$ and $S_r$ into a combined sample $S$, and condition on inclusion $i \in S$. Known design probabilities $\pi_{ri}$ enter $\pi_{zi} = \mathbb{P}(I_{zi} = 1 \mid \mathbf{x}_i, i \in S)$ as a structural anchor, rendering $\eta_\theta(\mathbf{x}_i)$ fully identifiable!
+  \item \textbf{Survey Design Pseudo-Likelihood (\texttt{PSEUDO})}: Approximate the unobserved population log-likelihood over $U$ using Horvitz–Thompson inverse design weights $w_{ri} = \pi_{ri}^{-1}$ on $S_r$ (Chen, Li \& Wu, 2020).
 \end{itemize}
+\normalsize
 
 ## Intuition & Torch Training Link for All Five Estimators
 
@@ -705,39 +715,41 @@ synth_micro <- sample_synthetic_lbbnn(dp_fit, newdata = x_micro, draws = 50)
 
 \vspace{-0.2em}
 \begin{columns}
-\begin{column}{0.53\textwidth}
+\begin{column}{0.52\textwidth}
 \textbf{Statistical Formulation ($S = S_c \oplus S_r$):}
-\footnotesize
+\scriptsize
 \begin{itemize}
   \setlength{\itemsep}{1.5pt}
-  \item \textbf{Unlinked Multiset}: Pool $S_c$ ($n_c$) and $S_r$ ($n_r$) into a stacked multiset of size $n = n_c + n_r$ with sample origin indicator $I_{zi} = D_i = \mathbb{I}(i \in S_c) \in \{0, 1\}$:
-  \vspace{-0.15em}
-  $$\pi_{zi}^{\text{STACK}} = \mathbb{P}(D_i = 1 \mid \mathbf{x}_i, i \in S_c \oplus S_r) = \frac{\pi_{ci}}{\pi_{ci} + \pi_{ri}}$$
-  \vspace{-0.15em}
-  where $\pi_{ci} = \sigma\big(\eta_\theta(\mathbf{x}_i)\big) = \frac{1}{1 + e^{-\eta_\theta(\mathbf{x}_i)}}$.
+  \item \textbf{Unlinked Multiset}: Pool $S_c$ ($n_c$) and $S_r$ ($n_r$) into a multiset of size $n = n_c + n_r$ with origin indicator $I_{zi} = D_i = \mathbb{I}(i \in S_c) \in \{0, 1\}$:
+  \vspace{-0.2em}
+  $$\pi_{zi}^{\text{STACK}} = \frac{\pi_{ci}}{\pi_{ci} + \pi_{ri}}, \qquad \pi_{ci} = \sigma\big(\eta_\theta(\mathbf{x}_i)\big) = \frac{1}{1 + e^{-\eta_\theta(\mathbf{x}_i)}}$$
+  \vspace{-0.25em}
   \item \textbf{Log-Odds \& Rare-Event Offset ($\pi_{ci} \ll 1$)}:
   \vspace{-0.2em}
-  \scriptsize
-  $$\log\!\left(\frac{\pi_{zi}^{\text{STACK}}}{1 - \pi_{zi}^{\text{STACK}}}\right) = \log \pi_{ci} - \log \pi_{ri} = \eta_\theta(\mathbf{x}_i) - \underbrace{\log\big(1 + e^{\eta_\theta(\mathbf{x}_i)}\big)}_{\approx 0 \text{ when } \pi_{ci} \ll 1} - \log \pi_{ri}$$
-  \footnotesize
+  $$\begin{aligned}
+  \log\!\left(\frac{\pi_{zi}^{\text{STACK}}}{1 - \pi_{zi}^{\text{STACK}}}\right) &= \log \pi_{ci} - \log \pi_{ri} \\
+  &= \eta_\theta(\mathbf{x}_i) - \underbrace{\log\big(1 + e^{\eta_\theta(\mathbf{x}_i)}\big)}_{\approx 0 \text{ when } \pi_{ci} \ll 1} - \log \pi_{ri}
+  \end{aligned}$$
+  \vspace{-0.15em}
   When $\pi_{ci} \ll 1$ ($n_c \ll N$), $-\log \pi_{ri}$ acts as an additive offset.
   \item \textbf{Exact Composite NLL}: In \texttt{nll\_stack()}, we evaluate the exact fraction $\frac{\sigma(\eta_i)}{\sigma(\eta_i) + \pi_{ri}}$ without dropping $\log(1 + e^{\eta_i})$, guaranteeing exact calibration at any sampling fraction.
 \end{itemize}
 \normalsize
 \end{column}
 
-\begin{column}{0.47\textwidth}
+\begin{column}{0.48\textwidth}
 \textbf{LibTorch Architecture (\texttt{nll\_stack}):}
-\footnotesize
+\scriptsize
 \begin{itemize}
   \setlength{\itemsep}{2pt}
   \item \textbf{Dataset Packaging}: \texttt{build\_propensity\_dataset(pop, method = "STACK")} binds covariates $\mathbf{X}$ with target tensor $\mathbf{Y} = [D_i, \pi_{ri}] \in \mathbb{R}^{(n_c + n_r) \times 2}$.
   \item \textbf{Bernoulli Composite Loss}:
   \vspace{-0.2em}
-  \scriptsize
-  $$\mathcal{L}_{\text{STACK}}(\theta) = -\sum_{i \in S_c \oplus S_r} \Big[ D_i \log \hat{\pi}_{zi}^{\text{STACK}} + (1 - D_i)\log(1 - \hat{\pi}_{zi}^{\text{STACK}}) \Big]$$
-  \footnotesize
-  \vspace{-0.2em}
+  $$\begin{aligned}
+  \mathcal{L}_{\text{STACK}}(\theta) &= -\sum_{i \in S_c \oplus S_r} \Big[ D_i \log \hat{\pi}_{zi}^{\text{STACK}} \\
+  &\quad + (1 - D_i)\log\big(1 - \hat{\pi}_{zi}^{\text{STACK}}\big) \Big]
+  \end{aligned}$$
+  \vspace{-0.15em}
   \item \textbf{Bounded Gradients}: Because $\pi_{ri} > 0$ sits inside the denominator $\hat{\pi}_{ci} + \pi_{ri}$, loss gradients with respect to $\eta_i$ are strictly bounded in $[-1, 1]$ even when $\pi_{ri} \to 0$.
 \end{itemize}
 \normalsize
@@ -831,37 +843,35 @@ synth_micro <- sample_synthetic_lbbnn(dp_fit, newdata = x_micro, draws = 50)
 \begin{columns}
 \begin{column}{0.52\textwidth}
 \textbf{Probabilistic Record Linkage Origin:}
-\footnotesize
+\scriptsize
 \begin{itemize}
   \setlength{\itemsep}{1.5pt}
-  \item \textbf{Latent Overlap ($I_{ci}$ Missing on $S_r$)}: When noisy quasi-identifiers or privacy rules preclude deterministic linking, an upstream linkage model (e.g., Fellegi–Sunter) estimates pairwise match probabilities $m_{ij} = \mathbb{P}(i \sim j \mid \mathbf{x}_i, \mathbf{x}_j)$, yielding marginal reference linkage probabilities:
-  \vspace{-0.15em}
+  \item \textbf{Latent Overlap ($I_{ci}$ Missing on $S_r$)}: When noisy quasi-identifiers or privacy rules preclude deterministic linking, an upstream linkage model (e.g., Fellegi–Sunter) estimates pairwise match probabilities $m_{ij} = \mathbb{P}(i \sim j \mid \mathbf{x}_i, \mathbf{x}_j)$, yielding marginal reference linkage scores:
+  \vspace{-0.2em}
   $$\tilde{p}_i = \sum_{j \in S_c} m_{ij} \in [0, 1], \qquad \tilde{\mathbf{p}} = (\tilde{p}_1, \dots, \tilde{p}_{n_r})^\top$$
-  \vspace{-0.15em}
+  \vspace{-0.25em}
   \item \textbf{EM Expectation Projection (Louis, 1982)}: Replace latent $I_{ci}$ in $I_{zi}^{\text{LINK2}}$ with its conditional expectation $\mathbb{E}[I_{ci} \mid \text{linkage}] = \tilde{p}_i$:
-  \vspace{-0.15em}
+  \vspace{-0.2em}
   $$\tilde{I}_{zi}^{\text{MIP}} = D_i + (1 - D_i)\tilde{p}_i \in [0, 1]$$
-  \vspace{-0.15em}
-  \item \textbf{Benchmark DGPs vs. Production}: In production, $\tilde{\mathbf{p}}$ is ingested from agency linkage software. In Studies 0–3, we simulate known $\tilde{p}_i = \sigma(\gamma_0 + \gamma_1 I_{ci} + e_i)$ across linkage sharpness regimes ($\gamma_1 \gg 0 \to \text{\texttt{LINK2}}$, $\gamma_1 = 0 \to \text{\texttt{STACK}}$).
+  \vspace{-0.25em}
+  \item \textbf{Benchmark DGPs vs. Production}: In production, $\tilde{\mathbf{p}}$ is supplied upstream by agency linkage software. In Studies 0–3, we simulate $\tilde{p}_i = \sigma(\gamma_0 + \gamma_1 I_{ci} + e_i)$ across linkage sharpness regimes ($\gamma_1 \gg 0 \to \text{\texttt{LINK2}}$, $\gamma_1 = 0 \to \text{\texttt{STACK}}$).
 \end{itemize}
 \normalsize
 \end{column}
 
 \begin{column}{0.48\textwidth}
 \textbf{LibTorch Architecture (\texttt{make\_nll\_mip}):}
-\footnotesize
+\scriptsize
 \begin{itemize}
   \setlength{\itemsep}{2pt}
   \item \textbf{4-Column Target Tensor}: \texttt{build\_propensity\_dataset(..., method = "MIP", p\_link = p\_vec)} packs $\mathbf{Y} = [D_i, I_{ci}, \pi_{ri}, \tilde{p}_i] \in \mathbb{R}^{(n_c + n_r) \times 4}$.
   \item \textbf{Soft-Label Composite NLL}:
   \vspace{-0.2em}
-  \scriptsize
   $$\begin{aligned}
   \mathcal{L}_{\text{MIP}}(\theta) &= -\sum_{i \in S_c \oplus S_r} \Big[ \tilde{I}_{zi}^{\text{MIP}} \log \pi_{zi}^{\text{LINK2}} \\
   &\quad + \big(1 - \tilde{I}_{zi}^{\text{MIP}}\big)\log(1 - \pi_{zi}^{\text{LINK2}}) \Big]
   \end{aligned}$$
-  \footnotesize
-  \vspace{-0.2em}
+  \vspace{-0.15em}
   \item \textbf{Record-by-Record Score Interpolation}:
   \begin{itemize}
     \scriptsize
@@ -875,50 +885,49 @@ synth_micro <- sample_synthetic_lbbnn(dp_fit, newdata = x_micro, draws = 50)
 
 ## Implementation in `LBBNN` (5/5): `PSEUDO` (Design-Weighted Pseudo-NLL)
 
-\vspace{-0.2em}
+\vspace{-0.25em}
 \begin{columns}
-\begin{column}{0.53\textwidth}
+\begin{column}{0.52\textwidth}
 \textbf{Census Approximation (Chen, Li \& Wu, 2020):}
-\footnotesize
+\scriptsize
 \begin{itemize}
-  \setlength{\itemsep}{1.5pt}
-  \item \textbf{Step 1: Unobservable Population Target ($U$)}: If $I_{ci}$ were observed across all $U$, the census Bernoulli log-likelihood would be:
+  \setlength{\itemsep}{1pt}
+  \item \textbf{Step 1: Unobservable Population Target ($U$)}: Full population census Bernoulli log-likelihood over $U$:
   \vspace{-0.2em}
-  \scriptsize
-  $$\begin{aligned}
-  \ell_U(\theta) &= \sum_{i \in U} \Big[ I_{ci}\log \pi_{ci} + (1 - I_{ci})\log(1 - \pi_{ci}) \Big] \\
-  &= \sum_{i \in S_c} \log\!\left(\frac{\pi_{ci}}{1 - \pi_{ci}}\right) + \sum_{i \in U} \log(1 - \pi_{ci})
-  \end{aligned}$$
-  \footnotesize
-  \vspace{-0.15em}
-  \item \textbf{Step 2: Horvitz–Thompson Substitution on $S_r$}: Approximate the unobserved population total $\sum_{i \in U} \log(1 - \pi_{ci})$ via inverse reference design weights $w_{ri} = \pi_{ri}^{-1}$:
-  \vspace{-0.15em}
+  $$\ell_U(\theta) = \sum_{i \in S_c} \log\!\left(\frac{\pi_{ci}}{1 - \pi_{ci}}\right) + \sum_{i \in U} \log(1 - \pi_{ci})$$
+  \vspace{-0.25em}
+  \item \textbf{Step 2: Horvitz–Thompson Substitution on $S_r$}: Approximate $\sum_{i \in U} \log(1 - \pi_{ci})$ via inverse design weights $w_{ri} = \pi_{ri}^{-1}$:
+  \vspace{-0.2em}
   $$\ell_{\text{pseudo}}(\theta) = \sum_{i \in S_c} \log\!\left(\frac{\pi_{ci}}{1 - \pi_{ci}}\right) + \sum_{i \in S_r} \frac{1}{\pi_{ri}}\log(1 - \pi_{ci})$$
-  \vspace{-0.15em}
-  \item \textbf{Step 3: Exact Logit \& Softplus NLL}: With $\eta_\theta(\mathbf{x}_i) = \log\frac{\pi_{ci}}{1-\pi_{ci}}$ and $\log(1-\pi_{ci}) = -\text{softplus}(\eta_\theta(\mathbf{x}_i)) = -\log(1 + e^{\eta_\theta(\mathbf{x}_i)})$:
-  \vspace{-0.15em}
+  \vspace{-0.25em}
+  \item \textbf{Step 3: Exact Logit \& Softplus NLL}: Substituting $\eta_\theta(\mathbf{x}_i) = \log\frac{\pi_{ci}}{1-\pi_{ci}}$ and $\log(1-\pi_{ci}) = -\text{softplus}(\eta_\theta(\mathbf{x}_i))$:
+  \vspace{-0.2em}
   $$\text{NLL}_{\text{pseudo}}(\theta) = -\sum_{i \in S_c} \eta_\theta(\mathbf{x}_i) + \sum_{i \in S_r} \frac{1}{\pi_{ri}}\,\text{softplus}\big(\eta_\theta(\mathbf{x}_i)\big)$$
 \end{itemize}
 \normalsize
 \end{column}
 
-\begin{column}{0.47\textwidth}
+\begin{column}{0.48\textwidth}
 \textbf{LibTorch Architecture \& Low-Support Breakdown:}
-\footnotesize
+\scriptsize
 \begin{itemize}
-  \setlength{\itemsep}{2pt}
+  \setlength{\itemsep}{1.5pt}
   \item \textbf{Vectorized Closure (\texttt{nll\_pseudo})}:
-  \vspace{-0.15em}
-  $$\mathcal{L}_{\text{PSEUDO}}(\theta) = \sum_{i \in S_c \oplus S_r} \Big[ -D_i \eta_i + (1 - D_i)\pi_{ri}^{-1}\,\text{softplus}(\eta_i) \Big]$$
-  \vspace{-0.15em}
-  \item \textbf{Why \texttt{PSEUDO} Explodes Under Low Common Support}:
-  \vspace{-0.15em}
+  \vspace{-0.2em}
+  $$\begin{aligned}
+  \mathcal{L}_{\text{PSEUDO}}(\theta) &= \sum_{i \in S_c \oplus S_r} \Big[ -D_i \eta_i \\
+  &\quad + (1 - D_i)\pi_{ri}^{-1}\,\text{softplus}(\eta_i) \Big]
+  \end{aligned}$$
+  \vspace{-0.2em}
+  \item \textbf{Why \texttt{PSEUDO} Explodes Under Low Support}:
+  \vspace{-0.2em}
   $$\frac{\partial \text{NLL}_{\text{pseudo}}}{\partial \eta_i} = -D_i + (1 - D_i)\frac{\hat{\pi}_{ci}}{\pi_{ri}}$$
-  \vspace{-0.15em}
+  \vspace{-0.2em}
   \begin{itemize}
     \scriptsize
-    \item When convenience respondents concentrate in strata where reference inclusion $\pi_{ri} \to 0$, the raw gradient multiplier $\hat{\pi}_{ci}/\pi_{ri} \to \infty$.
-    \item Unlike composite likelihoods (whose gradients are bounded in $[-1, 1]$), unbounded gradients destabilize variational ELBO updates and collapse Kish's ESS!
+    \setlength{\itemsep}{1pt}
+    \item Where convenience respondents prefer strata with $\pi_{ri} \to 0$, the multiplier $\hat{\pi}_{ci}/\pi_{ri} \to \infty$.
+    \item Unlike composite likelihoods (gradients bounded in $[-1, 1]$), unbounded gradients destabilize variational updates and collapse Kish's ESS!
   \end{itemize}
 \end{itemize}
 \normalsize

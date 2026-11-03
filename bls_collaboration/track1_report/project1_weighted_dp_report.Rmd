@@ -786,7 +786,7 @@ $$y_i^{\text{synth}} \sim \mathcal{N}\big(\mu_\theta(\mathbf{x}_i), \hat{\sigma}
 
 ```{r synthetic_eval}
 # Non-private baseline synthesizer wrapper
-nonprivate_fit <- list(model = dp_results$model_unweighted, sigma_hat = dp_results$sigma_hat)
+nonprivate_fit <- list(model = dp_results$model_unweighted, sigma_hat = if (!is.null(dp_results$sigma_pass1)) dp_results$sigma_pass1 else dp_results$sigma_hat)
 
 # Draw 20 synthetic replicate datasets of size n = 300
 synth_mat_nonprivate <- sample_synthetic_lbbnn(nonprivate_fit, newdata = x_dp, draws = 20, log_scale = TRUE)
@@ -827,8 +827,8 @@ knitr::kable(
 ```
 
 The benchmark table demonstrates the utility and privacy advantages of the two-pass synthesizer:
-- In the raw data, the 3 extreme outliers (`Max = $529.57`) distort the sample mean (`$11.30` vs. `$6.70` clean) and explode the sample standard deviation (`$46.75` vs. `$7.23` clean).
-- The `DP-Private Synthetic` data closely matches the **clean population distribution** across the mean (`$`r sprintf("%.2f", priv_stats[1])``), standard deviation (`$`r sprintf("%.2f", priv_stats[2])``), median (`$`r sprintf("%.2f", priv_stats[4])``), and 90th percentile (`$`r sprintf("%.2f", priv_stats[6])``), while completely eliminating the extreme `$529.57` outlier disclosure risk.
+- In the raw data, the 3 extreme outliers (`Max = $`r sprintf("%.2f", max(y_dp))``) distort the sample mean (`$`r sprintf("%.2f", orig_stats[1])`` vs. `$`r sprintf("%.2f", clean_stats[1])`` clean) and explode the sample standard deviation (`$`r sprintf("%.2f", orig_stats[2])`` vs. `$`r sprintf("%.2f", clean_stats[2])`` clean).
+- The `DP-Private Synthetic` data closely matches the **clean population distribution** across the mean (`$`r sprintf("%.2f", priv_stats[1])``), standard deviation (`$`r sprintf("%.2f", priv_stats[2])``), median (`$`r sprintf("%.2f", priv_stats[4])``), and 90th percentile (`$`r sprintf("%.2f", priv_stats[6])``), while completely eliminating the extreme `$`r sprintf("%.2f", max(y_dp))`` outlier disclosure risk.
 
 ```{r synth_plot, fig.cap="Empirical Cumulative Distribution Functions (ECDF) showing close utility preservation across the population body while protecting extreme outlier records."}
 ecdf_df <- data.frame(

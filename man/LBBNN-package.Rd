@@ -6,7 +6,7 @@
 \alias{LBBNN-package}
 \title{LBBNN: Latent Binary Bayesian Neural Networks Using 'torch'}
 \description{
-Latent binary Bayesian neural networks (LBBNNs) are implemented using 'torch', an R interface to the LibTorch backend. Supports mean-field variational inference as well as flexible variational posteriors using normalizing flows. The standard LBBNN implementation follows Hubin and Storvik (2024) \doi{10.3390/math12060788}, using the local reparametrization trick as in Skaaret-Lund et al. (2024) \url{https://openreview.net/pdf?id=d6kqUKzG3V}. Input-skip connections are also supported, as described in Høyheim et al. (2025) \doi{10.48550/arXiv.2503.10496}.
+Latent binary Bayesian neural networks (LBBNNs) are implemented using 'torch', an R interface to the LibTorch backend. Supports mean-field variational inference as well as flexible variational posteriors using normalizing flows. The standard LBBNN implementation follows Hubin and Storvik (2024) \doi{10.3390/math12060788}, using the local reparametrization trick as in Skaaret-Lund et al. (2024) \doi{10.48550/arXiv.2305.15856}. Input-skip connections are also supported, as described in Høyheim et al. (2025) \doi{10.48550/arXiv.2503.10496}.
 }
 \author{
 \strong{Maintainer}: Lars Skaaret-Lund \email{lars.skaaret-lund@nmbu.no}

@@ -18,5 +18,7 @@
 ^cran-comments\.md$
 ^bls_collaboration$
 ^bls_lbbnn_presentation\.pdf$
+^project1_weighted_dp_report\.pdf$
+^project2_propensity_estimation_report\.pdf$
 ^from US$
 ^tests/testthat/dataset$

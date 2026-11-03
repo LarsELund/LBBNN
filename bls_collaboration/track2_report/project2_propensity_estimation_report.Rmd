@@ -94,7 +94,7 @@ comp_summary_df <- data.frame(
     "$\\pi_{zi} = \\frac{\\pi_{ci}}{\\pi_{ci} + \\pi_{ri}}$",
     "$\\pi_{zi} = \\frac{\\pi_{ci}}{\\pi_{ci} + \\pi_{ri} - \\pi_{ci}\\pi_{ri}}$",
     "$\\pi_{zi} = \\frac{\\pi_{ci}(1 + \\pi_{ri})}{\\pi_{ci} + \\pi_{ri}}$",
-    "$\\pi_{zi} = \\frac{\\pi_{ci}(1 + \\pi_{ri})}{\\pi_{ci} + \\pi_{ri}}$ with $\\tilde{p}_i = p_{\\text{link}}I_{ci} + (1-p_{\\text{link}})\\hat{\\pi}_{ci}$",
+    "$\\pi_{zi} = \\frac{\\pi_{ci}(1 + \\pi_{ri})}{\\pi_{ci} + \\pi_{ri}}$ with $\\tilde{p}_i = \\sum_{j \\in S_c} m_{ij} \\in [0, 1]$",
     "$\\pi_{ci} = \\sigma(\\eta_\\theta(\\mathbf{x}_i))$ via weighted softplus loss"
   ),
   row.names = NULL
@@ -508,7 +508,7 @@ cat(sprintf("Oracle Hajek Mean (True pi.c):   %.4f (Bias: %+.4f)\n", oracle_haje
 # Fit all 5 exact GLM MLE baselines
 glm_res1 <- fit_glm_all(pop1, covars)
 
-# Helper function to fit LBBNN with calibrated slab prior std = c(2.0, 2.0)
+# Helper function to fit LBBNN with calibrated slab prior std = c(1.0, 1.0)
 fit_prop_lbbnn <- function(pop, method, covars, epochs = 100, lr = 0.02, p_link = 0.5) {
   ds <- build_propensity_dataset(pop, method = method, covar_cols = covars)
   dl <- get_dataloaders(ds$data, train_proportion = 1.0, train_batch_size = 64,
@@ -785,7 +785,7 @@ knitr::kable(
 ```
 
 ### Pedagogical Takeaway
-Even though common support is high (preventing pseudo-likelihood weights from exploding), classical main-effects GLMs are structurally misspecified and incur substantial bias (e.g., `GLM-LINK1` bias: $-0.3879$, `GLM-LINK2` bias: $-0.3933$, `GLM-PSEUDO` bias: $-0.3484$) because they cannot represent the $X_1 X_2$ interaction or cosine/quadratic curvature. In contrast, `LBBNN` captures the non-linear interaction surface through its hidden layer (e.g., `LBBNN-STACK (MPM)` bias: $-0.0857$, `LBBNN-LINK2 (MPM)` bias: $-0.2972$), achieving dramatically lower absolute bias while successfully pruning all noise features ($X_3\text{--}X_6$) via MPM ($a_1 \le 0.066$).
+Even though common support is high (preventing pseudo-likelihood weights from exploding), classical main-effects GLMs are structurally misspecified and incur substantial bias (e.g., `GLM-LINK1` bias: $`r sprintf("%+.4f", comp_df2$Bias[grepl("^GLM-LINK1", comp_df2$Estimator)])`$, `GLM-LINK2` bias: $`r sprintf("%+.4f", comp_df2$Bias[grepl("^GLM-LINK2", comp_df2$Estimator)])`$, `GLM-PSEUDO` bias: $`r sprintf("%+.4f", comp_df2$Bias[grepl("^GLM-PSEUDO", comp_df2$Estimator)])`$) because they cannot represent the $X_1 X_2$ interaction or cosine/quadratic curvature. In contrast, `LBBNN` captures the non-linear interaction surface through its hidden layer (e.g., `LBBNN-STACK (BMA)` bias: $`r sprintf("%+.4f", comp_df2$Bias[comp_df2$Estimator == "LBBNN-STACK (BMA)"])`$, `LBBNN-LINK2 (MPM)` bias: $`r sprintf("%+.4f", comp_df2$Bias[comp_df2$Estimator == "LBBNN-LINK2 (MPM)"])`$), achieving dramatically lower absolute bias while successfully pruning all noise features ($X_3\text{--}X_6$) via MPM ($a_1 \le `r sprintf("%.3f", max(var_table2$Output_Incl[3:6]))`$).
 
 ---
 

@@ -151,9 +151,9 @@ print(hajek_est)
 
 All experimental benchmarks, Monte Carlo studies, and presentation materials are fully reproducible from source:
 
-* **BLS Seminar Presentation**: `bls_lbbnn_presentation.Rmd` $\to$ `bls_lbbnn_presentation.pdf`
-* **Project 1 Technical Report**: `project1_weighted_dp_report.Rmd` $\to$ `project1_weighted_dp_report.pdf`
-* **Project 2 Technical Report**: `project2_propensity_estimation_report.Rmd` $\to$ `project2_propensity_estimation_report.pdf`
+* **BLS Seminar Presentation**: [`bls_lbbnn_presentation.pdf`](bls_lbbnn_presentation.pdf) (Source: `bls_collaboration/presentation/bls_lbbnn_presentation.Rmd`)
+* **Project 1 Technical Report**: [`project1_weighted_dp_report.pdf`](project1_weighted_dp_report.pdf) (Source: `bls_collaboration/track1_report/project1_weighted_dp_report.Rmd`)
+* **Project 2 Technical Report**: [`project2_propensity_estimation_report.pdf`](project2_propensity_estimation_report.pdf) (Source: `bls_collaboration/track2_report/project2_propensity_estimation_report.Rmd`)
 
 ---
 
