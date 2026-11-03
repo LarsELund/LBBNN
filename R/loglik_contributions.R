@@ -208,8 +208,9 @@ compute_dp_weights <- function(
 
   } else if (stage2_method == "hard_trunc") {
     # Scheme 1: Hard threshold truncation: zero observations exceeding M_thresh
+    # Use 1e-9 tolerance to prevent floating-point roundoff (e.g. (M/f)*f = M + 8.88e-16) from triggering truncation
     alpha_2 <- alpha_1
-    alpha_2[alpha_1 * f_vec > M_thresh] <- 0.0
+    alpha_2[alpha_1 * f_vec > M_thresh + 1e-9] <- 0.0
 
   } else if (stage2_method == "vector_upscale") {
     # Scheme 2: Vector-weighted upward rescaling (Savitsky, Hu, & Williams 2020 Eq 3.1)
@@ -287,6 +288,7 @@ compute_dp_weights <- function(
 #'     \item{delta_alpha}{Local Lipschitz bound \eqn{\Delta_{\alpha, \mathbf{y}}}.}
 #'     \item{epsilon_local}{Local DP guarantee \eqn{\epsilon_{\mathbf{y}} = 2\Delta_{\alpha, \mathbf{y}}}.}
 #'     \item{sigma_hat}{Calibrated observation residual standard deviation.}
+#'     \item{sigma_pass1}{Unweighted residual standard deviation from Pass 1.}
 #'     \item{L_pass1}{Log-likelihood contributions matrix from Pass 1.}
 #'     \item{L_pass2}{Log-likelihood contributions matrix from Pass 2.}
 #'     \item{L_pass3}{Log-likelihood contributions matrix from Pass 3 (if vector_upscale was used).}
@@ -366,15 +368,20 @@ fit_dp_lbbnn <- function(
 
   # Calibrate sigma for regression if NULL
   sigma_p1 <- sigma
+  sigma_pass1 <- sigma
   if (is.null(sigma)) {
     if (model_pass1$problem_type == "regression") {
       preds_p1 <- stats::predict(model_pass1, newdata = eval_dl, draws = S, mpm = FALSE, device = device)
       y_hat_p1 <- as.numeric(preds_p1$mean(dim = 1)$cpu())
-      sigma_p1 <- stats::sd(as.numeric(y_vec) - y_hat_p1)
+      resid_p1 <- as.numeric(y_vec) - y_hat_p1
+      sigma_pass1 <- stats::sd(resid_p1)
+      sigma_p1 <- stats::mad(resid_p1)
       if (is.na(sigma_p1) || sigma_p1 <= 0) sigma_p1 <- 1.0
-      if (verbose) message(sprintf("Calibrated residual scale sigma_hat (Pass 1): %.4f", sigma_p1))
+      if (is.na(sigma_pass1) || sigma_pass1 <= 0) sigma_pass1 <- 1.0
+      if (verbose) message(sprintf("Calibrated residual scale: Pass 1 robust MAD=%.4f, unweighted SD=%.4f", sigma_p1, sigma_pass1))
     } else {
       sigma_p1 <- 1.0
+      sigma_pass1 <- 1.0
     }
     sigma <- sigma_p1
   }
@@ -453,20 +460,22 @@ fit_dp_lbbnn <- function(
   delta_alpha_x <- if (!is.null(M_thresh)) min(max(L_alpha), M_thresh) else max(L_alpha)
   epsilon_x <- 2 * delta_alpha_x
 
-  # Calibrate weighted residual scale using final alpha weights:
-  # Downweights extreme outliers according to alpha*, recovering true residual scale
+  # Calibrate inlier residual scale using safe core (alpha >= 0.999):
+  # Excludes downweighted extreme outliers to recover the true underlying residual scale
   sigma_hat_final <- sigma
   if (final_model$problem_type == "regression") {
     preds_final <- stats::predict(final_model, newdata = eval_dl, draws = S, mpm = FALSE, device = device)
     y_hat_final <- as.numeric(preds_final$mean(dim = 1)$cpu())
     resid_final <- as.numeric(y_vec) - y_hat_final
-    sum_alpha <- sum(alpha)
-    if (sum_alpha > 0) {
-      sigma_hat_weighted <- sqrt(sum(alpha * (resid_final^2)) / sum_alpha)
-      if (is.finite(sigma_hat_weighted) && sigma_hat_weighted > 0) {
-        sigma_hat_final <- sigma_hat_weighted
-        if (verbose) message(sprintf("Privacy-weighted residual scale sigma_hat (final): %.4f", sigma_hat_final))
-      }
+    inlier_mask <- alpha >= 0.999
+    if (sum(inlier_mask) >= 10) {
+      sigma_hat_weighted <- stats::sd(resid_final[inlier_mask])
+    } else {
+      sigma_hat_weighted <- stats::mad(resid_final)
+    }
+    if (is.finite(sigma_hat_weighted) && sigma_hat_weighted > 0) {
+      sigma_hat_final <- sigma_hat_weighted
+      if (verbose) message(sprintf("Calibrated inlier residual scale sigma_hat (final): %.4f", sigma_hat_final))
     }
   }
 
@@ -481,7 +490,7 @@ fit_dp_lbbnn <- function(
     delta_alpha = delta_alpha_x,
     epsilon_local = epsilon_x,
     sigma_hat = sigma_hat_final,
-    sigma_pass1 = sigma_p1,
+    sigma_pass1 = sigma_pass1,
     L_pass1 = L_mat,
     L_pass2 = L_pass2,
     L_pass3 = L_pass3,

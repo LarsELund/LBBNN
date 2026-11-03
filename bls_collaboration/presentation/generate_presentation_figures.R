@@ -208,14 +208,14 @@ y_dp[outlier_idx] <- y_dp[outlier_idx] * 8.0
 log_y_dp <- log(y_dp)
 
 spec_dp <- list(
-  problem_type = "regression", sizes = c(p_dp, 16, 16, 1),
-  prior = c(0.5, 0.5, 0.5), std = c(1.0, 1.0, 1.0),
-  inclusion_inits = "balanced", input_skip = FALSE, flow = FALSE, device = "cpu"
+  problem_type = "regression", sizes = c(p_dp, 16, 1),
+  prior = c(0.5, 0.5), std = c(1.0, 1.0),
+  inclusion_inits = "balanced", input_skip = TRUE, flow = FALSE, device = "cpu"
 )
 
 dp_results <- fit_dp_lbbnn(
   model_spec = spec_dp, X = x_dp, y = log_y_dp,
-  epochs = 40, lr = 0.02, batch_size = 32, S = 50,
+  epochs = 100, lr = 0.02, batch_size = 32, S = 50,
   stage1_method = "target_clip", stage2_method = "vector_upscale",
   M_thresh = 5.5, sigma = NULL, device = "cpu", verbose = FALSE
 )

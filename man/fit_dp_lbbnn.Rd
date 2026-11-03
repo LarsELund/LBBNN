@@ -80,6 +80,7 @@ A list containing:
 \item{delta_alpha}{Local Lipschitz bound \eqn{\Delta_{\alpha, \mathbf{y}}}.}
 \item{epsilon_local}{Local DP guarantee \eqn{\epsilon_{\mathbf{y}} = 2\Delta_{\alpha, \mathbf{y}}}.}
 \item{sigma_hat}{Calibrated observation residual standard deviation.}
+\item{sigma_pass1}{Unweighted residual standard deviation from Pass 1.}
 \item{L_pass1}{Log-likelihood contributions matrix from Pass 1.}
 \item{L_pass2}{Log-likelihood contributions matrix from Pass 2.}
 \item{L_pass3}{Log-likelihood contributions matrix from Pass 3 (if vector_upscale was used).}
