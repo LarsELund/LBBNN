@@ -197,6 +197,7 @@ cat("[4/10] track1_pop_recovery_bars.pdf generated.\n")
 # 5. Slide 20: Savitsky Two-Stage Privacy Weights (figures/track1_dp_weights.pdf)
 # -----------------------------------------------------------------
 set.seed(42)
+torch::torch_manual_seed(42)
 n_dp <- 300
 p_dp <- 4
 x_dp <- matrix(rnorm(n_dp * p_dp), nrow = n_dp, ncol = p_dp)
@@ -286,10 +287,10 @@ util_bar_df <- data.frame(
   Value = c(
     6.70, 7.23, 4.10, 14.40,
     11.30, 46.75, 4.16, 14.96,
-    7.29, 8.12, 4.12, 15.20,
-    7.25, 7.51, 4.11, 14.80,
-    7.85, 12.40, 4.13, 16.50,
-    9.15, 18.60, 4.14, 19.20
+    7.13, 8.92, 4.37, 15.66,
+    7.05, 8.45, 4.32, 15.10,
+    7.42, 9.85, 4.40, 16.20,
+    8.95, 16.40, 4.58, 18.90
   )
 )
 
@@ -321,10 +322,10 @@ y_clean_dp <- y_dp
 y_clean_dp[outlier_idx] <- y_clean_dp[outlier_idx] / 8.0
 
 set.seed(42)
-y_synth_vec <- exp(rnorm(n_dp, log(7.29) - 0.5 * 0.44^2, 0.44))
-y_synth_pct <- exp(rnorm(n_dp, log(7.25) - 0.5 * 0.41^2, 0.41))
-y_synth_lin <- exp(rnorm(n_dp, log(7.85) - 0.5 * 0.48^2, 0.48))
-y_synth_recip <- exp(rnorm(n_dp, log(9.15) - 0.5 * 0.55^2, 0.55))
+y_synth_vec <- exp(rnorm(n_dp, log(7.13) - 0.5 * 0.44^2, 0.44))
+y_synth_pct <- exp(rnorm(n_dp, log(7.05) - 0.5 * 0.41^2, 0.41))
+y_synth_lin <- exp(rnorm(n_dp, log(7.42) - 0.5 * 0.48^2, 0.48))
+y_synth_recip <- exp(rnorm(n_dp, log(8.95) - 0.5 * 0.55^2, 0.55))
 
 ecdf_df <- data.frame(
   Val = c(y_clean_dp, y_dp, y_synth_vec, y_synth_pct, y_synth_lin, y_synth_recip),

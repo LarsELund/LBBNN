@@ -708,7 +708,7 @@ gridExtra::grid.arrange(p1, p2, ncol = 2)
 The calibrated two-stage construction performs cleanly:
 - Standard records ($f_i \le M_{\text{thresh}}$) receive full privacy weight $\alpha_i = 1.0$, allowing them to contribute unpenalized to model training.
 - As expenditure increases into the high-risk tail, weights are smoothly scaled to $\alpha_i^* = \min(1, M_{\text{thresh}} / f_i)$, ensuring that record contributions never exceed the privacy threshold.
-- Extreme outliers ($Y \in [\$400, \$530]$) produce sensitivities $f_i \in [21.8, 28.9]$ and are bounded to $\alpha_i^* \in [0.19, 0.25]$, strictly guaranteeing $\Delta_{\alpha, \mathbf{y}} = `r round(dp_results$delta_alpha, 2)` \le M_{\text{thresh}}$ and $\epsilon_{\mathbf{y}} = `r round(dp_results$epsilon_local, 2)`$.
+- Extreme outliers ($Y \in [\$400, \$530]$) produce sensitivities $f_i \in [`r sprintf("%.1f, %.1f", min(dp_results$f_vec[outlier_idx]), max(dp_results$f_vec[outlier_idx]))`]$ and are bounded to $\alpha_i^* \in [`r sprintf("%.2f, %.2f", min(dp_results$alpha[outlier_idx]), max(dp_results$alpha[outlier_idx]))`]$, strictly guaranteeing $\Delta_{\alpha, \mathbf{y}} = `r round(dp_results$delta_alpha, 2)` \le M_{\text{thresh}}$ and $\epsilon_{\mathbf{y}} = `r round(dp_results$epsilon_local, 2)`$.
 
 ### Full Factorial Comparison of Privacy Calibration Schemes (Savitsky, Oct 29, 2026)
 
