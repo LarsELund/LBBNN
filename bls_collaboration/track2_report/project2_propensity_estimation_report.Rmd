@@ -211,10 +211,10 @@ In Study 0 Panel B (Low Common Support), regularized models (`LBBNN` and low-dim
 
 ### Doubly Robust Pseudo-Posterior Imputation: Bridging Track 2 to Track 1
 Once propensity scores $\hat{\pi}_{ci}$ are estimated in Stage 1 (Track 2), two options exist for downstream outcome analysis:
-1. **Quasi-Randomization (Track 2 Standard)**: Apply outcome-agnostic Hájek weights $\hat{w}_i = \hat{\pi}_{ci}^{-1}$ to any continuous outcome $y_i$. Here, pruning outcome-only predictors $X_3$ in Stage 1 is crucial because including $X_3$ does not reduce selection bias but inflates weight variance.
+1. **Quasi-Randomization (Track 2 Standard)**: Apply outcome-agnostic Hájek weights $\hat{w}_i = \hat{\pi}_{ci}^{-1}$ to any continuous outcome $y_i$. Here, pruning outcome-only predictors (such as $X_3$ in our simulations below) in Stage 1 is crucial because including them does not reduce selection bias but inflates weight variance.
 2. **Doubly Robust Pseudo-Posterior Imputation (Bridging Track 2 $\to$ Track 1)**: Normalize inverse propensity weights to sample size:
    $$\tilde{w}_i = \hat{\pi}_{ci}^{-1} \frac{n_c}{\sum_{j \in S_c} \hat{\pi}_{cj}^{-1}}$$
-   and feed them as observation weights $u_i = \tilde{w}_i$ into a **Track 1 LBBNN regression model** for $y_i$. This achieves **Double Robustness**: the resulting population and domain estimators are asymptotically unbiased if *either* the propensity model $\hat{\pi}_{ci}$ *or* the outcome model $\mu_\theta(\mathbf{x}_i)$ is correctly specified. Furthermore, while $X_3$ was pruned from the propensity model, it is actively retained by the spike-and-slab outcome model, maximizing predictive accuracy.
+   and feed them as observation weights $u_i = \tilde{w}_i$ into a **Track 1 LBBNN regression model** for $y_i$. This achieves **Double Robustness**: the resulting population and domain estimators are asymptotically unbiased if *either* the propensity model $\hat{\pi}_{ci}$ *or* the outcome model $\mu_\theta(\mathbf{x}_i)$ is correctly specified. Furthermore, while outcome-only predictors ($X_3$) are pruned from the propensity model, they are actively retained by the spike-and-slab outcome model, maximizing predictive accuracy.
 
 ## Self-Normalizing Hájek Estimator
 
