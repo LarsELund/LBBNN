@@ -81,6 +81,11 @@ case "$CMD" in
       tail -n 20 results/run.log 2>/dev/null || echo 'No run.log found yet.'"
     ;;
 
+  watch)
+    echo "=== Streaming live bash output from ${REMOTE_TARGET}:${REMOTE_DIR}/results/run.log (Ctrl+C to stop watching) ==="
+    ssh -t "$REMOTE_TARGET" "cd ${REMOTE_DIR} && tail -f results/run.log"
+    ;;
+
   stop)
     echo "=== Stopping Remote Benchmark Process on ${REMOTE_TARGET} ==="
     ssh "$REMOTE_TARGET" "cd ${REMOTE_DIR} 2>/dev/null && \
