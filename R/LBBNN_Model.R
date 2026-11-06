@@ -36,6 +36,15 @@
 #' @param nll User can define their own likelihood function (not implemented).
 #' @param bias_inclusion_prob logical, determines whether the bias should
 #' be as associated with inclusion probabilities.
+#' @param activations Optional list of per-hidden-layer symbolic activation
+#' specifications (character vectors or named lists of operator counts). When
+#' \code{NULL} (default), standard \code{lbbnn_linear} layers and \code{custom_act}
+#' (or LeakyReLU) are used with 100\% backward compatibility.
+#' @param sigma_logic Numeric scalar, standard deviation of the bimodal literal
+#' prior for \code{logic_and}/\code{logic_or} neurons when \code{activations} is used.
+#' @param tau_logic Numeric scalar, temperature for smooth logic gates.
+#' @param logic_mode Character, \code{"product_tnorm"} or \code{"lukasiewicz"}.
+#' @param use_concrete Logical, whether symbolic layers use Concrete gate relaxation.
 #' @examples
 #' \donttest{
 #' if (torch_available()) {
@@ -77,7 +86,9 @@ lbbnn_net <- torch::nn_module(
                         input_skip = FALSE, flow = FALSE, num_transforms = 2,
                         dims = c(200, 200), device = "cpu", raw_output = FALSE,
                         custom_act = NULL, link = NULL, nll = NULL,
-                        bias_inclusion_prob = FALSE) {
+                        bias_inclusion_prob = FALSE, activations = NULL,
+                        sigma_logic = 0.25, tau_logic = 10.0,
+                        logic_mode = "product_tnorm", use_concrete = TRUE) {
     self$device <- device
     self$layers <- torch::nn_module_list()
     self$problem_type <- problem_type
@@ -93,11 +104,16 @@ lbbnn_net <- torch::nn_module(
     self$raw_output <- raw_output # TRUE when we want local explanations
     self$act <- torch::nn_leaky_relu(0.00)
     self$computed_paths <- FALSE
+    self$activations <- activations
+    self$is_symbolic <- !is.null(activations)
     if (! is.null(custom_act)) {
       self$act <- custom_act
       }
     if (length(prior) != length(sizes) - 1)
     (stop("Must have one prior inclusion probability per weight matrix"))
+    if (self$is_symbolic && length(activations) != (length(sizes) - 2)) {
+      stop("When activations is provided, its length must equal length(sizes) - 2 (number of hidden layers).")
+    }
 
      #define the layers of the network
      #for the first layer input-skip and LBBNNs are the same,
@@ -108,27 +124,51 @@ lbbnn_net <- torch::nn_module(
         in_shape <- sizes[i]
         }
       else (in_shape <- sizes[i] + sizes[1])
-      self$layers$append(lbbnn_linear(
-        in_shape,
-        sizes[i + 1],
-        prior_inclusion = prior[i],
-        standard_prior = std[i],
-        density_init = inclusion_inits[, i],
-        flow = self$flow,
-        num_transforms = self$num_transforms,
-        hidden_dims = self$dims,
-        device = self$device,
-        bias_inclusion_prob = self$bias_inclusion_prob))
+      prior_i <- if (is.list(prior)) prior[[i]] else prior[i]
+      if (self$is_symbolic) {
+        self$layers$append(lbbnn_symbolic_linear(
+          in_features = in_shape,
+          out_features = sizes[i + 1],
+          layer_activations = activations[[i]],
+          prior_inclusion = prior_i,
+          standard_prior = std[i],
+          density_init = inclusion_inits[, i],
+          input_skip_dim = sizes[1],
+          is_first_layer = (i == 1),
+          sigma_logic = sigma_logic,
+          tau_logic = tau_logic,
+          logic_mode = logic_mode,
+          use_concrete = use_concrete,
+          flow = self$flow,
+          num_transforms = self$num_transforms,
+          hidden_dims = self$dims,
+          device = self$device,
+          bias_inclusion_prob = self$bias_inclusion_prob
+        ))
+      } else {
+        self$layers$append(lbbnn_linear(
+          in_shape,
+          sizes[i + 1],
+          prior_inclusion = prior_i,
+          standard_prior = std[i],
+          density_init = inclusion_inits[, i],
+          flow = self$flow,
+          num_transforms = self$num_transforms,
+          hidden_dims = self$dims,
+          device = self$device,
+          bias_inclusion_prob = self$bias_inclusion_prob))
+      }
     }
     if (input_skip) {
       out_size <- sizes[length(sizes) - 1] + sizes[1]
     } else {
       out_size <- sizes[length(sizes) - 1]
       }
+    prior_out <- if (is.list(prior)) prior[[length(prior)]] else prior[length(prior)]
     self$out_layer <- (lbbnn_linear(
       out_size,
       sizes[length(sizes)],
-      prior_inclusion = prior[length(prior)],
+      prior_inclusion = prior_out,
       standard_prior = std[length(std)],
       density_init = inclusion_inits[, ncol(inclusion_inits)],
       flow = self$flow,
@@ -164,31 +204,89 @@ lbbnn_net <- torch::nn_module(
     if (!self$input_skip) {
       x <- x$view(c(-1, self$sizes[1]))
       for (l in self$layers$children){
-       x <- self$act(l(x, MPM)) #iterate over hidden layers
+        if (isTRUE(self$is_symbolic)) {
+          x <- l(x, MPM)
+        } else {
+          x <- self$act(l(x, MPM)) #iterate over hidden layers
+        }
       }
-      x <- self$out(self$out_layer(x, MPM))
+      if (self$raw_output) {
+        x <- self$out_layer(x, MPM)
+      } else {
+        x <- self$out(self$out_layer(x, MPM))
+      }
     }
     #with input-skip
-    else {x_input <- x$view(c(-1, self$sizes[1]))
-    x <- self$act(self$layers$children$`0`(x_input, MPM)) #first layer
-    j <- 1
-    for (l in self$layers$children) {
-      if (j > 1) {#skip the first layer when iterating.
-        x <- self$act(l(torch::torch_cat(c(x, x_input), dim = 2), MPM))
+    else {
+      x_input <- x$view(c(-1, self$sizes[1]))
+      if (isTRUE(self$is_symbolic)) {
+        x <- self$layers$children$`0`(x_input, MPM)
+      } else {
+        x <- self$act(self$layers$children$`0`(x_input, MPM)) #first layer
       }
-      j <- j + 1
-    }
+      j <- 1
+      for (l in self$layers$children) {
+        if (j > 1) {#skip the first layer when iterating.
+          if (isTRUE(self$is_symbolic)) {
+            x <- l(torch::torch_cat(c(x, x_input), dim = 2), MPM)
+          } else {
+            x <- self$act(l(torch::torch_cat(c(x, x_input), dim = 2), MPM))
+          }
+        }
+        j <- j + 1
+      }
 
-    #if we only want the raw output, skip sigmoid/softmax
-    if (self$raw_output) {
-      x <- self$out_layer(torch::torch_cat(c(x, x_input), dim = 2), MPM)
-    }
-    else (x <- self$out(self$out_layer(torch::torch_cat(c(x, x_input), dim = 2), MPM)))
+      #if we only want the raw output, skip sigmoid/softmax
+      if (self$raw_output) {
+        x <- self$out_layer(torch::torch_cat(c(x, x_input), dim = 2), MPM)
+      }
+      else (x <- self$out(self$out_layer(torch::torch_cat(c(x, x_input), dim = 2), MPM)))
 
     }
 
     return(x)
     },
+  domain_loss = function() {
+    d_loss <- torch::torch_tensor(0.0, device = self$device)
+    if (isTRUE(self$is_symbolic)) {
+      for (l in self$layers$children) {
+        if (!is.null(l$last_domain_loss)) {
+          d_loss <- d_loss + l$last_domain_loss
+        }
+      }
+    }
+    return(d_loss)
+  },
+  set_temperature = function(tau) {
+    if (isTRUE(self$is_symbolic)) {
+      for (l in self$layers$children) {
+        l$temperature <- tau
+      }
+    }
+  },
+  set_debias_mode = function(enabled = TRUE, deterministic_mpm = TRUE) {
+    for (l in self$layers$children) {
+      l$debias_mode <- isTRUE(enabled)
+      l$deterministic_mpm <- isTRUE(deterministic_mpm)
+    }
+    self$out_layer$debias_mode <- isTRUE(enabled)
+    self$out_layer$deterministic_mpm <- isTRUE(deterministic_mpm)
+  },
+  mask_frozen_grads = function() {
+    for (l in self$layers$children) {
+      if (!is.null(l$mask_frozen_grads)) l$mask_frozen_grads()
+    }
+    if (!is.null(self$out_layer$mask_frozen_grads)) {
+      self$out_layer$mask_frozen_grads()
+    }
+  },
+  enforce_constraints = function() {
+    if (isTRUE(self$is_symbolic)) {
+      for (l in self$layers$children) {
+        if (!is.null(l$enforce_constraints)) l$enforce_constraints()
+      }
+    }
+  },
   kl_div = function() {
     kl <- 0
     for (l in self$layers$children)(kl <- kl + l$kl_div())
@@ -201,16 +299,18 @@ lbbnn_net <- torch::nn_module(
       stop("self$input_skip must be FALSE to use this function")
     }
     self$computed_paths <- TRUE
-    #sending a random input through the network of alpha matrices (0 and 1)
+    #sending a positive input through the network of alpha matrices (0 and 1)
     #and then backpropagating to find active paths
-    a <- rnorm(n = self$layers$children$`0`$alpha$shape[2])
+    a <- abs(rnorm(n = self$sizes[1])) + 0.5
     x0 <- torch::torch_tensor(a, dtype = torch::torch_float32(), 
-                              device = self$device)
+                              device = self$device)$unsqueeze(dim = 1)
     alpha_mats <- list() #initialize empty list to append network alphas
 
     for (l in self$layers$children) {
       lamd <- l$lambda_l$detach()
-      alpha <- (torch::torch_sigmoid(lamd) > 0.5) * 1
+      probs <- torch::torch_sigmoid(lamd)
+      if (!is.null(l$lambda_grad_mask)) probs <- probs * l$lambda_grad_mask
+      alpha <- (probs > 0.5) * 1
       alpha$requires_grad <- TRUE
       alpha_mats <- append(alpha_mats, alpha)
       x0 <- torch::torch_matmul(x0, torch::torch_t(alpha))
@@ -249,14 +349,17 @@ lbbnn_net <- torch::nn_module(
       stop("self$input_skip must be TRUE to use this funciton")
     }
     self$computed_paths <- TRUE
-    #sending a random input through the network of alpha matrices (0 and 1)
+    #sending a positive input through the network of alpha matrices (0 and 1)
     #and then backpropagating to find active paths
-    a <- rnorm(n = self$layers$children$`0`$alpha$shape[2])
+    a <- abs(rnorm(n = self$sizes[1])) + 0.5
     x0 <- torch::torch_tensor(a, dtype = torch::torch_float32(),
                               device = self$device)$unsqueeze(dim = 1)
     alpha_mats <- list() #initialize empty list to append network alphas
-    lamd_input <- self$layers$children$`0`$lambda_l
-    alpha_input <- (torch::torch_sigmoid(lamd_input) > 0.5) * 1
+    l0 <- self$layers$children$`0`
+    lamd_input <- l0$lambda_l$detach()
+    probs_input <- torch::torch_sigmoid(lamd_input)
+    if (!is.null(l0$lambda_grad_mask)) probs_input <- probs_input * l0$lambda_grad_mask
+    alpha_input <- (probs_input > 0.5) * 1
     alpha_input$requires_grad <- TRUE
     alpha_mats <- append(alpha_mats, alpha_input)
     x <- torch::torch_matmul(x0, torch::torch_t(alpha_input))
@@ -265,7 +368,9 @@ lbbnn_net <- torch::nn_module(
       if (j > 1) {#skip the first layer when iterating.
         x <- (torch::torch_cat(c(x, x0), dim = 2))
         lamd <- l$lambda_l$detach()
-        alpha <- (torch::torch_sigmoid(lamd) > 0.5) * 1
+        probs <- torch::torch_sigmoid(lamd)
+        if (!is.null(l$lambda_grad_mask)) probs <- probs * l$lambda_grad_mask
+        alpha <- (probs > 0.5) * 1
         alpha$requires_grad <- TRUE
         alpha_mats <- append(alpha_mats, alpha)
         x <- torch::torch_matmul(x, torch::torch_t(alpha))

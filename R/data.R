@@ -29,3 +29,23 @@
 #' @format  This dataset has 319 rows and  38 columns.
 #' @source \url{https://pmc.ncbi.nlm.nih.gov/articles/PMC11309733/#T2}
 "gallstone_dataset"
+
+#' Open Exoplanet Catalogue Dataset
+#' @description Excerpt from the Open Exoplanet Catalogue dataset used in the
+#' BGNLM paper (Hubin et al., 2021, JAIR) for discovering Kepler's Third Law.
+#' @format A data frame with 223 rows and 10 variables:
+#' \describe{
+#'   \item{semimajoraxis}{Semi-major axis of the planetary orbit in AU}
+#'   \item{mass}{Planetary mass in Jupiter masses}
+#'   \item{radius}{Planetary radius in Jupiter radii}
+#'   \item{period}{Orbital period in days}
+#'   \item{eccentricity}{Orbital eccentricity}
+#'   \item{hoststar_mass}{Host star mass in solar masses}
+#'   \item{hoststar_radius}{Host star radius in solar radii}
+#'   \item{hoststar_metallicity}{Host star metallicity}
+#'   \item{hoststar_temperature}{Host star effective temperature in Kelvin}
+#'   \item{binaryflag}{Planetary system binary flag}
+#' }
+#' @source \url{https://github.com/OpenExoplanetCatalogue/oec_tables/}
+"exoplanet"
+

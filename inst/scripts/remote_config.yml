@@ -1,0 +1,12 @@
+# Remote SSH Server Configuration for Neuro-Symbolic LBBNN Monte Carlo Benchmarks
+ssh_host: "nam-shub-02.uio.no"
+ssh_user: "aliaksah"
+remote_dir: "~/projects/SymolicLBBNN"
+rscript_path: "Rscript"
+n_workers: 8
+device: "cuda"
+runner_mode: "nohup"   # Options: "nohup" or "tmux"
+
+# Shell environment initialization / module load commands on the remote Linux host:
+env_modules: "module load R cuda"
+

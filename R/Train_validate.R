@@ -180,7 +180,7 @@ validate_lbbnn <- function(LBBNN, num_samples, test_dl, device = "cpu") {
   if (LBBNN$input_skip) {
     LBBNN$compute_paths_input_skip()
     }
-  else (LBBNN$compute_paths)
+  else (LBBNN$compute_paths())
   LBBNN$computed_paths <- TRUE
   torch::with_no_grad({
     coro::loop(for (b in test_dl){

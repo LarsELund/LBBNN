@@ -157,13 +157,25 @@ lbbnn_linear <- torch::nn_module(
                                                             in_features,
                                                             device = device))
     self$alpha <- torch::torch_empty(out_features, in_features, device = device)
-    self$alpha_active_path <- torch::torch_empty(out_features, in_features,
+    self$alpha_active_path <- torch::torch_zeros(out_features, in_features,
                                                  device = device)
+    self$debias_mode <- FALSE
+    self$deterministic_mpm <- FALSE
+    self$snapped_rationals <- list()
 
-    #define priors
-    self$alpha_prior <- torch::torch_zeros(out_features, in_features, device =
-                                             device) + alpha_prior(
-                                             prior_inclusion)
+    #define priors (support scalar, vector, or matrix from compute_symbolic_priors)
+    if (inherits(prior_inclusion, "torch_tensor")) {
+      self$alpha_prior <- prior_inclusion$to(dtype = torch::torch_float32(), device = device)
+    } else if (is.matrix(prior_inclusion)) {
+      self$alpha_prior <- torch::torch_tensor(prior_inclusion, dtype = torch::torch_float32(), device = device)
+    } else if (is.numeric(prior_inclusion) && length(prior_inclusion) == out_features) {
+      mat_p <- matrix(rep(prior_inclusion, times = in_features), nrow = out_features, ncol = in_features)
+      self$alpha_prior <- torch::torch_tensor(mat_p, dtype = torch::torch_float32(), device = device)
+    } else {
+      self$alpha_prior <- torch::torch_zeros(out_features, in_features, device =
+                                               device) + alpha_prior(
+                                               prior_inclusion)
+    }
 
     if (self$bias_inclusion_prob) {
     self$bias_lambda_l <- torch::nn_parameter(torch::torch_empty(out_features,
@@ -172,8 +184,7 @@ lbbnn_linear <- torch::nn_module(
     self$bias_alpha <- torch::torch_empty(out_features, device = device)
 
     #define priors for bias.
-    self$bias_alpha_prior <- (torch::torch_zeros(out_features, device = device)
-                              + alpha_prior(prior_inclusion))
+    self$bias_alpha_prior <- torch::torch_mean(self$alpha_prior, dim = 2)
     }
 
     #standard normal prior on the weights and biases
@@ -242,7 +253,15 @@ lbbnn_linear <- torch::nn_module(
       out <- self$sample_z()
       self$z_k <- out$z
     }
-    if (! MPM) {#compute  mean and the variance of the activations using the LRT
+    if (isTRUE(self$debias_mode)) {
+      weight <- self$weight_mean * self$alpha_active_path
+      bias <- if (self$bias_inclusion_prob) {
+        self$bias_mean * (self$bias_alpha > 0.5)
+      } else {
+        self$bias_mean
+      }
+      activations <- torch::torch_matmul(input, torch::torch_t(weight)) + bias
+    } else if (! MPM) {#compute  mean and the variance of the activations using the LRT
       e_w <- self$weight_mean * self$alpha * self$z_k
       var_w <- self$alpha * (self$weight_sigma^2 + (1 - self$alpha) *
                                self$weight_mean^2 * self$z_k^2)
@@ -260,8 +279,13 @@ lbbnn_linear <- torch::nn_module(
       activations <- e_b + torch::torch_sqrt(var_b) * eps
 
     }else {#median probability model
-      w <- torch::torch_normal(self$weight_mean * self$z_k, self$weight_sigma)
-      bias <- torch::torch_normal(self$bias_mean, self$bias_sigma)
+      if (isTRUE(self$deterministic_mpm)) {
+        w <- self$weight_mean * self$z_k
+        bias <- self$bias_mean
+      } else {
+        w <- torch::torch_normal(self$weight_mean * self$z_k, self$weight_sigma)
+        bias <- torch::torch_normal(self$bias_mean, self$bias_sigma)
+      }
       weight <- w * self$alpha_active_path
 
       #need the below if we are running a convolutional net without active paths
@@ -277,6 +301,28 @@ lbbnn_linear <- torch::nn_module(
     }
 
     return(activations)},
+  mask_frozen_grads = function() {
+    torch::with_no_grad({
+      if (isTRUE(self$debias_mode)) {
+        if (!is.null(self$weight_mean$grad) &&
+            length(dim(self$weight_mean$grad)) > 0L) {
+          self$weight_mean$grad$mul_(self$alpha_active_path)
+        }
+        if (!is.null(self$weight_rho$grad) &&
+            length(dim(self$weight_rho$grad)) > 0L) {
+          self$weight_rho$grad$zero_()
+        }
+        if (!is.null(self$bias_rho$grad) &&
+            length(dim(self$bias_rho$grad)) > 0L) {
+          self$bias_rho$grad$zero_()
+        }
+        if (!is.null(self$lambda_l$grad) &&
+            length(dim(self$lambda_l$grad)) > 0L) {
+          self$lambda_l$grad$zero_()
+        }
+      }
+    })
+  },
   kl_div = function() {
     z2 <- torch::torch_ones_like(self$weight_mean) #if not flow
     log_q <- 0 #these are 0 if no flow is used
@@ -473,7 +519,7 @@ lbbnn_conv2d <- torch::nn_module(
       self$b1 <- torch::nn_parameter(torch::torch_empty(out_channels,
                                                         device = device))
       self$b2 <- torch::nn_parameter(torch::torch_empty(out_channels,
-                                                        evice = device))
+                                                        device = device))
 
 
       self$RNVP_flow <- normalizing_flow(c(out_channels, hidden_dims), "RNVP",
@@ -513,7 +559,7 @@ lbbnn_conv2d <- torch::nn_module(
       e_w <- self$weight_mean * self$alpha * z_k$view(c(-1, 1, 1, 1))
       var_w <- self$alpha * (self$weight_sigma ^ 2 + (1 - self$alpha) *
                             self$weight_mean ^ 2 * z_k$view(c(-1, 1, 1, 1)) ^ 2)
-      psi <- torch::nnf_conv2d(input = input, weight = e_w, bias = self$bias_mu)
+      psi <- torch::nnf_conv2d(input = input, weight = e_w, bias = self$bias_mean)
       delta <- torch::nnf_conv2d(input = input ^ 2, weight = var_w,
                                  bias = self$bias_sigma ^ 2)
       #delta[delta<= 0] = 0 +1e-20

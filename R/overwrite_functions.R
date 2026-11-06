@@ -338,7 +338,7 @@ predict.lbbnn_net <- function(object, newdata, mpm = FALSE, draws = 10,
     if (object$input_skip) {
       object$compute_paths_input_skip()
       }
-    else (object$compute_paths)
+    else (object$compute_paths())
   }
   if (class(newdata)[[1]] != "dataloader")
   stop("Currently only torch::dataloader objects are supported for newdata")
