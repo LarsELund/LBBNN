@@ -8,5 +8,5 @@ device: "cuda"
 runner_mode: "nohup"   # Options: "nohup" or "tmux"
 
 # Shell environment initialization / module load commands on the remote Linux host:
-env_modules: "module purge && module load R/4.3.2-gfbf-2023a"
+env_modules: "module purge && module load R/4.5.2-gfbf-2025b"
 
