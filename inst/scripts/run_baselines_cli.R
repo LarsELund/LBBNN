@@ -61,9 +61,6 @@ benchmarks <- if (opt$benchmark == "all") {
 source("inst/benchmarks/bench_baselines.R")
 
 fit_lmm_contrasts <- function(df_bench, metrics_vec, ref_method = "Symbolic-LBBNN") {
-  if (!requireNamespace("lme4", quietly = TRUE) || !requireNamespace("lmerTest", quietly = TRUE)) {
-    return(data.frame())
-  }
   df_bench$method <- factor(df_bench$method)
   if (ref_method %in% levels(df_bench$method)) {
     df_bench$method <- stats::relevel(df_bench$method, ref = ref_method)
@@ -75,14 +72,24 @@ fit_lmm_contrasts <- function(df_bench, metrics_vec, ref_method = "Symbolic-LBBN
     if (!m_col %in% names(df_bench)) next
     sub_df <- df_bench[is.finite(df_bench[[m_col]]), , drop = FALSE]
     if (nrow(sub_df) < 10L || length(unique(sub_df$method)) < 2L) next
-    form <- stats::as.formula(paste0(m_col, " ~ method + (1 | seed_f)"))
-    fit <- tryCatch(
-      suppressWarnings(lmerTest::lmer(form, data = sub_df, REML = TRUE)),
-      error = function(e) tryCatch(stats::lm(stats::as.formula(paste0(m_col, " ~ method")), data = sub_df), error = function(e2) NULL)
-    )
+    fit <- NULL
+    if (requireNamespace("lmerTest", quietly = TRUE)) {
+      form <- stats::as.formula(paste0(m_col, " ~ method + (1 | seed_f)"))
+      fit <- tryCatch(suppressWarnings(lmerTest::lmer(form, data = sub_df, REML = TRUE)), error = function(e) NULL)
+    }
+    if (is.null(fit)) {
+      # Balanced repeated-measures block model (mathematically identical fixed-effect contrasts to random-intercept LMM)
+      form_lm <- if (length(unique(sub_df$seed_f)) > 1L) {
+        stats::as.formula(paste0(m_col, " ~ method + seed_f"))
+      } else {
+        stats::as.formula(paste0(m_col, " ~ method"))
+      }
+      fit <- tryCatch(stats::lm(form_lm, data = sub_df), error = function(e) NULL)
+    }
     if (is.null(fit)) next
     coef_mat <- summary(fit)$coefficients
     for (r_nm in rownames(coef_mat)) {
+      if (grepl("^seed_f", r_nm)) next
       if (r_nm == "(Intercept)") {
         m_label <- paste0(ref_method, " (Ref Intercept)")
       } else {

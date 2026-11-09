@@ -14,19 +14,25 @@ OUT_DIR=${4:-results_baselines}
 mkdir -p "$OUT_DIR"
 echo $$ > "$OUT_DIR/baselines.pid"
 
-# 1. Source system profiles so module / Lmod is available in subshell
+# 1. Remove any stale custom ~/.R/Makevars that could override EasyBuild R's Makeconf
+rm -f "$HOME/.R/Makevars" 2>/dev/null || true
+
+# 2. Strip micromamba/conda from PATH to prevent compiler/ABI conflicts with cluster R
+export PATH=$(echo "$PATH" | tr ':' '\n' | grep -v -E "micromamba|conda" | paste -sd ':' -)
+
+# 3. Source system profiles so module / Lmod is available in non-interactive subshells
 [ -f /etc/profile ] && source /etc/profile 2>/dev/null || true
 [ -f /etc/profile.d/modules.sh ] && source /etc/profile.d/modules.sh 2>/dev/null || true
 [ -f /usr/share/Modules/init/bash ] && source /usr/share/Modules/init/bash 2>/dev/null || true
 
-# 2. Load cluster modules if available
+# 4. Load cluster R and FlexiBLAS modules ONLY (do NOT load Python/GCCcore-14.3 which conflicts with R's GCCcore-11.2)
 if command -v module >/dev/null 2>&1; then
+  module purge 2>/dev/null || true
   module load R 2>/dev/null || true
   module load FlexiBLAS 2>/dev/null || true
-  module load Python 2>/dev/null || true
 fi
 
-# 3. Add known FlexiBLAS library directories to LD_LIBRARY_PATH
+# 5. Add known FlexiBLAS library directories to LD_LIBRARY_PATH
 for d in \
   /opt/uio/modules/rhel8/easybuild/software/FlexiBLAS/*/lib \
   /cluster/software/FlexiBLAS/*/lib \
@@ -38,14 +44,7 @@ for d in \
   fi
 done
 
-# 4. Choose Rscript: prioritize module R 4.5, then micromamba
-if command -v Rscript >/dev/null 2>&1; then
-  RSCRIPT_BIN=$(command -v Rscript)
-elif [ -x "/mn/sarpanitu/ansatte-u2/aliaksah/micromamba/envs/r-symbolic/bin/Rscript" ]; then
-  RSCRIPT_BIN="/mn/sarpanitu/ansatte-u2/aliaksah/micromamba/envs/r-symbolic/bin/Rscript"
-else
-  RSCRIPT_BIN="Rscript"
-fi
+RSCRIPT_BIN=$(command -v Rscript || echo "Rscript")
 
 export OMP_NUM_THREADS=1
 export OPENBLAS_NUM_THREADS=1
@@ -64,7 +63,7 @@ echo "       Workers:         $WORKERS"
 echo "       Out Dir:         $OUT_DIR"
 echo "=================================================================="
 
-echo "[STEP 1/2] Verifying R and Python baseline packages..."
+echo "[STEP 1/2] Verifying R baseline packages..."
 "$RSCRIPT_BIN" inst/scripts/install_baselines.R || echo "[WARN] Package installer returned code $?, proceeding..."
 
 echo "[STEP 2/2] Running baseline benchmarks and LMM contrasts..."

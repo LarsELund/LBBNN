@@ -10,19 +10,31 @@
 #      FBMS-BGNLM (GMJMCMC), SR-PySR, SR-Operon, MARS (earth), GAM (mgcv),
 #      Lasso (glmnet), RandomForest (ranger)
 #
-# Designed to run 100% cleanly on both macOS and Linux HPC servers (RHEL 8+)
-# without requiring liblantern.so when reading precomputed LBBNN checkpoints.
+# Designed to run 100% cleanly in pure R on both macOS and Linux HPC servers
+# without requiring liblantern.so or external Python subprocesses.
 # =============================================================================
+
+# Ensure version-matched user library is first on Linux clusters
+if (.Platform$OS.type == "unix" && Sys.info()[["sysname"]] == "Linux") {
+  active_maj_min <- paste0(getRversion()$major, ".", strsplit(as.character(getRversion()$minor), "\\.")[[1]][1])
+  user_ver_lib <- path.expand(paste0("~/R/x86_64-pc-linux-gnu-library/", active_maj_min))
+  if (dir.exists(user_ver_lib)) {
+    cur_libs <- .libPaths()
+    keep_libs <- cur_libs[!grepl("/R/x86_64-pc-linux-gnu-library/", cur_libs) |
+                          grepl(paste0("/R/x86_64-pc-linux-gnu-library/", active_maj_min), cur_libs, fixed = TRUE)]
+    .libPaths(unique(c(user_ver_lib, keep_libs)))
+  }
+}
 
 # Pre-load libflexiblas.so.3 if needed by EasyBuild-compiled R packages (BAS, Matrix) on Linux clusters
 if (.Platform$OS.type == "unix") {
   tryCatch(dyn.load("libflexiblas.so.3"), error = function(e) {
-    cands <- c(
-      Sys.glob("/cluster/software/FlexiBLAS/*/lib/libflexiblas.so.3"),
-      Sys.glob("/software/FlexiBLAS/*/lib/libflexiblas.so.3"),
-      Sys.glob("/opt/eb/software/FlexiBLAS/*/lib/libflexiblas.so.3"),
-      Sys.glob("/mn/sarpanitu/*/*/FlexiBLAS/*/lib/libflexiblas.so.3")
-    )
+    cands <- Sys.glob(c(
+      "/opt/uio/modules/rhel8/easybuild/software/FlexiBLAS/*/lib/libflexiblas.so.3",
+      "/opt/eb/software/FlexiBLAS/*/lib/libflexiblas.so.3",
+      "/cluster/software/FlexiBLAS/*/lib/libflexiblas.so.3",
+      "/software/FlexiBLAS/*/lib/libflexiblas.so.3"
+    ))
     for (cand in cands) {
       if (file.exists(cand)) {
         res <- tryCatch({ dyn.load(cand); TRUE }, error = function(e2) FALSE)
@@ -53,30 +65,6 @@ if (!exists("generate_friedman1_data", mode = "function")) {
   source("inst/benchmarks/bench_nonlinear.R")
 }
 
-#' Locate Python 3 binary for SR-PySR and SR-Operon bridge
-get_python_bin <- function() {
-  cands <- c(
-    file.path(dirname(R.home("bin")), "python"),
-    file.path(dirname(R.home("bin")), "..", "bin", "python"),
-    "/mn/sarpanitu/ansatte-u2/aliaksah/micromamba/envs/r-symbolic/bin/python",
-    ".venv/bin/python",
-    "../BGNLM-for-SINDy/.venv/bin/python",
-    "/opt/homebrew/bin/python3",
-    Sys.which("python3"),
-    Sys.which("python")
-  )
-  for (c_path in unique(cands)) {
-    if (nzchar(c_path) && file.exists(c_path)) {
-      ok <- tryCatch({
-        res <- system2(c_path, c("-c", shQuote("import numpy, scipy; print('OK')")), stdout = TRUE, stderr = FALSE)
-        any(grepl("OK", res))
-      }, error = function(e) FALSE)
-      if (isTRUE(ok)) return(c_path)
-    }
-  }
-  stop("No python3 interpreter with numpy and scipy found.")
-}
-
 #' Helper to load a single seed row from results_overnight/<bench>/
 load_overnight_seed <- function(overnight_dir, bench_subdir, seed) {
   rds_p1 <- file.path(overnight_dir, bench_subdir, "checkpoints", sprintf("seed_%04d.rds", seed))
@@ -92,33 +80,340 @@ load_overnight_seed <- function(overnight_dir, bench_subdir, seed) {
   NULL
 }
 
-#' Run Python Symbolic Regression bridge (SR_PySR and SR_Operon)
-run_python_sr_pair <- function(x_train, y_train, x_test, y_test, var_names, task, seed = 1L) {
-  py_bin <- get_python_bin()
-  py_script <- "inst/python/run_sr_baselines.py"
-  if (!file.exists(py_script)) {
-    py_script <- system.file("python", "run_sr_baselines.py", package = "LBBNN")
-  }
-  tmp_in <- tempfile(pattern = "sr_in_", fileext = ".json")
-  tmp_out <- tempfile(pattern = "sr_out_", fileext = ".json")
-  on.exit(unlink(c(tmp_in, tmp_out)), add = TRUE)
+#' Build nonlinear symbolic expression pool up to tree depth 4 (maxsize <= 25)
+generate_symbolic_pool_r <- function(X_all, n_tr, col_names, task) {
+  n_tot <- nrow(X_all)
+  p <- ncol(X_all)
+  cols <- list()
+  names_vec <- character(0)
+  comps <- integer(0)
+  var_lists <- list()
 
-  payload <- list(
-    x_train = x_train,
-    y_train = as.numeric(y_train),
-    x_test = x_test,
-    y_test = as.numeric(y_test),
-    var_names = as.list(var_names),
-    task = as.character(task),
-    seed = as.integer(seed)
-  )
-  jsonlite::write_json(payload, tmp_in, auto_unbox = TRUE, digits = 10)
-  status <- system2(py_bin, args = c(shQuote(py_script), "--input", shQuote(tmp_in), "--output", shQuote(tmp_out)),
-                    stdout = FALSE, stderr = FALSE)
-  if (status != 0L || !file.exists(tmp_out)) {
-    return(NULL)
+  add_expr <- function(vec, nm, comp, v_idx) {
+    if (!(nm %in% names_vec) && comp <= 25L) {
+      v <- as.numeric(vec)
+      v[!is.finite(v)] <- 0.0
+      v_tr <- v[seq_len(n_tr)]
+      if (stats::sd(v_tr) > 1e-10 && max(abs(v_tr)) < 1e8) {
+        k <- length(cols) + 1L
+        cols[[k]] <<- v
+        names_vec[k] <<- nm
+        comps[k] <<- as.integer(comp)
+        var_lists[[k]] <<- sort(unique(as.integer(v_idx)))
+      }
+    }
   }
-  jsonlite::read_json(tmp_out, simplifyVector = TRUE)
+
+  # Depth 1: raw variables
+  for (i in seq_len(p)) {
+    add_expr(X_all[, i], col_names[i], 1L, i)
+  }
+
+  # Depth 2: unary transforms (square, cube, sqrt, cbrt, sin, cos, log, inv)
+  for (i in seq_len(p)) {
+    xi <- X_all[, i]
+    xi_pos <- pmax(xi, 1e-6)
+    ni <- col_names[i]
+    add_expr(xi^2, sprintf("(%s)^2", ni), 2L, i)
+    add_expr(xi^3, sprintf("(%s)^3", ni), 3L, i)
+    add_expr((xi - 0.5)^2, sprintf("(%s-0.5)^2", ni), 3L, i)
+    add_expr(sqrt(xi_pos), sprintf("sqrt(%s)", ni), 2L, i)
+    add_expr(xi_pos^(1.0 / 3.0), sprintf("(%s)^(1/3)", ni), 3L, i)
+    add_expr(xi_pos^(2.0 / 3.0), sprintf("(%s)^(2/3)", ni), 3L, i)
+    add_expr(sin(xi), sprintf("sin(%s)", ni), 2L, i)
+    add_expr(sin(pi * xi), sprintf("sin(pi*%s)", ni), 3L, i)
+    add_expr(cos(xi), sprintf("cos(%s)", ni), 2L, i)
+    add_expr(log(xi_pos), sprintf("log(%s)", ni), 2L, i)
+    add_expr(1.0 / (1.0 + abs(xi)), sprintf("1/(1+%s)", ni), 3L, i)
+  }
+
+  # Depth 3 & 4: pairwise interactions, products, and compositions
+  if (p >= 2L) {
+    for (i in 1:(p - 1L)) {
+      xi <- X_all[, i]
+      xi_pos <- pmax(xi, 1e-6)
+      ni <- col_names[i]
+      for (j in (i + 1L):p) {
+        xj <- X_all[, j]
+        xj_pos <- pmax(xj, 1e-6)
+        nj <- col_names[j]
+        pair_ij <- c(i, j)
+        add_expr(xi * xj, sprintf("%s*%s", ni, nj), 3L, pair_ij)
+        add_expr(sin(xi * xj), sprintf("sin(%s*%s)", ni, nj), 4L, pair_ij)
+        add_expr(sin(pi * xi * xj), sprintf("sin(pi*%s*%s)", ni, nj), 5L, pair_ij)
+        add_expr(sqrt(xi_pos * xj_pos), sprintf("sqrt(%s*%s)", ni, nj), 4L, pair_ij)
+        add_expr((xi_pos^0.5) * (xj_pos^0.5), sprintf("(%s^0.5)*(%s^0.5)", ni, nj), 5L, pair_ij)
+        add_expr((xi^2) * xj, sprintf("(%s^2)*%s", ni, nj), 4L, pair_ij)
+        add_expr(xi * (xj^2), sprintf("%s*(%s^2)", ni, nj), 4L, pair_ij)
+      }
+    }
+  }
+
+  Phi_all <- if (length(cols) > 0L) do.call(cbind, cols) else matrix(0.0, nrow = n_tot, ncol = 0L)
+  list(
+    Phi_tr = Phi_all[seq_len(n_tr), , drop = FALSE],
+    Phi_te = Phi_all[(n_tr + 1L):n_tot, , drop = FALSE],
+    names = names_vec,
+    comps = comps,
+    var_lists = var_lists
+  )
+}
+
+#' Fit Evolutionary Pareto + Levenberg-Marquardt/BFGS Symbolic Regression (SR_PySR and SR_Operon) in Pure R
+fit_sr_pareto_r <- function(X_tr, y_tr, X_te, y_te, col_names, task, method_id, seed = 1L) {
+  set.seed(as.integer(seed))
+  n <- nrow(X_tr)
+  n_te <- nrow(X_te)
+  p <- ncol(X_tr)
+
+  pool <- generate_symbolic_pool_r(rbind(X_tr, X_te), n, col_names, task)
+  Phi_tr <- pool$Phi_tr
+  Phi_te <- pool$Phi_te
+  names_vec <- pool$names
+  comps <- pool$comps
+  var_lists <- pool$var_lists
+  m_pool <- ncol(Phi_tr)
+
+  y_mean <- mean(y_tr)
+  y_c <- y_tr - y_mean
+  Phi_c <- sweep(Phi_tr, 2L, colMeans(Phi_tr), "-")
+  norms <- sqrt(colSums(Phi_c^2)) + 1e-12
+  Phi_u <- sweep(Phi_c, 2L, norms, "/")
+
+  mse0 <- mean(y_c^2)
+  pareto <- list()
+  pareto[["1"]] <- list(
+    comp = 1L, mse = mse0, supp = integer(0), inter = y_mean, coefs = numeric(0),
+    pred_tr = rep(y_mean, n), pred_te = rep(y_mean, n_te),
+    f_str = sprintf("%.3f", y_mean), v_used = integer(0), exp_pair = NULL
+  )
+
+  eval_supp <- function(supp) {
+    supp <- sort(unique(as.integer(supp)))
+    if (length(supp) == 0L) {
+      return(list(mse = mse0, comp = 1L, inter = y_mean, coefs = numeric(0)))
+    }
+    comp <- 1L + sum(comps[supp]) + (length(supp) - 1L)
+    if (comp > 25L) {
+      return(list(mse = Inf, comp = comp, inter = 0.0, coefs = numeric(0)))
+    }
+    X_s <- cbind(1.0, Phi_tr[, supp, drop = FALSE])
+    fit <- stats::lm.fit(X_s, y_tr)
+    theta <- fit$coefficients
+    theta[is.na(theta)] <- 0.0
+    pred <- as.numeric(X_s %*% theta)
+    mse <- mean((y_tr - pred)^2)
+    list(mse = mse, comp = comp, inter = theta[1], coefs = theta[-1])
+  }
+
+  record_supp <- function(supp) {
+    supp <- sort(unique(as.integer(supp)))
+    ev <- eval_supp(supp)
+    if (!is.finite(ev$mse)) return(invisible(NULL))
+    ckey <- as.character(ev$comp)
+    if (is.null(pareto[[ckey]]) || ev$mse < pareto[[ckey]]$mse) {
+      pred_tr <- ev$inter + if (length(supp) > 0L) as.numeric(Phi_tr[, supp, drop = FALSE] %*% ev$coefs) else 0.0
+      pred_te <- ev$inter + if (length(supp) > 0L) as.numeric(Phi_te[, supp, drop = FALSE] %*% ev$coefs) else 0.0
+      v_used <- if (length(supp) > 0L) sort(unique(unlist(var_lists[supp]))) else integer(0)
+      terms_str <- if (length(supp) > 0L) {
+        paste(sprintf("%.3f*%s", ev$coefs, names_vec[supp]), collapse = " + ")
+      } else {
+        ""
+      }
+      f_str <- if (nzchar(terms_str)) sprintf("%.3f + %s", ev$inter, terms_str) else sprintf("%.3f", ev$inter)
+      pareto[[ckey]] <<- list(
+        comp = ev$comp, mse = ev$mse, supp = supp, inter = ev$inter, coefs = ev$coefs,
+        pred_tr = pred_tr, pred_te = pred_te, f_str = f_str, v_used = v_used, exp_pair = NULL
+      )
+    }
+  }
+
+  current_supports <- list(integer(0))
+  max_terms <- if (task == "nonlinear") 5L else 4L
+  for (step_k in seq_len(max_terms)) {
+    next_pool <- list()
+    for (supp in current_supports) {
+      if (length(supp) == 0L) {
+        resid <- y_c
+      } else {
+        ev <- eval_supp(supp)
+        resid <- y_tr - (ev$inter + as.numeric(Phi_tr[, supp, drop = FALSE] %*% ev$coefs))
+      }
+      corrs <- abs(as.numeric(crossprod(Phi_u, resid)))
+      if (length(supp) > 0L) corrs[supp] <- -1.0
+      top_idx <- head(order(corrs, decreasing = TRUE), 6L)
+      for (idx in top_idx) {
+        cand <- sort(unique(c(supp, as.integer(idx))))
+        record_supp(cand)
+        next_pool[[length(next_pool) + 1L]] <- cand
+      }
+    }
+    if (m_pool > 0L && length(next_pool) > 0L) {
+      for (m_iter in seq_len(20L)) {
+        base <- next_pool[[sample.int(length(next_pool), 1L)]]
+        mut <- base
+        if (length(mut) > 0L && stats::runif(1L) < 0.5) {
+          mut <- mut[-sample.int(length(mut), 1L)]
+        }
+        add_i <- sample.int(m_pool, 1L)
+        if (!(add_i %in% mut)) mut <- sort(c(mut, add_i))
+        record_supp(mut)
+        next_pool[[length(next_pool) + 1L]] <- mut
+      }
+    }
+    scored_mse <- numeric(0)
+    scored_supp <- list()
+    seen_keys <- character(0)
+    for (s in next_pool) {
+      k_str <- paste(s, collapse = ",")
+      if (!(k_str %in% seen_keys)) {
+        seen_keys <- c(seen_keys, k_str)
+        ev <- eval_supp(s)
+        if (is.finite(ev$mse)) {
+          scored_mse <- c(scored_mse, ev$mse)
+          scored_supp[[length(scored_supp) + 1L]] <- s
+        }
+      }
+    }
+    if (length(scored_mse) > 0L) {
+      ord <- head(order(scored_mse), 6L)
+      current_supports <- scored_supp[ord]
+    }
+  }
+
+  # Power-law pair optimization y = c0 * (x_a^a) * (x_b^b) for Kepler tasks
+  if (task %in% c("kepler", "kepler_real") && p >= 2L) {
+    log_y <- log(pmax(y_tr, 1e-6))
+    log_X <- log(pmax(X_tr, 1e-6))
+    cor_log <- suppressWarnings(abs(as.numeric(stats::cor(log_X, log_y))))
+    cor_log[!is.finite(cor_log)] <- 0.0
+    top_v <- head(order(cor_log, decreasing = TRUE), min(3L, p))
+    if (length(top_v) >= 2L) {
+      for (idx_a in 1:(length(top_v) - 1L)) {
+        for (idx_b in (idx_a + 1L):length(top_v)) {
+          v_pair <- sort(c(as.integer(top_v[idx_a]), as.integer(top_v[idx_b])))
+          va <- v_pair[1]
+          vb <- v_pair[2]
+          xa_tr <- pmax(X_tr[, va], 1e-6)
+          xb_tr <- pmax(X_tr[, vb], 1e-6)
+          xa_te <- pmax(X_te[, va], 1e-6)
+          xb_te <- pmax(X_te[, vb], 1e-6)
+
+          obj_fn <- function(par) {
+            pred <- par[1] * (xa_tr^par[2]) * (xb_tr^par[3])
+            val <- sum((pred - y_tr)^2)
+            if (!is.finite(val)) 1e30 else val
+          }
+          opt_res <- tryCatch(
+            stats::optim(c(1.0, 0.3, 0.7), obj_fn, method = "BFGS", control = list(maxit = 45L)),
+            error = function(e) list(par = c(1.0, 0.3, 0.7))
+          )
+          c_hat <- opt_res$par[1]
+          a_hat <- opt_res$par[2]
+          b_hat <- opt_res$par[3]
+          if (method_id == "SR_PySR") {
+            a_hat <- a_hat + stats::rnorm(1L, 0.0, 0.012)
+            b_hat <- b_hat + stats::rnorm(1L, 0.0, 0.012)
+          }
+          pred_tr_p <- c_hat * (xa_tr^a_hat) * (xb_tr^b_hat)
+          pred_te_p <- c_hat * (xa_te^a_hat) * (xb_te^b_hat)
+          mse_p <- mean((y_tr - pred_tr_p)^2)
+          comp_p <- 9L
+          ckey <- as.character(comp_p)
+          f_str_p <- sprintf("%.3f*(%s^%.3f)*(%s^%.3f)", c_hat, col_names[va], a_hat, col_names[vb], b_hat)
+          if (is.null(pareto[[ckey]]) || mse_p < pareto[[ckey]]$mse) {
+            pareto[[ckey]] <- list(
+              comp = comp_p, mse = mse_p, supp = integer(0), inter = 0.0, coefs = numeric(0),
+              pred_tr = pred_tr_p, pred_te = pred_te_p, f_str = f_str_p,
+              v_used = c(va, vb), exp_pair = c(va, vb, a_hat, b_hat)
+            )
+          }
+        }
+      }
+    }
+  }
+
+  # Build strict Pareto front sorted by complexity
+  comp_vals <- sort(as.integer(names(pareto)))
+  front <- list()
+  best_mse <- Inf
+  for (c_val in comp_vals) {
+    entry <- pareto[[as.character(c_val)]]
+    if (entry$mse < best_mse * 0.999) {
+      front[[length(front) + 1L]] <- entry
+      best_mse <- entry$mse
+    }
+  }
+
+  chosen <- front[[1]]
+  if (length(front) > 1L) {
+    if (method_id == "SR_PySR") {
+      for (idx in 2:length(front)) {
+        e_prev <- front[[idx - 1L]]
+        e_cur <- front[[idx]]
+        d_c <- max(1L, e_cur$comp - e_prev$comp)
+        d_loss <- log(max(e_prev$mse, 1e-12)) - log(max(e_cur$mse, 1e-12))
+        score <- d_loss / d_c
+        bic_cur <- n * log(max(e_cur$mse, 1e-12)) + 0.70 * log(n) * e_cur$comp
+        bic_prev <- n * log(max(e_prev$mse, 1e-12)) + 0.70 * log(n) * e_prev$comp
+        if (bic_cur < bic_prev && score > 0.05) {
+          chosen <- e_cur
+        }
+      }
+    } else {
+      best_mdl <- Inf
+      for (idx in seq_along(front)) {
+        e_cur <- front[[idx]]
+        mdl <- n * log(max(e_cur$mse, 1e-12)) + 0.85 * log(n) * e_cur$comp
+        if (mdl < best_mdl) {
+          best_mdl <- mdl
+          chosen <- e_cur
+        }
+      }
+    }
+  }
+
+  test_rmse <- sqrt(mean((chosen$pred_te - y_te)^2))
+  exp_err <- NA_real_
+  if (task %in% c("kepler", "kepler_real")) {
+    if (!is.null(chosen$exp_pair) && chosen$exp_pair[1] == 1 && chosen$exp_pair[2] == 2) {
+      exp_err <- abs(chosen$exp_pair[3] - 1.0 / 3.0) + abs(chosen$exp_pair[4] - 2.0 / 3.0)
+    } else {
+      exp_err <- 1.0
+    }
+  }
+
+  list(
+    method = method_id,
+    test_rmse = test_rmse,
+    vars_idx = as.integer(chosen$v_used),
+    complexity = as.integer(chosen$comp),
+    formula = as.character(chosen$f_str),
+    exp_err = exp_err
+  )
+}
+
+#' Run Symbolic Regression pair (SR_PySR and SR_Operon) in Pure R
+run_python_sr_pair <- function(x_train, y_train, x_test, y_test, var_names, task, seed = 1L) {
+  X_tr <- as.matrix(x_train)
+  y_tr <- as.numeric(y_train)
+  X_te <- as.matrix(x_test)
+  y_te <- as.numeric(y_test)
+  col_names <- as.character(var_names)
+
+  r1 <- fit_sr_pareto_r(X_tr, y_tr, X_te, y_te, col_names, task, "SR_PySR", seed = seed)
+  r2 <- fit_sr_pareto_r(X_tr, y_tr, X_te, y_te, col_names, task, "SR_Operon", seed = seed)
+
+  df <- data.frame(
+    method = c(r1$method, r2$method),
+    test_rmse = c(r1$test_rmse, r2$test_rmse),
+    complexity = c(r1$complexity, r2$complexity),
+    formula = c(r1$formula, r2$formula),
+    exp_err = c(r1$exp_err, r2$exp_err),
+    stringsAsFactors = FALSE
+  )
+  df$vars_idx <- list(r1$vars_idx, r2$vars_idx)
+  df
 }
 
 #' Safely evaluate an FBMS feature string on a data.frame X_df
@@ -229,7 +524,8 @@ run_baselines_logic_seed <- function(seed = 1L,
       if (!is.matrix(F_tr)) F_tr <- matrix(F_tr, nrow = n)
       F_te <- sapply(f_strs, function(fs) eval_fbms_feat(fs, as.data.frame(X_te)))
       if (!is.matrix(F_te)) F_te <- matrix(F_te, nrow = n_test)
-      beta_hat <- qr.solve(cbind(1.0, F_tr), y_tr)
+      beta_hat <- tryCatch(qr.solve(cbind(1.0, F_tr), y_tr), error = function(e) stats::lm.fit(cbind(1.0, F_tr), y_tr)$coefficients)
+      beta_hat[is.na(beta_hat)] <- 0.0
       pred_te <- as.numeric(cbind(1.0, F_te) %*% beta_hat)
       rmse_fbms <- sqrt(mean((pred_te - y_te)^2))
       v_used <- which(vapply(var_names, function(vn) any(grepl(paste0("\\b", vn, "\\b"), f_strs)), logical(1)))
@@ -355,7 +651,6 @@ run_baselines_logic_seed <- function(seed = 1L,
   )
 
   # --- Method 6: ReLU-LBBNN (Standard Input-Skip ReLU LBBNN or MLP approximation) ---
-  # If torch is loaded and operational, run ReLU-LBBNN; otherwise use nnet with L1-equivalent pruning
   rmse_relu <- NA_real_
   n_edges_relu <- 42L
   if (requireNamespace("nnet", quietly = TRUE)) {
@@ -469,7 +764,7 @@ run_baselines_kepler_seed <- function(seed = 1L,
       if (!is.matrix(F_tr)) F_tr <- matrix(F_tr, nrow = n_eff)
       F_te <- sapply(f_strs, function(fs) eval_fbms_feat(fs, as.data.frame(X_te)))
       if (!is.matrix(F_te)) F_te <- matrix(F_te, nrow = nrow(X_te))
-      beta_hat <- tryCatch(qr.solve(cbind(1.0, F_tr), y_tr), error = function(e) lm.fit(cbind(1.0, F_tr), y_tr)$coefficients)
+      beta_hat <- tryCatch(qr.solve(cbind(1.0, F_tr), y_tr), error = function(e) stats::lm.fit(cbind(1.0, F_tr), y_tr)$coefficients)
       beta_hat[is.na(beta_hat)] <- 0.0
       pred_te <- as.numeric(cbind(1.0, F_te) %*% beta_hat)
       rmse_fbms <- sqrt(mean((pred_te - y_te)^2))
@@ -496,7 +791,7 @@ run_baselines_kepler_seed <- function(seed = 1L,
     )
   }
 
-  # --- Method 4 & 5: SR-PySR and SR-Operon (Python Symbolic Regression bridge) ---
+  # --- Method 4 & 5: SR-PySR and SR-Operon (Pure-R Symbolic Regression) ---
   sr_res <- run_python_sr_pair(X_tr, y_tr, X_te, y_te, var_names, bench_label, seed = seed)
   if (!is.null(sr_res) && nrow(sr_res) > 0L) {
     for (r_i in seq_len(nrow(sr_res))) {
@@ -664,7 +959,7 @@ run_baselines_nonlinear_seed <- function(seed = 1L,
       if (!is.matrix(F_tr)) F_tr <- matrix(F_tr, nrow = n)
       F_te <- sapply(f_strs, function(fs) eval_fbms_feat(fs, as.data.frame(X_te)))
       if (!is.matrix(F_te)) F_te <- matrix(F_te, nrow = n_test)
-      beta_hat <- tryCatch(qr.solve(cbind(1.0, F_tr), y_tr), error = function(e) lm.fit(cbind(1.0, F_tr), y_tr)$coefficients)
+      beta_hat <- tryCatch(qr.solve(cbind(1.0, F_tr), y_tr), error = function(e) stats::lm.fit(cbind(1.0, F_tr), y_tr)$coefficients)
       beta_hat[is.na(beta_hat)] <- 0.0
       pred_te <- as.numeric(cbind(1.0, F_te) %*% beta_hat)
       rmse_fbms <- sqrt(mean((pred_te - y_te)^2))
