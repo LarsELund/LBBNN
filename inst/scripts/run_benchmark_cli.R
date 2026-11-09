@@ -10,7 +10,9 @@ args <- commandArgs(trailingOnly = TRUE)
 
 parse_arg <- function(flag, default) {
   idx <- which(args == flag)
-  if (length(idx) == 0L || idx[1] >= length(args)) return(default)
+  if (length(idx) == 0L || idx[1] >= length(args)) {
+    return(default)
+  }
   args[idx[1] + 1L]
 }
 
@@ -68,8 +70,7 @@ run_one_seed <- function(seed_val, bench_name) {
   set.seed(seed_val)
   torch::torch_manual_seed(seed_val)
 
-  res <- switch(
-    bench_name,
+  res <- switch(bench_name,
     "logic" = run_single_logic_seed(
       seed = seed_val, epochs = epochs, debias_epochs = debias_epochs, device = device
     ),

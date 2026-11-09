@@ -1,0 +1,141 @@
+\relax 
+\providecommand\hyper@newdestlabel[2]{}
+\providecommand\HyField@AuxAddToFields[1]{}
+\providecommand\HyField@AuxAddToCoFields[2]{}
+\citation{udrescu2020ai,cranmer2023interpretable,la2021contemporary}
+\citation{rudin2019stop}
+\citation{hubin2021bgnlm}
+\citation{hubin2020bayesian}
+\citation{frommlet2025fbms}
+\citation{hubin2018mode,hubin2020adaptive}
+\citation{hubin2024sparse,skaaret2024input,skaaret2026lbbnn}
+\citation{kingma2015variational}
+\citation{maddison2016concrete}
+\citation{skaaret2024input}
+\citation{barbieri2004optimal}
+\citation{martius2016extrapolation,sahoo2018learning,kim2020integration}
+\@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{2}{section.1}\protected@file@percent }
+\newlabel{sec:intro}{{1}{2}{Introduction}{section.1}{}}
+\citation{skaaret2024input,skaaret2026lbbnn}
+\@writefile{toc}{\contentsline {section}{\numberline {2}Methodology}{3}{section.2}\protected@file@percent }
+\newlabel{sec:methods}{{2}{3}{Methodology}{section.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}Input-skip latent binary Bayesian neural networks}{3}{subsection.2.1}\protected@file@percent }
+\newlabel{sec:methods:arch}{{2.1}{3}{Input-skip latent binary Bayesian neural networks}{subsection.2.1}{}}
+\newlabel{eq:input_skip_concat}{{1}{3}{Input-skip latent binary Bayesian neural networks}{equation.2.1}{}}
+\citation{ruczinski2003logic,hubin2020bayesian}
+\newlabel{eq:layer_forward}{{2}{4}{Input-skip latent binary Bayesian neural networks}{equation.2.2}{}}
+\newlabel{eq:output_readout}{{3}{4}{Input-skip latent binary Bayesian neural networks}{equation.2.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}Differentiable symbolic and Boolean operator library}{4}{subsection.2.2}\protected@file@percent }
+\newlabel{sec:methods:operators}{{2.2}{4}{Differentiable symbolic and Boolean operator library}{subsection.2.2}{}}
+\newlabel{eq:clog_exp_pathway}{{4}{4}{Differentiable symbolic and Boolean operator library}{equation.2.4}{}}
+\newlabel{eq:literal_projection}{{5}{4}{Differentiable symbolic and Boolean operator library}{equation.2.5}{}}
+\citation{hubin2021bgnlm}
+\newlabel{eq:logic_neurons}{{6}{5}{Differentiable symbolic and Boolean operator library}{equation.2.6}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3}Complexity-penalized and bimodal spike-and-slab priors}{5}{subsection.2.3}\protected@file@percent }
+\newlabel{sec:methods:priors}{{2.3}{5}{Complexity-penalized and bimodal spike-and-slab priors}{subsection.2.3}{}}
+\newlabel{eq:symbolic_prior}{{7}{5}{Complexity-penalized and bimodal spike-and-slab priors}{equation.2.7}{}}
+\newlabel{eq:bimodal_slab}{{8}{5}{Complexity-penalized and bimodal spike-and-slab priors}{equation.2.8}{}}
+\newlabel{eq:kl_bimodal}{{9}{5}{Complexity-penalized and bimodal spike-and-slab priors}{equation.2.9}{}}
+\citation{skaaret2024input}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Mathematical components of the Neuro-Symbolic Input-Skip LBBNN. (a) Prior inclusion probability $\pi _{ji}^{(l)}$ as a function of operator complexity cost $c(\sigma )$ across network depths $l \in \{1, 2, 3\}$ under Equation~\eqref  {eq:symbolic_prior}. (b) Two-stage optimization schedules showing linear KL warmup $\beta _{\text  {KL}}(t)$ and exponential Concrete temperature decay $\tau (t)$ during Stage 1 structural learning, followed by the Stage 2 MPM topological freeze, weight debiasing, and BIC rational snapping phase. (c) Symmetric bimodal Gaussian mixture slab prior $p_{\text  {logic-slab}}(w)$ centered at $w = \pm 1$ compared against a standard $\mathcal  {N}(0, 1)$ slab.}}{6}{figure.caption.1}\protected@file@percent }
+\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
+\newlabel{fig:priors_dynamics}{{1}{6}{Mathematical components of the Neuro-Symbolic Input-Skip LBBNN. (a) Prior inclusion probability $\pi _{ji}^{(l)}$ as a function of operator complexity cost $c(\sigma )$ across network depths $l \in \{1, 2, 3\}$ under Equation~\eqref {eq:symbolic_prior}. (b) Two-stage optimization schedules showing linear KL warmup $\beta _{\text {KL}}(t)$ and exponential Concrete temperature decay $\tau (t)$ during Stage 1 structural learning, followed by the Stage 2 MPM topological freeze, weight debiasing, and BIC rational snapping phase. (c) Symmetric bimodal Gaussian mixture slab prior $p_{\text {logic-slab}}(w)$ centered at $w = \pm 1$ compared against a standard $\mathcal {N}(0, 1)$ slab}{figure.caption.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.4}Two-stage variational structural learning, debiasing, and rational snapping}{6}{subsection.2.4}\protected@file@percent }
+\newlabel{sec:methods:training}{{2.4}{6}{Two-stage variational structural learning, debiasing, and rational snapping}{subsection.2.4}{}}
+\newlabel{eq:annealed_elbo}{{10}{6}{Two-stage variational structural learning, debiasing, and rational snapping}{equation.2.10}{}}
+\citation{hubin2023bayesian}
+\citation{bates2015fitting,kuznetsova2017lmertest}
+\citation{hubin2020bayesian}
+\citation{hubin2020bayesian,frommlet2025fbms}
+\citation{ruczinski2003logic}
+\citation{friedman2010regularization}
+\citation{wright2017ranger}
+\@writefile{toc}{\contentsline {section}{\numberline {3}Simulation Studies and Empirical Applications}{7}{section.3}\protected@file@percent }
+\newlabel{sec:experiments}{{3}{7}{Simulation Studies and Empirical Applications}{section.3}{}}
+\newlabel{eq:lmm_general}{{11}{7}{Simulation Studies and Empirical Applications}{equation.3.11}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Bayesian logic regression}{7}{subsection.3.1}\protected@file@percent }
+\newlabel{sec:exp:logic}{{3.1}{7}{Bayesian logic regression}{subsection.3.1}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.1.1}Experimental design and baselines}{7}{subsubsection.3.1.1}\protected@file@percent }
+\newlabel{eq:dgp_logic}{{12}{7}{Experimental design and baselines}{equation.3.12}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Bayesian Logic Regression benchmark results across $M = 100$ Monte Carlo replications for \texttt  {Symbolic-LBBNN}. (a) Empirical recovery rates for the order-2 conjunction $X_1 \land X_2$, the negated conjunction $X_4 \land \neg X_5$, the order-3 conjunction $X_7 \land X_8 \land X_{11}$, exact simultaneous 3-clause recovery, and zero-false-positive runs. (b) Distribution of held-out test set RMSE ($n_{\text  {test}} = 500$) stratified by exact 3-clause recovery versus 2-clause + sub-clause recovery, compared against the oracle noise floor $\sigma = 0.500$.}}{8}{figure.caption.2}\protected@file@percent }
+\newlabel{fig:logic_results}{{2}{8}{Bayesian Logic Regression benchmark results across $M = 100$ Monte Carlo replications for \texttt {Symbolic-LBBNN}. (a) Empirical recovery rates for the order-2 conjunction $X_1 \land X_2$, the negated conjunction $X_4 \land \neg X_5$, the order-3 conjunction $X_7 \land X_8 \land X_{11}$, exact simultaneous 3-clause recovery, and zero-false-positive runs. (b) Distribution of held-out test set RMSE ($n_{\text {test}} = 500$) stratified by exact 3-clause recovery versus 2-clause + sub-clause recovery, compared against the oracle noise floor $\sigma = 0.500$}{figure.caption.2}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Summary performance (Mean and SD) and linear mixed-effects model (LMM) contrasts against \texttt  {Symbolic-LBBNN} ($\beta _0$) on Benchmark 1 (Bayesian Logic Regression, $\sigma = 0.500$). Clause TPR and FPR evaluate functional recovery of the three true Boolean interactions up to De Morgan equivalence.}}{8}{table.caption.3}\protected@file@percent }
+\newlabel{tab:logic_results}{{1}{8}{Summary performance (Mean and SD) and linear mixed-effects model (LMM) contrasts against \texttt {Symbolic-LBBNN} ($\beta _0$) on Benchmark 1 (Bayesian Logic Regression, $\sigma = 0.500$). Clause TPR and FPR evaluate functional recovery of the three true Boolean interactions up to De Morgan equivalence}{table.caption.3}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.1.2}Results}{8}{subsubsection.3.1.2}\protected@file@percent }
+\citation{hubin2021bgnlm}
+\citation{cranmer2023interpretable}
+\citation{burlacu2020operon}
+\citation{friedman1991multivariate}
+\citation{wood2017generalized}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Kepler's Third Law recovery across $M = 100$ Monte Carlo replications on synthetic data ($p = 10$) and the real NASA Exoplanet Archive ($p = 8$, $n = 939$). (a) Progression of the $L_1$ exponent error $|w_{M_*} - 1/3| + |w_T - 2/3|$ across Stage 1 (raw variational posterior), Stage 2A (MPM debiased), and Stage 2B (continued-fraction BIC rational snapping). (b) Held-out test RMSE comparing \texttt  {Symbolic-LBBNN} against \texttt  {ReLU-LBBNN}. (c) Distribution of active MPM edges on the NASA Exoplanet Archive.}}{9}{figure.caption.4}\protected@file@percent }
+\newlabel{fig:kepler_3stage}{{3}{9}{Kepler's Third Law recovery across $M = 100$ Monte Carlo replications on synthetic data ($p = 10$) and the real NASA Exoplanet Archive ($p = 8$, $n = 939$). (a) Progression of the $L_1$ exponent error $|w_{M_*} - 1/3| + |w_T - 2/3|$ across Stage 1 (raw variational posterior), Stage 2A (MPM debiased), and Stage 2B (continued-fraction BIC rational snapping). (b) Held-out test RMSE comparing \texttt {Symbolic-LBBNN} against \texttt {ReLU-LBBNN}. (c) Distribution of active MPM edges on the NASA Exoplanet Archive}{figure.caption.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Synthetic Kepler law discovery}{9}{subsection.3.2}\protected@file@percent }
+\newlabel{sec:exp:kepler_syn}{{3.2}{9}{Synthetic Kepler law discovery}{subsection.3.2}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.1}Experimental design and baselines}{9}{subsubsection.3.2.1}\protected@file@percent }
+\newlabel{eq:dgp_kepler}{{13}{9}{Experimental design and baselines}{equation.3.13}{}}
+\citation{hubin2021bgnlm,skaaret2026lbbnn}
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Summary performance (Mean and SD) and LMM contrasts against \texttt  {Symbolic-LBBNN} ($\beta _0$) on Benchmark 2 (Synthetic Kepler's Third Law, $p = 10$, $\sigma = 0.005$). Support Rec denotes exact recovery of $\{M_*, T\}$ with zero distractors; Exact Law requires both exact support and $L_1$ exponent error $< 10^{-3}$.}}{10}{table.caption.5}\protected@file@percent }
+\newlabel{tab:kepler_syn}{{2}{10}{Summary performance (Mean and SD) and LMM contrasts against \texttt {Symbolic-LBBNN} ($\beta _0$) on Benchmark 2 (Synthetic Kepler's Third Law, $p = 10$, $\sigma = 0.005$). Support Rec denotes exact recovery of $\{M_*, T\}$ with zero distractors; Exact Law requires both exact support and $L_1$ exponent error $< 10^{-3}$}{table.caption.5}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.2}Results}{10}{subsubsection.3.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Empirical exoplanet discovery on the NASA archive}{10}{subsection.3.3}\protected@file@percent }
+\newlabel{sec:exp:kepler_real}{{3.3}{10}{Empirical exoplanet discovery on the NASA archive}{subsection.3.3}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.3.1}Experimental design and baselines}{10}{subsubsection.3.3.1}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Empirical discovery of Kepler's Third Law on the NASA Exoplanet Archive ($n = 939$, $p = 8$). (a) Observed semi-major axis $a$ (AU) versus normalized orbital period $T$ (Earth years) on logarithmic axes, stratified by stellar mass $M_*$, overlaid with the analytical MPM law $a = M_*^{1/3} T^{2/3}$ discovered by \texttt  {Symbolic-LBBNN}. (b) MPM active-path selection frequency across all $8$ candidate astrophysical covariates over $M = 100$ random train/test splits.}}{11}{figure.caption.6}\protected@file@percent }
+\newlabel{fig:exoplanet_real}{{4}{11}{Empirical discovery of Kepler's Third Law on the NASA Exoplanet Archive ($n = 939$, $p = 8$). (a) Observed semi-major axis $a$ (AU) versus normalized orbital period $T$ (Earth years) on logarithmic axes, stratified by stellar mass $M_*$, overlaid with the analytical MPM law $a = M_*^{1/3} T^{2/3}$ discovered by \texttt {Symbolic-LBBNN}. (b) MPM active-path selection frequency across all $8$ candidate astrophysical covariates over $M = 100$ random train/test splits}{figure.caption.6}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Summary performance (Mean and SD) and LMM contrasts against \texttt  {Symbolic-LBBNN} ($\beta _0$) on Benchmark 3 (NASA Exoplanet Archive, $n = 939$, $p = 8$). Exact Law requires exact $\{M_*, T\}$ support and $L_1$ exponent error $< 10^{-2}$ against theoretical exponents $1/3$ and $2/3$.}}{11}{table.caption.7}\protected@file@percent }
+\newlabel{tab:kepler_real}{{3}{11}{Summary performance (Mean and SD) and LMM contrasts against \texttt {Symbolic-LBBNN} ($\beta _0$) on Benchmark 3 (NASA Exoplanet Archive, $n = 939$, $p = 8$). Exact Law requires exact $\{M_*, T\}$ support and $L_1$ exponent error $< 10^{-2}$ against theoretical exponents $1/3$ and $2/3$}{table.caption.7}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.3.2}Results}{11}{subsubsection.3.3.2}\protected@file@percent }
+\citation{friedman1991multivariate}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Friedman nonlinear benchmark results across $M = 100$ Monte Carlo replications for \texttt  {Symbolic-LBBNN}. (a) Distribution of active symbolic sub-expression occurrences per covariate $X_1, \dots  , X_{10}$, showing a sharp separation between true signals $X_1, \dots  , X_5$ ($11.7$ terms) and noise distractors $X_6, \dots  , X_{10}$ ($2.5$ terms). (b) Joint distribution of MPM active-path network density ($82.1\%$ pruned) and held-out test RMSE ($n_{\text  {test}} = 300$) relative to the oracle noise floor $\sigma = 1.00$.}}{12}{figure.caption.8}\protected@file@percent }
+\newlabel{fig:friedman_results}{{5}{12}{Friedman nonlinear benchmark results across $M = 100$ Monte Carlo replications for \texttt {Symbolic-LBBNN}. (a) Distribution of active symbolic sub-expression occurrences per covariate $X_1, \dots , X_{10}$, showing a sharp separation between true signals $X_1, \dots , X_5$ ($11.7$ terms) and noise distractors $X_6, \dots , X_{10}$ ($2.5$ terms). (b) Joint distribution of MPM active-path network density ($82.1\%$ pruned) and held-out test RMSE ($n_{\text {test}} = 300$) relative to the oracle noise floor $\sigma = 1.00$}{figure.caption.8}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.4}General nonlinear regression on the Friedman benchmark}{12}{subsection.3.4}\protected@file@percent }
+\newlabel{sec:exp:nonlinear}{{3.4}{12}{General nonlinear regression on the Friedman benchmark}{subsection.3.4}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.4.1}Experimental design and baselines}{12}{subsubsection.3.4.1}\protected@file@percent }
+\newlabel{eq:dgp_friedman}{{14}{12}{Experimental design and baselines}{equation.3.14}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.4.2}Results}{12}{subsubsection.3.4.2}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces Summary performance (Mean and SD) and LMM contrasts against \texttt  {Symbolic-LBBNN} ($\beta _0$) on Benchmark 4 (Friedman Nonlinear Benchmark, $p = 10$, $\sigma = 1.000$). Exact Var Rec denotes simultaneous recovery of all five signal variables $\{X_1, \dots  , X_5\}$ with zero noise variables $\{X_6, \dots  , X_{10}\}$.}}{13}{table.caption.9}\protected@file@percent }
+\newlabel{tab:friedman_results}{{4}{13}{Summary performance (Mean and SD) and LMM contrasts against \texttt {Symbolic-LBBNN} ($\beta _0$) on Benchmark 4 (Friedman Nonlinear Benchmark, $p = 10$, $\sigma = 1.000$). Exact Var Rec denotes simultaneous recovery of all five signal variables $\{X_1, \dots , X_5\}$ with zero noise variables $\{X_6, \dots , X_{10}\}$}{table.caption.9}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Cross-benchmark synthesis comparing \texttt  {Symbolic-LBBNN} against established R and Python baselines across all four tasks: (a) Bayesian Logic Regression clause recovery, specificity, and exact match rates; (b) Synthetic Kepler law support recovery and exact rational law identification; (c) NASA Exoplanet Archive ($n = 939$) out-of-sample test RMSE on a logarithmic scale; and (d) Friedman nonlinear benchmark variable selection sensitivity, specificity, and exact support recovery.}}{13}{figure.caption.10}\protected@file@percent }
+\newlabel{fig:baseline_synthesis}{{6}{13}{Cross-benchmark synthesis comparing \texttt {Symbolic-LBBNN} against established R and Python baselines across all four tasks: (a) Bayesian Logic Regression clause recovery, specificity, and exact match rates; (b) Synthetic Kepler law support recovery and exact rational law identification; (c) NASA Exoplanet Archive ($n = 939$) out-of-sample test RMSE on a logarithmic scale; and (d) Friedman nonlinear benchmark variable selection sensitivity, specificity, and exact support recovery}{figure.caption.10}{}}
+\citation{hubin2021bgnlm}
+\citation{cranmer2023interpretable}
+\@writefile{toc}{\contentsline {section}{\numberline {4}Discussion}{14}{section.4}\protected@file@percent }
+\newlabel{sec:discussion}{{4}{14}{Discussion}{section.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Limitations}{14}{subsection.4.1}\protected@file@percent }
+\newlabel{sec:limitations}{{4.1}{14}{Limitations}{subsection.4.1}{}}
+\citation{skaaret2024input}
+\citation{hubin2025bgnlm}
+\bibstyle{apalike}
+\bibcite{barbieri2004optimal}{{1}{2004}{{Barbieri and Berger}}{{}}}
+\bibcite{bates2015fitting}{{2}{2015}{{Bates et~al.}}{{}}}
+\bibcite{burlacu2020operon}{{3}{2020}{{Burlacu et~al.}}{{}}}
+\bibcite{cranmer2023interpretable}{{4}{2023}{{Cranmer}}{{}}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Future work}{15}{subsection.4.2}\protected@file@percent }
+\newlabel{sec:future}{{4.2}{15}{Future work}{subsection.4.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Conclusion}{15}{subsection.4.3}\protected@file@percent }
+\newlabel{sec:conclusion}{{4.3}{15}{Conclusion}{subsection.4.3}{}}
+\bibcite{friedman1991multivariate}{{5}{1991}{{Friedman}}{{}}}
+\bibcite{friedman2010regularization}{{6}{2010}{{Friedman et~al.}}{{}}}
+\bibcite{frommlet2025fbms}{{7}{2025}{{Frommlet et~al.}}{{}}}
+\bibcite{hubin2025bgnlm}{{8}{2025}{{Hubin}}{{}}}
+\bibcite{hubin2020bayesian}{{9}{2020}{{Hubin et~al.}}{{}}}
+\bibcite{hubin2023bayesian}{{10}{2023}{{Hubin et~al.}}{{}}}
+\bibcite{hubin2018mode}{{11}{2018}{{Hubin and Storvik}}{{}}}
+\bibcite{hubin2020adaptive}{{12}{2020b}{{Hubin et~al.}}{{}}}
+\bibcite{hubin2021bgnlm}{{13}{2021}{{Hubin et~al.}}{{}}}
+\bibcite{hubin2024sparse}{{14}{2024}{{Hubin and Storvik}}{{}}}
+\bibcite{kim2020integration}{{15}{2020}{{Kim et~al.}}{{}}}
+\bibcite{kingma2015variational}{{16}{2015}{{Kingma et~al.}}{{}}}
+\bibcite{kuznetsova2017lmertest}{{17}{2017}{{Kuznetsova et~al.}}{{}}}
+\bibcite{la2021contemporary}{{18}{2021}{{La~Cava et~al.}}{{}}}
+\bibcite{maddison2016concrete}{{19}{2017}{{Maddison et~al.}}{{}}}
+\bibcite{martius2016extrapolation}{{20}{2016}{{Martius and Lampert}}{{}}}
+\bibcite{ruczinski2003logic}{{21}{2003}{{Ruczinski et~al.}}{{}}}
+\bibcite{rudin2019stop}{{22}{2019}{{Rudin}}{{}}}
+\bibcite{sahoo2018learning}{{23}{2018}{{Sahoo et~al.}}{{}}}
+\bibcite{skaaret2024input}{{24}{2024}{{Skaaret-Lund et~al.}}{{}}}
+\bibcite{skaaret2026lbbnn}{{25}{2026}{{Skaaret-Lund et~al.}}{{}}}
+\bibcite{udrescu2020ai}{{26}{2020}{{Udrescu and Tegmark}}{{}}}
+\bibcite{wood2017generalized}{{27}{2017}{{Wood}}{{}}}
+\bibcite{wright2017ranger}{{28}{2017}{{Wright and Ziegler}}{{}}}
+\gdef \@abspage@last{17}

@@ -1,0 +1,19 @@
+\contentsline {section}{\numberline {1}Introduction and Background}{3}{section.1}%
+\contentsline {subsection}{\numberline {1.1}The Expressivity--Interpretability Gap in Standard LBBNNs}{3}{subsection.1.1}%
+\contentsline {subsection}{\numberline {1.2}Contributions of This Work}{4}{subsection.1.2}%
+\contentsline {section}{\numberline {2}Mathematical Formulation and Neuro-Symbolic Architecture}{4}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Input-Skip LBBNN Backbone with Heterogeneous Activation Banks}{4}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}Protected Symbolic Operator Dictionary and Canonical Log-Exp Monomials}{6}{subsection.2.2}%
+\contentsline {subsection}{\numberline {2.3}Symmetric Bimodal Mixture Slab Prior for Differentiable Logic Gates}{7}{subsection.2.3}%
+\contentsline {subsection}{\numberline {2.4}BGNLM-Inspired Depth- and Operator-Complexity Priors}{8}{subsection.2.4}%
+\contentsline {subsection}{\numberline {2.5}Three-Stage Optimization, Active-Path Debiasing, and Rational BIC Snapping}{8}{subsection.2.5}%
+\contentsline {subsection}{\numberline {2.6}Bottom-Up Symbolic AST Extraction (\texttt {extract\_symbolic\_mpm})}{10}{subsection.2.6}%
+\contentsline {section}{\numberline {3}Experimental Design and Monte Carlo Benchmarks}{10}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Benchmark B1 \& B2: Rediscovering Kepler's Third Law (Synthetic \& Real NASA Exoplanets)}{11}{subsection.3.1}%
+\contentsline {subsubsection}{\numberline {3.1.1}Quantitative Findings on Kepler's Third Law}{11}{subsubsection.3.1.1}%
+\contentsline {subsection}{\numberline {3.2}Benchmark A: Bayesian Logic Regression}{13}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}Benchmark C: Friedman \#1 Mixed Nonlinear Symbolic Benchmark}{14}{subsection.3.3}%
+\contentsline {section}{\numberline {4}Discussion and Conclusions}{15}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Why Hybridizing LBBNNs and BGNLMs Works}{15}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Limitations and Future Work}{16}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}Conclusion}{16}{subsection.4.3}%
