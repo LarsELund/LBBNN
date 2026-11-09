@@ -5,19 +5,15 @@
 # servers (e.g., nam-shub-02.uio.no) without requiring liblantern.so.
 # =============================================================================
 
-# 0. Pre-load libflexiblas.so.3 if needed by EasyBuild-compiled R 4.5 packages (BAS, Matrix)
+# 0. Pre-load libflexiblas.so.3 if needed by EasyBuild-compiled R packages (BAS, Matrix)
 if (.Platform$OS.type == "unix") {
   tryCatch(dyn.load("libflexiblas.so.3"), error = function(e) {
-    cands <- c(
-      Sys.glob("/cluster/software/FlexiBLAS/*/lib/libflexiblas.so.3"),
-      Sys.glob("/software/FlexiBLAS/*/lib/libflexiblas.so.3"),
-      Sys.glob("/opt/eb/software/FlexiBLAS/*/lib/libflexiblas.so.3"),
-      Sys.glob("/mn/sarpanitu/*/*/FlexiBLAS/*/lib/libflexiblas.so.3")
-    )
-    if (length(cands) == 0L) {
-      cands <- list.files(c("/cluster/software", "/software", "/opt"),
-                          pattern = "^libflexiblas\\.so\\.3$", recursive = TRUE, full.names = TRUE)
-    }
+    cands <- Sys.glob(c(
+      "/opt/uio/modules/rhel8/easybuild/software/FlexiBLAS/*/lib/libflexiblas.so.3",
+      "/opt/eb/software/FlexiBLAS/*/lib/libflexiblas.so.3",
+      "/cluster/software/FlexiBLAS/*/lib/libflexiblas.so.3",
+      "/software/FlexiBLAS/*/lib/libflexiblas.so.3"
+    ))
     for (cand in cands) {
       if (file.exists(cand)) {
         res <- tryCatch({ dyn.load(cand); TRUE }, error = function(e2) FALSE)

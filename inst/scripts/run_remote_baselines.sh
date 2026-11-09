@@ -28,6 +28,7 @@ fi
 
 # 3. Add known FlexiBLAS library directories to LD_LIBRARY_PATH
 for d in \
+  /opt/uio/modules/rhel8/easybuild/software/FlexiBLAS/*/lib \
   /cluster/software/FlexiBLAS/*/lib \
   /software/FlexiBLAS/*/lib \
   /opt/eb/software/FlexiBLAS/*/lib \
