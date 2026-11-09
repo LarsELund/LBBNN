@@ -25,24 +25,12 @@ export PATH=$(echo "$PATH" | tr ':' '\n' | grep -v -E "micromamba|conda" | paste
 [ -f /etc/profile.d/modules.sh ] && source /etc/profile.d/modules.sh 2>/dev/null || true
 [ -f /usr/share/Modules/init/bash ] && source /usr/share/Modules/init/bash 2>/dev/null || true
 
-# 4. Load cluster R and FlexiBLAS modules ONLY (do NOT load Python/GCCcore-14.3 which conflicts with R's GCCcore-11.2)
+# 4. Load ONLY the cluster R module (which automatically loads its matching GCCcore-11.2 and FlexiBLAS-3.0.4).
+#    Do NOT load unversioned FlexiBLAS or Python modules, which pull in GCCcore-14.3 and cause libstdc++ ABI segfaults.
 if command -v module >/dev/null 2>&1; then
   module purge 2>/dev/null || true
   module load R 2>/dev/null || true
-  module load FlexiBLAS 2>/dev/null || true
 fi
-
-# 5. Add known FlexiBLAS library directories to LD_LIBRARY_PATH
-for d in \
-  /opt/uio/modules/rhel8/easybuild/software/FlexiBLAS/*/lib \
-  /cluster/software/FlexiBLAS/*/lib \
-  /software/FlexiBLAS/*/lib \
-  /opt/eb/software/FlexiBLAS/*/lib \
-  /cluster/software/EB/FlexiBLAS/*/lib; do
-  if [ -d "$d" ]; then
-    export LD_LIBRARY_PATH="$d:${LD_LIBRARY_PATH:-}"
-  fi
-done
 
 RSCRIPT_BIN=$(command -v Rscript || echo "Rscript")
 

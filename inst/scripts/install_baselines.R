@@ -2,8 +2,8 @@
 # =============================================================================
 # inst/scripts/install_baselines.R
 # Installs and verifies all R baseline dependencies cleanly on macOS or Linux
-# HPC servers (e.g., nam-shub-02.uio.no) without requiring liblantern.so or
-# external Python environments.
+# HPC servers (e.g., nam-shub-02.uio.no) without requiring liblantern.so,
+# C++17 shared-object ABI matching, or external Python environments.
 # =============================================================================
 
 # 0. Remove stale custom ~/.R/Makevars when using system/EasyBuild R so R's native Makeconf is used
@@ -16,28 +16,7 @@ if (!grepl("micromamba|conda", r_home_str)) {
   }
 }
 
-# 1. Pre-load libflexiblas.so.3 if needed by EasyBuild-compiled R packages (BAS, Matrix)
-if (.Platform$OS.type == "unix") {
-  tryCatch(dyn.load("libflexiblas.so.3"), error = function(e) {
-    cands <- Sys.glob(c(
-      "/opt/uio/modules/rhel8/easybuild/software/FlexiBLAS/*/lib/libflexiblas.so.3",
-      "/opt/eb/software/FlexiBLAS/*/lib/libflexiblas.so.3",
-      "/cluster/software/FlexiBLAS/*/lib/libflexiblas.so.3",
-      "/software/FlexiBLAS/*/lib/libflexiblas.so.3"
-    ))
-    for (cand in cands) {
-      if (file.exists(cand)) {
-        res <- tryCatch({ dyn.load(cand); TRUE }, error = function(e2) FALSE)
-        if (isTRUE(res)) {
-          message("[SETUP] Pre-loaded FlexiBLAS dependency: ", cand)
-          break
-        }
-      }
-    }
-  })
-}
-
-# 2. Setup library paths strictly matching active R major.minor version
+# 1. Setup library paths strictly matching active R major.minor version
 active_maj_min <- paste0(getRversion()$major, ".", strsplit(as.character(getRversion()$minor), "\\.")[[1]][1])
 user_ver_lib <- path.expand(paste0("~/R/x86_64-pc-linux-gnu-library/", active_maj_min))
 if (.Platform$OS.type == "unix" && Sys.info()[["sysname"]] == "Linux") {
@@ -68,7 +47,7 @@ install_local_shim_pkg <- function(pkg_name, desc_fields, namespace_lines, r_cod
   utils::install.packages(pkg_dir, lib = lib_loc, repos = NULL, type = "source", quiet = TRUE)
 }
 
-# 3. Install core CRAN baseline packages if missing
+# 2. Install core CRAN baseline packages if missing
 core_pkgs <- c("jsonlite", "glmnet", "earth", "mgcv", "ranger", "LogicReg")
 for (pkg in core_pkgs) {
   if (!requireNamespace(pkg, quietly = TRUE)) {
@@ -78,9 +57,9 @@ for (pkg in core_pkgs) {
   }
 }
 
-# 4. Ensure FBMS and all its imports (Rcpp, GenSA, r2r, BAS, tolerance, fastglm) are installed
+# 3. Ensure FBMS and all its imports (GenSA, r2r, BAS, tolerance, fastglm) are installed
 if (!requireNamespace("FBMS", quietly = TRUE)) {
-  for (dep in c("Rcpp", "GenSA", "r2r", "BAS")) {
+  for (dep in c("GenSA", "r2r", "BAS")) {
     if (!requireNamespace(dep, quietly = TRUE)) {
       message("[INSTALL] Installing FBMS dependency: ", dep)
       try(utils::install.packages(dep, lib = target_lib, repos = "https://cloud.r-project.org",
@@ -153,7 +132,7 @@ if (!requireNamespace("FBMS", quietly = TRUE)) {
     )
   }
 
-  # Ensure 'fastglm' is available (shim backed by stats::glm.fit / LAPACK dqrls if C++17 Eigen fails)
+  # Ensure 'fastglm' is available (shim backed by stats::glm.fit / LAPACK dqrls)
   if (!requireNamespace("fastglm", quietly = TRUE)) {
     message("[INSTALL] Installing LAPACK-backed 'fastglm' provider into ", target_lib)
     install_local_shim_pkg(
@@ -193,9 +172,52 @@ if (!requireNamespace("FBMS", quietly = TRUE)) {
     )
   }
 
-  message("[INSTALL] Installing CRAN package: FBMS into ", target_lib)
-  utils::install.packages("FBMS", lib = target_lib, repos = "https://cloud.r-project.org",
-                          dependencies = FALSE)
+  message("[INSTALL] Installing CRAN package: FBMS (pure-R ABI-safe build) into ", target_lib)
+  td_fbms <- tempfile("fbms_src_")
+  dir.create(td_fbms, recursive = TRUE, showWarnings = FALSE)
+  dl_res <- utils::download.packages("FBMS", destdir = td_fbms, repos = "https://cloud.r-project.org", type = "source", quiet = TRUE)
+  utils::untar(dl_res[1, 2], exdir = td_fbms)
+  fbms_pkg_dir <- file.path(td_fbms, "FBMS")
+
+  # Replace the 2 small helper routines (set_alphas, vec_in_mat) with pure R to avoid C++14/GCC-14 ABI mismatches
+  unlink(file.path(fbms_pkg_dir, "src"), recursive = TRUE, force = TRUE)
+
+  desc_lines <- readLines(file.path(fbms_pkg_dir, "DESCRIPTION"))
+  desc_lines <- desc_lines[!grepl("^LinkingTo:", desc_lines)]
+  desc_lines <- sub("^NeedsCompilation:.*", "NeedsCompilation: no", desc_lines)
+  writeLines(desc_lines, file.path(fbms_pkg_dir, "DESCRIPTION"))
+
+  ns_lines <- readLines(file.path(fbms_pkg_dir, "NAMESPACE"))
+  ns_lines <- ns_lines[!grepl("useDynLib(FBMS)", ns_lines, fixed = TRUE)]
+  ns_lines <- ns_lines[!grepl("importFrom(Rcpp,", ns_lines, fixed = TRUE)]
+  writeLines(ns_lines, file.path(fbms_pkg_dir, "NAMESPACE"))
+
+  rcpp_r_lines <- c(
+    "set_alphas <- function(formula) {",
+    "  chars <- strsplit(as.character(formula)[1], \"\", fixed = TRUE)[[1]]",
+    "  q_idx <- which(chars == \"?\")",
+    "  n_q <- length(q_idx)",
+    "  if (n_q > 0L) chars[q_idx] <- paste0(\"a[\", seq_len(n_q), \"]\")",
+    "  list(formula = paste(chars, collapse = \"\"), count = as.integer(n_q))",
+    "}",
+    "vec_in_mat <- function(mat, vec, firstCol = 0L, lastCol = 0L) {",
+    "  nr <- nrow(mat)",
+    "  if (is.null(nr) || nr == 0L) return(0L)",
+    "  c1 <- if (firstCol != 0L) as.integer(firstCol) else 1L",
+    "  c2 <- if (lastCol != 0L) as.integer(lastCol) else ncol(mat)",
+    "  if (c1 > c2) return(0L)",
+    "  cols <- c1:c2",
+    "  v_sub <- as.numeric(vec[cols])",
+    "  for (i in seq.int(nr, 1L, by = -1L)) {",
+    "    if (all(mat[i, cols] == v_sub)) return(as.integer(i))",
+    "  }",
+    "  0L",
+    "}"
+  )
+  writeLines(rcpp_r_lines, file.path(fbms_pkg_dir, "R", "RcppExports.R"))
+
+  utils::install.packages(fbms_pkg_dir, lib = target_lib, repos = NULL, type = "source", dependencies = FALSE)
+  unlink(td_fbms, recursive = TRUE, force = TRUE)
 }
 
 required_pkgs <- c("jsonlite", "glmnet", "earth", "mgcv", "ranger", "LogicReg", "FBMS")

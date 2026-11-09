@@ -26,24 +26,6 @@ if (.Platform$OS.type == "unix" && Sys.info()[["sysname"]] == "Linux") {
   }
 }
 
-# Pre-load libflexiblas.so.3 if needed by EasyBuild-compiled R packages (BAS, Matrix) on Linux clusters
-if (.Platform$OS.type == "unix") {
-  tryCatch(dyn.load("libflexiblas.so.3"), error = function(e) {
-    cands <- Sys.glob(c(
-      "/opt/uio/modules/rhel8/easybuild/software/FlexiBLAS/*/lib/libflexiblas.so.3",
-      "/opt/eb/software/FlexiBLAS/*/lib/libflexiblas.so.3",
-      "/cluster/software/FlexiBLAS/*/lib/libflexiblas.so.3",
-      "/software/FlexiBLAS/*/lib/libflexiblas.so.3"
-    ))
-    for (cand in cands) {
-      if (file.exists(cand)) {
-        res <- tryCatch({ dyn.load(cand); TRUE }, error = function(e2) FALSE)
-        if (isTRUE(res)) break
-      }
-    }
-  })
-}
-
 suppressPackageStartupMessages({
   library(FBMS)
   library(LogicReg)
