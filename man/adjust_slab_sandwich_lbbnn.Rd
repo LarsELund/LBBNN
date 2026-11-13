@@ -39,8 +39,12 @@ for clustered score covariance estimation in \code{J_2} (Williams & Savitsky, 20
 
 \item{level}{Credible interval level (default 0.95).}
 
-\item{sigma}{Optional observation residual standard deviation override; defaults to
-\code{object$sigma} (or \code{1.0} if unset).}
+\item{sigma}{Optional numeric residual scale argument retained for API compatibility.
+Internally, \code{adjust_slab_sandwich_lbbnn()} evaluates the weighted empirical
+residual variance \eqn{\hat{\sigma}_w^2 = \sum \tilde{w}_i (y_i - \hat{\mu}_i)^2 / \sum \tilde{w}_i}
+on the active MPM predictions and uses \eqn{\sigma_{\text{bread}}^2 = \hat{\sigma}_w^2}
+consistently across both \eqn{H_1} and \eqn{J_2} so \code{Survey_DEFF} isolates
+the pure complex survey design effect.}
 
 \item{seed}{Random seed (default 2026).}
 }

@@ -63,8 +63,12 @@
 #' @param draws Integer number of posterior draws to sample and transport (default 200).
 #' @param active_cutoff Posterior inclusion probability cutoff defining the slab (default 0.5).
 #' @param level Credible interval level (default 0.95).
-#' @param sigma Optional observation residual standard deviation override; defaults to
-#'   \code{object$sigma} (or \code{1.0} if unset).
+#' @param sigma Optional numeric residual scale argument retained for API compatibility.
+#'   Internally, \code{adjust_slab_sandwich_lbbnn()} evaluates the weighted empirical
+#'   residual variance \eqn{\hat{\sigma}_w^2 = \sum \tilde{w}_i (y_i - \hat{\mu}_i)^2 / \sum \tilde{w}_i}
+#'   on the active MPM predictions and uses \eqn{\sigma_{\text{bread}}^2 = \hat{\sigma}_w^2}
+#'   consistently across both \eqn{H_1} and \eqn{J_2} so \code{Survey_DEFF} isolates
+#'   the pure complex survey design effect.
 #' @param seed Random seed (default 2026).
 #' @return A list containing:
 #'   \itemize{
@@ -105,14 +109,6 @@ adjust_slab_sandwich_lbbnn <- function(object,
     w_tilde <- rep(1.0, n)
   } else {
     w_tilde <- as.numeric(weights) * (n / sum(weights))
-  }
-
-  sigma_val <- if (!is.null(sigma) && is.finite(sigma)) {
-    as.numeric(sigma)
-  } else if (!is.null(object$sigma) && is.finite(object$sigma)) {
-    as.numeric(object$sigma)
-  } else {
-    1.0
   }
 
   # Extract active MPM slab parameters (sigmoid(lambda_l) > active_cutoff) from output layer
@@ -206,23 +202,28 @@ adjust_slab_sandwich_lbbnn <- function(object,
     Sigma_1 <- Sigma_1 + diag(1e-8, d_slab)
   }
 
-  # 1. Bread Matrix H_1: Weighted observed Fisher information + prior precision
-  W_diag   <- w_tilde / (sigma_val^2)
+  # 1. Evaluate active MPM predictions and weighted empirical residual variance
+  #    Using sigma_bread^2 = sigma_w^2 consistently in H_1 and J_2 isolates
+  #    the pure complex survey design effect (Survey_DEFF) from sigma mismatch.
+  mu_pred   <- as.numeric(H_active %*% theta_mean_vi)
+  resid_i   <- y_vec - mu_pred
+  sigma_w2  <- max(sum(w_tilde * (resid_i^2)) / sum(w_tilde), 1e-8)
+
+  # 2. Bread Matrix H_1: Weighted observed Fisher information + prior precision
+  W_diag   <- w_tilde / sigma_w2
   H1_bread <- crossprod(H_active, H_active * W_diag) + diag(1.0 / (prior_sd_slab^2), d_slab)
   H1_bread <- 0.5 * (H1_bread + t(H1_bread))
   H1_inv   <- solve(H1_bread + diag(1e-8, d_slab))
 
-  # 2. Meat Matrix J_2: Design-based covariance of weighted score contributions
-  # Unit score: s_i = w_tilde_i * nabla_theta log f(y_i | x_i, theta_hat)
-  mu_pred   <- as.numeric(H_active %*% theta_mean_vi)
-  resid_i   <- y_vec - mu_pred
-  score_mat <- H_active * (w_tilde * resid_i / (sigma_val^2))
+  # 3. Meat Matrix J_2: Design-based covariance of centered weighted score contributions
+  # Unit score: g_i = ((y_i - mu_i) / sigma_w2) * nabla mu_i; u_i = w_tilde_i * g_i
+  score_mat <- H_active * (w_tilde * resid_i / sigma_w2)
 
   if (is.null(psu) && is.null(strata)) {
     score_centered <- scale(score_mat, center = TRUE, scale = FALSE)
     J2_meat <- (n / (n - 1)) * crossprod(score_centered) + diag(1e-10, d_slab)
   } else {
-    strata_id <- if (is.null(strata)) rep(1L, n) else as.factor(strata)
+    strata_id <- if (is.null(strata)) factor(rep(1L, n)) else as.factor(strata)
     psu_id    <- if (is.null(psu)) seq_len(n) else psu
     J2_meat   <- matrix(0.0, nrow = d_slab, ncol = d_slab)
     for (st in levels(strata_id)) {

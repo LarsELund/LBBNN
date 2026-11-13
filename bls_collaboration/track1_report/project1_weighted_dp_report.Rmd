@@ -948,8 +948,9 @@ ggplot(data.frame(delta_rep = dp_cal$delta_rep_vec), aes(x = delta_rep)) +
   ) +
   theme_minimal(base_size = 10) +
   theme(
+    plot.title    = element_text(size = 9.0, face = "bold"),
     plot.subtitle = element_text(size = 8.8),
-    plot.margin   = margin(t = 12, r = 10, b = 12, l = 10)
+    plot.margin   = margin(t = 14, r = 10, b = 10, l = 10)
   ) +
   labs(
     title    = "Finite-Sample Replicate Sensitivity Distribution (R = 200 Dual-Support Plug-in)",

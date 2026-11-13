@@ -83,9 +83,23 @@ test_that("adjust_slab_sandwich_lbbnn matches exact Cholesky sandwich covariance
   expect_lt(max(abs(sigma_from_factors - res$Sigma_sandwich)), 1e-10)
 
   # Unequal weights inflate sandwich SD relative to unadjusted mean-field VI SD on average
-  expect_gt(mean(res$summary_table$DEFF_Ratio), 1.0)
+  expect_gt(mean((res$summary_table$Sandwich_SD / res$summary_table$Unadj_SD)^2), 1.0)
+  expect_true(all(is.finite(res$summary_table$Survey_DEFF) & res$summary_table$Survey_DEFF > 0))
 
-  # Clustered / stratified design path executes cleanly
+  # Clustered / stratified design path executes cleanly (both psu-only and strata+psu)
+  res_psu <- adjust_slab_sandwich_lbbnn(
+    object        = net,
+    X             = X_mat,
+    y             = y,
+    weights       = w_norm,
+    psu           = psu,
+    draws         = 100,
+    active_cutoff = 0.5,
+    sigma         = 0.4,
+    seed          = 101
+  )
+  expect_true(all(res_psu$summary_table$Sandwich_SD > 1e-3))
+
   res_cl <- adjust_slab_sandwich_lbbnn(
     object        = net,
     X             = X_mat,

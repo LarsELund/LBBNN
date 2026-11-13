@@ -384,28 +384,26 @@ $$\text{ELBO}(q; \mathbf{u}) = \sum_{i=1}^n u_i \, \mathbb{E}_{q(\theta)}\!\left
 
 ## Pipeline & Return Structures: Survey-Weighted LBBNN (Track 1A)
 
-\vspace{-0.4em}
-\scriptsize
+\vspace{-0.45em}
+\tiny
 ```r
 # 1. Package design weights & allow missing response values (y_i = NA)
 dl_train <- get_dataloaders(df_survey, weights = w_design, normalize_weights = TRUE,
                             allow_missing = TRUE, train_batch_size = 64, test_batch_size = 32)
 # 2. Build LBBNN with calibrated residual noise scale sigma (protects T=1)
-net <- lbbnn_net(problem_type = "regression", sizes = c(p, 16, 1),
-                 sigma = 0.4, input_skip = TRUE)
+net <- lbbnn_net(problem_type = "regression", sizes = c(p, 16, 1), sigma = 0.4, input_skip = TRUE)
 fit <- train_lbbnn(LBBNN = net, train_dl = dl_train$train_loader, epochs = 100, lr = 0.01)
-# 3. Domain predictions & Bayesian imputation with Dirichlet uncertainty draws
+# 3. Domain predictions, Bayesian imputation & Williams-Savitsky (2021) Cholesky sandwich UQ
 dom_est <- predict_domains_lbbnn(net, X, domain_matrix = G, weights = w_design,
                                  type = "conditional_mean", dirichlet_uq = TRUE, draws = 50)
 imp_res <- impute_response_lbbnn(net, newdata = df_survey, target_col = "y", draws = 50)
-# 4. Williams-Savitsky (2021) Cholesky sandwich UQ on active MPM slab weights
 slab_uq <- adjust_slab_sandwich_lbbnn(net, X, y = df_survey$y, weights = w_design, sigma = 0.4)
 ```
 \normalsize
 
-\vspace{-0.3em}
+\vspace{-0.45em}
 \tiny
-\renewcommand{\arraystretch}{1.08}
+\renewcommand{\arraystretch}{1.02}
 \begin{table}[ht]
 \centering
 \begin{tabular}{p{0.21\textwidth}p{0.15\textwidth}p{0.12\textwidth}p{0.42\textwidth}}
@@ -422,7 +420,7 @@ slab_uq <- adjust_slab_sandwich_lbbnn(net, X, y = df_survey$y, weights = w_desig
 \end{table}
 \normalsize
 
-\vspace{-0.4em}
+\vspace{-0.45em}
 \scriptsize
 \begin{itemize}
   \setlength{\itemsep}{1pt}

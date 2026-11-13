@@ -1,289 +1,591 @@
 ---
-title: "LBBNN in Official Statistics: Survey Weighting, Differential Privacy, and Non-Probability Propensity"
+title: "LBBNN in Official Statistics: Step-by-Step Collaborator Onboarding Guide"
 output:
   rmarkdown::html_vignette:
+    toc: true
+    toc_depth: 3
     df_print: paged
 params:
   eval: true
 vignette: >
-  %\VignetteEncoding{UTF-8}
-  %\VignetteIndexEntry{LBBNN in Official Statistics: Survey Weighting, Differential Privacy, and Non-Probability Propensity}
+  %\VignetteIndexEntry{LBBNN in Official Statistics: Step-by-Step Collaborator Onboarding Guide}
   %\VignetteEngine{knitr::rmarkdown}
-editor_options: 
-  markdown: 
-    wrap: 72
+  %\VignetteEncoding{UTF-8}
 ---
 
-```{r, include=FALSE}
+```{r setup, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
   eval = isTRUE(torch::torch_is_installed())
 )
-devtools::install_github("https://github.com/LarsELund/LBBNN@survey-weighted-likelihoods")
-library(LBBNN)
 ```
 
 ## Overview
 
-This quickstart vignette demonstrates the official statistics
-capabilities implemented in `LBBNN`: 1. **Track 1A**: Survey-weighted
-pseudo-posterior estimation, domain-level inference
-(`predict_domains_lbbnn`), Bayesian missing-response imputation
-(`impute_response_lbbnn`), and Dirichlet Bayesian bootstrap uncertainty
-quantification (`hajek_estimate`). 2. **Track 1B**: Two-stage
-differential privacy (DP) weight calibration (`compute_dp_weights`,
-`fit_dp_lbbnn`) supporting multiple Stage 1 normalization schemes and
-Stage 2 reweighting mechanisms, followed by private synthetic microdata
-generation (`sample_synthetic_lbbnn`). 3. **Track 2**: Semi-supervised
-non-probability sample integration using composite likelihoods with
-vectorized unit-level linkage probabilities (`make_nll_mip`,
-`build_propensity_dataset`).
+This onboarding tutorial walks through the official statistics and differential
+privacy extensions of `LBBNN` across three collaborative tracks:
 
-All examples run in seconds on standard hardware.
+- **Track 1A (Survey Inference & UQ)**: Design-weighted variational
+  pseudo-posteriors, model-assisted domain estimation, item non-response
+  imputation, Dirichlet Bayesian bootstrap uncertainty quantification, and
+  Williams--Savitsky (2021) Cholesky sandwich UQ for active MPM slab weights.
+- **Track 1B (Formal Differential Privacy)**: Savitsky's (2026) two-stage
+  privacy weight calibration, multi-pass DP microdata synthesis, and
+  Azizi, Savitsky, Williams & Chatterjee's (2026) fast dual-support plug-in
+  finite-sample $(\epsilon_{\mathbf{x}}(\eta), \delta_{\text{target}})$-DP
+  calibration with zero retraining.
+- **Track 2 (Non-Probability Sample Integration)**: Composite Bernoulli
+  likelihoods (`STACK`, `LINK1`, `LINK2`, `MIP`, `PSEUDO`) for estimating
+  convenience sample participation propensities, debiased Hájek means, and a
+  doubly robust bridge into Track 1 outcome modeling.
 
-------------------------------------------------------------------------
+Every code block below is self-contained and runs directly after installing
+the package from GitHub.
 
-## Part 1 (Track 1A): Survey Weights, Domain Estimation, Imputation & Dirichlet UQ
+---
 
-Official survey data often features complex design weights $w_i$, domain
-partitions (e.g., industries or geographies), and item non-response.
+## Step 0: Installation & Environment Setup (Direct from GitHub)
 
-```{r track1a_demo}
+Collaborators do **not** need to clone the repository to run this tutorial.
+Install the official statistics & DP branch (`survey-weighted-likelihoods`)
+directly from GitHub, ensure the `torch` LibTorch C++ backend is available,
+and then load the libraries.
+
+```{r install_once, eval = FALSE}
+# Install remotes if needed
+if (!requireNamespace("remotes", quietly = TRUE)) install.packages("remotes")
+
+# Install the official statistics & DP branch of LBBNN directly from GitHub
+remotes::install_github(
+  "LarsELund/LBBNN@survey-weighted-likelihoods",
+  build_vignettes = FALSE
+)
+
+# Ensure the LibTorch C++ backend is installed (run once)
+if (!torch::torch_is_installed()) torch::install_torch()
+```
+
+Now load `LBBNN` and `torch`, fix random seeds for reproducibility, and confirm
+the installed package version:
+
+```{r env_setup, eval = TRUE}
+library(LBBNN)
+library(torch)
+
 set.seed(42)
 torch::torch_manual_seed(42)
 
-n <- 120
+cat("LBBNN version:", as.character(packageVersion("LBBNN")), "\n")
+```
+
+---
+
+## Track 1A: Survey-Weighted Pseudo-Posteriors, Domain Inference, Sandwich UQ & Imputation
+
+### Step 1A.1 — Simulating Complex Survey Data
+
+We simulate a complex sample of $n = 150$ units with $p = 3$ covariates: two
+active linear signals ($X_1, X_2$) and one pure noise covariate ($X_3$),
+together with informative design weights `survey_weights`, a two-domain
+indicator matrix `G_matrix`, primary sampling unit identifiers `psu_id`, and
+$10$ missing responses (`y_with_na`).
+
+```{r step_1a_1_sim}
+n <- 150
 p <- 3
-X <- matrix(rnorm(n * p), n, p)
+X <- matrix(rnorm(n * p), nrow = n, ncol = p)
+colnames(X) <- c("x1", "x2", "x3")
+
 true_beta <- c(1.5, -1.0, 0.0)
-y_latent <- X %*% true_beta
-y_obs <- y_latent + rnorm(n, sd = 0.4)
+y_latent  <- as.numeric(X %*% true_beta)
+y_obs     <- y_latent + rnorm(n, sd = 0.4)
 
-# Create 10 missing responses (item non-response)
-missing_idx <- sample(1:n, 10)
-y_with_na <- y_obs
-y_with_na[missing_idx] <- NA
+# Informative unequal survey design weights (correlated with x1 and y)
+pi_inc         <- plogis(-0.4 + 0.35 * y_obs)
+survey_weights <- 1.0 / pi_inc
 
-# Unequal survey design weights
-survey_weights <- runif(n, 0.5, 3.0)
+# Primary sampling unit (PSU) cluster IDs (30 clusters of size 5)
+psu_id <- factor(rep(seq_len(30), each = 5))
 
-# Binary domain partition: Domain 1 vs Domain 2
-domains <- ifelse(X[, 1] > 0, 1, 2)
+# 2-domain indicator matrix G (Domain_1: x1 > 0, Domain_2: x1 <= 0)
+domains  <- ifelse(X[, 1] > 0, 1L, 2L)
 G_matrix <- model.matrix(~ factor(domains) - 1)
 colnames(G_matrix) <- c("Domain_1", "Domain_2")
 
-df_survey <- cbind(as.data.frame(X), y = y_with_na)
-loaders <- get_dataloaders(
-  df_survey,
-  train_proportion = 0.9,
-  train_batch_size = 40,
-  test_batch_size = 10,
-  weights = survey_weights,
-  allow_missing = TRUE,
-  standardize = FALSE
-)
+# Induce 10 missing responses (item non-response)
+missing_idx <- sample(seq_len(n), size = 10)
+y_with_na   <- y_obs
+y_with_na[missing_idx] <- NA_real_
 
-# Initialize LBBNN with residual scale sigma and direct skip connections
+df_survey <- cbind(as.data.frame(X), y = y_with_na)
+cat(sprintf(
+  "Simulated n = %d records (%d observed, %d missing), Kish DEFF = %.2f\n",
+  n, sum(!is.na(y_with_na)), sum(is.na(y_with_na)),
+  n * sum(survey_weights^2) / (sum(survey_weights)^2)
+))
+```
+
+### Step 1A.2 — Packaging Survey Dataloaders (`get_dataloaders`)
+
+Following Savitsky & Toth (2016), survey weights in the variational
+pseudo-posterior **must** be normalized to sample size ($\sum_{i=1}^n \tilde{w}_i = n$)
+via `normalize_weights = TRUE`. Without this normalization, raw Horvitz--Thompson
+weights ($w_i \gg 1$) inflate the empirical log-likelihood by the population size
+$N$, creating a cold-posterior distortion ($T \ll 1$) that overpowers the
+spike-and-slab Kullback--Leibler (KL) prior and suppresses sparsity. Setting
+`allow_missing = TRUE` retains incomplete records in `df_survey` while masking
+`y_i = NA` during likelihood evaluation.
+
+```{r step_1a_2_dataloaders}
+loaders <- get_dataloaders(
+  dataset           = df_survey,
+  train_proportion  = 0.9,
+  train_batch_size  = 40,
+  test_batch_size   = 15,
+  weights           = survey_weights,
+  normalize_weights = TRUE,
+  allow_missing     = TRUE,
+  standardize       = FALSE,
+  seed              = 42
+)
+```
+
+### Step 1A.3 — Initializing & Training an Input-Skip LBBNN (`lbbnn_net` & `train_lbbnn`)
+
+Two architectural choices stabilize Bayesian variable selection under regression:
+
+1. **Residual scale `sigma = 0.4`**: Explicitly parameterizing the Gaussian
+   observation likelihood with `sigma` prevents implicit unit-variance scaling
+   from mis-calibrating the Bayesian temperature away from $T = 1.0$.
+2. **`input_skip = TRUE`**: Adds direct Depth-1 linear skip connections
+   ($\mathbf{x} \to y$) alongside non-linear hidden paths ($\mathbf{x} \to \mathbf{h} \to y$),
+   letting the network capture linear main effects cleanly while pruning noise
+   feature $X_3$.
+
+```{r step_1a_3_train}
 model <- lbbnn_net(
   problem_type = "regression",
-  sizes = c(p, 4, 1),
-  input_skip = TRUE,
-  sigma = 0.4,
-  device = "cpu"
+  sizes        = c(p, 8, 1),
+  input_skip   = TRUE,
+  sigma        = 0.4,
+  device       = "cpu"
 )
 
-# Train survey-weighted pseudo-posterior
-train_lbbnn(epochs = 50, LBBNN = model, lr = 0.02, train_dl = loaders$train_loader, verbose = FALSE)
+train_lbbnn(
+  epochs   = 80,
+  LBBNN    = model,
+  lr       = 0.02,
+  train_dl = loaders$train_loader,
+  device   = "cpu",
+  verbose  = FALSE
+)
 
-# 1. Domain-level conditional expectation predictions with Dirichlet Bayesian bootstrap UQ
+summary(model)
+```
+
+### Step 1A.4 — Model-Assisted Domain Estimation with Dirichlet Bootstrap UQ (`predict_domains_lbbnn`)
+
+`predict_domains_lbbnn()` combines survey design weights with posterior draws to
+estimate domain means and totals:
+
+- `type = "conditional_mean"` evaluates the smooth regression surface
+  $\hat{\mu}_i^{(s)} = \mathbb{E}[Y_i \mid \mathbf{x}_i, \theta^{(s)}]$ without
+  adding independent measurement error $\varepsilon_i \sim \mathcal{N}(0, \sigma^2)$,
+  yielding tight model-assisted domain estimates (whereas `type = "predictive"`
+  draws noisy outcomes $\tilde{y}_i^{(s)} = \hat{\mu}_i^{(s)} + \varepsilon_i^{(s)}$).
+- `dirichlet_uq = TRUE` compounds parameter uncertainty with flat Dirichlet
+  replicate weights $\boldsymbol{\xi}^{(s)} \sim \text{Dirichlet}(1, \dots, 1)$
+  to reflect repeated-sampling design variance under $P_\nu$ (Savitsky & Toth, 2016).
+
+```{r step_1a_4_domains}
 domain_res <- predict_domains_lbbnn(
-  object = model,
-  newdata = X,
+  object        = model,
+  newdata       = X,
   domain_matrix = G_matrix,
-  weights = survey_weights,
-  type = "conditional_mean", # Model-assisted E[Y | x_i, theta^(s)]
-  draws = 15,
-  dirichlet_uq = TRUE
+  weights       = survey_weights,
+  type          = "conditional_mean",
+  draws         = 50,
+  dirichlet_uq  = TRUE
 )
 print(domain_res)
+```
 
-# 1b. Williams-Savitsky (2021) Cholesky sandwich UQ for active MPM slab parameters
-slab_uq <- adjust_slab_sandwich_lbbnn(
-  object = model,
-  X = X,
-  y = y_obs,
-  weights = survey_weights,
-  draws = 50,
-  sigma = 0.4
-)
-print(head(slab_uq$summary_table[, c("Parameter", "Post_Mean", "Unadj_SD", "Hessian_SD", "Sandwich_SD", "Survey_DEFF")], 4))
+### Step 1A.5 — Design-Based Hájek Domain Baseline (`hajek_estimate`)
 
-# 2. Impute missing response values via posterior predictive draws
-impute_res <- impute_response_lbbnn(
-  object = model,
-  newdata = df_survey,
-  target_col = "y",
-  draws = 15,
-  type = "predictive"
-)
-cat("Imputed summary for missing units (first 3):\n")
-head(impute_res$imputed_summary, 3)
+`hajek_estimate()` provides a purely design-based, model-free Hájek benchmark
+across the same domain partition with Dirichlet bootstrap intervals.
 
-# 3. Domain Hájek estimates with Dirichlet uncertainty
+```{r step_1a_5_hajek}
+obs_mask <- !is.na(y_with_na)
 hajek_res <- hajek_estimate(
-  y = y_obs,
-  weights = survey_weights,
-  domain_matrix = G_matrix,
-  dirichlet_uq = TRUE,
-  draws = 15
+  y             = y_with_na[obs_mask],
+  weights       = survey_weights[obs_mask],
+  domain_matrix = G_matrix[obs_mask, , drop = FALSE],
+  dirichlet_uq  = TRUE,
+  draws         = 50
 )
 print(hajek_res)
 ```
 
-------------------------------------------------------------------------
+### Step 1A.6 — Williams–Savitsky (2021) Cholesky Sandwich UQ on Active MPM Slab Parameters (`adjust_slab_sandwich_lbbnn`)
 
-## Part 2 (Track 1B): Two-Stage Differential Privacy Calibration
+Raw mean-field variational posterior SDs (`Unadj_SD`) under-cover under
+informative sampling both because diagonal VI ignores posterior parameter
+correlations and because conditioning on a single sample omits design variance
+under $P_\nu$. `adjust_slab_sandwich_lbbnn()` restricts to the active Median
+Probability Model (MPM) slab subspace (where Bernstein--von Mises holds),
+forms the Gauss--Newton bread $H_1$ and design-consistent meat $J_2$ using the
+weighted empirical residual variance $\hat{\sigma}_w^2$, and transports raw draws
+via exact Cholesky projection $R_2^\top R_1^{-\top}$.
 
-Under Savitsky et al. (2026), privacy weights $\alpha_i$ are calibrated
-in two modular stages: - **Stage 1 (Initial Normalization)**: `"linear"`
-min-max, `"percentile"` deficit truncation, or `"target_clip"` ratio
-clipping ($\Delta_{i,\text{goal}} / f_i$). - **Stage 2 (Second-Stage
-Reweighting)**: `"hard_trunc"` (zeroing above $M_{\text{thresh}}$) or
-`"vector_upscale"` (upward rescaling pointwise dominating hard
-truncation in Fisher information).
+The summary table cleanly decomposes each source of uncertainty:
 
-```{r track1b_demo}
-# Standalone evaluation of privacy weight calibration
-set.seed(123)
-f_sens <- rgamma(50, shape = 2, rate = 0.5) # sensitivity proxy f_i
+- `Post_Mean`: Posterior MPM mean of each active slab parameter.
+- `Unadj_SD`: Naive mean-field diagonal variational SD.
+- `Hessian_SD`: Curvature / collinearity-aware inverse-Hessian SD ($\sqrt{\text{diag}(H_1^{-1})}$).
+- `Sandwich_SD`: Frequentist Williams--Savitsky sandwich SD ($\sqrt{\text{diag}(H_1^{-1} J_2 H_1^{-1})}$).
+- `Survey_DEFF`: Pure complex survey design effect ($\text{Sandwich\_SD}^2 / \text{Hessian\_SD}^2$).
+- `Sand_Low`, `Sand_High`: Calibrated $95\%$ frequentist credible bounds.
 
-# Stage 1: target ratio clipping + Stage 2: vector-weighted upward rescaling
-dp_w <- compute_dp_weights(
-  f_i = f_sens,
-  stage1_method = "target_clip",
-  stage2_method = "vector_upscale",
-  M_thresh = 4.0,
-  delta_goal = 4.0
+```{r step_1a_6_sandwich}
+slab_uq <- adjust_slab_sandwich_lbbnn(
+  object  = model,
+  X       = X[obs_mask, , drop = FALSE],
+  y       = y_with_na[obs_mask],
+  weights = survey_weights[obs_mask],
+  draws   = 100,
+  sigma   = NULL
 )
-cat(sprintf("Realized sensitivity: %.3f (Local privacy epsilon: %.3f)\n",
-            dp_w$delta_alpha, dp_w$epsilon_local))
-summary(dp_w$alpha)
+print(slab_uq$summary_table[, c(
+  "Parameter", "Post_Mean", "Unadj_SD", "Hessian_SD",
+  "Sandwich_SD", "Survey_DEFF", "Sand_Low", "Sand_High"
+)], digits = 3)
 
-# End-to-end two-pass (or three-pass) differentially private model fitting
-dp_fit <- fit_dp_lbbnn(
-  model_spec = list(sizes = c(p, 4, 1), problem_type = "regression", device = "cpu"),
-  X = X,
-  y = y_obs,
-  weights = survey_weights,
-  stage1_method = "target_clip",
-  stage2_method = "vector_upscale",
-  M_thresh = 4.0,
-  epochs = 5,
-  batch_size = 40,
-  S = 10,
-  verbose = FALSE
+# Clustered / PSU-aware sandwich covariance (optional strata and psu arguments)
+slab_uq_psu <- adjust_slab_sandwich_lbbnn(
+  object  = model,
+  X       = X[obs_mask, , drop = FALSE],
+  y       = y_with_na[obs_mask],
+  weights = survey_weights[obs_mask],
+  psu     = psu_id[obs_mask],
+  draws   = 100,
+  sigma   = NULL
 )
-
-# Sample private synthetic microdata via the post-processing theorem
-syn_data <- sample_synthetic_lbbnn(
-  dp_fit = dp_fit,
-  newdata = X[1:30, ],
-  draws = 10
-)
-cat("Synthetic microdata sample (first 3 records, 4 draws):\n")
-print(syn_data[1:3, 1:4])
-
-# Finite-sample (epsilon, delta)-DP calibration with zero retraining (Azizi et al., 2026)
-dp_cal <- calibrate_dp_finite_sample(
-  dp_fit = dp_fit,
-  X = X,
-  y = y_obs,
-  R = 30,
-  B = 15,
-  delta_target = c(0.10, 0.05)
-)
-print(dp_cal$calibration_table)
+print(head(slab_uq_psu$summary_table[, c(
+  "Parameter", "Hessian_SD", "Sandwich_SD", "Survey_DEFF"
+)], 4), digits = 3)
 ```
 
-------------------------------------------------------------------------
+### Step 1A.7 — Bayesian Multiple Imputation for Item Non-Response (`impute_response_lbbnn`)
 
-## Part 3 (Track 2): Non-Probability Sample Integration & Vectorized Linkage in `MIP`
+For the $10$ records with `y_i = NA`, `impute_response_lbbnn()` draws multiple
+imputations from the fitted LBBNN (`type = "predictive"` includes residual noise
+$\mathcal{N}(0, \sigma^2)$) and returns both per-record summaries and a
+completed data frame.
 
-When combining a non-probability convenience sample $S_c$ ($n_c = 70$)
-with a probability reference survey $S_r$ ($n_r = 70$), we can use
-composite likelihoods: - Deterministic linkage: `LINK2` - Unlinked
-stacking: `STACK` - Probabilistic record linkage with unit-level
-marginal linkage probabilities
-$\tilde{\mathbf{p}} = (\tilde{p}_1, \dots, \tilde{p}_n)^\top$: `MIP`
-(Missing Information Principle).
+```{r step_1a_7_impute}
+impute_res <- impute_response_lbbnn(
+  object     = model,
+  newdata    = df_survey,
+  target_col = "y",
+  draws      = 50,
+  type       = "predictive"
+)
+head(impute_res$imputed_summary, 4)
+cat("Remaining NAs in completed_data$y:", sum(is.na(impute_res$completed_data$y)), "\n")
+```
 
-```{r track2_demo}
-n_c <- 70
-n_r <- 70
+---
 
-X_c <- matrix(rnorm(n_c * 2), n_c, 2)
-X_r <- matrix(rnorm(n_r * 2), n_r, 2)
-pi_r <- runif(n_r, 0.05, 0.25)
+## Track 1B: Formal $(\epsilon, \delta)$-Differential Privacy Calibration & Synthetic Microdata
 
-# Vector of probabilistic record linkage probabilities for reference units
-p_link_vec <- runif(n_r, 0.1, 0.9)
+### Step 1B.1 — Standalone Two-Stage Privacy Weight Calibration (`compute_dp_weights`)
 
-# 1. Build composite dataset for MIP
-mip_ds <- build_propensity_dataset(
-  X_c = X_c,
-  X_r = X_r,
-  pi_r = pi_r,
-  method = "MIP",
-  p_link = p_link_vec
+Unlike survey design weights ($w_i$ normalized to $n$), **differential privacy
+weights $\alpha_i^* \in [0, 1]$ must NOT be rescaled** (`normalize_weights = FALSE`),
+because every unit's weight acts directly as an exponent attenuating its
+individual log-likelihood contribution $|\alpha_i^* \ell_i(\theta)| \le M_{\text{thresh}}$.
+In Track 1B, effective sample size is therefore defined as **Likelihood Mass**
+$\text{ESS} = \sum_{i=1}^n \alpha_i^* \in [0, n]$.
+
+`compute_dp_weights()` implements Savitsky's (2026) modular Stage 1
+normalization (`"target_clip"`, `"linear"`, `"percentile"`) followed by Stage 2
+reweighting (`"vector_upscale"`, `"hard_trunc"`).
+
+```{r step_1b_1_dp_weights}
+f_sens <- rgamma(80, shape = 2.0, rate = 0.5)
+
+schemes <- expand.grid(
+  stage1 = c("target_clip", "linear", "percentile"),
+  stage2 = c("vector_upscale", "hard_trunc"),
+  stringsAsFactors = FALSE
 )
 
-# 2. Instantiate Torch loss module (reads p_link from 4-column target tensor)
-mip_loss <- make_nll_mip()
+dp_grid <- do.call(rbind, lapply(seq_len(nrow(schemes)), function(i) {
+  res <- compute_dp_weights(
+    f_vec         = f_sens,
+    stage1_method = schemes$stage1[i],
+    stage2_method = schemes$stage2[i],
+    M_thresh      = 4.0,
+    Delta_goal    = 4.0
+  )
+  data.frame(
+    Stage1        = schemes$stage1[i],
+    Stage2        = schemes$stage2[i],
+    ESS_Mass      = round(sum(res$alpha), 2),
+    Delta_Alpha   = round(res$delta_alpha, 3),
+    Epsilon_Local = round(res$epsilon_local, 3)
+  )
+}))
+print(dp_grid)
+```
 
-# 3. Train LBBNN propensity network
+### Step 1B.2 — End-to-End Multi-Pass DP Synthesizer (`fit_dp_lbbnn`)
+
+We construct positively skewed log-normal expenditure data containing high-risk
+tail records and run `fit_dp_lbbnn()` with `stage1_method = "target_clip"` and
+`stage2_method = "vector_upscale"` (`M_thresh = 4.0`). Under `"vector_upscale"`,
+`fit_dp_lbbnn()` automatically executes Pass 1 (unweighted risk extraction),
+Pass 2 (Stage 1 weighted calibration), and Pass 3 (final training under the
+upscaled vector weights $\boldsymbol{\alpha}^*$), returning the calibrated
+noise scale, unit sensitivities, realized weights, and local privacy bound.
+
+```{r step_1b_2_fit_dp}
+y_exp     <- exp(1.2 + 0.7 * X[, 1] - 0.5 * X[, 2] + rnorm(n, 0, 0.35))
+y_exp[order(y_exp, decreasing = TRUE)[1:2]] <- y_exp[order(y_exp, decreasing = TRUE)[1:2]] * 5.0
+log_y_exp <- log(y_exp)
+
+dp_fit <- fit_dp_lbbnn(
+  model_spec    = list(sizes = c(p, 8, 1), problem_type = "regression",
+                       input_skip = TRUE, device = "cpu"),
+  X             = X,
+  y             = log_y_exp,
+  stage1_method = "target_clip",
+  stage2_method = "vector_upscale",
+  M_thresh      = 4.0,
+  epochs        = 40,
+  lr            = 0.02,
+  batch_size    = 40,
+  S             = 30,
+  verbose       = FALSE
+)
+
+cat(sprintf(
+  "sigma_hat = %.3f | max(f_vec) = %.3f | ESS = %.1f/%d | delta_alpha = %.3f | epsilon_local = %.3f\n",
+  dp_fit$sigma_hat, max(dp_fit$f_vec), sum(dp_fit$alpha), n,
+  dp_fit$delta_alpha, dp_fit$epsilon_local
+))
+```
+
+### Step 1B.3 — Fast Finite-Sample $(\epsilon_{\mathbf{x}}(\eta), \delta_{\text{target}})$-DP Calibration with Additive Nugget $\eta$ (`calibrate_dp_finite_sample`)
+
+Asymptotic privacy bounds ($\epsilon_{\mathbf{x}}(0) = 2 \Delta_{\alpha, \mathbf{x}}$)
+assume fixed model curvature and can underestimate finite-sample exceedance
+probabilities $\hat{\delta}_n(0) > 0$. `calibrate_dp_finite_sample()` implements
+Azizi, Savitsky, Williams & Chatterjee's (2026) dual-support plug-in algorithm:
+it freezes $B = 30$ posterior draws from Fit 1 ($\Theta^{(1)}$) and Pass 2/3
+($\Theta_\alpha^{(2)}$), simulates $R = 50$ posterior predictive replicate
+datasets, and computes the minimal additive nugget
+$\eta = \max\{0, q_{1-\delta_{\text{target}}}(\{\Delta_{\alpha, \mathbf{x}_r}\}) - \Delta_{\alpha, \mathbf{x}}\}$
+delivering certified finite-sample $(\epsilon_{\mathbf{x}}(\eta), \delta_{\text{target}})$-DP
+guarantees with **zero neural network retraining**.
+
+```{r step_1b_3_calibrate}
+dp_cal <- calibrate_dp_finite_sample(
+  dp_fit       = dp_fit,
+  X            = X,
+  y            = log_y_exp,
+  R            = 50,
+  B            = 30,
+  delta_target = c(0.10, 0.05, 0.01),
+  seed         = 2026
+)
+
+cat(sprintf(
+  "Observed Delta_{alpha,x} = %.3f | Unadjusted exceedance delta_hat(0) = %.3f\n",
+  dp_cal$delta_alpha_obs, dp_cal$delta_hat_0
+))
+print(dp_cal$calibration_table, digits = 3)
+```
+
+### Step 1B.4 — Generating Differentially Private Synthetic Microdata (`sample_synthetic_lbbnn`)
+
+By the Differential Privacy Post-Processing Theorem, releasing synthetic
+datasets drawn from the private posterior predictive distribution preserves
+the exact $(\epsilon_{\mathbf{x}}(\eta), \delta_{\text{target}})$-DP guarantee.
+
+```{r step_1b_4_synth}
+syn_exp <- sample_synthetic_lbbnn(
+  dp_fit    = dp_fit,
+  newdata   = X,
+  draws     = 20,
+  log_scale = TRUE
+)
+
+cat(sprintf(
+  "Original Expenditure  — Mean: %.2f | Median: %.2f | SD: %.2f\n",
+  mean(y_exp), median(y_exp), sd(y_exp)
+))
+cat(sprintf(
+  "DP Synthetic Replicate — Mean: %.2f | Median: %.2f | SD: %.2f\n",
+  mean(syn_exp[, 1]), median(syn_exp[, 1]), sd(syn_exp[, 1])
+))
+```
+
+---
+
+## Track 2: Non-Probability Convenience Sample Integration & Doubly Robust Bridge
+
+### Step 2.1 — Building Composite Propensity Datasets (`build_propensity_dataset`)
+
+Suppose an agency holds a non-probability convenience sample $S_c$ (`X_c`) and
+a probability reference survey $S_r$ (`X_r`) with known design inclusion
+probabilities `pi_r` and optional probabilistic record linkage weights
+`p_link_vec`. `build_propensity_dataset()` formats covariates and composite
+targets for all five sample combination estimators (`"STACK"`, `"LINK1"`,
+`"LINK2"`, `"MIP"`, and `"PSEUDO"`).
+
+```{r step_2_1_build}
+n_c <- 90
+n_r <- 90
+X_c <- matrix(rnorm(n_c * 2), nrow = n_c, ncol = 2)
+X_r <- matrix(rnorm(n_r * 2), nrow = n_r, ncol = 2)
+pi_r <- runif(n_r, 0.05, 0.25)
+p_link_vec <- runif(n_r, 0.10, 0.90)
+
+ds_stack <- build_propensity_dataset(X_c = X_c, X_r = X_r, pi_r = pi_r, method = "STACK")
+ds_mip   <- build_propensity_dataset(X_c = X_c, X_r = X_r, pi_r = pi_r, method = "MIP",
+                                     p_link = p_link_vec)
+
+cat(sprintf(
+  "STACK target_cols = %d (nrow = %d) | MIP target_cols = %d (nrow = %d)\n",
+  ds_stack$target_cols, nrow(ds_stack$data), ds_mip$target_cols, nrow(ds_mip$data)
+))
+```
+
+### Step 2.2 — Training the Composite Propensity LBBNN (`make_nll_mip`, `nll_stack`, etc.)
+
+We fit a spike-and-slab propensity network using `problem_type = "custom"`,
+`raw_output = TRUE`, and `nll = make_nll_mip()` (other native losses include
+`nll_stack()`, `nll_link1()`, `nll_link2()`, and `nll_pseudo()`). Passing
+convenience covariates `X_c` through the trained network outputs log-odds logits
+that invert via `torch_sigmoid()` to population participation propensities
+$\hat{\pi}_{ci} = \mathbb{P}(I_{ci} = 1 \mid \mathbf{x}_i)$.
+
+```{r step_2_2_train_prop}
 mip_net <- lbbnn_net(
   problem_type = "custom",
-  sizes = c(2, 4, 1),
-  raw_output = TRUE,
-  nll = mip_loss,
-  device = "cpu"
+  sizes        = c(2, 6, 1),
+  std          = c(1.0, 2.0),
+  input_skip   = TRUE,
+  raw_output   = TRUE,
+  nll          = make_nll_mip(),
+  device       = "cpu"
 )
 
 mip_loaders <- get_dataloaders(
-  mip_ds$data,
+  ds_mip$data,
   train_proportion = 1.0,
-  train_batch_size = 35,
-  test_batch_size = 35,
-  target_cols = mip_ds$target_cols,
-  standardize = FALSE
+  train_batch_size = 45,
+  test_batch_size  = 45,
+  target_cols      = ds_mip$target_cols,
+  standardize      = FALSE,
+  seed             = 42
 )
-train_lbbnn(epochs = 5, LBBNN = mip_net, lr = 0.02, train_dl = mip_loaders$train_loader, verbose = FALSE)
 
-# 4. Predict propensities pi_c for convenience units
+train_lbbnn(
+  epochs   = 25,
+  LBBNN    = mip_net,
+  lr       = 0.02,
+  train_dl = mip_loaders$train_loader,
+  device   = "cpu",
+  verbose  = FALSE
+)
+
 torch::with_no_grad({
   logits_c <- mip_net(torch::torch_tensor(X_c, dtype = torch::torch_float32()))
   pi_c_hat <- as.numeric(torch::torch_sigmoid(logits_c)$cpu())
 })
-
-# Compute population mean using estimated Hájek inverse-propensity weights
-y_convenience <- 2.0 * X_c[, 1] - 1.5 * X_c[, 2] + rnorm(n_c, sd = 0.3)
-hajek_pop_mean <- hajek_estimate(y = y_convenience, pi = pi_c_hat)
-print(hajek_pop_mean)
+summary(pi_c_hat)
 ```
 
-------------------------------------------------------------------------
+### Step 2.3 — Debiased Hájek Estimation & The Doubly Robust Track 2 $\to$ Track 1 Bridge
 
-## Conclusion
+First, `hajek_estimate(y = y_convenience, pi_hat = pi_c_hat, dirichlet_uq = TRUE)`
+recovers the debiased convenience-sample mean and Dirichlet credible interval.
+Second, normalizing inverse-propensity weights
+$\tilde{w}_i = \hat{\pi}_{ci}^{-1} \frac{n_c}{\sum_{j \in S_c} \hat{\pi}_{cj}^{-1}}$
+and feeding them into a **Track 1** weighted LBBNN outcome model achieves
+**double robustness**: population predictions remain consistent if *either* the
+Track 2 propensity surface or the Track 1 outcome regression is correctly specified.
 
-The `LBBNN` package provides a unified Bayesian neural network framework
-for modern official statistics: - Explicit design weight scaling,
-Dirichlet bootstrap calibration (`predict_domains_lbbnn()`), and
-Williams–Savitsky Cholesky sandwich UQ for active MPM slab parameters
-(`adjust_slab_sandwich_lbbnn()`, validated by
-`run_coverage_benchmark_lbbnn()`) for Track 1A. - Multi-stage privacy
-calibration dominating classical truncation plus fast-computing
-dual-support finite-sample $(\epsilon, \delta)$-DP nugget calibration
-(`calibrate_dp_finite_sample()`) for Track 1B. - Composite likelihoods
-handling deterministic, unlinked, and probabilistic survey record
-linkage for Track 2.
+```{r step_2_3_dr_bridge}
+y_convenience <- 2.0 * X_c[, 1] - 1.5 * X_c[, 2] + rnorm(n_c, sd = 0.3)
+
+# 1. Quasi-randomization debiased Hajek estimator (Track 2)
+hajek_t2 <- hajek_estimate(
+  y            = y_convenience,
+  pi_hat       = pi_c_hat,
+  dirichlet_uq = TRUE,
+  draws        = 50
+)
+print(hajek_t2)
+
+# 2. Doubly robust bridge: feed inverse-propensity weights into Track 1 LBBNN
+ipw_norm   <- (1.0 / pmax(pi_c_hat, 1e-4))
+ipw_norm   <- ipw_norm * (n_c / sum(ipw_norm))
+df_dr      <- data.frame(x1 = X_c[, 1], x2 = X_c[, 2], y = y_convenience)
+dr_loaders <- get_dataloaders(
+  df_dr,
+  weights           = ipw_norm,
+  normalize_weights = TRUE,
+  train_proportion  = 1.0,
+  train_batch_size  = 30,
+  test_batch_size   = 30,
+  standardize       = FALSE,
+  seed              = 42
+)
+
+dr_net <- lbbnn_net(
+  problem_type = "regression",
+  sizes        = c(2, 6, 1),
+  input_skip   = TRUE,
+  sigma        = 0.3,
+  device       = "cpu"
+)
+train_lbbnn(epochs = 40, LBBNN = dr_net, lr = 0.02, train_dl = dr_loaders$train_loader, verbose = FALSE)
+
+dr_pop <- predict_domains_lbbnn(
+  object        = dr_net,
+  newdata       = X_c,
+  domain_matrix = rep("Population", n_c),
+  weights       = ipw_norm,
+  type          = "conditional_mean",
+  dirichlet_uq  = TRUE,
+  draws         = 50
+)
+print(dr_pop)
+```
+
+---
+
+## Summary Cheat Sheet of Official Statistics Functions
+
+| Exported Function | Primary Arguments | Return Values |
+|---|---|---|
+| `get_dataloaders()` | `dataset`, `weights`, `normalize_weights`, `allow_missing`, `target_cols` | `list(train_loader, test_loader, ...)` yielding batched `(x, y, w)` tensors |
+| `lbbnn_net()` | `problem_type`, `sizes`, `input_skip`, `sigma`, `raw_output`, `nll` | Initialized R6 `lbbnn_net` spike-and-slab variational module |
+| `train_lbbnn()` | `epochs`, `LBBNN`, `lr`, `train_dl`, `device`, `verbose` | Trained variational weights, inclusion probabilities $\mathbf{a}$, and ELBO history |
+| `predict_domains_lbbnn()` | `object`, `newdata`, `domain_matrix`, `weights`, `type`, `dirichlet_uq`, `draws` | `data.frame` of domain means, totals, SDs, and 95% credible intervals |
+| `hajek_estimate()` | `y`, `pi_hat`, `weights`, `domain_matrix`, `dirichlet_uq`, `draws` | Scalar Hájek mean or `data.frame` with Dirichlet credible intervals |
+| `adjust_slab_sandwich_lbbnn()` | `object`, `X`, `y`, `weights`, `strata`, `psu`, `draws` | `list` with `summary_table` (`Hessian_SD`, `Sandwich_SD`, `Survey_DEFF`), `draws_adjusted`, `H1_bread`, `J2_meat` |
+| `run_coverage_benchmark_lbbnn()` | `M_MC`, `N_pop`, `epochs`, `draws_domain`, `draws_sandwich` | `list` with `domain_coverage`, `slab_coverage`, and `overall_summary` under $P_\nu$ |
+| `impute_response_lbbnn()` | `object`, `newdata`, `target_col`, `draws`, `type`, `sigma` | `list` with `imputed_draws`, `completed_data`, `imputed_summary`, `missing_indices` |
+| `loglik_contributions()` | `object`, `X`, `y`, `draws` | Matrix `[S, n]` of unit-level log-likelihood draws for risk auditing |
+| `compute_dp_weights()` | `f_vec`, `stage1_method`, `stage2_method`, `M_thresh`, `Delta_goal` | `list(alpha, alpha_stage1, delta_alpha, epsilon_local)` |
+| `fit_dp_lbbnn()` | `model_spec`, `X`, `y`, `stage1_method`, `stage2_method`, `M_thresh`, `epochs` | `list(model, model_unweighted, alpha, f_vec, delta_alpha, epsilon_local, sigma_hat)` |
+| `calibrate_dp_finite_sample()` | `dp_fit`, `X`, `y`, `R`, `B`, `delta_target` | `list(calibration_table, eta_nugget, delta_alpha_obs, delta_hat_0, delta_rep_vec)` |
+| `sample_synthetic_lbbnn()` | `dp_fit`, `newdata`, `draws`, `mpm`, `log_scale` | Numeric matrix `[n, draws]` of private synthetic microdata replicates |
+| `build_propensity_dataset()` | `X_c`, `X_r`, `pi_r`, `method`, `p_link` | `list(data, target_cols, Sc_indices)` formatted for composite losses |
+| `make_nll_mip()` / `nll_*()` | `nll_stack`, `nll_link1`, `nll_link2`, `nll_pseudo`, `make_nll_mip` | Torch negative log-likelihood closures anchoring logits via $\pi_{ri}$ |
