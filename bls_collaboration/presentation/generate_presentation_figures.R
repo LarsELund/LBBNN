@@ -107,9 +107,9 @@ p_slide7 <- ggplot(schematic_df, aes(x = theta, y = density, color = Distributio
     legend.position = "bottom",
     legend.title = element_blank(),
     legend.text = element_text(size = 8),
-    plot.title = element_text(size = 9.0, face = "bold"),
+    plot.title = element_text(size = 9.5, face = "bold", margin = margin(b = 4)),
     plot.subtitle = element_text(size = 7.5),
-    plot.margin = margin(t = 14, r = 10, b = 10, l = 10)
+    plot.margin = margin(t = 16, r = 10, b = 14, l = 10)
   )
 
 save_fig("jsm_variational_elbo.pdf", p_slide7, width = 5.2, height = 3.8)
@@ -146,9 +146,9 @@ p_slide11 <- ggplot(t1_vars, aes(x = Prob, y = Variable, color = Status)) +
     legend.position = "bottom",
     legend.title = element_blank(),
     legend.text = element_text(size = 8),
-    plot.title = element_text(size = 9.0, face = "bold"),
+    plot.title = element_text(size = 9.5, face = "bold", margin = margin(b = 4)),
     plot.subtitle = element_text(size = 7.5),
-    plot.margin = margin(t = 14, r = 10, b = 10, l = 10)
+    plot.margin = margin(t = 16, r = 10, b = 14, l = 10)
   )
 
 save_fig("track1_sparsity_lollipop.pdf", p_slide11, width = 5.6, height = 3.8)
@@ -464,9 +464,9 @@ p_slide24 <- ggplot(s1_vars, aes(x = Prob, y = Variable, color = Status)) +
     legend.position = "bottom",
     legend.title = element_blank(),
     legend.text = element_text(size = 8),
-    plot.title = element_text(size = 9.0, face = "bold"),
+    plot.title = element_text(size = 9.5, face = "bold", margin = margin(b = 4)),
     plot.subtitle = element_text(size = 7.5),
-    plot.margin = margin(t = 14, r = 10, b = 10, l = 10)
+    plot.margin = margin(t = 16, r = 10, b = 14, l = 10)
   )
 
 save_fig("track2_study1_lollipop.pdf", p_slide24, width = 5.6, height = 3.8)
@@ -675,10 +675,10 @@ p_cov_a <- ggplot(dom_long, aes(x = Target, y = Coverage, fill = Method)) +
     legend.title = element_blank(),
     legend.text = element_text(size = 7.5),
     legend.key.size = unit(0.32, "cm"),
-    legend.margin = margin(t = 0, r = 0, b = 6, l = 0),
+    legend.margin = margin(t = 2, r = 0, b = 8, l = 0),
     plot.title = element_text(size = 8.5, face = "bold"),
     plot.subtitle = element_text(size = 7.0, color = "#2c3e50"),
-    plot.margin = margin(t = 12, r = 8, b = 14, l = 8)
+    plot.margin = margin(t = 14, r = 10, b = 18, l = 10)
   )
 
 # Panel B: Active MPM Slab Parameters (Representative + All Slab Avg)
@@ -742,14 +742,14 @@ p_cov_b <- ggplot(slab_long, aes(x = Parameter, y = Coverage, fill = Method)) +
     legend.title = element_blank(),
     legend.text = element_text(size = 7.5),
     legend.key.size = unit(0.32, "cm"),
-    legend.margin = margin(t = 0, r = 0, b = 6, l = 0),
+    legend.margin = margin(t = 2, r = 0, b = 8, l = 0),
     plot.title = element_text(size = 8.5, face = "bold"),
     plot.subtitle = element_text(size = 7.0, color = "#27ae60"),
-    plot.margin = margin(t = 12, r = 8, b = 14, l = 8)
+    plot.margin = margin(t = 14, r = 10, b = 18, l = 10)
   )
 
 p_cov_grid <- plot_grid(p_cov_a, p_cov_b, ncol = 2, rel_widths = c(0.95, 1.15))
-save_fig("track1_coverage_comparison.pdf", p_cov_grid, width = 9.5, height = 3.6)
+save_fig("track1_coverage_comparison.pdf", p_cov_grid, width = 9.6, height = 3.8)
 cat("[11/12] track1_coverage_comparison.pdf generated.\n")
 
 
@@ -808,9 +808,9 @@ p_dp_cal <- ggplot(df_rep_hist, aes(x = delta_rep)) +
   ) +
   theme_minimal(base_size = 8.5) +
   theme(
-    plot.title = element_text(size = 8.8, face = "bold"),
+    plot.title = element_text(size = 9.5, face = "bold", margin = margin(b = 4)),
     plot.subtitle = element_text(size = 7.5, color = "#2c3e50"),
-    plot.margin = margin(t = 14, r = 10, b = 14, l = 10)
+    plot.margin = margin(t = 16, r = 10, b = 14, l = 10)
   )
 
 save_fig("track1_dp_nugget_calibration.pdf", p_dp_cal, width = 5.6, height = 3.9)

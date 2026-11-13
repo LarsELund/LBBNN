@@ -2,7 +2,7 @@
 title: "Sparse & Explainable Bayesian Neural Networks for Official Statistics"
 subtitle: "Unit-Weighted Pseudo-Posteriors, Formal Differential Privacy, and Non-Probability Propensity Estimation in LBBNN"
 author: "Aliaksandr Hubin & Lars Skaaret-Lund (NMBU & UiO Integreat)"
-date: "In collaboration with Terrance D. Savitsky, Matthew R. Williams, Vladislav Beresovsky, and Julie Gershunskaya (U.S. Bureau of Labor Statistics) \\newline October 2026"
+date: "In collaboration with Terrance D. Savitsky, Matthew R. Williams, Vladislav Beresovsky, and Julie Gershunskaya (U.S. Bureau of Labor Statistics) \\newline November 2026"
 output:
   beamer_presentation:
     theme: "Madrid"
