@@ -92,7 +92,11 @@ predict_domains_lbbnn <- function(
       stop(sprintf("length(domain_matrix) (%d) must match number of observations (%d)", length(fac), n))
     }
     domain_names <- levels(fac)
-    G <- stats::model.matrix(~ 0 + fac)
+    if (length(domain_names) == 1L) {
+      G <- matrix(1.0, nrow = n, ncol = 1L)
+    } else {
+      G <- stats::model.matrix(~ 0 + fac)
+    }
     colnames(G) <- domain_names
   } else {
     stop("domain_matrix must be a matrix, data.frame, factor, or character vector")

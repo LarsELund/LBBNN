@@ -81,17 +81,28 @@ model <- lbbnn_net(
 # Train survey-weighted pseudo-posterior
 train_lbbnn(epochs = 10, LBBNN = model, lr = 0.01, train_dl = loaders$train_loader, verbose = FALSE)
 
-# 1. Domain-level latent predictions with Dirichlet Bayesian bootstrap UQ
+# 1. Domain-level conditional expectation predictions with Dirichlet Bayesian bootstrap UQ
 domain_res <- predict_domains_lbbnn(
   object = model,
   newdata = X,
   domain_matrix = G_matrix,
   weights = survey_weights,
-  type = "latent_mean", # Strips out additive measurement error epsilon_i
+  type = "conditional_mean", # Model-assisted E[Y | x_i, theta^(s)]
   draws = 15,
   dirichlet_uq = TRUE
 )
 print(domain_res)
+
+# 1b. Williams-Savitsky (2021) Cholesky sandwich UQ for active MPM slab parameters
+slab_uq <- adjust_slab_sandwich_lbbnn(
+  object = model,
+  X = X,
+  y = y_obs,
+  weights = survey_weights,
+  draws = 50,
+  sigma = 0.4
+)
+print(head(slab_uq$summary_table[, c("Parameter", "Post_Mean", "Unadj_SD", "Sandwich_SD", "DEFF_Ratio")], 4))
 
 # 2. Impute missing response values via posterior predictive draws
 impute_res <- impute_response_lbbnn(
@@ -99,7 +110,7 @@ impute_res <- impute_response_lbbnn(
   newdata = df_survey,
   target_col = "y",
   draws = 15,
-  type = "latent_mean"
+  type = "predictive"
 )
 cat("Imputed summary for missing units (first 3):\n")
 head(impute_res$imputed_summary, 3)
@@ -163,6 +174,17 @@ syn_data <- sample_synthetic_lbbnn(
 )
 cat("Synthetic microdata sample (first 3 records, 4 draws):\n")
 print(syn_data[1:3, 1:4])
+
+# Finite-sample (epsilon, delta)-DP calibration with zero retraining (Azizi et al., 2026)
+dp_cal <- calibrate_dp_finite_sample(
+  dp_fit = dp_fit,
+  X = X,
+  y = y_obs,
+  R = 30,
+  B = 15,
+  delta_target = c(0.10, 0.05)
+)
+print(dp_cal$calibration_table)
 ```
 
 ---
@@ -233,6 +255,6 @@ print(hajek_pop_mean)
 ## Conclusion
 
 The `LBBNN` package provides a unified Bayesian neural network framework for modern official statistics:
-- Explicit design weight scaling and Dirichlet bootstrap calibration for pseudo-posteriors (Track 1A).
-- Multi-stage privacy calibration dominating classical truncation under asymptotic differential privacy (Track 1B).
-- Composite likelihoods handling deterministic, unlinked, and probabilistic survey record linkage (Track 2).
+- Explicit design weight scaling, Dirichlet bootstrap calibration (`predict_domains_lbbnn()`), and Williams–Savitsky Cholesky sandwich UQ for active MPM slab parameters (`adjust_slab_sandwich_lbbnn()`, validated by `run_coverage_benchmark_lbbnn()`) for Track 1A.
+- Multi-stage privacy calibration dominating classical truncation plus fast-computing dual-support finite-sample $(\epsilon, \delta)$-DP nugget calibration (`calibrate_dp_finite_sample()`) for Track 1B.
+- Composite likelihoods handling deterministic, unlinked, and probabilistic survey record linkage for Track 2.

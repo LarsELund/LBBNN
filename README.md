@@ -53,7 +53,7 @@ fit_reg <- train_lbbnn(LBBNN = net_reg, train_dl = dl_survey$train_loader, epoch
 # 4. Small-domain estimation (Model-Assisted Conditional Expectation + Dirichlet UQ)
 dom_summary <- predict_domains_lbbnn(
   net_reg,
-  X = X_matrix,
+  newdata = X_matrix,
   domain_matrix = G_domains,
   weights = df_survey$w_design,
   type = "conditional_mean",
@@ -61,15 +61,21 @@ dom_summary <- predict_domains_lbbnn(
   draws = 50
 )
 
-# 5. Multiple imputation for item non-response (y_i = NA)
+# 5. Parameter-level frequentist UQ on Active MPM Slab (Williams & Savitsky, 2021)
+slab_uq <- adjust_slab_sandwich_lbbnn(
+  net_reg, X = X_matrix, y = df_survey$y, weights = df_survey$w_design, draws = 200
+)
+
+# 6. Multiple imputation for item non-response (y_i = NA)
 imp_out <- impute_response_lbbnn(net_reg, newdata = df_survey, target_col = "y", draws = 50)
 ```
 
 ### Track 1B: Multi-Pass $(\epsilon_{\mathbf{y}}, \delta)$-Differential Privacy Microdata Synthesis
-Implements the formal two-stage privacy weight calibration framework of Savitsky, Williams & Hu (2022) and Savitsky (2026) across the full $3 \times 2$ factorial design:
+Implements the formal two-stage privacy weight calibration framework of Savitsky, Williams & Hu (2022) and Savitsky (2026) across the full $3 \times 2$ factorial design, plus finite-sample nugget calibration (Azizi, Savitsky, Williams & Chatterjee, 2026):
 * **Stage 1 Initial Normalization**: `"linear"` ($c(1 - \tilde{f}_i)$, Remark 1), `"percentile"` (quantile deficit truncation), or `"target_clip"` ($\min(1, \Delta_{\text{goal}}/f_i)$, Proposition 1).
 * **Stage 2 Threshold Enforcement ($\alpha_i^* f_i \le M_{\text{thresh}}$)**: `"hard_trunc"` or `"vector_upscale"` ($\min(1, M_{\text{thresh}}/f_i)$, which Loewner-dominates hard truncation in Fisher information by Proposition 2).
 * **Automated Pass 3 Geometry Alignment**: When `"vector_upscale"` is selected, `fit_dp_lbbnn()` automatically executes Pass 3 to retrain the variational pseudo-posterior under the rescaled weight geometry and verifies $\Delta_{\alpha, \mathbf{y}} \le M_{\text{thresh}}$, guaranteeing $\epsilon_{\mathbf{y}} = 2\Delta_{\alpha, \mathbf{y}}$.
+* **Finite-Sample $(\epsilon, \delta)$-DP Calibration (Zero Retraining)**: `calibrate_dp_finite_sample()` freezes Pass 1 and Pass 2/3 posterior supports ($\Theta^{(1)}, \Theta_\alpha^{(2)}$) for dual-support plug-in evaluation across $R$ replicates, adding minimal nugget $\eta$ so $\epsilon_{\mathbf{x}}(\eta) = 2(\Delta_{\alpha,\mathbf{x}} + \eta)$ satisfies finite-sample $(\epsilon_{\mathbf{x}}(\eta), \delta_{\text{target}})$-DP.
 
 ```r
 # End-to-end multi-pass DP calibration & synthetic microdata generation
@@ -86,6 +92,12 @@ dp_fit <- fit_dp_lbbnn(
 
 cat("Verified Empirical Privacy Budget (epsilon_y):", dp_fit$epsilon, "\n")
 cat("Retained Likelihood Mass (ESS = sum(alpha*)):", sum(dp_fit$alpha), "/", length(y_expenditure), "\n")
+
+# Fast finite-sample (epsilon, delta)-DP nugget calibration (zero retraining)
+dp_cal <- calibrate_dp_finite_sample(
+  dp_fit, X = x_micro, y = y_expenditure, R = 200, B = 100, delta_target = c(0.10, 0.05, 0.01)
+)
+print(dp_cal$calibration_table)
 
 # Generate (epsilon_y, delta)-PDP synthetic microdata via the Post-Processing Theorem
 synth_replicates <- sample_synthetic_lbbnn(dp_fit, newdata = x_micro, draws = 50)

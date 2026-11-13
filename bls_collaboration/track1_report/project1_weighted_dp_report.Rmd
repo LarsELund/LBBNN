@@ -136,6 +136,7 @@ In `LBBNN`, we combine the design weights with posterior draws of the regression
 
 $$\hat{\bar{Y}}_d^{\text{BNN}(s)} = \frac{\sum_{i=1}^n w_i G_{i,d} \hat{\mu}_i^{(s)}}{\sum_{i=1}^n w_i G_{i,d}}$$
 
+**Model-Assisted Conditional Expectation**: While spike-and-slab edge selection prunes pure noise *covariates* ($X_3, X_4$), additive unit-level observation error $\varepsilon_i \sim \mathcal{N}(0, \sigma^2)$ in $y_i = \mu(\mathbf{x}_i) + \varepsilon_i$ cannot be isolated from unobserved unit heterogeneity in cross-sectional data without repeated measurements. However, by evaluating the posterior conditional expectation $\hat{\mu}_i^{(s)} = \mathbb{E}[Y_i \mid \mathbf{x}_i, \theta^{(s)}] = \mu_{\theta^{(s)}}(\mathbf{x}_i)$ (`type = "conditional_mean"`) rather than drawing noisy predictive samples $\tilde{y}_i^{(s)} = \mu_{\theta^{(s)}}(\mathbf{x}_i) + \varepsilon_i^{(s)}$ (`type = "predictive"`), `predict_domains_lbbnn()` avoids adding posterior predictive simulation noise, yielding a smooth estimate of the underlying regression surface.
 **Model-Assisted Conditional Expectation**: While spike-and-slab edge selection prunes uninformative noise covariates (as demonstrated empirically with noise features $X_3, X_4$ in Section 3), additive unit-level observation error $\varepsilon_i \sim \mathcal{N}(0, \sigma^2)$ in $y_i = \mu(\mathbf{x}_i) + \varepsilon_i$ cannot be isolated from unobserved unit heterogeneity in cross-sectional data without repeated measurements. However, by evaluating the posterior conditional expectation $\hat{\mu}_i^{(s)} = \mathbb{E}[Y_i \mid \mathbf{x}_i, \theta^{(s)}] = \mu_{\theta^{(s)}}(\mathbf{x}_i)$ (`type = "conditional_mean"`) rather than drawing noisy predictive samples $\tilde{y}_i^{(s)} = \mu_{\theta^{(s)}}(\mathbf{x}_i) + \varepsilon_i^{(s)}$ (`type = "predictive"`), `predict_domains_lbbnn()` avoids adding posterior predictive simulation noise, yielding a smooth estimate of the underlying regression surface.
 
 ### Bayesian Imputation for Missing Survey Responses ($y_i = \text{NA}$)
@@ -555,6 +556,110 @@ knitr::kable(
 )
 ```
 
+#### Frequentist Coverage Validation Under $P_\nu$: Williams–Savitsky (2021) Sandwich vs. Dirichlet Bootstrap
+
+While **Target Class A** (domain and population summary functionals $\hat{\bar{Y}}_d$) achieves valid design-based finite-population coverage via `predict_domains_lbbnn(..., dirichlet_uq = TRUE)` (Savitsky & Toth, 2016), parameter-level inference for **Target Class B** (regression and hidden-layer slab weights $\theta_{\text{slab}}$) under mean-field variational inference faces two compounding sources of under-coverage under repeated informative sampling $P_\nu$:
+
+1. **Mean-field factorization bias**: Diagonal variational covariances neglect off-diagonal parameter correlations within linear combinations of active hidden ReLU features and direct skip connections (Variance Inflation Factors, $\text{VIF} > 1$).
+2. **Survey design-effect omission**: Exponentiated pseudo-likelihood weights $\tilde{w}_i$ preserve point consistency but underestimate repeated-sampling variance whenever sampling weights vary ($\text{DEFF} > 1$) or cluster across PSUs/strata.
+
+Following **Williams & Savitsky (2021)** (*International Statistical Review*, `doi:10.1111/insr.12376`), `adjust_slab_sandwich_lbbnn()` resolves both gaps by conditioning on the **Median Probability Model (MPM) active slab subspace** (where Bernstein–von Mises regularity holds because sparse MPM gating prunes redundant collinear latent paths) and mapping raw variational posterior draws $\theta_{\text{slab}}^{(s)} \sim q(\theta_{\text{slab}})$ via exact Cholesky sandwich projection:
+$$\theta_{\text{slab}}^{*(s)} = \hat{\theta}_{\text{slab}} + R_2^\top R_1^{-\top}\left(\theta_{\text{slab}}^{(s)} - \hat{\theta}_{\text{slab}}\right), \qquad R_1^\top R_1 = \hat{\Sigma}_1,\quad R_2^\top R_2 = H_1^{-1} J_2 H_1^{-1},$$
+where $H_1$ is the weighted pseudo-likelihood Hessian bread and $J_2$ is the design-consistent estimating-equation meat (supporting optional `strata` and `psu` cluster aggregation). Importantly, this division separates domain aggregates (Dirichlet Bayesian Bootstrap) from MPM slab parameters (Williams–Savitsky Sandwich); for future hierarchical extensions estimating unit-level latent truth $\theta_i$, the same sandwich score principle extends to joint fixed- and random-effect UQ rather than naive unadjusted VI intervals.
+
+```{r slab_sandwich_demo}
+sw_demo <- adjust_slab_sandwich_lbbnn(
+  object        = m_weighted,
+  X             = as.matrix(sample_df[, c("x1", "x2", "x3", "x4")]),
+  y             = sample_df$y,
+  weights       = weights_survey,
+  draws         = 400,
+  active_cutoff = 0.5,
+  level         = 0.95,
+  sigma         = 0.40,
+  seed          = 2026
+)
+
+knitr::kable(
+  sw_demo$summary_table[, c(
+    "Parameter", "Post_Mean", "Unadj_SD",
+    "Sandwich_SD", "DEFF_Ratio", "Sand_Low", "Sand_High"
+  )],
+  digits    = 3,
+  row.names = FALSE,
+  col.names = c(
+    "Active MPM Param", "Mean", "Unadj SD",
+    "Sand SD", "Var Ratio", "CI Low", "CI High"
+  ),
+  caption   = paste(
+    "Williams-Savitsky (2021) Cholesky Sandwich Adjustment",
+    "on Active MPM Slab Parameters (Survey-Weighted Model)"
+  )
+)
+```
+
+To verify frequentist calibration across $M_{\text{MC}} = 50$ repeated informative samples under $P_\nu$ ($N_{\text{pop}} = 2000$, average $n \approx 641$, Kish $\text{DEFF} \approx 2.25$), `run_coverage_benchmark_lbbnn()` evaluates nominal $95\%$ credible interval coverage before and after UQ correction for both target classes:
+
+```{r coverage_benchmark_display, fig.cap="Repeated-Sampling Nominal 95% Credible Interval Coverage Under Informative Sampling (M = 50 Replicates)."}
+cov_cache_path <- "../presentation/coverage_benchmark_data.rds"
+if (file.exists(cov_cache_path)) {
+  cov_bench <- readRDS(cov_cache_path)
+} else {
+  cov_bench <- run_coverage_benchmark_lbbnn(M_MC = 50, seed = 2026, verbose = FALSE)
+}
+
+overall_disp <- cov_bench$overall_summary
+overall_disp$UQ_Method_Unadjusted <- gsub(
+  "Sigma_1", "diagonal VI", overall_disp$UQ_Method_Unadjusted, fixed = TRUE
+)
+overall_disp$UQ_Method_Corrected <- gsub(
+  " (R2^T R1^{-T})", "",
+  overall_disp$UQ_Method_Corrected, fixed = TRUE
+)
+
+knitr::kable(
+  overall_disp,
+  digits    = 3,
+  row.names = FALSE,
+  col.names = c(
+    "Target Class", "Unadjusted Method",
+    "Unadj Cov", "Corrected Method", "Corrected Cov"
+  ),
+  caption   = paste(
+    "Monte Carlo Nominal 95% Frequentist Coverage Summary",
+    "Across M = 50 Informative Samples Under P-nu"
+  )
+)
+```
+
+```{r coverage_benchmark_plot, echo = FALSE, fig.cap="Nominal 95% Frequentist Coverage Recovery Across Both Target Classes (M = 50 Informative Replicates)."}
+cov_plot_df <- rbind(
+  data.frame(Target = cov_bench$domain_coverage$Domain, Group = "Domain Summary Means",
+             Method = "Unadjusted", Coverage = cov_bench$domain_coverage$Unadj_Coverage * 100),
+  data.frame(Target = cov_bench$domain_coverage$Domain, Group = "Domain Summary Means",
+             Method = "Corrected (Dirichlet / Sandwich)", Coverage = cov_bench$domain_coverage$Dirichlet_Coverage * 100),
+  data.frame(Target = "All 9 Slab Avg", Group = "Active MPM Slab Weights",
+             Method = "Unadjusted", Coverage = cov_bench$overall_summary$Coverage_Unadjusted[2] * 100),
+  data.frame(Target = "All 9 Slab Avg", Group = "Active MPM Slab Weights",
+             Method = "Corrected (Dirichlet / Sandwich)", Coverage = cov_bench$overall_summary$Coverage_Corrected[2] * 100),
+  data.frame(Target = "Skip_x1", Group = "Active MPM Slab Weights",
+             Method = "Unadjusted", Coverage = cov_bench$overall_summary$Coverage_Unadjusted[3] * 100),
+  data.frame(Target = "Skip_x1", Group = "Active MPM Slab Weights",
+             Method = "Corrected (Dirichlet / Sandwich)", Coverage = cov_bench$overall_summary$Coverage_Corrected[3] * 100)
+)
+cov_plot_df$Method <- factor(cov_plot_df$Method, levels = c("Unadjusted", "Corrected (Dirichlet / Sandwich)"))
+
+ggplot(cov_plot_df, aes(x = Target, y = Coverage, fill = Method)) +
+  geom_col(position = position_dodge(width = 0.72), width = 0.65) +
+  geom_hline(yintercept = 95, linetype = "dashed", color = "#c0392b", linewidth = 0.8) +
+  facet_grid(~ Group, scales = "free_x", space = "free_x") +
+  scale_fill_manual(values = c("Unadjusted" = "#95a5a6", "Corrected (Dirichlet / Sandwich)" = "#2980b9")) +
+  scale_y_continuous(limits = c(0, 108), breaks = c(0, 25, 50, 75, 95)) +
+  theme_minimal(base_size = 10) +
+  theme(axis.text.x = element_text(angle = 20, hjust = 1), legend.position = "bottom") +
+  labs(title = "Nominal 95% Coverage Recovery Under P_nu (M_MC = 50)", x = "", y = "Empirical Coverage (%)", fill = "")
+```
+
 #### Bayesian Response Imputation for Missing Outcomes ($y_i = \text{NA}$)
 
 When survey units experience item non-response, `impute_response_lbbnn()` performs Bayesian multiple imputation via posterior predictive draws $\tilde{y}_i^{(s)} \sim \mathcal{N}(\mu_\theta(\mathbf{x}_i), \hat{\sigma}^2)$ conditioned on observed covariates $\mathbf{x}_i$. To evaluate imputation RMSE empirically against known ground truth, we randomly mask $10\%$ of observed response values in `sample_df`:
@@ -778,6 +883,78 @@ knitr::kable(
 4. **Reciprocal Attenuation (Remark 1)**: Reciprocal $1/f_i$ normalization collapses effective sample size to $\text{ESS} = `r round(sum(sch_recip_hard$alpha), 1)`$, confirming that normalizing directly on $1 - \tilde{f}_i$ is necessary to avoid massive information loss.
 5. All schemes strictly guarantee mathematical sensitivity control $\Delta_{\alpha, \mathbf{y}} \le M_{\text{thresh}} = 5.50$, proving $(\epsilon_{\mathbf{y}}, \delta)$-probabilistic differential privacy.
 
+### Finite-Sample $(\epsilon, \delta)$-DP Guarantee & Additive Nugget $\eta$ Calibration (`calibrate_dp_finite_sample`)
+
+As established by **Azizi, Savitsky, Williams & Chatterjee (Nov 2026)** (*Algorithm 3.1 / Section 3.2*), the unadjusted local privacy parameter $\epsilon_{\mathbf{x}} = 2\Delta_{\alpha, \mathbf{x}}$ relies on an asymptotic concentration assumption and exhibits a non-negligible finite-sample exceedance probability $\hat{\delta}_n(0) = \mathbb{P}_{\mathbf{x}_r}(\Delta_{\alpha, \mathbf{x}_r} > \Delta_{\alpha, \mathbf{x}}) > 0$ under posterior predictive resampling. Rather than retraining separate variational LBBNN models across hundreds of synthetic replicate datasets $\mathbf{x}_r$ ($r = 1, \dots, R$), `calibrate_dp_finite_sample()` implements fast **dual-support plug-in evaluation with zero additional training**:
+
+1. Freeze $B = 100$ posterior draws from the Pass 1 unweighted generator ($\Theta^{(1)}$) via `extract_lbbnn_support()` and from the Pass 2/3 weighted synthesizer ($\Theta_\alpha^{(2)}$).
+2. Generate $R = 200$ posterior predictive replicate response vectors $\mathbf{x}_r \sim p_{\Theta^{(1)}}(\cdot \mid \mathbf{X})$.
+3. **Stage 1 Plug-in**: Evaluate replicate log-likelihoods on $\Theta^{(1)}$ (`eval_support_abs_loglik()`) to obtain replicate sensitivities $\mathbf{f}(\mathbf{x}_r)$ and risk-calibrated weights $\boldsymbol{\alpha}(\mathbf{x}_r)$ without fitting a new neural network.
+4. **Stage 2 Re-plug**: Evaluate replicate weighted sensitivities $\Delta_{\alpha, \mathbf{x}_r} = \max_{b,i} \alpha_i(\mathbf{x}_r) |\log p_{\theta_b^{(2)}}(x_{r,i})|$ on $\Theta_\alpha^{(2)}$, quantify unadjusted leakage $\hat{\delta}_n(0)$, and solve for the minimal additive calibration nugget $\eta = \max\{0,\, q_{1-\delta_{\text{target}}}(\{\Delta_{\alpha,\mathbf{x}_r}\}) - \Delta_{\alpha,\mathbf{x}}\}$ delivering finite-sample $(\epsilon_{\mathbf{x}}(\eta), \delta_{\text{target}})$-DP with $\epsilon_{\mathbf{x}}(\eta) = 2(\Delta_{\alpha,\mathbf{x}} + \eta)$.
+
+```{r dp_finite_sample_cal, fig.cap="Dual-Support Plug-In Replicate Sensitivity Distribution (R = 200, Zero Retraining). Adding minimal nugget eta controls finite-sample leakage below user-specified target delta."}
+dp_cal <- calibrate_dp_finite_sample(
+  dp_fit       = dp_results,
+  X            = x_dp,
+  y            = log_y_dp,
+  R            = 200,
+  B            = 100,
+  delta_target = c(0.10, 0.05, 0.01),
+  seed         = 2026
+)
+
+knitr::kable(
+  dp_cal$calibration_table,
+  digits    = 4,
+  row.names = FALSE,
+  col.names = c(
+    "Target delta", "1-delta Quantile", "Nugget eta",
+    "Delta + eta", "Calibrated eps", "Empirical Exceed"
+  ),
+  caption   = sprintf(
+    "Finite-Sample (eps, delta)-DP Calibration (Obs Delta = %.4f, delta(0) = %.3f)",
+    dp_cal$delta_alpha_obs, dp_cal$delta_hat_0
+  )
+)
+```
+
+```{r dp_finite_sample_plot, echo = FALSE, fig.cap="Dual-Support Plug-In Replicate Sensitivity Distribution (R = 200, Zero Retraining)."}
+row_05 <- dp_cal$calibration_table[
+  which.min(abs(dp_cal$calibration_table$delta_target - 0.05)),
+]
+row_01 <- dp_cal$calibration_table[
+  which.min(abs(dp_cal$calibration_table$delta_target - 0.01)),
+]
+
+ggplot(data.frame(delta_rep = dp_cal$delta_rep_vec), aes(x = delta_rep)) +
+  geom_histogram(
+    aes(y = after_stat(density)),
+    bins = 24, fill = "#bdc3c7", color = "white"
+  ) +
+  geom_density(color = "#2c3e50", linewidth = 0.9) +
+  geom_vline(xintercept = dp_cal$delta_alpha_obs, color = "#e67e22", linewidth = 1.0) +
+  geom_vline(
+    xintercept = row_05$delta_alpha_eta,
+    color = "#2980b9", linetype = "dashed", linewidth = 1.0
+  ) +
+  geom_vline(
+    xintercept = row_01$delta_alpha_eta,
+    color = "#c0392b", linetype = "dotted", linewidth = 1.1
+  ) +
+  theme_minimal(base_size = 10) +
+  theme(plot.subtitle = element_text(size = 8.8)) +
+  labs(
+    title = "Finite-Sample Replicate Sensitivity Distribution (R = 200 Dual-Support Plug-in)",
+    subtitle = sprintf(
+      "Obs Delta = %.2f (delta_0 = %.3f); delta = 0.05 threshold = %.2f (eta = +%.2f); delta = 0.01 = %.2f",
+      dp_cal$delta_alpha_obs, dp_cal$delta_hat_0,
+      row_05$delta_alpha_eta, row_05$eta_nugget, row_01$delta_alpha_eta
+    ),
+    x = "Replicate Weighted Sensitivity Delta_{alpha, x_r}",
+    y = "Density"
+  )
+```
+
 ## Generating and Benchmarking Synthetic Datasets
 
 Sampling from the **posterior predictive distribution** incorporates parameter uncertainty and residual observation noise:
@@ -937,6 +1114,9 @@ api_df <- data.frame(
     "\\texttt{sample\\_synthetic\\_lbbnn()}",
     "\\texttt{predict\\_domains\\_lbbnn()}",
     "\\texttt{impute\\_response\\_lbbnn()}",
+    "\\texttt{adjust\\_slab\\_sandwich\\_lbbnn()}",
+    "\\texttt{calibrate\\_dp\\_finite\\_sample()}",
+    "\\texttt{run\\_coverage\\_benchmark\\_lbbnn()}",
     "\\texttt{predict.lbbnn\\_net()}"
   ),
   Description = c(
@@ -949,6 +1129,9 @@ api_df <- data.frame(
     "Draws synthetic microdata replicates from the Pass 2/3 posterior predictive distribution with calibrated observation noise $\\hat{\\sigma}$, returning an $n \\times \\text{draws}$ matrix.",
     "Computes domain-level posterior means, totals, standard errors, and credible intervals with Dirichlet Bayesian bootstrap UQ ($\\boldsymbol{\\xi} \\sim \\text{Dirichlet}(1, \\dots, 1)$) per Savitsky \\& Toth (2016).",
     "Performs Bayesian multiple imputation for missing survey response values ($y_i = \\text{NA}$) using posterior predictive draws from a trained LBBNN model.",
+    "Applies the Williams \\& Savitsky (2021) Cholesky sandwich projection $R_2^\\top R_1^{-\\top}$ to active MPM slab weights ($\\text{VIF}$ + survey $\\text{DEFF}$ correction, supporting \\texttt{strata} and \\texttt{psu}).",
+    "Implements fast-computing finite-sample $(\\epsilon, \\delta)$-DP calibration (Azizi, Savitsky, Williams \\& Chatterjee 2026) via dual-support plug-in evaluation across $R$ replicates with zero retraining.",
+    "Runs the $M_{\\text{MC}}$ repeated informative sampling benchmark under $P_\\nu$ validating nominal 95\\% coverage for Domain Summary Means (Dirichlet) and Active MPM Slab Weights (Sandwich).",
     "Generates posterior predictive draws under full Bayesian Model Averaging (BMA) or the sparse Median Probability Model (MPM)."
   ),
   row.names = NULL
@@ -972,12 +1155,14 @@ kableExtra::kbl(
 
 # References
 
-1. **Bhattacharya, A., Pati, D., & Yang, Y.** (2019). *Bayesian fractional posteriors*. The Annals of Statistics, 47(1), 39–66.
-2. **Dimitrakakis, C., Nelson, B., Mitrokotsa, A., & Rubinstein, B. I.** (2017). *Differential privacy for Bayesian inference through posterior sampling*. Journal of Machine Learning Research, 18(1), 343–381.
-3. **Dwork, C., & Roth, A.** (2014). *The algorithmic foundations of differential privacy*. Foundations and Trends in Theoretical Computer Science, 9(3–4), 211–407.
-4. **Savitsky, T. D., & Toth, D.** (2016). *Bayesian estimation under informative sampling*. Electronic Journal of Statistics, 10(1), 1677–1708.
-5. **Savitsky, T. D., Williams, M. R., & Hu, J.** (2022). *Risk-weighted pseudo-posterior mechanism for generating synthetic microdata*. Working Paper, U.S. Bureau of Labor Statistics.
-6. **Wenzel, F., Roth, K., Veeling, B. S., Swiatkowski, J., Tran, L., Mandt, S., Snoek, J., Salimbeni, H., Jenatton, R., & Nowozin, S.** (2020). *How good is the Bayes posterior in deep neural networks really?* Proceedings of the 37th International Conference on Machine Learning (ICML).
+1. **Azizi, L., Savitsky, T. D., Williams, M. R., & Chatterjee, S.** (2026). *Fast-computing finite-sample differential privacy bounds for the pseudo-posterior mechanism*. Working Paper, U.S. Bureau of Labor Statistics (`PPM_non_asymptotic_bounds.pdf`).
+2. **Bhattacharya, A., Pati, D., & Yang, Y.** (2019). *Bayesian fractional posteriors*. The Annals of Statistics, 47(1), 39–66.
+3. **Dimitrakakis, C., Nelson, B., Mitrokotsa, A., & Rubinstein, B. I.** (2017). *Differential privacy for Bayesian inference through posterior sampling*. Journal of Machine Learning Research, 18(1), 343–381.
+4. **Dwork, C., & Roth, A.** (2014). *The algorithmic foundations of differential privacy*. Foundations and Trends in Theoretical Computer Science, 9(3–4), 211–407.
+5. **Savitsky, T. D., & Toth, D.** (2016). *Bayesian estimation under informative sampling*. Electronic Journal of Statistics, 10(1), 1677–1708.
+6. **Savitsky, T. D., Williams, M. R., & Hu, J.** (2022). *Risk-weighted pseudo-posterior mechanism for generating synthetic microdata*. Working Paper, U.S. Bureau of Labor Statistics.
+7. **Wenzel, F., Roth, K., Veeling, B. S., Swiatkowski, J., Tran, L., Mandt, S., Snoek, J., Salimbeni, H., Jenatton, R., & Nowozin, S.** (2020). *How good is the Bayes posterior in deep neural networks really?* Proceedings of the 37th International Conference on Machine Learning (ICML).
+8. **Williams, M. R., & Savitsky, T. D.** (2021). *Uncertainty quantification for pseudo-Bayesian estimation under informative sampling*. International Statistical Review, 89(1), 72–107. `doi:10.1111/insr.12376`.
 
 ---
 

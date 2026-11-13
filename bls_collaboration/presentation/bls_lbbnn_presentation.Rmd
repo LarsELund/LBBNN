@@ -350,6 +350,34 @@ $$\text{ELBO}(q; \mathbf{u}) = \sum_{i=1}^n u_i \, \mathbb{E}_{q(\theta)}\!\left
 \end{column}
 \end{columns}
 
+## Track 1A — Frequentist UQ Under $P_\nu$: Sandwich vs. Dirichlet Bootstrap
+
+\vspace{-0.4em}
+\begin{center}
+  \includegraphics[width=0.96\textwidth,height=0.52\textheight,keepaspectratio]{figures/track1_coverage_comparison.pdf}
+\end{center}
+\vspace{-0.4em}
+\scriptsize
+\begin{columns}[T]
+\begin{column}{0.49\textwidth}
+\textbf{Target Class A: Domain Summary Estimators}
+\begin{itemize}
+  \setlength{\itemsep}{0.5pt}
+  \item Dirichlet Bayesian Bootstrap (\texttt{dirichlet\_uq = TRUE}) restores $95\%$ repeated-sampling coverage: \textbf{5.5\% $\to$ 96.0\%} ($M_{\text{MC}} = 50$, Kish $\text{DEFF} = 2.25$).
+  \item Compounds variational $\hat{\mu}_i^{(s)}$ with $\boldsymbol{\xi}^{(s)} \sim \text{Dirichlet}(1,\dots,1)$.
+\end{itemize}
+\end{column}
+\begin{column}{0.49\textwidth}
+\textbf{Target Class B: Active MPM Slab (\texttt{adjust\_slab\_sandwich\_lbbnn})}
+\begin{itemize}
+  \setlength{\itemsep}{0.5pt}
+  \item Conditioned on MPM active paths (where BvM holds), Cholesky projection $R_2^\top R_1^{-\top}$ corrects diagonal VI + DEFF: \textbf{18.0\% $\to$ 94.0\%} (\texttt{Skip\_x1}: \textbf{66\% $\to$ 96\%}).
+  \item For hierarchical unit truth $\theta_i$, sandwich extends to random-effect scores.
+\end{itemize}
+\end{column}
+\end{columns}
+\normalsize
+
 ## Pipeline & Return Structures: Survey-Weighted LBBNN (Track 1A)
 
 \vspace{-0.3em}
@@ -586,6 +614,38 @@ Contam. ($u_i=1$) & — & $300.0$ & $0$ & $48.33$ & $\$11.30$ ($\$46.75$) \\
   \item \textbf{Percentile Tail Excision}: Zeroing the top $5\%$ ($15$ units) in Stage 1 followed by \texttt{vec\_up} boosts surviving inliers to $\alpha_i^* = 1$ ($\text{ESS} = 285.0, \epsilon_{\mathbf{y}} = 8.06$), whereas \texttt{hard\_tr} yields the tightest privacy ($\epsilon_{\mathbf{y}} = 2.10$).
   \item \textbf{Remark 1 Validated}: Reciprocal $1/f_i$ normalization collapses effective sample size ($\text{ESS} = 26.9/300$), inflating synthetic variance (SD $\$16.40$).
 \end{itemize}
+\normalsize
+
+## Track 1B — Finite-Sample $(\epsilon, \delta)$-DP & Additive Nugget $\eta$
+
+\vspace{-0.3em}
+\begin{columns}[T]
+\begin{column}{0.55\textwidth}
+\begin{center}
+  \includegraphics[width=\textwidth,height=0.62\textheight,keepaspectratio]{figures/track1_dp_nugget_calibration.pdf}
+\end{center}
+\end{column}
+\begin{column}{0.43\textwidth}
+\scriptsize
+\textbf{Dual-Support Plug-In (Azizi et al., Nov 2026)}
+\begin{itemize}
+  \setlength{\itemsep}{1pt}
+  \item Asymp. $\epsilon_{\mathbf{x}} = 2\Delta_{\alpha,\mathbf{x}} = 11.15$ leaks with finite-sample $\hat{\delta}_n(0) = 0.715$ across $R = 200$ replicates.
+  \item \texttt{calibrate\_dp\_finite\_sample()} freezes $B = 100$ draws $\Theta^{(1)}, \Theta_\alpha^{(2)}$ for \textbf{zero-retraining} $\eta$ solving $\epsilon_{\mathbf{x}}(\eta) = 2(\Delta_{\alpha,\mathbf{x}} + \eta)$.
+\end{itemize}
+\vspace{0.2em}
+\renewcommand{\arraystretch}{1.12}
+\begin{tabular}{cccc}
+\toprule
+$\delta_{\text{target}}$ & $q_{1-\delta}$ & \textbf{Nugget $\eta$} & \textbf{Calibrated $\epsilon_{\mathbf{x}}(\eta)$} \\
+\midrule
+0.10 & 6.68 & \textbf{+1.11} & \textbf{13.37} \\
+0.05 & 6.93 & \textbf{+1.36} & \textbf{13.87} \\
+0.01 & 7.35 & \textbf{+1.78} & \textbf{14.71} \\
+\bottomrule
+\end{tabular}
+\end{column}
+\end{columns}
 \normalsize
 
 ## Pipeline & Return Structures: Multi-Pass DP Synthesis (Track 1B)
@@ -1224,11 +1284,12 @@ y_bar_hajek <- hajek_estimate(y = pop$y[pop$I.c == 1], pi_hat = pi_c_hat, dirich
 
 ## Unified `LBBNN` Architecture Across Track 1 & Track 2
 
-\renewcommand{\arraystretch}{1.05}
+\vspace{-0.35em}
+\renewcommand{\arraystretch}{0.94}
 \tiny
 \begin{table}[ht]
 \centering
-\begin{tabular}{p{3.8cm}p{2.4cm}p{7.2cm}}
+\begin{tabular}{p{4.0cm}p{2.3cm}p{7.1cm}}
 \toprule
 \textbf{Function / Module} & \textbf{Operational Track} & \textbf{Description \& Statistical Role} \\
 \midrule
@@ -1236,8 +1297,10 @@ y_bar_hajek <- hajek_estimate(y = pop$y[pop$I.c == 1], pi_hat = pi_c_hat, dirich
 \texttt{lbbnn\_net(sigma, ...)} & Track 1 \& 2 & ELBO likelihood scaling by error variance $\sigma^2$ (cold-posterior protection). \\
 \texttt{predict\_domains\_lbbnn()} & Track 1A (Surveys) & Vectorized domain means/totals, conditional expectation ($\hat{\mu}_i$), and Dirichlet UQ. \\
 \texttt{impute\_response\_lbbnn()} & Track 1A (Surveys) & Bayesian multiple imputation for missing outcomes ($y_i = \text{NA}$) via posterior predictive draws. \\
+\texttt{adjust\_slab\_sandwich\_lbbnn()} & Track 1A (Surveys) & Williams--Savitsky (2021) Cholesky sandwich $R_2^\top R_1^{-\top}$ on active MPM slab weights. \\
 \texttt{compute\_dp\_weights()} & Track 1B (Privacy) & Modular Stage 1 (\texttt{linear}, \texttt{percentile}, \texttt{target\_clip}) $\times$ Stage 2 (\texttt{hard\_trunc}, \texttt{vector\_upscale}). \\
 \texttt{fit\_dp\_lbbnn()} & Track 1B (Privacy) & Multi-pass $(\epsilon, \delta)$-PDP estimation; executes Pass 3 under vector upward rescaling. \\
+\texttt{calibrate\_dp\_finite\_sample()} & Track 1B (Privacy) & Dual-support plug-in finite-sample $\eta$ calibration (\text{Azizi et al.}, 2026; zero retraining). \\
 \texttt{sample\_synthetic\_lbbnn()} & Track 1B (Privacy) & Generates $(\epsilon, \delta)$-DP synthetic microdata via the post-processing theorem. \\
 \midrule
 \texttt{make\_nll\_mip(p\_link)} & Track 2 (Propensity) & Missing Information Principle NLL supporting scalar or vectorized unit-level linkage $\tilde{\mathbf{p}}$. \\
@@ -1285,7 +1348,7 @@ y_bar_hajek <- hajek_estimate(y = pop$y[pop$I.c == 1], pi_hat = pi_c_hat, dirich
 \footnotesize
 \begin{itemize}
   \setlength{\itemsep}{2.5pt}
-  \item \textbf{Single Unified Package}: Ship unit-weighted pseudo-posteriors, \texttt{fit\_dp\_lbbnn()}, and composite propensity losses (\texttt{STACK}, \texttt{LINK1/2}, \texttt{MIP}, \texttt{PSEUDO}) directly inside core \texttt{LBBNN} (v0.2.0).
+  \item \textbf{Single Unified Package}: Ship unit-weighted pseudo-posteriors, Williams--Savitsky sandwich UQ, finite-sample $(\epsilon_{\mathbf{x}}(\eta), \delta_{\text{target}})$-DP \texttt{fit\_dp\_lbbnn()}, and composite propensity losses (\texttt{STACK}, \texttt{LINK1/2}, \texttt{MIP}, \texttt{PSEUDO}) in \texttt{LBBNN} (v0.2.0).
   \item \textbf{Pros}:
   \begin{itemize}
     \scriptsize
@@ -1311,7 +1374,7 @@ y_bar_hajek <- hajek_estimate(y = pop$y[pop$I.c == 1], pi_hat = pi_c_hat, dirich
   \begin{itemize}
     \scriptsize
     \item Tailored identity for official statistics agencies (BLS, Census, Statistics Norway, Eurostat).
-    \item Room to expand survey-specific tooling (Fay–Herriot small area models, Fellegi–Sunter linkage bridges, complex multi-stage bootstrap replicates, two-head joint architectures) on an independent release cycle.
+    \item Room to expand hierarchical unit-truth $\theta_i$ sandwich estimators, Fay--Herriot small area models, Fellegi--Sunter linkage bridges, and multi-stage bootstrap replicates.
   \end{itemize}
   \item \textbf{Cons}:
   \begin{itemize}
@@ -1330,7 +1393,8 @@ y_bar_hajek <- hajek_estimate(y = pop$y[pop$I.c == 1], pi_hat = pi_c_hat, dirich
 \begin{column}{0.50\textwidth}
 \tiny
 \begin{enumerate}
-  \setlength{\itemsep}{1.5pt}
+  \setlength{\itemsep}{1.0pt}
+  \item \textbf{Azizi, L., Savitsky, T. D., Williams, M. R., \& Chatterjee, S.} (2026). \textit{Fast-computing finite-sample differential privacy bounds for the pseudo-posterior mechanism}. Working Paper, U.S. BLS.
   \item \textbf{Beresovsky, V., Gershunskaya, J., \& Savitsky, T. D.} (2024). \textit{Review of quasi-randomization approaches for estimation from non-probability samples}. Statistical Science (arXiv:2312.05383).
   \item \textbf{Savitsky, T. D., Williams, M. R., \& Hu, J.} (2022). \textit{Bayesian pseudo posterior mechanism under asymptotic differential privacy}. Journal of Machine Learning Research, 23(232), 1--37.
   \item \textbf{Savitsky, T. D., \& Toth, D.} (2016). \textit{Bayesian estimation under informative sampling}. Electronic Journal of Statistics, 10(1), 1677--1708.
@@ -1343,8 +1407,9 @@ y_bar_hajek <- hajek_estimate(y = pop$y[pop$I.c == 1], pi_hat = pi_c_hat, dirich
 \begin{column}{0.50\textwidth}
 \tiny
 \begin{enumerate}
-  \setlength{\itemsep}{1.5pt}
-  \setcounter{enumi}{5}
+  \setlength{\itemsep}{1.0pt}
+  \setcounter{enumi}{6}
+  \item \textbf{Williams, M. R., \& Savitsky, T. D.} (2021). \textit{Uncertainty quantification for pseudo-Bayesian estimation under informative sampling}. International Statistical Review, 89(1), 72--107.
   \item \textbf{Chen, Y., Li, P., \& Wu, C.} (2020). \textit{Doubly robust inference with nonprobability survey samples}. Journal of the American Statistical Association, 115(532), 2011--2021.
   \item \textbf{Skaaret-Lund, L., H{\o}yheim, E., \& Hubin, A.} (2026). \textit{LBBNN: An R Package for Sparse and Explainable Bayesian Deep Learning with Latent Binary Bayesian Neural Networks}. The R Journal, 18(3), RJ-2026-048.
   \item \textbf{Hubin, A., \& Storvik, G.} (2024). \textit{Sparse Bayesian neural networks: Bridging model and parameter uncertainty through scalable variational learning}. Mathematics, 12(6), 788.

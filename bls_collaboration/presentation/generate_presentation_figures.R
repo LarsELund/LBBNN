@@ -607,6 +607,205 @@ p26_grid <- plot_grid(p26_a + theme(legend.position = "none"),
                       ncol = 2, rel_widths = c(1, 1))
 p_slide26 <- plot_grid(p26_grid, p26_legend, ncol = 1, rel_heights = c(1, 0.12))
 save_fig("track2_study3_bars.pdf", p_slide26, width = 9.5, height = 2.80)
-cat("[10/10] track2_study3_bars.pdf generated (all methods x propensity combinations).\n")
+cat("[10/12] track2_study3_bars.pdf generated (all methods x propensity combinations).\n")
 
-cat("All 10 figures generated successfully!\n")
+
+# -------------------------------------------------------------
+# 11. Slide 15: Track 1A Frequentist Coverage Comparison (figures/track1_coverage_comparison.pdf)
+# -------------------------------------------------------------
+cov_rds <- if (file.exists("coverage_benchmark_data.rds")) {
+  "coverage_benchmark_data.rds"
+} else {
+  file.path(dirname(fig_dir), "coverage_benchmark_data.rds")
+}
+if (!file.exists(cov_rds)) {
+  stop("Missing coverage_benchmark_data.rds; run run_coverage_benchmark_lbbnn(M_MC = 50) first.")
+}
+cov_bench <- readRDS(cov_rds)
+
+# Panel A: Domain Summary Estimators (Unadjusted vs Dirichlet Bootstrap)
+dom_long <- rbind(
+  data.frame(
+    Target = cov_bench$domain_coverage$Domain,
+    Method = "Unadjusted (dirichlet_uq = FALSE)",
+    Coverage = cov_bench$domain_coverage$Unadj_Coverage * 100
+  ),
+  data.frame(
+    Target = cov_bench$domain_coverage$Domain,
+    Method = "Corrected (Dirichlet Bootstrap)",
+    Coverage = cov_bench$domain_coverage$Dirichlet_Coverage * 100
+  )
+)
+dom_long$Target <- factor(
+  dom_long$Target,
+  levels = c("Region_North", "Region_Central", "Region_South", "Population"),
+  labels = c("North", "Central", "South", "Population")
+)
+dom_long$Method <- factor(
+  dom_long$Method,
+  levels = c("Unadjusted (dirichlet_uq = FALSE)", "Corrected (Dirichlet Bootstrap)")
+)
+
+p_cov_a <- ggplot(dom_long, aes(x = Target, y = Coverage, fill = Method)) +
+  geom_col(position = position_dodge(width = 0.72), width = 0.64) +
+  geom_hline(yintercept = 95, linetype = "dashed", color = "#c0392b", linewidth = 0.7) +
+  geom_text(
+    aes(label = sprintf("%.0f%%", Coverage)),
+    position = position_dodge(width = 0.72),
+    vjust = -0.5, size = 2.4, fontface = "bold"
+  ) +
+  scale_fill_manual(values = c(
+    "Unadjusted (dirichlet_uq = FALSE)" = "#95a5a6",
+    "Corrected (Dirichlet Bootstrap)"   = "#2980b9"
+  )) +
+  scale_y_continuous(limits = c(0, 112), breaks = c(0, 25, 50, 75, 95)) +
+  labs(
+    title = sprintf("Panel A: Domain Summary Means (Avg: %.1f%% -> %.1f%%)",
+                    cov_bench$overall_summary$Coverage_Unadjusted[1] * 100,
+                    cov_bench$overall_summary$Coverage_Corrected[1] * 100),
+    subtitle = "M_MC = 50 informative samples; Dirichlet bootstrap matches P_nu variance",
+    x = "", y = "95% CI Coverage (%)"
+  ) +
+  theme_minimal(base_size = 8.5) +
+  theme(
+    legend.position = "bottom",
+    legend.title = element_blank(),
+    legend.text = element_text(size = 7.5),
+    legend.key.size = unit(0.32, "cm"),
+    plot.title = element_text(size = 8.5, face = "bold"),
+    plot.subtitle = element_text(size = 7.0, color = "#2c3e50"),
+    plot.margin = margin(5, 6, 4, 5)
+  )
+
+# Panel B: Active MPM Slab Parameters (Representative + All Slab Avg)
+slab_tab <- cov_bench$slab_coverage
+keep_slab <- c("Intercept", "Skip_x1", "Skip_x2", "Hidden_h1", "Hidden_h2")
+slab_sub <- slab_tab[slab_tab$Parameter %in% keep_slab, , drop = FALSE]
+slab_avg <- data.frame(
+  Parameter = "All 9 Slab Avg",
+  Unadj_Coverage = cov_bench$overall_summary$Coverage_Unadjusted[2],
+  Sandwich_Coverage = cov_bench$overall_summary$Coverage_Corrected[2]
+)
+slab_show <- rbind(
+  slab_sub[, c("Parameter", "Unadj_Coverage", "Sandwich_Coverage")],
+  slab_avg
+)
+slab_long <- rbind(
+  data.frame(
+    Parameter = slab_show$Parameter,
+    Method = "Unadjusted VI (Sigma_1)",
+    Coverage = slab_show$Unadj_Coverage * 100
+  ),
+  data.frame(
+    Parameter = slab_show$Parameter,
+    Method = "Williams-Savitsky Sandwich",
+    Coverage = slab_show$Sandwich_Coverage * 100
+  )
+)
+slab_long$Parameter <- factor(
+  slab_long$Parameter,
+  levels = c("Skip_x1", "Skip_x2", "Intercept", "Hidden_h1", "Hidden_h2", "All 9 Slab Avg"),
+  labels = c("Skip X1", "Skip X2", "Interc.", "Hid h1", "Hid h2", "All 9 Avg")
+)
+slab_long$Method <- factor(
+  slab_long$Method,
+  levels = c("Unadjusted VI (Sigma_1)", "Williams-Savitsky Sandwich")
+)
+
+p_cov_b <- ggplot(slab_long, aes(x = Parameter, y = Coverage, fill = Method)) +
+  geom_col(position = position_dodge(width = 0.72), width = 0.64) +
+  geom_hline(yintercept = 95, linetype = "dashed", color = "#c0392b", linewidth = 0.7) +
+  geom_text(
+    aes(label = sprintf("%.0f%%", Coverage)),
+    position = position_dodge(width = 0.72),
+    vjust = -0.5, size = 2.2, fontface = "bold"
+  ) +
+  scale_fill_manual(values = c(
+    "Unadjusted VI (Sigma_1)"    = "#95a5a6",
+    "Williams-Savitsky Sandwich" = "#27ae60"
+  )) +
+  scale_y_continuous(limits = c(0, 112), breaks = c(0, 25, 50, 75, 95)) +
+  labs(
+    title = sprintf("Panel B: Active MPM Slab Params (Avg: %.1f%% -> %.1f%%)",
+                    cov_bench$overall_summary$Coverage_Unadjusted[2] * 100,
+                    cov_bench$overall_summary$Coverage_Corrected[2] * 100),
+    subtitle = "Conditioned on MPM active paths; Cholesky R2^T R1^{-T} corrects VI & DEFF",
+    x = "", y = "95% CI Coverage (%)"
+  ) +
+  theme_minimal(base_size = 8.5) +
+  theme(
+    legend.position = "bottom",
+    legend.title = element_blank(),
+    legend.text = element_text(size = 7.5),
+    legend.key.size = unit(0.32, "cm"),
+    plot.title = element_text(size = 8.5, face = "bold"),
+    plot.subtitle = element_text(size = 7.0, color = "#27ae60"),
+    plot.margin = margin(5, 6, 4, 5)
+  )
+
+p_cov_grid <- plot_grid(p_cov_a, p_cov_b, ncol = 2, rel_widths = c(0.95, 1.15))
+save_fig("track1_coverage_comparison.pdf", p_cov_grid, width = 9.5, height = 2.85)
+cat("[11/12] track1_coverage_comparison.pdf generated.\n")
+
+
+# -------------------------------------------------------------
+# 12. Slide 23: Track 1B Finite-Sample (eps, delta)-DP Calibration (figures/track1_dp_nugget_calibration.pdf)
+# -------------------------------------------------------------
+dp_cal <- calibrate_dp_finite_sample(
+  dp_fit       = dp_results,
+  X            = x_dp,
+  y            = log_y_dp,
+  R            = 200,
+  B            = 100,
+  delta_target = c(0.10, 0.05, 0.01),
+  seed         = 2026
+)
+saveRDS(
+  dp_cal,
+  file = if (dir.exists(dirname(cov_rds))) file.path(dirname(cov_rds), "dp_cal_data.rds") else "dp_cal_data.rds"
+)
+
+cat("\n--- DP Finite-Sample Calibration Results (Presentation dp_results) ---\n")
+cat(sprintf("Observed Delta_{alpha, x} = %.4f, eps_obs = %.4f, delta_hat(0) = %.3f\n",
+            dp_cal$delta_alpha_obs, dp_cal$epsilon_obs, dp_cal$delta_hat_0))
+print(dp_cal$calibration_table)
+
+row_05 <- dp_cal$calibration_table[which.min(abs(dp_cal$calibration_table$delta_target - 0.05)), ]
+row_01 <- dp_cal$calibration_table[which.min(abs(dp_cal$calibration_table$delta_target - 0.01)), ]
+
+df_rep_hist <- data.frame(delta_rep = dp_cal$delta_rep_vec)
+p_dp_cal <- ggplot(df_rep_hist, aes(x = delta_rep)) +
+  geom_histogram(aes(y = after_stat(density)), bins = 24, fill = "#bdc3c7", color = "white", alpha = 0.85) +
+  geom_density(color = "#2c3e50", linewidth = 0.85) +
+  geom_vline(xintercept = dp_cal$delta_alpha_obs, color = "#e67e22", linetype = "solid", linewidth = 1.0) +
+  geom_vline(xintercept = row_05$delta_alpha_eta, color = "#2980b9", linetype = "dashed", linewidth = 1.0) +
+  geom_vline(xintercept = row_01$delta_alpha_eta, color = "#c0392b", linetype = "dotted", linewidth = 1.1) +
+  annotate("label", x = dp_cal$delta_alpha_obs, y = 0.96, hjust = 1.05, vjust = 1,
+           label = sprintf("Obs = %.2f\n(delta0 = %.3f)", dp_cal$delta_alpha_obs, dp_cal$delta_hat_0),
+           color = "#d35400", fill = "white", label.size = 0, size = 2.5, fontface = "bold") +
+  annotate("label", x = row_05$delta_alpha_eta, y = 0.82, hjust = 1.05, vjust = 1,
+           label = sprintf("delta = 0.05\n(eta = +%.2f)", row_05$eta_nugget),
+           color = "#2980b9", fill = "white", label.size = 0, size = 2.4, fontface = "bold") +
+  annotate("label", x = row_01$delta_alpha_eta, y = 0.56, hjust = -0.05, vjust = 1,
+           label = sprintf("delta = 0.01\n(eta = +%.2f)", row_01$eta_nugget),
+           color = "#c0392b", fill = "white", label.size = 0, size = 2.4, fontface = "bold") +
+  scale_x_continuous(expand = expansion(mult = c(0.05, 0.14))) +
+  scale_y_continuous(limits = c(0, 1.08), expand = c(0, 0)) +
+  labs(
+    title = "Replicate Sensitivity Distribution (R = 200 Dual-Support Plug-in, Zero Retraining)",
+    subtitle = sprintf("Unadjusted eps_x = %.2f leaks with delta_hat(0) = %.3f; calibrated eps_x(eta) = %.2f at delta = 0.05",
+                       dp_cal$epsilon_obs, dp_cal$delta_hat_0, row_05$epsilon_eta),
+    x = "Replicate Weighted Sensitivity Delta_{alpha, x_r}",
+    y = "Density"
+  ) +
+  theme_minimal(base_size = 8.5) +
+  theme(
+    plot.title = element_text(size = 8.8, face = "bold"),
+    plot.subtitle = element_text(size = 7.4, color = "#2c3e50"),
+    plot.margin = margin(6, 10, 5, 6)
+  )
+
+save_fig("track1_dp_nugget_calibration.pdf", p_dp_cal, width = 6.2, height = 3.35)
+cat("[12/12] track1_dp_nugget_calibration.pdf generated.\n")
+
+cat("All 12 figures generated successfully!\n")
