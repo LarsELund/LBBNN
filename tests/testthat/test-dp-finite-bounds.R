@@ -98,6 +98,13 @@ test_that("calibrate_dp_finite_sample returns valid finite-sample bounds and mon
 
   expect_true(!is.null(dp_fit$M_thresh))
   expect_equal(dp_fit$M_thresh, 3.5)
+  expect_true(is.matrix(dp_fit$support_pass1))
+  expect_true(is.matrix(dp_fit$support_pass2))
+  expect_equal(dim(dp_fit$support_pass1), c(30L, n))
+  expect_equal(dim(dp_fit$support_pass2), c(30L, n))
+  L2_direct <- eval_support_abs_loglik(dp_fit$support_pass2, y, problem_type = "regression", sigma = dp_fit$sigma_p1)
+  expect_equal(dp_fit$delta_alpha, max(sweep(L2_direct, 2, dp_fit$alpha, `*`)), tolerance = 1e-10)
+  expect_lte(dp_fit$delta_alpha, 3.5 + 1e-9)
 
   deltas <- c(0.10, 0.05, 0.01)
   cal <- calibrate_dp_finite_sample(
@@ -105,10 +112,12 @@ test_that("calibrate_dp_finite_sample returns valid finite-sample bounds and mon
     X            = X_mat,
     y            = y,
     R            = 100,
-    B            = 25,
+    B            = 30,
     delta_target = deltas,
     seed         = 2026
   )
+
+  expect_equal(cal$delta_alpha_obs, dp_fit$delta_alpha, tolerance = 1e-10)
 
   expect_true(is.finite(cal$delta_alpha_obs) && cal$delta_alpha_obs > 0)
   expect_equal(cal$epsilon_obs, 2 * cal$delta_alpha_obs, tolerance = 1e-10)

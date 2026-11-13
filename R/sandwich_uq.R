@@ -64,24 +64,27 @@
 #' @param active_cutoff Posterior inclusion probability cutoff defining the slab (default 0.5).
 #' @param level Credible interval level (default 0.95).
 #' @param sigma Optional numeric residual scale argument retained for API compatibility.
-#'   Internally, \code{adjust_slab_sandwich_lbbnn()} evaluates the weighted empirical
-#'   residual variance \eqn{\hat{\sigma}_w^2 = \sum \tilde{w}_i (y_i - \hat{\mu}_i)^2 / \sum \tilde{w}_i}
-#'   on the active MPM predictions and uses \eqn{\sigma_{\text{bread}}^2 = \hat{\sigma}_w^2}
-#'   consistently across both \eqn{H_1} and \eqn{J_2} so \code{Survey_DEFF} isolates
-#'   the pure complex survey design effect.
+#'   Internally, \code{adjust_slab_sandwich_lbbnn()} evaluates the degrees-of-freedom adjusted
+#'   weighted empirical residual variance
+#'   \eqn{\hat{\sigma}_w^2 = \sum \tilde{w}_i (y_i - \hat{\mu}_i)^2 / \max(1, n - K_{\mathrm{act}})}
+#'   on the active MPM predictions and uses \eqn{\hat{\sigma}_w^2} consistently in the
+#'   weighted bread \eqn{H_1}, design meat \eqn{J_{2,\mathrm{reg}} = J_2 + \Lambda_{\mathrm{prior}}},
+#'   and unweighted SRS sandwich baseline \eqn{\Sigma_{\mathrm{SRS}} = H_{\mathrm{SRS}}^{-1} J_{\mathrm{SRS}} H_{\mathrm{SRS}}^{-1}}
+#'   so \code{Survey_DEFF} isolates the pure complex survey design effect (identically 1.000 under equal weights).
 #' @param seed Random seed (default 2026).
 #' @return A list containing:
 #'   \itemize{
 #'     \item \code{summary_table}: Data frame comparing unadjusted mean-field VI SDs (\code{Unadj_SD}),
-#'       inverse-Hessian curvature/collinearity SDs (\code{Hessian_SD}), Williams-Savitsky sandwich SDs
-#'       (\code{Sandwich_SD}), pure survey design effects (\code{Survey_DEFF = var_sand / var_hess},
+#'       unweighted SRS baseline sandwich SDs (\code{Hessian_SD}), Williams-Savitsky sandwich SDs
+#'       (\code{Sandwich_SD}), pure survey design effects (\code{Survey_DEFF = var_sand / var_srs},
 #'       also aliased as \code{DEFF_Ratio}), and credible intervals.
 #'     \item \code{draws_unadjusted}: Matrix \code{[draws, d_slab]} of raw variational slab draws.
 #'     \item \code{draws_adjusted}: Matrix \code{[draws, d_slab]} of transported slab draws \code{theta^*}.
 #'     \item \code{Sigma_1}: Unadjusted posterior covariance matrix \code{R_1^T R_1}.
 #'     \item \code{H1_bread}: Bread matrix (weighted observed Fisher information) \code{H_1}.
-#'     \item \code{J2_meat}: Meat matrix (design-based weighted score covariance) \code{J_2}.
-#'     \item \code{Sigma_sandwich}: Target sandwich covariance matrix \code{H_1^{-1} J_2 H_1^{-1} = R_2^T R_2}.
+#'     \item \code{J2_meat}: Prior-regularized meat matrix \code{J_2 + Lambda_prior}.
+#'     \item \code{Sigma_sandwich}: Target sandwich covariance matrix \eqn{H_1^{-1} J_{2,\mathrm{reg}} H_1^{-1} = R_2^\top R_2}.
+#'     \item \code{Sigma_srs}: Unweighted SRS baseline sandwich covariance matrix \eqn{H_{\mathrm{SRS}}^{-1} J_{\mathrm{SRS}} H_{\mathrm{SRS}}^{-1}}.
 #'     \item \code{R1}: Cholesky factor of \code{Sigma_1}.
 #'     \item \code{R2}: Cholesky factor of \code{Sigma_sandwich}.
 #'   }
@@ -202,26 +205,39 @@ adjust_slab_sandwich_lbbnn <- function(object,
     Sigma_1 <- Sigma_1 + diag(1e-8, d_slab)
   }
 
-  # 1. Evaluate active MPM predictions and weighted empirical residual variance
-  #    Using sigma_bread^2 = sigma_w^2 consistently in H_1 and J_2 isolates
-  #    the pure complex survey design effect (Survey_DEFF) from sigma mismatch.
-  mu_pred   <- as.numeric(H_active %*% theta_mean_vi)
-  resid_i   <- y_vec - mu_pred
-  sigma_w2  <- max(sum(w_tilde * (resid_i^2)) / sum(w_tilde), 1e-8)
+  # 1. Evaluate active MPM predictions and DoF-adjusted weighted empirical residual variance
+  #    Using empirical sigma_w^2 consistently in H_1, J_{2,reg}, H_SRS, and J_SRS
+  #    isolates the pure complex survey design effect (identically 1.000 under equal weights).
+  mu_pred      <- as.numeric(H_active %*% theta_mean_vi)
+  resid_i      <- y_vec - mu_pred
+  dof_denom    <- max(1.0, as.numeric(n - d_slab))
+  sigma_w2     <- max(sum(w_tilde * (resid_i^2)) / dof_denom, 1e-8)
+  Lambda_prior <- diag(1.0 / (prior_sd_slab^2), d_slab)
 
-  # 2. Bread Matrix H_1: Weighted observed Fisher information + prior precision
-  W_diag   <- w_tilde / sigma_w2
-  H1_bread <- crossprod(H_active, H_active * W_diag) + diag(1.0 / (prior_sd_slab^2), d_slab)
+  # 2. Weighted Bread H_1 & Unweighted SRS Baseline Bread H_SRS
+  H1_bread <- crossprod(H_active, H_active * (w_tilde / sigma_w2)) + Lambda_prior
   H1_bread <- 0.5 * (H1_bread + t(H1_bread))
-  H1_inv   <- solve(H1_bread + diag(1e-8, d_slab))
+  H1_inv   <- solve(H1_bread + diag(1e-10, d_slab))
 
-  # 3. Meat Matrix J_2: Design-based covariance of centered weighted score contributions
-  # Unit score: g_i = ((y_i - mu_i) / sigma_w2) * nabla mu_i; u_i = w_tilde_i * g_i
-  score_mat <- H_active * (w_tilde * resid_i / sigma_w2)
+  H_srs     <- crossprod(H_active) / sigma_w2 + Lambda_prior
+  H_srs     <- 0.5 * (H_srs + t(H_srs))
+  H_srs_inv <- solve(H_srs + diag(1e-10, d_slab))
+
+  # 3. Unweighted Unit Scores g_i & Prior-Regularized SRS Baseline Sandwich Sigma_SRS
+  g_mat      <- H_active * (resid_i / sigma_w2)
+  g_centered <- scale(g_mat, center = TRUE, scale = FALSE)
+  J_srs      <- (n / (n - 1)) * crossprod(g_centered) + Lambda_prior
+  J_srs      <- 0.5 * (J_srs + t(J_srs))
+  Sigma_srs  <- H_srs_inv %*% J_srs %*% H_srs_inv
+  Sigma_srs  <- 0.5 * (Sigma_srs + t(Sigma_srs))
+
+  # 4. Prior-Regularized Design Meat J_{2,reg} = J_2 + Lambda_prior
+  #    Weighted unit score contributions: u_i = w_tilde_i * g_i
+  score_mat <- g_mat * w_tilde
 
   if (is.null(psu) && is.null(strata)) {
     score_centered <- scale(score_mat, center = TRUE, scale = FALSE)
-    J2_meat <- (n / (n - 1)) * crossprod(score_centered) + diag(1e-10, d_slab)
+    J2_meat <- (n / (n - 1)) * crossprod(score_centered) + Lambda_prior
   } else {
     strata_id <- if (is.null(strata)) factor(rep(1L, n)) else as.factor(strata)
     psu_id    <- if (is.null(psu)) seq_len(n) else psu
@@ -236,15 +252,15 @@ adjust_slab_sandwich_lbbnn <- function(object,
         J2_meat      <- J2_meat + (k_h / (k_h - 1)) * crossprod(psu_centered)
       }
     }
-    J2_meat <- J2_meat + diag(1e-10, d_slab)
+    J2_meat <- J2_meat + Lambda_prior
   }
   J2_meat <- 0.5 * (J2_meat + t(J2_meat))
 
-  # 3. Sandwich Covariance Target: Sigma_sand = H_1^{-1} J_2 H_1^{-1}
+  # 5. Design-Based Sandwich Covariance Target: Sigma_sand = H_1^{-1} J_{2,reg} H_1^{-1}
   Sigma_sandwich <- H1_inv %*% J2_meat %*% H1_inv
   Sigma_sandwich <- 0.5 * (Sigma_sandwich + t(Sigma_sandwich))
 
-  # 4. Williams & Savitsky (2021, Eq. 12) Scale-and-Shape Cholesky Projection:
+  # 6. Williams & Savitsky (2021, Eq. 12) Scale-and-Shape Cholesky Projection:
   # theta^{*(s)} = theta_hat + R_2^T R_1^{-T} (theta^{(s)} - theta_hat)
   R1 <- .safe_chol(Sigma_1)
   R2 <- .safe_chol(Sigma_sandwich)
@@ -260,12 +276,12 @@ adjust_slab_sandwich_lbbnn <- function(object,
   q_adj   <- apply(draws_adj,   2, stats::quantile, probs = c(alpha_tail, 1.0 - alpha_tail))
 
   var_unadj   <- diag(Sigma_1)
-  var_hess    <- diag(H1_inv)
+  var_srs     <- diag(Sigma_srs)
   var_sand    <- diag(Sigma_sandwich)
-  sd_unadj    <- sqrt(var_unadj)
-  sd_hess     <- sqrt(pmax(var_hess, 0.0))
-  sd_sand     <- sqrt(var_sand)
-  survey_deff <- var_sand / pmax(var_hess, 1e-12)
+  sd_unadj    <- sqrt(pmax(var_unadj, 0.0))
+  sd_hess     <- sqrt(pmax(var_srs, 0.0))
+  sd_sand     <- sqrt(pmax(var_sand, 0.0))
+  survey_deff <- var_sand / pmax(var_srs, 1e-12)
 
   summary_tbl <- data.frame(
     Parameter   = param_names,
@@ -291,6 +307,7 @@ adjust_slab_sandwich_lbbnn <- function(object,
     H1_bread         = H1_bread,
     J2_meat          = J2_meat,
     Sigma_sandwich   = Sigma_sandwich,
+    Sigma_srs        = Sigma_srs,
     R1               = R1,
     R2               = R2
   )

@@ -290,10 +290,10 @@ util_bar_df <- data.frame(
   Value = c(
     6.70, 7.23, 4.10, 14.40,
     11.30, 46.75, 4.16, 14.96,
-    7.13, 8.92, 4.37, 15.66,
-    7.05, 8.45, 4.32, 15.10,
-    7.42, 9.85, 4.40, 16.20,
-    8.95, 16.40, 4.58, 18.90
+    7.65, 9.68, 4.58, 16.60,
+    6.77, 7.60, 4.35, 14.25,
+    7.11, 9.16, 4.20, 15.42,
+    7.99, 11.18, 4.47, 17.17
   )
 )
 
@@ -325,7 +325,7 @@ y_clean_dp <- y_dp
 y_clean_dp[outlier_idx] <- y_clean_dp[outlier_idx] / 8.0
 
 set.seed(42)
-y_synth_vec <- exp(rnorm(n_dp, log(7.13) - 0.5 * 0.44^2, 0.44))
+y_synth_vec <- sample_synthetic_lbbnn(dp_results, newdata = x_dp, draws = 1, log_scale = TRUE)[, 1]
 y_synth_pct <- exp(rnorm(n_dp, log(7.05) - 0.5 * 0.41^2, 0.41))
 y_synth_lin <- exp(rnorm(n_dp, log(7.42) - 0.5 * 0.48^2, 0.48))
 y_synth_recip <- exp(rnorm(n_dp, log(8.95) - 0.5 * 0.55^2, 0.55))
@@ -466,10 +466,10 @@ p_slide24 <- ggplot(s1_vars, aes(x = Prob, y = Variable, color = Status)) +
     legend.text = element_text(size = 8),
     plot.title = element_text(size = 9.5, face = "bold", margin = margin(b = 4)),
     plot.subtitle = element_text(size = 7.5),
-    plot.margin = margin(t = 16, r = 10, b = 14, l = 10)
+    plot.margin = margin(t = 18, r = 12, b = 12, l = 10)
   )
 
-save_fig("track2_study1_lollipop.pdf", p_slide24, width = 5.6, height = 3.8)
+save_fig("track2_study1_lollipop.pdf", p_slide24, width = 5.5, height = 4.2)
 cat("[8/10] track2_study1_lollipop.pdf generated.\n")
 
 
@@ -678,7 +678,7 @@ p_cov_a <- ggplot(dom_long, aes(x = Target, y = Coverage, fill = Method)) +
     legend.margin = margin(t = 2, r = 0, b = 8, l = 0),
     plot.title = element_text(size = 8.5, face = "bold"),
     plot.subtitle = element_text(size = 7.0, color = "#2c3e50"),
-    plot.margin = margin(t = 14, r = 10, b = 18, l = 10)
+    plot.margin = margin(t = 18, r = 10, b = 18, l = 10)
   )
 
 # Panel B: Active MPM Slab Parameters (Representative + All Slab Avg)
@@ -745,11 +745,11 @@ p_cov_b <- ggplot(slab_long, aes(x = Parameter, y = Coverage, fill = Method)) +
     legend.margin = margin(t = 2, r = 0, b = 8, l = 0),
     plot.title = element_text(size = 8.5, face = "bold"),
     plot.subtitle = element_text(size = 7.0, color = "#27ae60"),
-    plot.margin = margin(t = 14, r = 10, b = 18, l = 10)
+    plot.margin = margin(t = 18, r = 10, b = 18, l = 10)
   )
 
 p_cov_grid <- plot_grid(p_cov_a, p_cov_b, ncol = 2, rel_widths = c(0.95, 1.15))
-save_fig("track1_coverage_comparison.pdf", p_cov_grid, width = 9.6, height = 3.8)
+save_fig("track1_coverage_comparison.pdf", p_cov_grid, width = 10.5, height = 4.6)
 cat("[11/12] track1_coverage_comparison.pdf generated.\n")
 
 
@@ -794,10 +794,10 @@ p_dp_cal <- ggplot(df_rep_hist, aes(x = delta_rep)) +
   annotate("label", x = row_05$delta_alpha_eta, y = 0.80, hjust = 1.05, vjust = 1,
            label = sprintf("delta == '0.05' ~ '(' * eta == '+%.2f' * ')'", row_05$eta_nugget),
            parse = TRUE, color = "#2980b9", fill = "white", size = 2.4, fontface = "bold") +
-  annotate("label", x = row_01$delta_alpha_eta, y = 0.56, hjust = -0.05, vjust = 1,
+  annotate("label", x = row_01$delta_alpha_eta, y = 0.56, hjust = 1.05, vjust = 1,
            label = sprintf("delta == '0.01' ~ '(' * eta == '+%.2f' * ')'", row_01$eta_nugget),
            parse = TRUE, color = "#c0392b", fill = "white", size = 2.4, fontface = "bold") +
-  scale_x_continuous(expand = expansion(mult = c(0.06, 0.16))) +
+  scale_x_continuous(expand = expansion(mult = c(0.06, 0.10))) +
   scale_y_continuous(limits = c(0, 1.08), expand = c(0, 0)) +
   labs(
     title = "Replicate Sensitivity Distribution (R = 200 Dual-Support Plug-in)",

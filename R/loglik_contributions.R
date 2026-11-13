@@ -292,6 +292,8 @@ compute_dp_weights <- function(
 #'     \item{L_pass1}{Log-likelihood contributions matrix from Pass 1.}
 #'     \item{L_pass2}{Log-likelihood contributions matrix from Pass 2.}
 #'     \item{L_pass3}{Log-likelihood contributions matrix from Pass 3 (if vector_upscale was used).}
+#'     \item{support_pass1}{Matrix \code{[S, n]} of saved Pass 1 conditional mean/probability support draws \eqn{\Theta^{(1)}}.}
+#'     \item{support_pass2}{Matrix \code{[S, n]} of saved final weighted conditional mean/probability support draws \eqn{\Theta_\alpha^{(2)}}.}
 #'     \item{dp_weights_info}{List output from \code{compute_dp_weights()}.}
 #'   }
 #' @export
@@ -313,11 +315,18 @@ fit_dp_lbbnn <- function(
   y_vec <- if (is.matrix(y)) y else as.numeric(y)
 
   # Factory to construct fresh model instances
-  create_model <- function() {
+  create_model <- function(sigma_override = NULL) {
     if (is.function(model_spec)) {
-      return(model_spec())
+      mdl <- model_spec()
+      if (!is.null(sigma_override) && identical(mdl$problem_type, "regression")) {
+        mdl$sigma <- sigma_override
+      }
+      return(mdl)
     } else if (is.list(model_spec)) {
       spec <- model_spec
+      if (!is.null(sigma_override) && identical(spec$problem_type, "regression")) {
+        spec$sigma <- sigma_override
+      }
       if (!is.null(spec$sizes)) {
         num_layers <- length(spec$sizes) - 1
         if (is.null(spec$prior)) spec$prior <- rep(0.5, num_layers)
@@ -341,6 +350,7 @@ fit_dp_lbbnn <- function(
         custom_act = model_spec$act,
         link = model_spec$link,
         nll = model_spec$nll,
+        sigma = if (!is.null(sigma_override)) sigma_override else model_spec$sigma,
         bias_inclusion_prob = model_spec$bias_inclusion_prob,
         weight_init = model_spec$weight_init
       ))
@@ -386,10 +396,26 @@ fit_dp_lbbnn <- function(
     sigma <- sigma_p1
   }
 
-  # 2. Record Sensitivity Matrix from Pass 1
+  raw_ptype <- model_pass1$problem_type
+  ptype_sup <- if (identical(raw_ptype, "regression")) {
+    "regression"
+  } else if (identical(raw_ptype, "binary classification")) {
+    "binary"
+  } else {
+    NULL
+  }
+  link_fn <- if (identical(ptype_sup, "binary")) torch::torch_sigmoid else NULL
+
+  # 2. Extract and save Pass 1 Support Theta^{(1)} & Record Sensitivity Matrix L^{(1)}
   if (verbose) message("Extracting record-level sensitivities from Pass 1...")
-  L_mat <- loglik_contributions(model_pass1, eval_dl, draws = S, mpm = FALSE,
-                                sigma = sigma, device = device)
+  if (!is.null(ptype_sup)) {
+    support_pass1 <- extract_lbbnn_support(model_pass1, X_mat, B = S, mpm = FALSE, link = link_fn)
+    L_mat <- .eval_support_loglik(support_pass1, y_vec, problem_type = ptype_sup, sigma = sigma)
+  } else {
+    support_pass1 <- NULL
+    L_mat <- loglik_contributions(model_pass1, eval_dl, draws = S, mpm = FALSE,
+                                  sigma = sigma, device = device)
+  }
   f_vec <- apply(abs(L_mat), 2, max)
 
   # 3. Two-Stage Privacy Weights
@@ -406,32 +432,35 @@ fit_dp_lbbnn <- function(
   )
   alpha <- dp_info$alpha
 
-  # 4. Pass 2: Fit Weighted Model
+  # 4. Pass 2: Fit Weighted Model (fixed Pass 1 residual scale sigma)
   if (verbose) message("Starting Pass 2 (Alpha-Weighted LBBNN)...")
   t_w_alpha <- torch::torch_tensor(as.numeric(alpha), dtype = torch::torch_float32())
   ds_pass2 <- torch::tensor_dataset(t_x, t_y, t_w_alpha)
   dl_pass2 <- torch::dataloader(ds_pass2, batch_size = min(batch_size, n), shuffle = TRUE)
 
-  model_spec_p2 <- model_spec
-  if (identical(model_spec_p2$problem_type, "regression") && !is.null(sigma)) {
-    model_spec_p2$sigma <- sigma
-  }
-  model_pass2 <- do.call(lbbnn_net, model_spec_p2)
+  model_pass2 <- create_model(sigma_override = sigma)
   train_lbbnn(epochs = epochs, LBBNN = model_pass2, lr = lr,
               train_dl = dl_pass2, device = device, verbose = verbose, ...)
 
-  L_pass2 <- loglik_contributions(model_pass2, eval_dl, draws = S, mpm = FALSE,
-                                  sigma = sigma, device = device)
+  if (!is.null(ptype_sup)) {
+    support_p2 <- extract_lbbnn_support(model_pass2, X_mat, B = S, mpm = FALSE, link = link_fn)
+    L_pass2    <- .eval_support_loglik(support_p2, y_vec, problem_type = ptype_sup, sigma = sigma)
+  } else {
+    support_p2 <- NULL
+    L_pass2    <- loglik_contributions(model_pass2, eval_dl, draws = S, mpm = FALSE,
+                                       sigma = sigma, device = device)
+  }
 
   L_pass3 <- NULL
   final_model <- model_pass2
+  support_pass2 <- support_p2
 
   # 5. Optional Pass 3 for Vector Upward Rescaling (Savitsky 2026 requirement)
   if (stage2_method == "vector_upscale" && !is.null(M_thresh) && is.finite(M_thresh)) {
     if (verbose) message("Executing Pass 3 for Vector Upward Rescaling geometry...")
     f_vec_p2 <- apply(abs(L_pass2), 2, max)
     dp_info_p3 <- compute_dp_weights(
-      f_vec = f_vec_p2,
+      f_vec = pmax(f_vec, f_vec_p2),
       stage1_method = stage1_method,
       stage2_method = "vector_upscale",
       c_scale = c_scale,
@@ -447,22 +476,45 @@ fit_dp_lbbnn <- function(
     ds_pass3 <- torch::tensor_dataset(t_x, t_y, t_w_p3)
     dl_pass3 <- torch::dataloader(ds_pass3, batch_size = min(batch_size, n), shuffle = TRUE)
 
-    model_pass3 <- do.call(lbbnn_net, model_spec_p2)
+    model_pass3 <- create_model(sigma_override = sigma)
     train_lbbnn(epochs = epochs, LBBNN = model_pass3, lr = lr,
                 train_dl = dl_pass3, device = device, verbose = verbose, ...)
 
-    L_pass3 <- loglik_contributions(model_pass3, eval_dl, draws = S, mpm = FALSE,
-                                    sigma = sigma, device = device)
+    if (!is.null(ptype_sup)) {
+      support_pass2 <- extract_lbbnn_support(model_pass3, X_mat, B = S, mpm = FALSE, link = link_fn)
+      L_pass3       <- .eval_support_loglik(support_pass2, y_vec, problem_type = ptype_sup, sigma = sigma)
+    } else {
+      L_pass3 <- loglik_contributions(model_pass3, eval_dl, draws = S, mpm = FALSE,
+                                      sigma = sigma, device = device)
+    }
     final_model <- model_pass3
     alpha <- alpha_p3
     dp_info <- dp_info_p3
   }
 
-  # 6. Final Local Lipschitz Bound & DP Guarantee
+  # 6. Joint Pass 1 + Pass 2/3 Bound Verification on Support Theta_\alpha^{(2)} (Zero Post-Hoc Scaling)
   L_final <- if (!is.null(L_pass3)) L_pass3 else L_pass2
+  f_vec_2 <- apply(abs(L_final), 2, max)
+  if (!is.null(M_thresh) && is.finite(M_thresh)) {
+    if (identical(stage2_method, "vector_upscale")) {
+      keep_pos <- dp_info$alpha_stage1 > 0
+      alpha    <- ifelse(keep_pos, pmin(1.0, M_thresh / pmax(f_vec, f_vec_2, 1e-8)), 0.0)
+    } else if (identical(stage1_method, "target_clip")) {
+      cap_val <- if (!is.null(Delta_goal) && is.finite(Delta_goal)) min(Delta_goal, M_thresh) else M_thresh
+      alpha   <- pmin(1.0, cap_val / pmax(f_vec, f_vec_2, 1e-8))
+    } else if (identical(stage2_method, "hard_trunc")) {
+      alpha[alpha * f_vec_2 > M_thresh + 1e-9] <- 0.0
+    } else if (identical(stage2_method, "surgical")) {
+      alpha <- pmin(alpha, M_thresh / pmax(f_vec_2, 1e-8))
+      alpha[f_vec_2 > 3.0 * M_thresh] <- 0.0
+    }
+  }
   L_alpha <- sweep(abs(L_final), 2, alpha, "*")
-  delta_alpha_x <- if (!is.null(M_thresh)) min(max(L_alpha), M_thresh) else max(L_alpha)
+  delta_alpha_x <- max(L_alpha)
   epsilon_x <- 2 * delta_alpha_x
+  dp_info$alpha <- alpha
+  dp_info$delta_alpha <- delta_alpha_x
+  dp_info$epsilon_local <- epsilon_x
 
   # Calibrate inlier residual scale using safe core (alpha >= 0.999):
   # Excludes downweighted extreme outliers to recover the true underlying residual scale
@@ -505,6 +557,8 @@ fit_dp_lbbnn <- function(
     L_pass1 = L_mat,
     L_pass2 = L_pass2,
     L_pass3 = L_pass3,
+    support_pass1 = support_pass1,
+    support_pass2 = support_pass2,
     dp_weights_info = dp_info
   ))
 }

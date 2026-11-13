@@ -40,11 +40,13 @@ for clustered score covariance estimation in \code{J_2} (Williams & Savitsky, 20
 \item{level}{Credible interval level (default 0.95).}
 
 \item{sigma}{Optional numeric residual scale argument retained for API compatibility.
-Internally, \code{adjust_slab_sandwich_lbbnn()} evaluates the weighted empirical
-residual variance \eqn{\hat{\sigma}_w^2 = \sum \tilde{w}_i (y_i - \hat{\mu}_i)^2 / \sum \tilde{w}_i}
-on the active MPM predictions and uses \eqn{\sigma_{\text{bread}}^2 = \hat{\sigma}_w^2}
-consistently across both \eqn{H_1} and \eqn{J_2} so \code{Survey_DEFF} isolates
-the pure complex survey design effect.}
+Internally, \code{adjust_slab_sandwich_lbbnn()} evaluates the degrees-of-freedom adjusted
+weighted empirical residual variance
+\eqn{\hat{\sigma}_w^2 = \sum \tilde{w}_i (y_i - \hat{\mu}_i)^2 / \max(1, n - K_{\mathrm{act}})}
+on the active MPM predictions and uses \eqn{\hat{\sigma}_w^2} consistently in the
+weighted bread \eqn{H_1}, design meat \eqn{J_{2,\mathrm{reg}} = J_2 + \Lambda_{\mathrm{prior}}},
+and unweighted SRS sandwich baseline \eqn{\Sigma_{\mathrm{SRS}} = H_{\mathrm{SRS}}^{-1} J_{\mathrm{SRS}} H_{\mathrm{SRS}}^{-1}}
+so \code{Survey_DEFF} isolates the pure complex survey design effect (identically 1.000 under equal weights).}
 
 \item{seed}{Random seed (default 2026).}
 }
@@ -52,15 +54,16 @@ the pure complex survey design effect.}
 A list containing:
 \itemize{
 \item \code{summary_table}: Data frame comparing unadjusted mean-field VI SDs (\code{Unadj_SD}),
-inverse-Hessian curvature/collinearity SDs (\code{Hessian_SD}), Williams-Savitsky sandwich SDs
-(\code{Sandwich_SD}), pure survey design effects (\code{Survey_DEFF = var_sand / var_hess},
+unweighted SRS baseline sandwich SDs (\code{Hessian_SD}), Williams-Savitsky sandwich SDs
+(\code{Sandwich_SD}), pure survey design effects (\code{Survey_DEFF = var_sand / var_srs},
 also aliased as \code{DEFF_Ratio}), and credible intervals.
 \item \code{draws_unadjusted}: Matrix \code{[draws, d_slab]} of raw variational slab draws.
 \item \code{draws_adjusted}: Matrix \code{[draws, d_slab]} of transported slab draws \code{theta^*}.
 \item \code{Sigma_1}: Unadjusted posterior covariance matrix \code{R_1^T R_1}.
 \item \code{H1_bread}: Bread matrix (weighted observed Fisher information) \code{H_1}.
-\item \code{J2_meat}: Meat matrix (design-based weighted score covariance) \code{J_2}.
-\item \code{Sigma_sandwich}: Target sandwich covariance matrix \code{H_1^{-1} J_2 H_1^{-1} = R_2^T R_2}.
+\item \code{J2_meat}: Prior-regularized meat matrix \code{J_2 + Lambda_prior}.
+\item \code{Sigma_sandwich}: Target sandwich covariance matrix \eqn{H_1^{-1} J_{2,\mathrm{reg}} H_1^{-1} = R_2^\top R_2}.
+\item \code{Sigma_srs}: Unweighted SRS baseline sandwich covariance matrix \eqn{H_{\mathrm{SRS}}^{-1} J_{\mathrm{SRS}} H_{\mathrm{SRS}}^{-1}}.
 \item \code{R1}: Cholesky factor of \code{Sigma_1}.
 \item \code{R2}: Cholesky factor of \code{Sigma_sandwich}.
 }

@@ -29,6 +29,27 @@ extract_lbbnn_support <- function(model, X, B = 100, mpm = FALSE, link = NULL) {
   return(mu_mat)
 }
 
+#' Evaluate B x n Signed Pointwise Log-Likelihood Matrix on Fixed Parameter Support
+#'
+#' @keywords internal
+#' @noRd
+.eval_support_loglik <- function(mu_support, y, problem_type = "regression", sigma = 1.0) {
+  B <- nrow(mu_support)
+  n <- ncol(mu_support)
+  y_mat <- matrix(as.numeric(y), nrow = B, ncol = n, byrow = TRUE)
+
+  if (identical(problem_type, "regression")) {
+    log_lik <- -0.5 * log(2 * pi * sigma^2) - ((y_mat - mu_support)^2) / (2 * sigma^2)
+  } else {
+    eps <- 1e-7
+    p_mat <- pmin(pmax(mu_support, eps), 1.0 - eps)
+    log_lik <- y_mat * log(p_mat) + (1.0 - y_mat) * log(1.0 - p_mat)
+  }
+  rownames(log_lik) <- paste0("draw_", seq_len(B))
+  colnames(log_lik) <- paste0("obs_", seq_len(n))
+  log_lik
+}
+
 #' Evaluate B x n Absolute Pointwise Log-Likelihood Matrix on Fixed Parameter Support
 #'
 #' Evaluates \eqn{|\log f(y_i \mid \mathbf{x}_i, \theta_b)|} across all B saved parameter
@@ -43,18 +64,7 @@ extract_lbbnn_support <- function(model, X, B = 100, mpm = FALSE, link = NULL) {
 #' @return A numeric matrix of dimension \code{[B, n]} containing \code{|log f_{theta_b}(y_i)|}.
 #' @export
 eval_support_abs_loglik <- function(mu_support, y, problem_type = "regression", sigma = 1.0) {
-  B <- nrow(mu_support)
-  n <- ncol(mu_support)
-  y_mat <- matrix(as.numeric(y), nrow = B, ncol = n, byrow = TRUE)
-
-  if (identical(problem_type, "regression")) {
-    log_lik <- -0.5 * log(2 * pi * sigma^2) - ((y_mat - mu_support)^2) / (2 * sigma^2)
-  } else {
-    eps <- 1e-7
-    p_mat <- pmin(pmax(mu_support, eps), 1.0 - eps)
-    log_lik <- y_mat * log(p_mat) + (1.0 - y_mat) * log(1.0 - p_mat)
-  }
-  return(abs(log_lik))
+  abs(.eval_support_loglik(mu_support = mu_support, y = y, problem_type = problem_type, sigma = sigma))
 }
 
 #' Fast-Computing Finite-Sample (epsilon, delta)-DP Calibration via Dual-Support Plug-in
@@ -144,6 +154,7 @@ calibrate_dp_finite_sample <- function(dp_fit,
   link_fn <- if (identical(ptype, "binary")) torch::torch_sigmoid else NULL
 
   n <- length(y)
+  # Fixed Pass 1 likelihood noise scale used consistently across L^{(1)} and L^{(2)}
   sigma_1 <- if (!is.null(dp_fit$sigma_p1)) {
     dp_fit$sigma_p1
   } else if (!is.null(dp_fit$model$sigma)) {
@@ -151,38 +162,62 @@ calibrate_dp_finite_sample <- function(dp_fit,
   } else {
     dp_fit$sigma_hat
   }
-  sigma_2 <- if (!is.null(dp_fit$model$sigma)) dp_fit$model$sigma else dp_fit$sigma_hat
   sigma_gen <- if (!is.null(dp_fit$sigma_hat)) dp_fit$sigma_hat else sigma_1
 
-  # Step 1: Save B parameter draws from Fit 1 (unweighted) & evaluate observed risks
-  Theta_1_mu <- extract_lbbnn_support(dp_fit$model_unweighted, X, B = B, mpm = FALSE, link = link_fn)
-  L_obs_1    <- eval_support_abs_loglik(Theta_1_mu, y, problem_type = ptype, sigma = sigma_1)
-  f_obs      <- apply(L_obs_1, 2, max)
-  w_obs      <- compute_dp_weights(
-    f_vec = f_obs, M_thresh = M_thresh,
+  get_support_draws <- function(saved_sup, mdl, B_req) {
+    if (!is.null(saved_sup) && is.matrix(saved_sup) && ncol(saved_sup) == n && nrow(saved_sup) > 0L) {
+      S_saved <- nrow(saved_sup)
+      if (B_req <= S_saved) {
+        return(saved_sup[seq_len(B_req), , drop = FALSE])
+      } else {
+        extra_draws <- extract_lbbnn_support(mdl, X, B = B_req - S_saved, mpm = FALSE, link = link_fn)
+        return(rbind(saved_sup, extra_draws))
+      }
+    }
+    extract_lbbnn_support(mdl, X, B = B_req, mpm = FALSE, link = link_fn)
+  }
+
+  # Step 1: Reuse saved B parameter draws from Fit 1 (\Theta^{(1)}) & Fit 2/3 (\Theta_\alpha^{(2)})
+  Theta_1_mu <- get_support_draws(dp_fit$support_pass1, dp_fit$model_unweighted, B)
+  Theta_2_mu <- get_support_draws(dp_fit$support_pass2, dp_fit$model, B)
+
+  # Evaluate observed risks & realized unscaled Delta_{alpha, x} directly on Theta_2_mu
+  L_obs_1 <- eval_support_abs_loglik(Theta_1_mu, y, problem_type = ptype, sigma = sigma_1)
+  f_obs_1 <- apply(L_obs_1, 2, max)
+  w_obs   <- compute_dp_weights(
+    f_vec = f_obs_1, M_thresh = M_thresh,
     stage1_method = stage1_method, stage2_method = stage2_method,
     c_scale = c_scale, g_shift = g_shift,
     p_L = p_bounds[1], p_R = p_bounds[2], Delta_goal = Delta_goal
   )
+  L_obs_2 <- eval_support_abs_loglik(Theta_2_mu, y, problem_type = ptype, sigma = sigma_1)
+  f_obs_2 <- apply(L_obs_2, 2, max)
+
   alpha_obs <- w_obs$alpha
-
-  # Step 2: Save B parameter draws from Fit 2/3 (alpha-weighted) & evaluate baseline Delta_{alpha, x}
-  Theta_2_mu      <- extract_lbbnn_support(dp_fit$model, X, B = B, mpm = FALSE, link = link_fn)
-  L_obs_2         <- eval_support_abs_loglik(Theta_2_mu, y, problem_type = ptype, sigma = sigma_2)
-  L_alpha_obs     <- sweep(L_obs_2, 2, alpha_obs, `*`)
-  raw_obs_delta   <- max(L_alpha_obs)
-  scale_anchor    <- if (!is.null(dp_fit$delta_alpha) && is.finite(dp_fit$delta_alpha) && raw_obs_delta > 0) {
-    as.numeric(dp_fit$delta_alpha) / raw_obs_delta
-  } else {
-    1.0
+  if (!is.null(M_thresh) && is.finite(M_thresh)) {
+    if (identical(stage2_method, "vector_upscale")) {
+      keep_pos  <- w_obs$alpha_stage1 > 0
+      alpha_obs <- ifelse(keep_pos, pmin(1.0, M_thresh / pmax(f_obs_1, f_obs_2, 1e-8)), 0.0)
+    } else if (identical(stage1_method, "target_clip")) {
+      cap_val   <- if (!is.null(Delta_goal) && is.finite(Delta_goal)) min(Delta_goal, M_thresh) else M_thresh
+      alpha_obs <- pmin(1.0, cap_val / pmax(f_obs_1, f_obs_2, 1e-8))
+    } else if (identical(stage2_method, "hard_trunc")) {
+      alpha_obs[alpha_obs * f_obs_2 > M_thresh + 1e-9] <- 0.0
+    } else if (identical(stage2_method, "surgical")) {
+      alpha_obs <- pmin(alpha_obs, M_thresh / pmax(f_obs_2, 1e-8))
+      alpha_obs[f_obs_2 > 3.0 * M_thresh] <- 0.0
+    }
   }
-  delta_alpha_obs <- raw_obs_delta * scale_anchor
 
-  # Step 3: Dual-Support Plug-in across R posterior predictive replicate datasets
+  L_alpha_obs     <- sweep(L_obs_2, 2, alpha_obs, `*`)
+  delta_alpha_obs <- max(L_alpha_obs)
+
+  # Step 3: Dual-Support Plug-in across R posterior predictive replicate datasets (100% unscaled)
+  B_eff <- nrow(Theta_1_mu)
   delta_rep_vec <- numeric(R)
   for (r in seq_len(R)) {
     # (a) Posterior predictive simulation from Fit 1 support
-    b_r <- sample.int(B, size = 1)
+    b_r <- sample.int(B_eff, size = 1)
     if (identical(ptype, "regression")) {
       y_rep <- stats::rnorm(n, mean = Theta_1_mu[b_r, ], sd = sigma_gen)
     } else {
@@ -201,9 +236,9 @@ calibrate_dp_finite_sample <- function(dp_fit,
     alpha_rep <- w_rep$alpha
 
     # (c) Stage 2 Re-plug: Evaluate replicate sensitivity on Fit 2 support Theta_alpha^{(2)}
-    L_rep_2          <- eval_support_abs_loglik(Theta_2_mu, y_rep, problem_type = ptype, sigma = sigma_2)
+    L_rep_2          <- eval_support_abs_loglik(Theta_2_mu, y_rep, problem_type = ptype, sigma = sigma_1)
     L_alpha_rep      <- sweep(L_rep_2, 2, alpha_rep, `*`)
-    delta_rep_vec[r] <- max(L_alpha_rep) * scale_anchor
+    delta_rep_vec[r] <- max(L_alpha_rep)
   }
 
   # Step 4: Evaluate unadjusted delta_hat(0) and calibrate nugget eta for delta_target

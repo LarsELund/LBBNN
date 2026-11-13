@@ -41,6 +41,7 @@ This report implements and benchmarks the **Latent Binary Bayesian Neural Networ
 5. **`PSEUDO`**: Pseudo-log-likelihood approach of Chen, Li & Wu (2020) utilizing survey design weights $w_{ri} = 1 / \pi_{ri}$ on $S_r$.
 
 Through automated **variational spike-and-slab edge selection**, `LBBNN` simultaneously:
+
 - Captures complex **non-linear propensity curves and multi-way interactions** without manual polynomial expansions.
 - Prunes **uninformative noise covariates** from the network architecture.
 - Prevents the catastrophic **variance and weight explosion** that afflicts classical pseudo-likelihood under low common support.
@@ -52,6 +53,7 @@ Through automated **variational spike-and-slab edge selection**, `LBBNN` simulta
 ## The Challenge of Non-Probability Convenience Data
 
 Let $U = \{1, \dots, N\}$ denote a finite target population. Each unit $i \in U$ is associated with:
+
 - A vector of auxiliary covariates $\mathbf{x}_i \in \mathbb{R}^p$.
 - An outcome of interest $y_i \in \mathbb{R}$.
 - An unobserved convenience sample participation indicator $I_{ci} \in \{0, 1\}$, with unknown participation propensity $\pi_{ci} = \mathbb{P}(I_{ci} = 1 \mid \mathbf{x}_i) > 0$.
@@ -152,6 +154,7 @@ Let $D_i \in \{0, 1\}$ denote whether record $i$ belongs to the $S_c$ file ($D_i
 $$I_{zi} = D_i + (1 - D_i) I_{ci}$$
 
 Under this definition:
+
 - Every record in $S_c$ receives $I_{zi} = 1$.
 - Any record in $S_r$ that also participated in $S_c$ ($I_{ci} = 1$) is flagged and receives $I_{zi} = 1$.
 - Only records in $S_r$ that did *not* participate in $S_c$ ($I_{ci} = 0$) receive $I_{zi} = 0$.
@@ -171,6 +174,7 @@ $$\tilde{\mathbf{p}} = (\tilde{p}_1, \dots, \tilde{p}_{n_r})^\top \in [0, 1]^{n_
 where $\tilde{p}_i = \sum_{j \in S_c} m_{ij} \in [0, 1]$ is the marginal probability that reference record $i \in S_r$ matched to some record in the convenience sample $S_c$ based on pairwise match probabilities $m_{ij} = \mathbb{P}(i \sim j \mid \mathbf{x}_i, \mathbf{x}_j)$.
 
 Under Louis's (1982) Missing Information Principle:
+
 - If linkage were perfectly deterministic ($\tilde{p}_i = 1$ for matches, $0$ otherwise), $I_{ci} \in \{0, 1\}$ would be fully observed for all reference units $i \in S_r$, allowing direct evaluation of the complete-data `LINK2` score with indicator $I_{zi}^{\text{LINK2}} = D_i + (1 - D_i)I_{ci}$.
 - When linkage is imperfect, the true indicator $I_{ci}$ on $S_r$ is partially latent. Analogous to the Expectation step of an EM algorithm, we project the complete-data score onto the observed data by replacing $I_{ci}$ with each unit's marginal linkage expectation:
 
@@ -188,6 +192,7 @@ $$\tilde{p}_i = \sigma(\gamma_0 + \gamma_1 I_{ci} + e_i), \qquad e_i \sim \mathc
 where $\gamma_1$ controls linkage sharpness: large $\gamma_1 \gg 0$ recovers near-deterministic matching (`LINK2`), whereas $\gamma_1 = 0$ corresponds to non-informative linkage where `MIP` gracefully reverts to `STACK`.
 
 Importantly, `MIP` continuously interpolates between the unlinked and deterministically linked extremes on a **record-by-record basis**:
+
 - High-certainty match records ($\tilde{p}_i \approx 1$) pull gradient updates toward the low-variance `LINK2` score surface.
 - Unmatched or ambiguous records ($\tilde{p}_i \approx 0$) safely revert to the robust unlinked `STACK` formulation.
 
@@ -586,6 +591,7 @@ knitr::kable(
 ```
 
 The spike-and-slab posterior reflects near-perfect feature identification:
+
 - Both active confounders $X_1$ and $X_2$ achieve inclusion probabilities approaching 1.0 (output inclusion: $0.997$ and $0.991$, respectively) and active output connectivity ($L_1 = 1$).
 - The outcome-only predictor $X_3$ and pure noise variables $X_4, X_5, X_6$ are completely pruned ($L_1 = 0$, maximum output inclusion: $0.038 \le 0.10$).
 
@@ -1175,14 +1181,17 @@ knitr::kable(
 Synthesizing the empirical evidence across all four simulation studies yields three clear guidelines for practitioners:
 
 ## When the True Propensity is Linear (Studies 0 & 1)
+
 - Under low-dimensional linear truth without noise (Study 0), `LBBNN` equipped with input-skip connections closely matches the statistical efficiency of the parametric GLM MLE across all composite likelihood formulations (`STACK`, `LINK1`, `LINK2`, `MIP50`). The theoretical efficiency ordering established by Beresovsky, Gershunskaya & Savitsky (2026) is preserved: $\text{LINK2} \succ \text{LINK1} \succ \text{STACK} \succ \text{PSEUDO}$.
 - In Study 1, the addition of an outcome-only predictor ($X_3$) and pure Gaussian noise ($X_4\text{--}X_6$) demonstrates the power of variational spike-and-slab selection: `LBBNN` assigns posterior inclusion probabilities $>99\%$ to true confounders $X_1, X_2$ while pruning $X_3\text{--}X_6$ with $<3\%$ inclusion and $L_1 = 0$ output paths. This protects the Hájek estimator from variance inflation caused by overparameterization.
 
 ## When the Propensity is Non-Linear with Interactions under High Common Support (Study 2)
+
 - Classical main-effects GLMs are misspecified and incur substantial bias because they cannot capture the $X_1 X_2$ interaction or cosine/quadratic curvature.
 - `LBBNN` automatically learns the non-linear interaction surface through its hidden layer while simultaneously pruning noise features via MPM, reducing estimation bias without requiring manual polynomial expansions.
 
 ## When Non-Linearity Meets Low Common Support (Study 3)
+
 - Classical pseudo-likelihood (`PSEUDO`) breaks down catastrophically: inverse reference survey design weights $1 / \pi_{ri}$ explode in regions where convenience participation is high but reference survey sampling probability is tiny. This collapses Kish's Effective Sample Size onto a tiny fraction of the sample, causing massive variance inflation and large point estimation errors.
 - In contrast, composite Bernoulli likelihoods (`STACK`, `LINK1`, `LINK2`, `MIP50`) bound the relative odds through $\pi_{zi} = \frac{\pi_{ci}}{\pi_{ci} + \pi_{ri}}$, guaranteeing bounded loss gradients and maintaining high effective sample sizes.
 - Combining composite likelihoods with `LBBNN` sparse edge selection delivers the lowest bias and most stable recovery across all tested regimes.

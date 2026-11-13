@@ -86,6 +86,19 @@ test_that("adjust_slab_sandwich_lbbnn matches exact Cholesky sandwich covariance
   expect_gt(mean((res$summary_table$Sandwich_SD / res$summary_table$Unadj_SD)^2), 1.0)
   expect_true(all(is.finite(res$summary_table$Survey_DEFF) & res$summary_table$Survey_DEFF > 0))
 
+  # Under equal weights and no clustering, Survey_DEFF is identically 1.000
+  res_eq <- adjust_slab_sandwich_lbbnn(
+    object        = net,
+    X             = X_mat,
+    y             = y,
+    weights       = rep(2.0, n),
+    draws         = 100,
+    active_cutoff = 0.5,
+    seed          = 101
+  )
+  expect_equal(res_eq$summary_table$Survey_DEFF, rep(1.0, nrow(res_eq$summary_table)), tolerance = 1e-10)
+  expect_equal(res_eq$summary_table$Sandwich_SD, res_eq$summary_table$Hessian_SD, tolerance = 1e-10)
+
   # Clustered / stratified design path executes cleanly (both psu-only and strata+psu)
   res_psu <- adjust_slab_sandwich_lbbnn(
     object        = net,

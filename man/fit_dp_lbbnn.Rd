@@ -84,6 +84,8 @@ A list containing:
 \item{L_pass1}{Log-likelihood contributions matrix from Pass 1.}
 \item{L_pass2}{Log-likelihood contributions matrix from Pass 2.}
 \item{L_pass3}{Log-likelihood contributions matrix from Pass 3 (if vector_upscale was used).}
+\item{support_pass1}{Matrix \code{[S, n]} of saved Pass 1 conditional mean/probability support draws \eqn{\Theta^{(1)}}.}
+\item{support_pass2}{Matrix \code{[S, n]} of saved final weighted conditional mean/probability support draws \eqn{\Theta_\alpha^{(2)}}.}
 \item{dp_weights_info}{List output from \code{compute_dp_weights()}.}
 }
 }

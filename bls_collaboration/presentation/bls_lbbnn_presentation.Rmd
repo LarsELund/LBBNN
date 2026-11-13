@@ -375,7 +375,7 @@ $$\text{ELBO}(q; \mathbf{u}) = \sum_{i=1}^n u_i \, \mathbb{E}_{q(\theta)}\!\left
 \textbf{Target Class B: Active MPM Slab (\texttt{adjust\_slab\_sandwich\_lbbnn})}
 \begin{itemize}
   \setlength{\itemsep}{0.5pt}
-  \item Conditioned on MPM active paths (where BvM holds), Cholesky projection $R_2^\top R_1^{-\top}$ corrects diagonal VI + DEFF: \textbf{18.0\% $\to$ 94.0\%} (\texttt{Skip\_x1}: \textbf{66\% $\to$ 96\%}).
+  \item Conditioned on MPM active paths (where BvM holds), Cholesky projection $R_2^\top R_1^{-\top}$ corrects diagonal VI + DEFF: \textbf{18.0\% $\to$ 98.7\%} (\texttt{Skip\_x1}: \textbf{66.0\% $\to$ 100.0\%}).
   \item For hierarchical unit truth $\theta_i$, sandwich extends to random-effect scores.
 \end{itemize}
 \end{column}
@@ -564,10 +564,10 @@ $$\sup_{\theta \in \Theta_\delta} \left|\log \frac{q_{\boldsymbol{\alpha}}(\thet
 \footnotesize
 \begin{itemize}
   \setlength{\itemsep}{2pt}
-  \item \textbf{Skewed Microdata}: Median $\$4.16$, contaminated with 3 extreme outliers ($\$400\text{--}\$530$, $f_i \in [20.9, 24.2]$).
+  \item \textbf{Skewed Microdata}: Median $\$4.16$, contaminated with 3 extreme outliers ($\$400\text{--}\$530$, $f_i \in [20.1, 22.6]$).
   \item \textbf{Likelihood Mass ESS}: In DP pseudo-posteriors, $\alpha_i^* \in [0, 1]$ acts as a likelihood exponent, so total retained information mass is $\text{ESS} = \sum_{i=1}^n \alpha_i^*$.
-  \item \textbf{\texttt{target\_clip + vector\_upscale}}: Retains $\alpha_i^* = 1.0$ on $97.0\%$ of sample ($\text{ESS} = 296.4/300$, $0$ zeroed); caps outliers at $\alpha_i^* \in [0.19, 0.25]$.
-  \item \textbf{\texttt{percentile + hard\_trunc}}: Boosts lower $95\%$ while hard-zeroing the top $5\%$ tail ($15$ units zeroed, $\text{ESS} = 212.3/300$, $\epsilon_{\mathbf{y}} = 2.10$).
+  \item \textbf{\texttt{target\_clip + vector\_upscale}}: Retains $\alpha_i^* = 1.0$ on $97.0\%$ of sample ($\text{ESS} = 296.8/300$, $0$ zeroed); caps outliers at $\alpha_i^* \in [0.23, 0.26]$.
+  \item \textbf{\texttt{percentile + hard\_trunc}}: Boosts lower $95\%$ while hard-zeroing the top $5\%$ tail ($15$ units zeroed, $\text{ESS} = 199.9/300$, $\epsilon_{\mathbf{y}} = 3.59$).
 \end{itemize}
 \normalsize
 \end{column}
@@ -594,16 +594,16 @@ $$\sup_{\theta \in \Theta_\delta} \left|\log \frac{q_{\boldsymbol{\alpha}}(\thet
 \textbf{Stage 1} & \textbf{Stage 2} & $\mathbf{ESS}$ & \textbf{0s} & $\boldsymbol{\epsilon_{\mathbf{y}}}$ & \textbf{Mean (SD)} \\
 \midrule
 Clean Ref & — & $300.0$ & $0$ & — & $\$6.70$ ($\$7.23$) \\
-Contam. ($u_i=1$) & — & $300.0$ & $0$ & $48.33$ & $\$11.30$ ($\$46.75$) \\
+Contam. ($u_i=1$) & — & $300.0$ & $0$ & $45.17$ & $\$11.30$ ($\$46.75$) \\
 \midrule
-\texttt{target\_clip} & \texttt{vec\_up} & $\mathbf{296.4}$ & $\mathbf{0}$ & $11.00$ & $\mathbf{\$7.13}$ ($\mathbf{\$8.92}$) \\
-\texttt{target\_clip} & \texttt{hard\_tr} & $296.4$ & $0$ & $11.00$ & $\$7.13$ ($\$8.92$) \\
-\texttt{linear} & \texttt{vec\_up} & $296.2$ & $1$ & $11.00$ & $\$7.13$ ($\$8.92$) \\
-\texttt{linear} & \texttt{hard\_tr} & $239.3$ & $1$ & $10.03$ & $\$7.42$ ($\$9.85$) \\
-\texttt{percentile} & \texttt{vec\_up} & $285.0$ & $15$ & $8.06$ & $\$7.08$ ($\$8.60$) \\
-\texttt{percentile} & \texttt{hard\_tr} & $212.3$ & $15$ & $\mathbf{2.10}$ & $\$7.05$ ($\$8.45$) \\
+\texttt{target\_clip} & \texttt{vec\_up} & $\mathbf{296.8}$ & $\mathbf{0}$ & $11.00$ & $\mathbf{\$7.65}$ ($\mathbf{\$9.68}$) \\
+\texttt{target\_clip} & \texttt{hard\_tr} & $297.0$ & $0$ & $11.00$ & $\$7.21$ ($\$9.37$) \\
+\texttt{linear} & \texttt{vec\_up} & $296.6$ & $1$ & $11.00$ & $\$7.58$ ($\$9.51$) \\
+\texttt{linear} & \texttt{hard\_tr} & $238.7$ & $1$ & $7.34$ & $\$7.11$ ($\$9.16$) \\
+\texttt{percentile} & \texttt{vec\_up} & $285.0$ & $15$ & $7.39$ & $\$7.51$ ($\$9.40$) \\
+\texttt{percentile} & \texttt{hard\_tr} & $199.9$ & $15$ & $\mathbf{3.59}$ & $\$6.77$ ($\$7.60$) \\
 \midrule
-\texttt{reciprocal} & \texttt{hard\_tr} & $26.9$ & $1$ & $0.10$ & $\$8.95$ ($\$16.40$) \\
+\texttt{reciprocal} & \texttt{hard\_tr} & $30.9$ & $1$ & $1.50$ & $\$7.99$ ($\$11.18$) \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -615,9 +615,9 @@ Contam. ($u_i=1$) & — & $300.0$ & $0$ & $48.33$ & $\$11.30$ ($\$46.75$) \\
 \scriptsize
 \begin{itemize}
   \setlength{\itemsep}{0.5pt}
-  \item \textbf{Cancellation Equivalence}: Under \texttt{vector\_upscale}, \texttt{target\_clip + vec\_up} and \texttt{target\_clip + hard\_tr} converge to the exact same optimal profile ($\text{ESS} = 296.4/300$, $97.0\%$ full weight, Mean $\$7.13$, SD $\$8.92$), while \texttt{linear + vec\_up} matches on all $299$ active units ($\text{ESS} = 296.2$).
-  \item \textbf{Percentile Tail Excision}: Zeroing the top $5\%$ ($15$ units) in Stage 1 followed by \texttt{vec\_up} boosts surviving inliers to $\alpha_i^* = 1$ ($\text{ESS} = 285.0, \epsilon_{\mathbf{y}} = 8.06$), whereas \texttt{hard\_tr} yields the tightest privacy ($\epsilon_{\mathbf{y}} = 2.10$).
-  \item \textbf{Remark 1 Validated}: Reciprocal $1/f_i$ normalization collapses effective sample size ($\text{ESS} = 26.9/300$), inflating synthetic variance (SD $\$16.40$).
+  \item \textbf{Cancellation Equivalence}: Under \texttt{vector\_upscale}, \texttt{target\_clip + vec\_up} and \texttt{target\_clip + hard\_tr} converge to the optimal profile ($\text{ESS} \approx 297/300$, $\ge 97.0\%$ full weight, $0$ zeroed), while \texttt{linear + vec\_up} matches on all $299$ active units ($\text{ESS} = 296.6$).
+  \item \textbf{Percentile Tail Excision}: Zeroing the top $5\%$ ($15$ units) in Stage 1 followed by \texttt{vec\_up} boosts surviving inliers to $\alpha_i^* = 1$ ($\text{ESS} = 285.0, \epsilon_{\mathbf{y}} = 7.39$), whereas \texttt{hard\_tr} yields tighter empirical privacy ($\epsilon_{\mathbf{y}} = 3.59$).
+  \item \textbf{Remark 1 Validated}: Reciprocal $1/f_i$ normalization collapses effective sample size ($\text{ESS} = 30.9/300$), inflating synthetic variance (SD $\$11.18$).
 \end{itemize}
 \normalsize
 
@@ -635,7 +635,7 @@ Contam. ($u_i=1$) & — & $300.0$ & $0$ & $48.33$ & $\$11.30$ ($\$46.75$) \\
 \textbf{Dual-Support Plug-In (Azizi et al., Nov 2026)}
 \begin{itemize}
   \setlength{\itemsep}{1pt}
-  \item Asymp. $\epsilon_{\mathbf{x}}(0) = 2\Delta_{\alpha,\mathbf{x}} = 11.00$ leaks with finite-sample $\hat{\delta}_n(0) = 0.715$ across $R = 200$ replicates.
+  \item Asymp. $\epsilon_{\mathbf{x}}(0) = 2\Delta_{\alpha,\mathbf{x}} = 11.00$ leaks with finite-sample $\hat{\delta}_n(0) = 0.515$ across $R = 200$ replicates.
   \item \texttt{calibrate\_dp\_finite\_sample()} freezes $B = 100$ draws $\Theta^{(1)}, \Theta_\alpha^{(2)}$ for \textbf{zero-retraining} $\eta$ solving $\epsilon_{\mathbf{x}}(\eta) = 2(\Delta_{\alpha,\mathbf{x}} + \eta)$.
 \end{itemize}
 \vspace{0.2em}
@@ -644,9 +644,9 @@ Contam. ($u_i=1$) & — & $300.0$ & $0$ & $48.33$ & $\$11.30$ ($\$46.75$) \\
 \toprule
 $\delta_{\text{target}}$ & $q_{1-\delta}$ & \textbf{Nugget $\eta$} & \textbf{Calibrated $\epsilon_{\mathbf{x}}(\eta)$} \\
 \midrule
-0.10 & 6.59 & \textbf{+1.09} & \textbf{13.19} \\
-0.05 & 6.84 & \textbf{+1.34} & \textbf{13.68} \\
-0.01 & 7.26 & \textbf{+1.76} & \textbf{14.51} \\
+0.10 & 6.93 & \textbf{+1.43} & \textbf{13.87} \\
+0.05 & 7.16 & \textbf{+1.66} & \textbf{14.31} \\
+0.01 & 7.38 & \textbf{+1.88} & \textbf{14.75} \\
 \bottomrule
 \end{tabular}
 \end{column}
@@ -1332,13 +1332,13 @@ y_bar_hajek <- hajek_estimate(y = pop$y[pop$I.c == 1], pi_hat = pi_c_hat, dirich
       \scriptsize\setlength{\itemsep}{0.5pt}
       \item Normalizing survey weights to sample size ($\sum \tilde{w}_i = n$) + calibrated observation noise $\sigma^2$ prevents likelihood mis-scaling ($T \neq 1$) and protects spike-and-slab KL shrinkage.
       \item \texttt{LBBNN} achieves 5x lower population RMSE than classical H\'{a}jek weighting under informative sampling while pruning irrelevant covariates.
-      \item Frequentist UQ under $P_\nu$: Dirichlet bootstrap restores domain CI coverage (5.5\% $\to$ 96.0\%), while Williams--Savitsky Cholesky sandwich restores active MPM slab coverage (18.0\% $\to$ 94.0\%).
+      \item Frequentist UQ under $P_\nu$: Dirichlet bootstrap restores domain CI coverage (5.5\% $\to$ 96.0\%), while Williams--Savitsky Cholesky sandwich restores active MPM slab coverage (18.0\% $\to$ 98.7\%).
     \end{itemize}
   \item \textbf{Multi-Pass $(\epsilon, \delta)$-PDP Microdata Synthesis (Track 1B)}:
     \begin{itemize}
       \scriptsize\setlength{\itemsep}{0.5pt}
       \item Full $3 \times 2$ factorial evaluation confirms Savitsky's (2026) theory: Stage 1 direct normalization ($1 - \tilde{f}_i$, \texttt{percentile}, \texttt{target\_clip}) avoids the severe ESS collapse of reciprocal $1/f_i$ weighting (Remark 1).
-      \item Stage 2 vector upward rescaling (\texttt{vector\_upscale}) Loewner-dominates hard truncation (Prop. 2), retaining full weight ($\alpha_i^* = 1$) on safe inliers ($\text{ESS} = 296.4/300, 97.0\%$ of sample) while strictly capping sensitivity at $\Delta_{\alpha, \mathbf{y}} \le M_{\text{thresh}}$ after Pass 3 retraining.
+      \item Stage 2 vector upward rescaling (\texttt{vector\_upscale}) Loewner-dominates hard truncation (Prop. 2), retaining full weight ($\alpha_i^* = 1$) on safe inliers ($\text{ESS} = 296.8/300, 97.0\%$ of sample) while strictly capping sensitivity at $\Delta_{\alpha, \mathbf{y}} \le M_{\text{thresh}}$ after Pass 3 retraining.
       \item Dual-support plug-in calibration (\texttt{calibrate\_dp\_finite\_sample}) delivers exact finite-sample $(\epsilon_{\mathbf{x}}(\eta), \delta_{\text{target}})$-DP guarantees across $R = 200$ replicates with zero neural network retraining.
     \end{itemize}
   \item \textbf{Composite Non-Probability Sample Integration (Track 2)}:
