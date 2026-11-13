@@ -35,7 +35,7 @@ Every code block below is self-contained and runs directly after installing the 
 
 ## Step 0: Installation & Environment Setup (Direct from GitHub)
 
-To work on this tutorial, we need to first Install the official statistics & DP branch (`survey-weighted-likelihoods`) directly from GitHub, ensure the `torch` LibTorch C++ backend is available, and then load the libraries.
+To work on this tutorial, we need to first install the official statistics & DP branch (`survey-weighted-likelihoods`) directly from GitHub, ensure the `torch` LibTorch C++ backend is available, and then load the libraries.
 
 ```{r install_once, eval = FALSE}
 # Install remotes if needed

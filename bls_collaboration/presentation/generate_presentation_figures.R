@@ -148,10 +148,10 @@ p_slide11 <- ggplot(t1_vars, aes(x = Prob, y = Variable, color = Status)) +
     legend.text = element_text(size = 8),
     plot.title = element_text(size = 9.5, face = "bold", margin = margin(b = 4)),
     plot.subtitle = element_text(size = 7.5),
-    plot.margin = margin(t = 16, r = 10, b = 14, l = 10)
+    plot.margin = margin(t = 18, r = 12, b = 14, l = 12)
   )
 
-save_fig("track1_sparsity_lollipop.pdf", p_slide11, width = 5.6, height = 3.8)
+save_fig("track1_sparsity_lollipop.pdf", p_slide11, width = 5.6, height = 4.3)
 cat("[3/10] track1_sparsity_lollipop.pdf generated.\n")
 
 
@@ -244,7 +244,7 @@ p16_a <- ggplot(df_sens, aes(x = Expenditure, y = Sensitivity, color = Status, s
   labs(title = "Panel A: Record Sensitivity", x = "Expenditure ($)", y = expression("Record Sensitivity " * f[i])) +
   theme_minimal(base_size = 9.0) +
   theme(legend.position = "none", plot.title = element_text(size = 9.0, face = "bold"),
-        plot.margin = margin(5, 12, 5, 5))
+        plot.margin = margin(t = 18, r = 10, b = 14, l = 10))
 
 df_weights <- data.frame(
   Expenditure = rep(y_dp, 2),
@@ -264,11 +264,11 @@ p16_b <- ggplot(df_weights, aes(x = Expenditure, y = Alpha, color = Scheme, shap
     legend.title = element_blank(),
     legend.text = element_text(size = 7.5),
     plot.title = element_text(size = 9.0, face = "bold"),
-    plot.margin = margin(5, 5, 5, 20)
+    plot.margin = margin(t = 18, r = 10, b = 14, l = 10)
   )
 
 p_slide16 <- plot_grid(p16_a, p16_b, ncol = 2, rel_widths = c(1, 1))
-save_fig("track1_dp_weights.pdf", p_slide16, width = 7.0, height = 3.4)
+save_fig("track1_dp_weights.pdf", p_slide16, width = 7.0, height = 3.9)
 cat("[5/10] track1_dp_weights.pdf generated (Savitsky two-stage diagnostics).\n")
 
 
@@ -466,10 +466,10 @@ p_slide24 <- ggplot(s1_vars, aes(x = Prob, y = Variable, color = Status)) +
     legend.text = element_text(size = 8),
     plot.title = element_text(size = 9.5, face = "bold", margin = margin(b = 4)),
     plot.subtitle = element_text(size = 7.5),
-    plot.margin = margin(t = 18, r = 12, b = 12, l = 10)
+    plot.margin = margin(t = 18, r = 12, b = 14, l = 16)
   )
 
-save_fig("track2_study1_lollipop.pdf", p_slide24, width = 5.5, height = 4.2)
+save_fig("track2_study1_lollipop.pdf", p_slide24, width = 6.0, height = 4.7)
 cat("[8/10] track2_study1_lollipop.pdf generated.\n")
 
 
@@ -810,10 +810,10 @@ p_dp_cal <- ggplot(df_rep_hist, aes(x = delta_rep)) +
   theme(
     plot.title = element_text(size = 9.5, face = "bold", margin = margin(b = 4)),
     plot.subtitle = element_text(size = 7.5, color = "#2c3e50"),
-    plot.margin = margin(t = 16, r = 10, b = 14, l = 10)
+    plot.margin = margin(t = 18, r = 12, b = 18, l = 12)
   )
 
-save_fig("track1_dp_nugget_calibration.pdf", p_dp_cal, width = 5.6, height = 3.9)
+save_fig("track1_dp_nugget_calibration.pdf", p_dp_cal, width = 6.0, height = 4.5)
 cat("[12/12] track1_dp_nugget_calibration.pdf generated.\n")
 
 cat("All 12 figures generated successfully!\n")
