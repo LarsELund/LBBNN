@@ -24,9 +24,10 @@ pres_file <- if (file.exists("bls_collaboration/presentation/presentation_data.r
 pres <- readRDS(pres_file)
 
 save_fig <- function(filename, plot, width, height) {
-  ggsave(file.path(fig_dir, filename), plot, width = width, height = height)
+  dev <- if (grepl("\\.pdf$", filename)) grDevices::cairo_pdf else NULL
+  ggsave(file.path(fig_dir, filename), plot, width = width, height = height, device = dev)
   if (dir.exists("vignettes/figures")) {
-    ggsave(file.path("vignettes/figures", filename), plot, width = width, height = height)
+    ggsave(file.path("vignettes/figures", filename), plot, width = width, height = height, device = dev)
   }
 }
 
@@ -674,7 +675,7 @@ p_cov_a <- ggplot(dom_long, aes(x = Target, y = Coverage, fill = Method)) +
     legend.key.size = unit(0.32, "cm"),
     plot.title = element_text(size = 8.5, face = "bold"),
     plot.subtitle = element_text(size = 7.0, color = "#2c3e50"),
-    plot.margin = margin(5, 6, 4, 5)
+    plot.margin = margin(t = 10, r = 8, b = 12, l = 8)
   )
 
 # Panel B: Active MPM Slab Parameters (Representative + All Slab Avg)
@@ -740,11 +741,11 @@ p_cov_b <- ggplot(slab_long, aes(x = Parameter, y = Coverage, fill = Method)) +
     legend.key.size = unit(0.32, "cm"),
     plot.title = element_text(size = 8.5, face = "bold"),
     plot.subtitle = element_text(size = 7.0, color = "#27ae60"),
-    plot.margin = margin(5, 6, 4, 5)
+    plot.margin = margin(t = 10, r = 8, b = 12, l = 8)
   )
 
 p_cov_grid <- plot_grid(p_cov_a, p_cov_b, ncol = 2, rel_widths = c(0.95, 1.15))
-save_fig("track1_coverage_comparison.pdf", p_cov_grid, width = 9.5, height = 2.85)
+save_fig("track1_coverage_comparison.pdf", p_cov_grid, width = 9.5, height = 3.5)
 cat("[11/12] track1_coverage_comparison.pdf generated.\n")
 
 
@@ -781,31 +782,34 @@ p_dp_cal <- ggplot(df_rep_hist, aes(x = delta_rep)) +
   geom_vline(xintercept = row_05$delta_alpha_eta, color = "#2980b9", linetype = "dashed", linewidth = 1.0) +
   geom_vline(xintercept = row_01$delta_alpha_eta, color = "#c0392b", linetype = "dotted", linewidth = 1.1) +
   annotate("label", x = dp_cal$delta_alpha_obs, y = 0.96, hjust = 1.05, vjust = 1,
-           label = sprintf("Obs = %.2f\n(delta0 = %.3f)", dp_cal$delta_alpha_obs, dp_cal$delta_hat_0),
-           color = "#d35400", fill = "white", label.size = 0, size = 2.5, fontface = "bold") +
-  annotate("label", x = row_05$delta_alpha_eta, y = 0.82, hjust = 1.05, vjust = 1,
-           label = sprintf("delta = 0.05\n(eta = +%.2f)", row_05$eta_nugget),
-           color = "#2980b9", fill = "white", label.size = 0, size = 2.4, fontface = "bold") +
+           label = sprintf("Delta[obs] == '%.2f'", dp_cal$delta_alpha_obs),
+           parse = TRUE, color = "#d35400", fill = "white", size = 2.6, fontface = "bold") +
+  annotate("label", x = dp_cal$delta_alpha_obs, y = 0.84, hjust = 1.05, vjust = 1,
+           label = sprintf("hat(delta)[n](0) == '%.3f'", dp_cal$delta_hat_0),
+           parse = TRUE, color = "#d35400", fill = "white", size = 2.4) +
+  annotate("label", x = row_05$delta_alpha_eta, y = 0.80, hjust = 1.05, vjust = 1,
+           label = sprintf("delta == '0.05' ~ '(' * eta == '+%.2f' * ')'", row_05$eta_nugget),
+           parse = TRUE, color = "#2980b9", fill = "white", size = 2.4, fontface = "bold") +
   annotate("label", x = row_01$delta_alpha_eta, y = 0.56, hjust = -0.05, vjust = 1,
-           label = sprintf("delta = 0.01\n(eta = +%.2f)", row_01$eta_nugget),
-           color = "#c0392b", fill = "white", label.size = 0, size = 2.4, fontface = "bold") +
-  scale_x_continuous(expand = expansion(mult = c(0.05, 0.14))) +
+           label = sprintf("delta == '0.01' ~ '(' * eta == '+%.2f' * ')'", row_01$eta_nugget),
+           parse = TRUE, color = "#c0392b", fill = "white", size = 2.4, fontface = "bold") +
+  scale_x_continuous(expand = expansion(mult = c(0.06, 0.16))) +
   scale_y_continuous(limits = c(0, 1.08), expand = c(0, 0)) +
   labs(
-    title = "Replicate Sensitivity Distribution (R = 200 Dual-Support Plug-in, Zero Retraining)",
-    subtitle = sprintf("Unadjusted eps_x = %.2f leaks with delta_hat(0) = %.3f; calibrated eps_x(eta) = %.2f at delta = 0.05",
+    title = "Replicate Sensitivity Distribution (R = 200 Dual-Support Plug-in)",
+    subtitle = sprintf("Zero retraining: unadj. eps = %.2f (delta_0 = %.3f) -> eps(eta) = %.2f at delta = 0.05",
                        dp_cal$epsilon_obs, dp_cal$delta_hat_0, row_05$epsilon_eta),
-    x = "Replicate Weighted Sensitivity Delta_{alpha, x_r}",
+    x = expression("Replicate Weighted Sensitivity " * Delta[alpha * "," * x[r]]),
     y = "Density"
   ) +
   theme_minimal(base_size = 8.5) +
   theme(
     plot.title = element_text(size = 8.8, face = "bold"),
     plot.subtitle = element_text(size = 7.4, color = "#2c3e50"),
-    plot.margin = margin(6, 10, 5, 6)
+    plot.margin = margin(t = 12, r = 10, b = 12, l = 10)
   )
 
-save_fig("track1_dp_nugget_calibration.pdf", p_dp_cal, width = 6.2, height = 3.35)
+save_fig("track1_dp_nugget_calibration.pdf", p_dp_cal, width = 5.6, height = 3.8)
 cat("[12/12] track1_dp_nugget_calibration.pdf generated.\n")
 
 cat("All 12 figures generated successfully!\n")

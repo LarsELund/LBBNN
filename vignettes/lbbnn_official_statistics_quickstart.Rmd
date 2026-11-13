@@ -6,9 +6,12 @@ output:
 params:
   eval: true
 vignette: >
+  %\VignetteEncoding{UTF-8}
   %\VignetteIndexEntry{LBBNN in Official Statistics: Survey Weighting, Differential Privacy, and Non-Probability Propensity}
   %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
+editor_options: 
+  markdown: 
+    wrap: 72
 ---
 
 ```{r, include=FALSE}
@@ -17,23 +20,34 @@ knitr::opts_chunk$set(
   comment = "#>",
   eval = isTRUE(torch::torch_is_installed())
 )
+devtools::install_github("https://github.com/LarsELund/LBBNN@survey-weighted-likelihoods")
 library(LBBNN)
 ```
 
 ## Overview
 
-This quickstart vignette demonstrates the official statistics capabilities implemented in `LBBNN`:
-1. **Track 1A**: Survey-weighted pseudo-posterior estimation, domain-level inference (`predict_domains_lbbnn`), Bayesian missing-response imputation (`impute_response_lbbnn`), and Dirichlet Bayesian bootstrap uncertainty quantification (`hajek_estimate`).
-2. **Track 1B**: Two-stage differential privacy (DP) weight calibration (`compute_dp_weights`, `fit_dp_lbbnn`) supporting multiple Stage 1 normalization schemes and Stage 2 reweighting mechanisms, followed by private synthetic microdata generation (`sample_synthetic_lbbnn`).
-3. **Track 2**: Semi-supervised non-probability sample integration using composite likelihoods with vectorized unit-level linkage probabilities (`make_nll_mip`, `build_propensity_dataset`).
+This quickstart vignette demonstrates the official statistics
+capabilities implemented in `LBBNN`: 1. **Track 1A**: Survey-weighted
+pseudo-posterior estimation, domain-level inference
+(`predict_domains_lbbnn`), Bayesian missing-response imputation
+(`impute_response_lbbnn`), and Dirichlet Bayesian bootstrap uncertainty
+quantification (`hajek_estimate`). 2. **Track 1B**: Two-stage
+differential privacy (DP) weight calibration (`compute_dp_weights`,
+`fit_dp_lbbnn`) supporting multiple Stage 1 normalization schemes and
+Stage 2 reweighting mechanisms, followed by private synthetic microdata
+generation (`sample_synthetic_lbbnn`). 3. **Track 2**: Semi-supervised
+non-probability sample integration using composite likelihoods with
+vectorized unit-level linkage probabilities (`make_nll_mip`,
+`build_propensity_dataset`).
 
 All examples run in seconds on standard hardware.
 
----
+------------------------------------------------------------------------
 
 ## Part 1 (Track 1A): Survey Weights, Domain Estimation, Imputation & Dirichlet UQ
 
-Official survey data often features complex design weights $w_i$, domain partitions (e.g., industries or geographies), and item non-response.
+Official survey data often features complex design weights $w_i$, domain
+partitions (e.g., industries or geographies), and item non-response.
 
 ```{r track1a_demo}
 set.seed(42)
@@ -70,16 +84,17 @@ loaders <- get_dataloaders(
   standardize = FALSE
 )
 
-# Initialize LBBNN with residual scale sigma
+# Initialize LBBNN with residual scale sigma and direct skip connections
 model <- lbbnn_net(
   problem_type = "regression",
   sizes = c(p, 4, 1),
+  input_skip = TRUE,
   sigma = 0.4,
   device = "cpu"
 )
 
 # Train survey-weighted pseudo-posterior
-train_lbbnn(epochs = 10, LBBNN = model, lr = 0.01, train_dl = loaders$train_loader, verbose = FALSE)
+train_lbbnn(epochs = 50, LBBNN = model, lr = 0.02, train_dl = loaders$train_loader, verbose = FALSE)
 
 # 1. Domain-level conditional expectation predictions with Dirichlet Bayesian bootstrap UQ
 domain_res <- predict_domains_lbbnn(
@@ -102,7 +117,7 @@ slab_uq <- adjust_slab_sandwich_lbbnn(
   draws = 50,
   sigma = 0.4
 )
-print(head(slab_uq$summary_table[, c("Parameter", "Post_Mean", "Unadj_SD", "Sandwich_SD", "DEFF_Ratio")], 4))
+print(head(slab_uq$summary_table[, c("Parameter", "Post_Mean", "Unadj_SD", "Hessian_SD", "Sandwich_SD", "Survey_DEFF")], 4))
 
 # 2. Impute missing response values via posterior predictive draws
 impute_res <- impute_response_lbbnn(
@@ -126,13 +141,17 @@ hajek_res <- hajek_estimate(
 print(hajek_res)
 ```
 
----
+------------------------------------------------------------------------
 
 ## Part 2 (Track 1B): Two-Stage Differential Privacy Calibration
 
-Under Savitsky et al. (2026), privacy weights $\alpha_i$ are calibrated in two modular stages:
-- **Stage 1 (Initial Normalization)**: `"linear"` min-max, `"percentile"` deficit truncation, or `"target_clip"` ratio clipping ($\Delta_{i,\text{goal}} / f_i$).
-- **Stage 2 (Second-Stage Reweighting)**: `"hard_trunc"` (zeroing above $M_{\text{thresh}}$) or `"vector_upscale"` (upward rescaling pointwise dominating hard truncation in Fisher information).
+Under Savitsky et al. (2026), privacy weights $\alpha_i$ are calibrated
+in two modular stages: - **Stage 1 (Initial Normalization)**: `"linear"`
+min-max, `"percentile"` deficit truncation, or `"target_clip"` ratio
+clipping ($\Delta_{i,\text{goal}} / f_i$). - **Stage 2 (Second-Stage
+Reweighting)**: `"hard_trunc"` (zeroing above $M_{\text{thresh}}$) or
+`"vector_upscale"` (upward rescaling pointwise dominating hard
+truncation in Fisher information).
 
 ```{r track1b_demo}
 # Standalone evaluation of privacy weight calibration
@@ -187,14 +206,17 @@ dp_cal <- calibrate_dp_finite_sample(
 print(dp_cal$calibration_table)
 ```
 
----
+------------------------------------------------------------------------
 
 ## Part 3 (Track 2): Non-Probability Sample Integration & Vectorized Linkage in `MIP`
 
-When combining a non-probability convenience sample $S_c$ ($n_c = 70$) with a probability reference survey $S_r$ ($n_r = 70$), we can use composite likelihoods:
-- Deterministic linkage: `LINK2`
-- Unlinked stacking: `STACK`
-- Probabilistic record linkage with unit-level marginal linkage probabilities $\tilde{\mathbf{p}} = (\tilde{p}_1, \dots, \tilde{p}_n)^\top$: `MIP` (Missing Information Principle).
+When combining a non-probability convenience sample $S_c$ ($n_c = 70$)
+with a probability reference survey $S_r$ ($n_r = 70$), we can use
+composite likelihoods: - Deterministic linkage: `LINK2` - Unlinked
+stacking: `STACK` - Probabilistic record linkage with unit-level
+marginal linkage probabilities
+$\tilde{\mathbf{p}} = (\tilde{p}_1, \dots, \tilde{p}_n)^\top$: `MIP`
+(Missing Information Principle).
 
 ```{r track2_demo}
 n_c <- 70
@@ -250,11 +272,18 @@ hajek_pop_mean <- hajek_estimate(y = y_convenience, pi = pi_c_hat)
 print(hajek_pop_mean)
 ```
 
----
+------------------------------------------------------------------------
 
 ## Conclusion
 
-The `LBBNN` package provides a unified Bayesian neural network framework for modern official statistics:
-- Explicit design weight scaling, Dirichlet bootstrap calibration (`predict_domains_lbbnn()`), and Williams–Savitsky Cholesky sandwich UQ for active MPM slab parameters (`adjust_slab_sandwich_lbbnn()`, validated by `run_coverage_benchmark_lbbnn()`) for Track 1A.
-- Multi-stage privacy calibration dominating classical truncation plus fast-computing dual-support finite-sample $(\epsilon, \delta)$-DP nugget calibration (`calibrate_dp_finite_sample()`) for Track 1B.
-- Composite likelihoods handling deterministic, unlinked, and probabilistic survey record linkage for Track 2.
+The `LBBNN` package provides a unified Bayesian neural network framework
+for modern official statistics: - Explicit design weight scaling,
+Dirichlet bootstrap calibration (`predict_domains_lbbnn()`), and
+Williams–Savitsky Cholesky sandwich UQ for active MPM slab parameters
+(`adjust_slab_sandwich_lbbnn()`, validated by
+`run_coverage_benchmark_lbbnn()`) for Track 1A. - Multi-stage privacy
+calibration dominating classical truncation plus fast-computing
+dual-support finite-sample $(\epsilon, \delta)$-DP nugget calibration
+(`calibrate_dp_finite_sample()`) for Track 1B. - Composite likelihoods
+handling deterministic, unlinked, and probabilistic survey record
+linkage for Track 2.

@@ -136,7 +136,6 @@ In `LBBNN`, we combine the design weights with posterior draws of the regression
 
 $$\hat{\bar{Y}}_d^{\text{BNN}(s)} = \frac{\sum_{i=1}^n w_i G_{i,d} \hat{\mu}_i^{(s)}}{\sum_{i=1}^n w_i G_{i,d}}$$
 
-**Model-Assisted Conditional Expectation**: While spike-and-slab edge selection prunes pure noise *covariates* ($X_3, X_4$), additive unit-level observation error $\varepsilon_i \sim \mathcal{N}(0, \sigma^2)$ in $y_i = \mu(\mathbf{x}_i) + \varepsilon_i$ cannot be isolated from unobserved unit heterogeneity in cross-sectional data without repeated measurements. However, by evaluating the posterior conditional expectation $\hat{\mu}_i^{(s)} = \mathbb{E}[Y_i \mid \mathbf{x}_i, \theta^{(s)}] = \mu_{\theta^{(s)}}(\mathbf{x}_i)$ (`type = "conditional_mean"`) rather than drawing noisy predictive samples $\tilde{y}_i^{(s)} = \mu_{\theta^{(s)}}(\mathbf{x}_i) + \varepsilon_i^{(s)}$ (`type = "predictive"`), `predict_domains_lbbnn()` avoids adding posterior predictive simulation noise, yielding a smooth estimate of the underlying regression surface.
 **Model-Assisted Conditional Expectation**: While spike-and-slab edge selection prunes uninformative noise covariates (as demonstrated empirically with noise features $X_3, X_4$ in Section 3), additive unit-level observation error $\varepsilon_i \sim \mathcal{N}(0, \sigma^2)$ in $y_i = \mu(\mathbf{x}_i) + \varepsilon_i$ cannot be isolated from unobserved unit heterogeneity in cross-sectional data without repeated measurements. However, by evaluating the posterior conditional expectation $\hat{\mu}_i^{(s)} = \mathbb{E}[Y_i \mid \mathbf{x}_i, \theta^{(s)}] = \mu_{\theta^{(s)}}(\mathbf{x}_i)$ (`type = "conditional_mean"`) rather than drawing noisy predictive samples $\tilde{y}_i^{(s)} = \mu_{\theta^{(s)}}(\mathbf{x}_i) + \varepsilon_i^{(s)}$ (`type = "predictive"`), `predict_domains_lbbnn()` avoids adding posterior predictive simulation noise, yielding a smooth estimate of the underlying regression surface.
 
 ### Bayesian Imputation for Missing Survey Responses ($y_i = \text{NA}$)
@@ -582,14 +581,14 @@ sw_demo <- adjust_slab_sandwich_lbbnn(
 
 knitr::kable(
   sw_demo$summary_table[, c(
-    "Parameter", "Post_Mean", "Unadj_SD",
-    "Sandwich_SD", "DEFF_Ratio", "Sand_Low", "Sand_High"
+    "Parameter", "Post_Mean", "Unadj_SD", "Hessian_SD",
+    "Sandwich_SD", "Survey_DEFF", "Sand_Low", "Sand_High"
   )],
   digits    = 3,
   row.names = FALSE,
   col.names = c(
-    "Active MPM Param", "Mean", "Unadj SD",
-    "Sand SD", "Var Ratio", "CI Low", "CI High"
+    "Active MPM Param", "Mean", "Unadj SD", "Hessian SD",
+    "Sand SD", "Survey DEFF", "CI Low", "CI High"
   ),
   caption   = paste(
     "Williams-Savitsky (2021) Cholesky Sandwich Adjustment",
@@ -617,8 +616,10 @@ overall_disp$UQ_Method_Corrected <- gsub(
   overall_disp$UQ_Method_Corrected, fixed = TRUE
 )
 
-knitr::kable(
+kableExtra::kbl(
   overall_disp,
+  format    = "latex",
+  booktabs  = TRUE,
   digits    = 3,
   row.names = FALSE,
   col.names = c(
@@ -626,10 +627,14 @@ knitr::kable(
     "Unadj Cov", "Corrected Method", "Corrected Cov"
   ),
   caption   = paste(
-    "Monte Carlo Nominal 95% Frequentist Coverage Summary",
+    "Monte Carlo Nominal 95\\% Frequentist Coverage Summary",
     "Across M = 50 Informative Samples Under P-nu"
   )
-)
+) |>
+  kableExtra::kable_styling(latex_options = "HOLD_position", font_size = 9) |>
+  kableExtra::column_spec(1, width = "4.2cm") |>
+  kableExtra::column_spec(2, width = "4.0cm") |>
+  kableExtra::column_spec(4, width = "4.2cm")
 ```
 
 ```{r coverage_benchmark_plot, echo = FALSE, fig.cap="Nominal 95% Frequentist Coverage Recovery Across Both Target Classes (M = 50 Informative Replicates)."}
@@ -885,7 +890,7 @@ knitr::kable(
 
 ### Finite-Sample $(\epsilon, \delta)$-DP Guarantee & Additive Nugget $\eta$ Calibration (`calibrate_dp_finite_sample`)
 
-As established by **Azizi, Savitsky, Williams & Chatterjee (Nov 2026)** (*Algorithm 3.1 / Section 3.2*), the unadjusted local privacy parameter $\epsilon_{\mathbf{x}} = 2\Delta_{\alpha, \mathbf{x}}$ relies on an asymptotic concentration assumption and exhibits a non-negligible finite-sample exceedance probability $\hat{\delta}_n(0) = \mathbb{P}_{\mathbf{x}_r}(\Delta_{\alpha, \mathbf{x}_r} > \Delta_{\alpha, \mathbf{x}}) > 0$ under posterior predictive resampling. Rather than retraining separate variational LBBNN models across hundreds of synthetic replicate datasets $\mathbf{x}_r$ ($r = 1, \dots, R$), `calibrate_dp_finite_sample()` implements fast **dual-support plug-in evaluation with zero additional training**:
+As established by **Azizi, Savitsky, Williams & Chatterjee (Nov 2026)** (*Algorithm 3.1 / Section 3.2*), the unadjusted local privacy parameter $\epsilon_{\mathbf{x}} = 2\Delta_{\alpha, \mathbf{x}}$ relies on an asymptotic concentration assumption and exhibits a non-negligible finite-sample exceedance probability $\hat{\delta}_n(0) = \mathbb{P}_{\mathbf{x}_r}(\Delta_{\alpha, \mathbf{x}_r} > \Delta_{\alpha, \mathbf{x}}) > 0$ under posterior predictive resampling. Explicitly, **Fred Azizi** et al. show that evaluating these replicates via **dual-support plug-in with zero additional neural network training** avoids costly repeated model refitting:
 
 1. Freeze $B = 100$ posterior draws from the Pass 1 unweighted generator ($\Theta^{(1)}$) via `extract_lbbnn_support()` and from the Pass 2/3 weighted synthesizer ($\Theta_\alpha^{(2)}$).
 2. Generate $R = 200$ posterior predictive replicate response vectors $\mathbf{x}_r \sim p_{\Theta^{(1)}}(\cdot \mid \mathbf{X})$.
@@ -918,7 +923,7 @@ knitr::kable(
 )
 ```
 
-```{r dp_finite_sample_plot, echo = FALSE, fig.cap="Dual-Support Plug-In Replicate Sensitivity Distribution (R = 200, Zero Retraining)."}
+```{r dp_finite_sample_plot, echo = FALSE, dev = "cairo_pdf", fig.cap="Dual-Support Plug-In Replicate Sensitivity Distribution (R = 200, Zero Retraining)."}
 row_05 <- dp_cal$calibration_table[
   which.min(abs(dp_cal$calibration_table$delta_target - 0.05)),
 ]
@@ -942,15 +947,18 @@ ggplot(data.frame(delta_rep = dp_cal$delta_rep_vec), aes(x = delta_rep)) +
     color = "#c0392b", linetype = "dotted", linewidth = 1.1
   ) +
   theme_minimal(base_size = 10) +
-  theme(plot.subtitle = element_text(size = 8.8)) +
+  theme(
+    plot.subtitle = element_text(size = 8.8),
+    plot.margin   = margin(t = 12, r = 10, b = 12, l = 10)
+  ) +
   labs(
-    title = "Finite-Sample Replicate Sensitivity Distribution (R = 200 Dual-Support Plug-in)",
+    title    = "Finite-Sample Replicate Sensitivity Distribution (R = 200 Dual-Support Plug-in)",
     subtitle = sprintf(
-      "Obs Delta = %.2f (delta_0 = %.3f); delta = 0.05 threshold = %.2f (eta = +%.2f); delta = 0.01 = %.2f",
+      "Obs Delta = %.2f (delta_0 = %.3f); delta = 0.05 bound = %.2f (eta = +%.2f); delta = 0.01 = %.2f",
       dp_cal$delta_alpha_obs, dp_cal$delta_hat_0,
       row_05$delta_alpha_eta, row_05$eta_nugget, row_01$delta_alpha_eta
     ),
-    x = "Replicate Weighted Sensitivity Delta_{alpha, x_r}",
+    x = expression("Replicate Weighted Sensitivity " * Delta[alpha * "," * x[r]]),
     y = "Density"
   )
 ```
@@ -1155,7 +1163,7 @@ kableExtra::kbl(
 
 # References
 
-1. **Azizi, L., Savitsky, T. D., Williams, M. R., & Chatterjee, S.** (2026). *Fast-computing finite-sample differential privacy bounds for the pseudo-posterior mechanism*. Working Paper, U.S. Bureau of Labor Statistics (`PPM_non_asymptotic_bounds.pdf`).
+1. **Azizi, F., Savitsky, T. D., Williams, M. R., & Chatterjee, S.** (2026). *Fast-computing finite-sample differential privacy bounds for the pseudo-posterior mechanism*. Working Paper, U.S. Bureau of Labor Statistics (`PPM_non_asymptotic_bounds.pdf`).
 2. **Bhattacharya, A., Pati, D., & Yang, Y.** (2019). *Bayesian fractional posteriors*. The Annals of Statistics, 47(1), 39–66.
 3. **Dimitrakakis, C., Nelson, B., Mitrokotsa, A., & Rubinstein, B. I.** (2017). *Differential privacy for Bayesian inference through posterior sampling*. Journal of Machine Learning Research, 18(1), 343–381.
 4. **Dwork, C., & Roth, A.** (2014). *The algorithmic foundations of differential privacy*. Foundations and Trends in Theoretical Computer Science, 9(3–4), 211–407.

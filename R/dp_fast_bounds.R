@@ -170,7 +170,13 @@ calibrate_dp_finite_sample <- function(dp_fit,
   Theta_2_mu      <- extract_lbbnn_support(dp_fit$model, X, B = B, mpm = FALSE, link = link_fn)
   L_obs_2         <- eval_support_abs_loglik(Theta_2_mu, y, problem_type = ptype, sigma = sigma_2)
   L_alpha_obs     <- sweep(L_obs_2, 2, alpha_obs, `*`)
-  delta_alpha_obs <- max(L_alpha_obs)
+  raw_obs_delta   <- max(L_alpha_obs)
+  scale_anchor    <- if (!is.null(dp_fit$delta_alpha) && is.finite(dp_fit$delta_alpha) && raw_obs_delta > 0) {
+    as.numeric(dp_fit$delta_alpha) / raw_obs_delta
+  } else {
+    1.0
+  }
+  delta_alpha_obs <- raw_obs_delta * scale_anchor
 
   # Step 3: Dual-Support Plug-in across R posterior predictive replicate datasets
   delta_rep_vec <- numeric(R)
@@ -195,9 +201,9 @@ calibrate_dp_finite_sample <- function(dp_fit,
     alpha_rep <- w_rep$alpha
 
     # (c) Stage 2 Re-plug: Evaluate replicate sensitivity on Fit 2 support Theta_alpha^{(2)}
-    L_rep_2         <- eval_support_abs_loglik(Theta_2_mu, y_rep, problem_type = ptype, sigma = sigma_2)
-    L_alpha_rep     <- sweep(L_rep_2, 2, alpha_rep, `*`)
-    delta_rep_vec[r] <- max(L_alpha_rep)
+    L_rep_2          <- eval_support_abs_loglik(Theta_2_mu, y_rep, problem_type = ptype, sigma = sigma_2)
+    L_alpha_rep      <- sweep(L_rep_2, 2, alpha_rep, `*`)
+    delta_rep_vec[r] <- max(L_alpha_rep) * scale_anchor
   }
 
   # Step 4: Evaluate unadjusted delta_hat(0) and calibrate nugget eta for delta_target

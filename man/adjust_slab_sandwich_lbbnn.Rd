@@ -47,8 +47,10 @@ for clustered score covariance estimation in \code{J_2} (Williams & Savitsky, 20
 \value{
 A list containing:
 \itemize{
-\item \code{summary_table}: Data frame comparing unadjusted vs. Williams-Savitsky
-sandwich-corrected posterior means, SDs, design effect ratios (DEFF), and credible intervals.
+\item \code{summary_table}: Data frame comparing unadjusted mean-field VI SDs (\code{Unadj_SD}),
+inverse-Hessian curvature/collinearity SDs (\code{Hessian_SD}), Williams-Savitsky sandwich SDs
+(\code{Sandwich_SD}), pure survey design effects (\code{Survey_DEFF = var_sand / var_hess},
+also aliased as \code{DEFF_Ratio}), and credible intervals.
 \item \code{draws_unadjusted}: Matrix \code{[draws, d_slab]} of raw variational slab draws.
 \item \code{draws_adjusted}: Matrix \code{[draws, d_slab]} of transported slab draws \code{theta^*}.
 \item \code{Sigma_1}: Unadjusted posterior covariance matrix \code{R_1^T R_1}.

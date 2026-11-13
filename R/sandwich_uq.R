@@ -68,8 +68,10 @@
 #' @param seed Random seed (default 2026).
 #' @return A list containing:
 #'   \itemize{
-#'     \item \code{summary_table}: Data frame comparing unadjusted vs. Williams-Savitsky
-#'       sandwich-corrected posterior means, SDs, design effect ratios (DEFF), and credible intervals.
+#'     \item \code{summary_table}: Data frame comparing unadjusted mean-field VI SDs (\code{Unadj_SD}),
+#'       inverse-Hessian curvature/collinearity SDs (\code{Hessian_SD}), Williams-Savitsky sandwich SDs
+#'       (\code{Sandwich_SD}), pure survey design effects (\code{Survey_DEFF = var_sand / var_hess},
+#'       also aliased as \code{DEFF_Ratio}), and credible intervals.
 #'     \item \code{draws_unadjusted}: Matrix \code{[draws, d_slab]} of raw variational slab draws.
 #'     \item \code{draws_adjusted}: Matrix \code{[draws, d_slab]} of transported slab draws \code{theta^*}.
 #'     \item \code{Sigma_1}: Unadjusted posterior covariance matrix \code{R_1^T R_1}.
@@ -256,15 +258,22 @@ adjust_slab_sandwich_lbbnn <- function(object,
   q_unadj <- apply(draws_unadj, 2, stats::quantile, probs = c(alpha_tail, 1.0 - alpha_tail))
   q_adj   <- apply(draws_adj,   2, stats::quantile, probs = c(alpha_tail, 1.0 - alpha_tail))
 
-  sd_unadj <- sqrt(diag(Sigma_1))
-  sd_sand  <- sqrt(diag(Sigma_sandwich))
+  var_unadj   <- diag(Sigma_1)
+  var_hess    <- diag(H1_inv)
+  var_sand    <- diag(Sigma_sandwich)
+  sd_unadj    <- sqrt(var_unadj)
+  sd_hess     <- sqrt(pmax(var_hess, 0.0))
+  sd_sand     <- sqrt(var_sand)
+  survey_deff <- var_sand / pmax(var_hess, 1e-12)
 
   summary_tbl <- data.frame(
     Parameter   = param_names,
     Post_Mean   = theta_mean_vi,
     Unadj_SD    = sd_unadj,
+    Hessian_SD  = sd_hess,
     Sandwich_SD = sd_sand,
-    DEFF_Ratio  = (sd_sand / sd_unadj)^2,
+    Survey_DEFF = survey_deff,
+    DEFF_Ratio  = survey_deff,
     Unadj_Low   = q_unadj[1, ],
     Unadj_High  = q_unadj[2, ],
     Sand_Low    = q_adj[1, ],
