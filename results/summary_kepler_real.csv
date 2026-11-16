@@ -1,0 +1,2 @@
+"seed","benchmark","structural_recovery","exp_err_raw","exp_err_debiased","exp_err_snapped","test_rmse_symbolic","test_rmse_relu","active_edges_symbolic","active_edges_relu","formula","latex"
+1,"kepler_real",1,0.795418871566653,0.00326020518938702,0.00325442353884381,0.0129230177305399,0.665997235321421,5,21,"M_star^0.33 * T^(2/3)","M\_star^{0.33} T^{2/3}"

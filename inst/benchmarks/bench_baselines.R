@@ -398,17 +398,423 @@ run_python_sr_pair <- function(x_train, y_train, x_test, y_test, var_names, task
   df
 }
 
+#' Register custom math transforms in GlobalEnv for FBMS gmjmcmc workers & BMA prediction
+register_fbms_custom_transforms <- function() {
+  assign("to3",     function(x) x^3, envir = .GlobalEnv)
+  assign("sin_pi",  function(x) sin(pi * x), envir = .GlobalEnv)
+  assign("sin_rad", function(x) sin(x), envir = .GlobalEnv)
+  assign("cos_rad", function(x) cos(x), envir = .GlobalEnv)
+  invisible(TRUE)
+}
+
 #' Safely evaluate an FBMS feature string on a data.frame X_df
 eval_fbms_feat <- function(feat_str, X_df) {
+  register_fbms_custom_transforms()
   s <- trimws(as.character(feat_str))
   for (k in seq_len(ncol(X_df))) {
     s <- gsub(paste0("\\bx\\.", k, "\\b"), colnames(X_df)[k], s)
   }
-  env <- list2env(as.list(X_df), parent = asNamespace("FBMS"))
-  val <- tryCatch(eval(parse(text = s), envir = env), error = function(e) rep(0.0, nrow(X_df)))
+  eval_env <- list2env(as.list(X_df), parent = .GlobalEnv)
+  val <- tryCatch(eval(parse(text = s), envir = eval_env), error = function(e) rep(0.0, nrow(X_df)))
   val <- as.numeric(val)
   val[!is.finite(val)] <- 0.0
   val
+}
+
+#' Custom Bayesian Logic Regression Jeffreys-BIC marginal likelihood & prior (Ex7_Sec5_2.R, arXiv:2509.00753)
+estimate_logic_lm <- function(y, x, model, complex, mlpost_params) {
+  if (sum(model) == 0L) return(list(crit = -10000, coefs = numeric()))
+  suppressWarnings({
+    mod <- fastglm::fastglm(as.matrix(x[, model, drop = FALSE]), y, family = stats::gaussian())
+  })
+  if (anyNA(mod$coefficients)) return(list(crit = -10000, coefs = rep(0, sum(model))))
+  mloglik <- -(mod$aic + (log(length(y)) - 2.0) * mod$rank) / 2.0
+  wj <- complex$width
+  lp <- sum(log(factorial(wj))) - sum(wj * log(4.0 * mlpost_params$p) - log(4.0))
+  logpost <- mloglik + lp
+  if (!is.finite(logpost) || logpost == -Inf) logpost <- -10000
+  list(crit = logpost, coefs = mod$coefficients)
+}
+
+#' Custom Bayesian Logic Regression tCCH marginal likelihood & prior (Ex7_Sec5_2.R, arXiv:2509.00753)
+estimate_logic_tcch <- function(y, x, model, complex, mlpost_params) {
+  if (sum(model) == 0L) return(list(crit = -10000, coefs = numeric()))
+  suppressWarnings({
+    mod <- fastglm::fastglm(as.matrix(x[, model, drop = FALSE]), y, family = stats::gaussian())
+  })
+  if (anyNA(mod$coefficients)) return(list(crit = -10000, coefs = rep(0, sum(model))))
+  p_v <- (mlpost_params$n + 1.0) / (mod$rank + 1.0)
+  y_mean <- mean(y)
+  TSS <- sum((y - y_mean)^2)
+  RSS <- sum(mod$residuals^2)
+  R_2 <- max(0.0, min(1.0 - 1e-12, 1.0 - (RSS / max(TSS, 1e-12))))
+  p_rk <- mod$rank
+  mloglik <- tryCatch(
+    -0.5 * p_rk * log(p_v) -
+      0.5 * (mlpost_params$n - 1.0) * log(1.0 - (1.0 - 1.0 / p_v) * R_2) +
+      log(beta((mlpost_params$p.a + p_rk) / 2.0, mlpost_params$p.b / 2.0)) -
+      log(beta(mlpost_params$p.a / 2.0, mlpost_params$p.b / 2.0)) +
+      log(BAS::phi1(
+        mlpost_params$p.b / 2.0,
+        (mlpost_params$n - 1.0) / 2.0,
+        (mlpost_params$p.a + mlpost_params$p.b + p_rk) / 2.0,
+        mlpost_params$p.s / (2.0 * p_v),
+        R_2 / (p_v - (p_v - 1.0) * R_2)
+      )) -
+      BAS::hypergeometric1F1(
+        mlpost_params$p.b / 2.0,
+        (mlpost_params$p.a + mlpost_params$p.b) / 2.0,
+        mlpost_params$p.s / (2.0 * p_v),
+        log = TRUE
+      ),
+    error = function(e) -10000
+  )
+  if (!is.finite(mloglik) || is.na(mloglik) || is.nan(mloglik)) mloglik <- -10000
+  wj <- complex$width
+  lp <- sum(log(factorial(wj))) - sum(wj * log(mlpost_params$p) + (2.0 * wj - 2.0) * log(2.0))
+  logpost <- mloglik + lp + mlpost_params$n
+  if (!is.finite(logpost) || logpost == -Inf) logpost <- -10000
+  list(crit = logpost, coefs = mod$coefficients)
+}
+
+#' Shared JCS-recommended parallel GMJMCMC wrapper (Frommlet et al., 2026)
+run_fbms_jcs_parallel <- function(df_tr, X_tr, X_te, y_tr, y_te, var_names,
+                                  transforms, beta_prior_type,
+                                  beta_prior = NULL, probs = NULL,
+                                  params = NULL, seed = 1L,
+                                  runs = getOption("lbbnn.fbms_runs", 40L),
+                                  cores = getOption("lbbnn.fbms_cores", 1L),
+                                  P = getOption("lbbnn.fbms_P", 25L),
+                                  N = getOption("lbbnn.fbms_N", 200L),
+                                  family = "gaussian",
+                                  loglik.pi = NULL,
+                                  model_prior = NULL) {
+  register_fbms_custom_transforms()
+  if (is.null(params)) {
+    params <- FBMS::gen.params.gmjmcmc(ncol(X_tr))
+    params$feat$pop.max <- max(25L, ncol(X_tr) + 10L)
+  }
+  if (is.null(probs)) {
+    probs <- FBMS::gen.probs.gmjmcmc(transforms)
+  }
+  fbms_method <- "gmjmcmc.parallel"
+  # Leave beta_prior$var unspecified ("unknown") for Jeffreys-BIC unless caller passes explicit var
+  bp <- if (!is.null(beta_prior)) beta_prior else list(type = beta_prior_type)
+  set.seed(as.integer(seed))
+  fbms_args <- list(
+    formula = y ~ 1 + .,
+    family = family,
+    beta_prior = bp,
+    data = df_tr,
+    method = fbms_method,
+    transforms = transforms,
+    probs = probs,
+    params = params,
+    runs = as.integer(runs),
+    cores = as.integer(cores),
+    P = as.integer(P),
+    N = as.integer(N),
+    verbose = FALSE
+  )
+  if (!is.null(loglik.pi)) fbms_args$loglik.pi <- loglik.pi
+  if (!is.null(model_prior)) fbms_args$model_prior <- model_prior
+  fbms_fit <- tryCatch(
+    suppressWarnings(do.call(FBMS::fbms, fbms_args)),
+    error = function(e) {
+      message(sprintf("[WARN] FBMS failed (seed=%d): %s", seed, conditionMessage(e)))
+      NULL
+    }
+  )
+  if (is.null(fbms_fit)) return(NULL)
+
+  # Native Bayesian Model Averaging (BMA) out-of-sample prediction across parallel chains
+  pred_bma <- tryCatch(
+    stats::predict(fbms_fit, x = as.data.frame(X_te), link = function(x) x),
+    error = function(e) NULL
+  )
+  rmse_bma <- if (!is.null(pred_bma)) {
+    yhat <- as.numeric(FBMS::predmean(pred_bma))
+    if (length(yhat) == length(y_te) && all(is.finite(yhat))) sqrt(mean((yhat - y_te)^2)) else NA_real_
+  } else {
+    NA_real_
+  }
+
+  s_fbms <- tryCatch(
+    suppressWarnings(summary(fbms_fit, tol = 0.5, labels = var_names, verbose = FALSE)),
+    error = function(e) NULL
+  )
+  f_strs <- if (!is.null(s_fbms) && !is.null(s_fbms$feats.strings)) as.character(s_fbms$feats.strings) else character(0)
+  f_strs <- f_strs[nzchar(trimws(f_strs))]
+
+  if (length(f_strs) > 0L) {
+    df_X_tr <- as.data.frame(X_tr)
+    F_tr <- do.call(cbind, lapply(f_strs, function(fs) eval_fbms_feat(fs, df_X_tr)))
+    v_used <- which(vapply(var_names, function(vn) any(grepl(paste0("\\b", vn, "\\b"), f_strs)), logical(1)))
+    f_form <- paste(f_strs, collapse = " + ")
+  } else {
+    F_tr <- NULL
+    v_used <- integer(0)
+    f_form <- "1"
+  }
+  if (!is.finite(rmse_bma)) {
+    rmse_bma <- sqrt(mean((mean(y_tr) - y_te)^2))
+  }
+  list(
+    rmse = rmse_bma,
+    F_tr = F_tr,
+    f_strs = f_strs,
+    v_used = v_used,
+    formula = f_form
+  )
+}
+
+run_fbms_task_on_data <- function(benchmark = c("logic", "kepler", "kepler_real", "nonlinear"),
+                                  dat,
+                                  seed = 1L,
+                                  cores = getOption("lbbnn.fbms_cores", 1L),
+                                  runs = getOption("lbbnn.fbms_runs", 40L),
+                                  P = getOption("lbbnn.fbms_P", 25L),
+                                  N = getOption("lbbnn.fbms_N", NULL),
+                                  beta_prior = NULL) {
+  benchmark <- match.arg(benchmark)
+  X_tr <- dat$x_train
+  y_tr <- dat$y_train
+  X_te <- dat$x_test
+  y_te <- dat$y_test
+  var_names <- if (!is.null(dat$var_names)) dat$var_names else colnames(X_tr)
+  p_eff <- ncol(X_tr)
+  df_tr <- data.frame(y = y_tr, X_tr)
+
+  if (benchmark == "logic") {
+    params_fbms <- FBMS::gen.params.gmjmcmc(p_eff)
+    probs_fbms <- FBMS::gen.probs.gmjmcmc(c("not"))
+    if (!is.null(beta_prior) && identical(beta_prior$family, "custom")) {
+      # Exact Ex7_Sec5_2.R (arXiv:2509.00753) BLR specification
+      probs_fbms$gen <- c(1, 1, 0, 1)
+      params_fbms$feat$pop.max <- 50L
+      params_fbms$feat$L <- 15L
+      n_iter <- if (is.null(N)) 500L else as.integer(N)
+      if (identical(beta_prior$custom_type, "logic_jeffreys")) {
+        fbms_res <- run_fbms_jcs_parallel(
+          df_tr = df_tr, X_tr = X_tr, X_te = X_te, y_tr = y_tr, y_te = y_te,
+          var_names = var_names, transforms = c("not"),
+          beta_prior_type = "custom", beta_prior = NULL,
+          probs = probs_fbms, params = params_fbms,
+          seed = seed, cores = cores, runs = runs, P = P, N = n_iter,
+          family = "custom", loglik.pi = estimate_logic_lm,
+          model_prior = list(p = p_eff)
+        )
+      } else if (identical(beta_prior$custom_type, "logic_tcch")) {
+        fbms_res <- run_fbms_jcs_parallel(
+          df_tr = df_tr, X_tr = X_tr, X_te = X_te, y_tr = y_tr, y_te = y_te,
+          var_names = var_names, transforms = c("not"),
+          beta_prior_type = "custom",
+          beta_prior = list(p.a = 1, p.b = 1, p.r = 1.5, p.s = 0, p.k = 1),
+          probs = probs_fbms, params = params_fbms,
+          seed = seed, cores = cores, runs = runs, P = P, N = n_iter,
+          family = "custom", loglik.pi = estimate_logic_tcch,
+          model_prior = list(p = p_eff, n = nrow(X_tr))
+        )
+      } else {
+        stop("Unknown custom logic estimator: ", beta_prior$custom_type)
+      }
+    } else {
+      params_fbms$feat$pop.max <- 30L
+      probs_fbms$gen <- c(0.45, 0.40, 0.0, 0.15)
+      n_iter <- if (is.null(N)) 200L else as.integer(N)
+      fbms_res <- run_fbms_jcs_parallel(
+        df_tr = df_tr, X_tr = X_tr, X_te = X_te, y_tr = y_tr, y_te = y_te,
+        var_names = var_names, transforms = c("not"),
+        beta_prior_type = "ZS-null", beta_prior = beta_prior,
+        probs = probs_fbms, params = params_fbms,
+        seed = seed, cores = cores, runs = runs, P = P, N = n_iter
+      )
+    }
+    if (is.null(fbms_res)) return(NULL)
+    true_vars_idx <- c(1L, 2L, 4L, 5L, 7L, 8L, 11L)
+    noise_vars_idx <- setdiff(seq_len(p_eff), true_vars_idx)
+    if (is.null(fbms_res$F_tr) || ncol(fbms_res$F_tr) == 0L) {
+      sc <- list(clause_tpr = 0.0, clause_fpr = 0.0, exact_recovery = 0L,
+                 var_tpr = 0.0, var_fpr = 0.0, n_terms = 0L)
+    } else {
+      C_true <- cbind(
+        c1 = X_tr[, 1] * X_tr[, 2],
+        c2 = X_tr[, 4] * (1.0 - X_tr[, 5]),
+        c3 = X_tr[, 7] * X_tr[, 8] * X_tr[, 11]
+      )
+      cors <- suppressWarnings(abs(cor(fbms_res$F_tr, C_true)))
+      cors[is.na(cors)] <- 0.0
+      tp_c <- sum(apply(cors > 0.999, 2, any))
+      fp_c <- sum(!apply(cors > 0.999, 1, any))
+      sc <- list(
+        clause_tpr = tp_c / 3.0,
+        clause_fpr = fp_c / 29.0,
+        exact_recovery = as.integer(tp_c == 3L && fp_c == 0L && ncol(fbms_res$F_tr) == 3L),
+        var_tpr = mean(true_vars_idx %in% fbms_res$v_used),
+        var_fpr = mean(noise_vars_idx %in% fbms_res$v_used),
+        n_terms = ncol(fbms_res$F_tr)
+      )
+    }
+    return(data.frame(
+      seed = seed, benchmark = "logic", method = "FBMS-BLR",
+      clause_tpr = sc$clause_tpr, clause_fpr = sc$clause_fpr, exact_recovery = sc$exact_recovery,
+      var_tpr = sc$var_tpr, var_fpr = sc$var_fpr,
+      test_rmse = fbms_res$rmse, n_terms = sc$n_terms,
+      formula = fbms_res$formula, stringsAsFactors = FALSE
+    ))
+  }
+
+  if (benchmark %in% c("kepler", "kepler_real")) {
+    mode_k <- if (benchmark == "kepler") "synthetic" else "real"
+    params_kep <- FBMS::gen.params.gmjmcmc(p_eff)
+    params_kep$feat$pop.max <- max(25L, p_eff + 10L)
+    if (mode_k == "synthetic") {
+      tr_kep <- c("p0", "p2", "p3", "p05", "pm1", "pm05", "troot")
+      probs_kep <- FBMS::gen.probs.gmjmcmc(tr_kep)
+      probs_kep$gen <- c(0.45, 0.45, 0.0, 0.10)
+      bp_kep <- "ZS-null"
+      n_iter <- if (is.null(N)) 250L else as.integer(N)
+    } else {
+      # Exact JCS (Frommlet et al., 2026) Example 1.4 Exoplanet protocol
+      tr_kep <- c("sigmoid", "sin_deg", "exp_dbl", "p0", "troot", "to3")
+      probs_kep <- FBMS::gen.probs.gmjmcmc(tr_kep)
+      bp_kep <- "g-prior"
+      n_iter <- if (is.null(N)) 150L else as.integer(N)
+    }
+    fbms_res <- run_fbms_jcs_parallel(
+      df_tr = df_tr, X_tr = X_tr, X_te = X_te, y_tr = y_tr, y_te = y_te,
+      var_names = var_names, transforms = tr_kep,
+      beta_prior_type = bp_kep, beta_prior = beta_prior,
+      probs = probs_kep, params = params_kep,
+      seed = seed, cores = cores, runs = runs, P = P, N = n_iter
+    )
+    if (is.null(fbms_res)) return(NULL)
+    if (!is.null(fbms_res$F_tr)) {
+      y_kepler_tr <- (X_tr[, 1]^(1 / 3)) * (X_tr[, 2]^(2 / 3))
+      cors_k <- suppressWarnings(abs(cor(fbms_res$F_tr, y_kepler_tr)))
+      cors_k[is.na(cors_k)] <- 0.0
+      has_exact_kepler <- any(cors_k > 0.9999) && length(fbms_res$f_strs) == 1L
+      exp_err_fbms <- if (has_exact_kepler) 0.0 else 0.5
+      v_idx <- sort(unique(as.integer(fbms_res$v_used)))
+    } else {
+      exp_err_fbms <- 1.0
+      v_idx <- integer(0)
+    }
+    struct_rec <- as.integer(identical(v_idx, c(1L, 2L)))
+    tol_law <- if (mode_k == "synthetic") 1e-3 else 1e-2
+    return(data.frame(
+      seed = seed, benchmark = benchmark, method = "FBMS-BGNLM",
+      structural_recovery = struct_rec,
+      exact_law = as.integer(struct_rec == 1L && exp_err_fbms < tol_law),
+      exp_err = exp_err_fbms,
+      var_tpr = mean(c(1L, 2L) %in% v_idx),
+      var_fpr = mean(setdiff(seq_len(p_eff), c(1L, 2L)) %in% v_idx),
+      test_rmse = fbms_res$rmse, n_terms = length(fbms_res$f_strs),
+      formula = fbms_res$formula, stringsAsFactors = FALSE
+    ))
+  }
+
+  # Friedman #1 ("nonlinear")
+  params_nl <- FBMS::gen.params.gmjmcmc(p_eff)
+  params_nl$feat$pop.max <- 25L
+  tr_nl <- c("sin_pi", "sin_rad", "cos_rad", "p2", "p3", "p05", "pm1")
+  probs_nl <- FBMS::gen.probs.gmjmcmc(tr_nl)
+  n_iter <- if (is.null(N)) 250L else as.integer(N)
+  bp_nl <- if (!is.null(beta_prior)) beta_prior else list(type = "Jeffreys-BIC", var = 1.0)
+  fbms_res <- run_fbms_jcs_parallel(
+    df_tr = df_tr, X_tr = X_tr, X_te = X_te, y_tr = y_tr, y_te = y_te,
+    var_names = var_names, transforms = tr_nl,
+    beta_prior_type = "Jeffreys-BIC", beta_prior = bp_nl,
+    probs = probs_nl, params = params_nl,
+    seed = seed, cores = cores, runs = runs, P = P, N = n_iter
+  )
+  if (is.null(fbms_res)) return(NULL)
+  v_idx <- if (!is.null(fbms_res$F_tr)) sort(unique(as.integer(fbms_res$v_used))) else integer(0)
+  tpr <- mean((1:5) %in% v_idx)
+  fpr <- mean((6:p_eff) %in% v_idx)
+  data.frame(
+    seed = seed, benchmark = "nonlinear", method = "FBMS-BGNLM",
+    var_tpr = tpr, var_fpr = fpr,
+    exact_var_recovery = as.integer(tpr == 1.0 && fpr == 0.0),
+    test_rmse = fbms_res$rmse, n_terms = length(fbms_res$f_strs),
+    formula = fbms_res$formula, stringsAsFactors = FALSE
+  )
+}
+
+get_fbms_prior_catalog <- function(benchmark = c("logic", "kepler", "kepler_real", "nonlinear"),
+                                   n_train = NULL) {
+  benchmark <- match.arg(benchmark)
+  if (is.null(n_train)) {
+    n_train <- switch(benchmark,
+      logic = 1000L,
+      kepler = 400L,
+      kepler_real = 242L,
+      nonlinear = 500L
+    )
+  }
+  known_var <- switch(benchmark,
+    logic = 0.25,        # sigma = 0.5
+    kepler = 2.5e-5,     # sigma = 0.005
+    kepler_real = NULL,  # observational noise variance unknown
+    nonlinear = 1.0      # sigma = 1.0
+  )
+  cat_list <- list(
+    g_prior_def     = list(type = "g-prior"),
+    g_prior_n       = list(type = "g-prior", g = as.numeric(n_train)),
+    jbic_unknown    = list(type = "Jeffreys-BIC"),
+    zs_null         = list(type = "ZS-null"),
+    zs_full         = list(type = "ZS-full"),
+    eb_local        = list(type = "EB-local"),
+    hyper_g_laplace = list(type = "hyper-g-laplace"),
+    robust          = list(type = "robust"),
+    intrinsic       = list(type = "intrinsic")
+  )
+  if (!is.null(known_var)) {
+    # Insert known-variance Jeffreys-BIC right after unknown-variance Jeffreys-BIC
+    cat_list <- c(
+      cat_list[c("g_prior_def", "g_prior_n", "jbic_unknown")],
+      list(jbic_known_var = list(type = "Jeffreys-BIC", var = known_var)),
+      cat_list[c("zs_null", "zs_full", "eb_local", "hyper_g_laplace", "robust", "intrinsic")]
+    )
+  }
+  if (benchmark == "logic") {
+    cat_list <- c(
+      cat_list,
+      list(
+        custom_logic_jeffreys = list(family = "custom", custom_type = "logic_jeffreys"),
+        custom_logic_tcch     = list(family = "custom", custom_type = "logic_tcch")
+      )
+    )
+  }
+  cat_list
+}
+
+run_fbms_task_seed <- function(benchmark = c("logic", "kepler", "kepler_real", "nonlinear"),
+                               seed = 1L,
+                               cores = getOption("lbbnn.fbms_cores", 1L),
+                               runs = getOption("lbbnn.fbms_runs", 40L),
+                               P = getOption("lbbnn.fbms_P", 25L),
+                               N = getOption("lbbnn.fbms_N", NULL),
+                               beta_prior = NULL,
+                               prior_key = NULL) {
+  benchmark <- match.arg(benchmark)
+  dat <- switch(benchmark,
+    logic = generate_logic_data(n = 1000L, n_test = 500L, p = 20L, sigma = 0.5, seed = seed),
+    kepler = generate_kepler_data(n = 400L, n_test = 200L, p = 10L, sigma = 0.005, seed = seed),
+    kepler_real = load_exoplanet_benchmark(seed = seed),
+    nonlinear = generate_friedman1_data(n = 500L, n_test = 300L, p = 10L, sigma = 1.0, seed = seed)
+  )
+  if (is.null(beta_prior) && !is.null(prior_key) && prior_key != "default") {
+    pcat <- get_fbms_prior_catalog(benchmark, n_train = nrow(dat$x_train))
+    if (!prior_key %in% names(pcat)) {
+      stop(sprintf("Prior '%s' is not applicable to benchmark '%s' (valid: %s)",
+                   prior_key, benchmark, paste(names(pcat), collapse = ", ")))
+    }
+    beta_prior <- pcat[[prior_key]]
+  }
+  run_fbms_task_on_data(benchmark = benchmark, dat = dat, seed = seed,
+                        cores = cores, runs = runs, P = P, N = N,
+                        beta_prior = beta_prior)
 }
 
 # =============================================================================
@@ -478,53 +884,11 @@ run_baselines_logic_seed <- function(seed = 1L,
     )
   }
 
-  # --- Method 2: FBMS-BLR (GMJMCMC Bayesian Logic Regression, Hubin et al. 2020) ---
+  # --- Method 2: FBMS-BLR (Parallel GMJMCMC Bayesian Logic Regression, Hubin et al. 2020; Frommlet et al. 2026) ---
   df_tr <- data.frame(y = y_tr, X_tr)
-  params <- FBMS::gen.params.gmjmcmc(p)
-  params$feat$pop.max <- 30L
-  params$feat$keep.org <- TRUE
-  params$feat$D <- 3L
-  probs <- FBMS::gen.probs.gmjmcmc(c("not"))
-  probs$gen <- c(0.75, 0.25, 0.0, 0.0)
-  set.seed(seed)
-  fbms_fit <- tryCatch(
-    suppressWarnings(FBMS::fbms(
-      formula = y ~ ., family = "gaussian",
-      beta_prior = list(type = "Jeffreys-BIC", var = 1.0),
-      model_prior = list(r = 1.0 / n),
-      data = df_tr, method = "gmjmcmc",
-      params = params, probs = probs,
-      N = 350L, P = 10L, transforms = c("not"), verbose = FALSE
-    )),
-    error = function(e) NULL
-  )
-  if (!is.null(fbms_fit)) {
-    s_fbms <- suppressWarnings(summary(fbms_fit, tol = 0.5, labels = var_names, verbose = FALSE))
-    f_strs <- as.character(s_fbms$feats.strings)
-    if (length(f_strs) > 0L) {
-      F_tr <- sapply(f_strs, function(fs) eval_fbms_feat(fs, as.data.frame(X_tr)))
-      if (!is.matrix(F_tr)) F_tr <- matrix(F_tr, nrow = n)
-      F_te <- sapply(f_strs, function(fs) eval_fbms_feat(fs, as.data.frame(X_te)))
-      if (!is.matrix(F_te)) F_te <- matrix(F_te, nrow = n_test)
-      beta_hat <- tryCatch(qr.solve(cbind(1.0, F_tr), y_tr), error = function(e) stats::lm.fit(cbind(1.0, F_tr), y_tr)$coefficients)
-      beta_hat[is.na(beta_hat)] <- 0.0
-      pred_te <- as.numeric(cbind(1.0, F_te) %*% beta_hat)
-      rmse_fbms <- sqrt(mean((pred_te - y_te)^2))
-      v_used <- which(vapply(var_names, function(vn) any(grepl(paste0("\\b", vn, "\\b"), f_strs)), logical(1)))
-      sc <- score_clause_matrix(F_tr, v_used)
-      f_form <- paste(f_strs, collapse = " + ")
-    } else {
-      rmse_fbms <- sqrt(mean((mean(y_tr) - y_te)^2))
-      sc <- score_clause_matrix(NULL, integer(0))
-      f_form <- "1"
-    }
-    rows[[length(rows) + 1L]] <- data.frame(
-      seed = seed, benchmark = "logic", method = "FBMS-BLR",
-      clause_tpr = sc$clause_tpr, clause_fpr = sc$clause_fpr, exact_recovery = sc$exact_recovery,
-      var_tpr = sc$var_tpr, var_fpr = sc$var_fpr,
-      test_rmse = rmse_fbms, n_terms = sc$n_terms,
-      formula = f_form, stringsAsFactors = FALSE
-    )
+  fbms_row <- run_fbms_task_on_data("logic", dat = dat, seed = seed)
+  if (!is.null(fbms_row)) {
+    rows[[length(rows) + 1L]] <- fbms_row
   }
 
   # --- Method 3: LogicReg (Ruczinski et al., 2003, Simulated Annealing + BIC selection) ---
@@ -717,60 +1081,11 @@ run_baselines_kepler_seed <- function(seed = 1L,
     )
   }
 
-  # --- Method 3: FBMS-BGNLM (GMJMCMC, Hubin et al. 2021 JAIR) ---
+  # --- Method 3: FBMS-BGNLM (Parallel GMJMCMC, Hubin et al. 2021; Frommlet et al. 2026) ---
   df_tr <- data.frame(y = y_tr, X_tr)
-  params <- FBMS::gen.params.gmjmcmc(p_eff)
-  params$feat$pop.max <- max(25L, p_eff + 10L)
-  params$feat$keep.org <- TRUE
-  params$feat$D <- 3L
-  transforms <- c("p0", "p2", "p3", "p05", "pm1", "pm05", "troot")
-  probs <- FBMS::gen.probs.gmjmcmc(transforms)
-  probs$gen <- c(0.45, 0.45, 0.0, 0.10)
-  set.seed(seed)
-  fbms_fit <- tryCatch(
-    suppressWarnings(FBMS::fbms(
-      formula = y ~ ., family = "gaussian",
-      beta_prior = list(type = "Jeffreys-BIC", var = 1.0),
-      model_prior = list(r = 1.0 / n_eff),
-      data = df_tr, method = "gmjmcmc",
-      params = params, probs = probs,
-      N = 350L, P = 12L, transforms = transforms, verbose = FALSE
-    )),
-    error = function(e) NULL
-  )
-  if (!is.null(fbms_fit)) {
-    s_fbms <- suppressWarnings(summary(fbms_fit, tol = 0.5, labels = var_names, verbose = FALSE))
-    f_strs <- as.character(s_fbms$feats.strings)
-    if (length(f_strs) > 0L) {
-      F_tr <- sapply(f_strs, function(fs) eval_fbms_feat(fs, as.data.frame(X_tr)))
-      if (!is.matrix(F_tr)) F_tr <- matrix(F_tr, nrow = n_eff)
-      F_te <- sapply(f_strs, function(fs) eval_fbms_feat(fs, as.data.frame(X_te)))
-      if (!is.matrix(F_te)) F_te <- matrix(F_te, nrow = nrow(X_te))
-      beta_hat <- tryCatch(qr.solve(cbind(1.0, F_tr), y_tr), error = function(e) stats::lm.fit(cbind(1.0, F_tr), y_tr)$coefficients)
-      beta_hat[is.na(beta_hat)] <- 0.0
-      pred_te <- as.numeric(cbind(1.0, F_te) %*% beta_hat)
-      rmse_fbms <- sqrt(mean((pred_te - y_te)^2))
-      v_used <- which(vapply(var_names, function(vn) any(grepl(paste0("\\b", vn, "\\b"), f_strs)), logical(1)))
-      # Check if exact Kepler feature troot(M_star * p2(T)) or equivalent (cor > 0.9999) was generated
-      y_kepler_tr <- (X_tr[, 1]^(1 / 3)) * (X_tr[, 2]^(2 / 3))
-      cors_k <- suppressWarnings(abs(cor(F_tr, y_kepler_tr)))
-      cors_k[is.na(cors_k)] <- 0.0
-      has_exact_kepler <- any(cors_k > 0.9999) && length(f_strs) == 1L
-      exp_err_fbms <- if (has_exact_kepler) 0.0 else 0.5
-      sc <- score_vars(v_used, exp_err_fbms)
-      f_form <- paste(f_strs, collapse = " + ")
-    } else {
-      rmse_fbms <- sqrt(mean((mean(y_tr) - y_te)^2))
-      sc <- score_vars(integer(0), 1.0)
-      f_form <- "1"
-    }
-    rows[[length(rows) + 1L]] <- data.frame(
-      seed = seed, benchmark = bench_label, method = "FBMS-BGNLM",
-      structural_recovery = sc$structural_recovery, exact_law = sc$exact_law,
-      exp_err = sc$exp_err, var_tpr = sc$var_tpr, var_fpr = sc$var_fpr,
-      test_rmse = rmse_fbms, n_terms = length(f_strs),
-      formula = f_form, stringsAsFactors = FALSE
-    )
+  fbms_row <- run_fbms_task_on_data(bench_label, dat = dat, seed = seed)
+  if (!is.null(fbms_row)) {
+    rows[[length(rows) + 1L]] <- fbms_row
   }
 
   # --- Method 4 & 5: SR-PySR and SR-Operon (Pure-R Symbolic Regression) ---
@@ -791,25 +1106,22 @@ run_baselines_kepler_seed <- function(seed = 1L,
     }
   }
 
-  # --- Method 6: Log-Lasso (CV-Lasso in log-monomial space log(y) ~ sum w_j log(x_j)) ---
-  log_X_tr <- log(pmax(X_tr, 1e-6))
-  log_y_tr <- log(pmax(y_tr, 1e-6))
-  log_X_te <- log(pmax(X_te, 1e-6))
+  # --- Method 6: Lasso (CV-Lasso on untransformed fixed response y ~ X) ---
   set.seed(seed)
-  cv_log <- glmnet::cv.glmnet(log_X_tr, log_y_tr, alpha = 1.0, nfolds = 5L)
-  coefs_log <- as.numeric(coef(cv_log, s = "lambda.1se"))
-  w_log <- coefs_log[-1]
-  v_log <- which(abs(w_log) > 1e-3)
-  pred_log_te <- exp(as.numeric(predict(cv_log, newx = log_X_te, s = "lambda.1se")))
-  rmse_log <- sqrt(mean((pred_log_te - y_te)^2))
-  exp_err_log <- abs(w_log[1] - 1 / 3) + abs(w_log[2] - 2 / 3) + sum(abs(w_log[-c(1, 2)]))
-  sc_log <- score_vars(v_log, exp_err_log)
+  cv_las <- glmnet::cv.glmnet(X_tr, y_tr, alpha = 1.0, nfolds = 5L)
+  coefs_las <- as.numeric(coef(cv_las, s = "lambda.1se"))
+  w_las <- coefs_las[-1]
+  v_las <- which(abs(w_las) > 1e-4)
+  pred_las_te <- as.numeric(predict(cv_las, newx = X_te, s = "lambda.1se"))
+  rmse_las <- sqrt(mean((pred_las_te - y_te)^2))
+  sc_las <- score_vars(v_las, NA_real_)
+  f_las_terms <- if (length(v_las) > 0L) paste(sprintf("%.3f*%s", w_las[v_las], var_names[v_las]), collapse = " + ") else "0"
   rows[[length(rows) + 1L]] <- data.frame(
-    seed = seed, benchmark = bench_label, method = "Log-Lasso",
-    structural_recovery = sc_log$structural_recovery, exact_law = sc_log$exact_law,
-    exp_err = sc_log$exp_err, var_tpr = sc_log$var_tpr, var_fpr = sc_log$var_fpr,
-    test_rmse = rmse_log, n_terms = length(v_log),
-    formula = sprintf("%.3f * M_star^%.3f * T^%.3f", exp(coefs_log[1]), w_log[1], w_log[2]),
+    seed = seed, benchmark = bench_label, method = "Lasso",
+    structural_recovery = sc_las$structural_recovery, exact_law = 0L,
+    exp_err = NA_real_, var_tpr = sc_las$var_tpr, var_fpr = sc_las$var_fpr,
+    test_rmse = rmse_las, n_terms = length(v_las),
+    formula = sprintf("%.3f + %s", coefs_las[1], f_las_terms),
     stringsAsFactors = FALSE
   )
 
@@ -913,52 +1225,11 @@ run_baselines_nonlinear_seed <- function(seed = 1L,
     )
   }
 
-  # --- Method 2: FBMS-BGNLM (GMJMCMC) ---
+  # --- Method 2: FBMS-BGNLM (Parallel GMJMCMC, Frommlet et al. 2026) ---
   df_tr <- data.frame(y = y_tr, X_tr)
-  params <- FBMS::gen.params.gmjmcmc(p)
-  params$feat$pop.max <- 25L
-  params$feat$keep.org <- TRUE
-  params$feat$D <- 3L
-  transforms <- c("sin_deg", "cos_deg", "p2", "p3", "p05", "pm1")
-  probs <- FBMS::gen.probs.gmjmcmc(transforms)
-  set.seed(seed)
-  fbms_fit <- tryCatch(
-    suppressWarnings(FBMS::fbms(
-      formula = y ~ ., family = "gaussian",
-      beta_prior = list(type = "Jeffreys-BIC", var = 1.0),
-      model_prior = list(r = 1.0 / n),
-      data = df_tr, method = "gmjmcmc",
-      params = params, probs = probs,
-      N = 350L, P = 10L, transforms = transforms, verbose = FALSE
-    )),
-    error = function(e) NULL
-  )
-  if (!is.null(fbms_fit)) {
-    s_fbms <- suppressWarnings(summary(fbms_fit, tol = 0.5, labels = var_names, verbose = FALSE))
-    f_strs <- as.character(s_fbms$feats.strings)
-    if (length(f_strs) > 0L) {
-      F_tr <- sapply(f_strs, function(fs) eval_fbms_feat(fs, as.data.frame(X_tr)))
-      if (!is.matrix(F_tr)) F_tr <- matrix(F_tr, nrow = n)
-      F_te <- sapply(f_strs, function(fs) eval_fbms_feat(fs, as.data.frame(X_te)))
-      if (!is.matrix(F_te)) F_te <- matrix(F_te, nrow = n_test)
-      beta_hat <- tryCatch(qr.solve(cbind(1.0, F_tr), y_tr), error = function(e) stats::lm.fit(cbind(1.0, F_tr), y_tr)$coefficients)
-      beta_hat[is.na(beta_hat)] <- 0.0
-      pred_te <- as.numeric(cbind(1.0, F_te) %*% beta_hat)
-      rmse_fbms <- sqrt(mean((pred_te - y_te)^2))
-      v_used <- which(vapply(var_names, function(vn) any(grepl(paste0("\\b", vn, "\\b"), f_strs)), logical(1)))
-      sc <- score_f1_vars(v_used)
-      f_form <- paste(f_strs, collapse = " + ")
-    } else {
-      rmse_fbms <- sqrt(mean((mean(y_tr) - y_te)^2))
-      sc <- score_f1_vars(integer(0))
-      f_form <- "1"
-    }
-    rows[[length(rows) + 1L]] <- data.frame(
-      seed = seed, benchmark = "nonlinear", method = "FBMS-BGNLM",
-      var_tpr = sc$var_tpr, var_fpr = sc$var_fpr, exact_var_recovery = sc$exact_var_recovery,
-      test_rmse = rmse_fbms, n_terms = length(f_strs),
-      formula = f_form, stringsAsFactors = FALSE
-    )
+  fbms_row <- run_fbms_task_on_data("nonlinear", dat = dat, seed = seed)
+  if (!is.null(fbms_row)) {
+    rows[[length(rows) + 1L]] <- fbms_row
   }
 
   # --- Method 3 & 4: SR-PySR and SR-Operon ---

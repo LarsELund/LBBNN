@@ -57,14 +57,39 @@ for (pkg in core_pkgs) {
   }
 }
 
-# 3. Ensure FBMS and all its imports (GenSA, r2r, BAS, tolerance, fastglm) are installed
-if (!requireNamespace("FBMS", quietly = TRUE)) {
-  for (dep in c("GenSA", "r2r", "BAS")) {
+# 3. Ensure FBMS (jonlachmann/FBMS@JCS >= 1.4.1) and all its imports (GenSA, r2r, BAS, tolerance, fastglm) are installed
+fbms_jcs_ok <- requireNamespace("FBMS", quietly = TRUE) &&
+  isTRUE(tryCatch(utils::packageVersion("FBMS") >= "1.4.1", error = function(e) FALSE)) &&
+  isTRUE(tryCatch("troot" %in% getNamespaceExports("FBMS"), error = function(e) FALSE))
+
+if (!fbms_jcs_ok) {
+  for (dep in c("GenSA", "r2r", "BAS", "fastglm", "tolerance")) {
     if (!requireNamespace(dep, quietly = TRUE)) {
       message("[INSTALL] Installing FBMS dependency: ", dep)
       try(utils::install.packages(dep, lib = target_lib, repos = "https://cloud.r-project.org",
                                   dependencies = c("Depends", "Imports", "LinkingTo")), silent = TRUE)
     }
+  }
+
+  # Fallback shim for tolerance if unavailable (only tolerance::F1 is imported by FBMS)
+  if (!requireNamespace("tolerance", quietly = TRUE)) {
+    message("[INSTALL] Installing lightweight 'tolerance' F1 shim into ", target_lib)
+    install_local_shim_pkg(
+      pkg_name = "tolerance",
+      desc_fields = c(
+        "Package: tolerance", "Type: Package", "Title: Tolerance Limits Shim", "Version: 3.0.0",
+        "Author: Local", "Maintainer: Local <none@local>", "Description: Minimal Appell F1 shim for FBMS.", "License: GPL-3"
+      ),
+      namespace_lines = c("export(F1)"),
+      r_code_lines = c(
+        "F1 <- function(a, b, b1, c, x, y, ...) {",
+        "  if (!(a > 0 && c > a)) stop('Appell F1 requires c > a > 0 in fallback shim')",
+        "  val <- stats::integrate(function(u) (u^(a - 1)) * ((1 - u)^(c - a - 1)) * ((1 - u * x)^(-b)) * ((1 - u * y)^(-b1)), lower = 0, upper = 1)$value",
+        "  exp(lgamma(c) - lgamma(a) - lgamma(c - a)) * val",
+        "}"
+      ),
+      lib_loc = target_lib
+    )
   }
 
   # Fallback shim for r2r if missing
@@ -172,51 +197,94 @@ if (!requireNamespace("FBMS", quietly = TRUE)) {
     )
   }
 
-  message("[INSTALL] Installing CRAN package: FBMS (pure-R ABI-safe build) into ", target_lib)
-  td_fbms <- tempfile("fbms_src_")
+  if ("FBMS" %in% loadedNamespaces()) try(unloadNamespace("FBMS"), silent = TRUE)
+  unlink(file.path(target_lib, "00LOCK-FBMS"), recursive = TRUE, force = TRUE)
+
+  td_fbms <- tempfile("fbms_jcs_")
   dir.create(td_fbms, recursive = TRUE, showWarnings = FALSE)
-  dl_res <- utils::download.packages("FBMS", destdir = td_fbms, repos = "https://cloud.r-project.org", type = "source", quiet = TRUE)
-  utils::untar(dl_res[1, 2], exdir = td_fbms)
-  fbms_pkg_dir <- file.path(td_fbms, "FBMS")
+  jcs_url <- "https://github.com/jonlachmann/FBMS/archive/refs/heads/JCS.tar.gz"
+  jcs_tgz <- file.path(td_fbms, "FBMS-JCS.tar.gz")
+  fbms_pkg_dir <- NULL
 
-  # Replace the 2 small helper routines (set_alphas, vec_in_mat) with pure R to avoid C++14/GCC-14 ABI mismatches
-  unlink(file.path(fbms_pkg_dir, "src"), recursive = TRUE, force = TRUE)
+  message("[INSTALL] Downloading jonlachmann/FBMS@JCS into ", target_lib)
+  dl_ok <- tryCatch({
+    utils::download.file(jcs_url, destfile = jcs_tgz, mode = "wb", quiet = TRUE)
+    file.exists(jcs_tgz) && file.info(jcs_tgz)$size > 10000
+  }, error = function(e) FALSE)
+  if (!dl_ok && nzchar(Sys.which("curl"))) {
+    try(system2("curl", c("-fsSL", jcs_url, "-o", jcs_tgz)), silent = TRUE)
+    dl_ok <- file.exists(jcs_tgz) && file.info(jcs_tgz)$size > 10000
+  }
 
-  desc_lines <- readLines(file.path(fbms_pkg_dir, "DESCRIPTION"))
-  desc_lines <- desc_lines[!grepl("^LinkingTo:", desc_lines)]
-  desc_lines <- sub("^NeedsCompilation:.*", "NeedsCompilation: no", desc_lines)
-  writeLines(desc_lines, file.path(fbms_pkg_dir, "DESCRIPTION"))
+  if (dl_ok) {
+    utils::untar(jcs_tgz, exdir = td_fbms)
+    cand <- file.path(td_fbms, "FBMS-JCS")
+    if (dir.exists(cand)) fbms_pkg_dir <- cand
+  }
+  if (is.null(fbms_pkg_dir)) {
+    message("[WARN] GitHub JCS download failed; falling back to CRAN FBMS source")
+    dl_res <- utils::download.packages("FBMS", destdir = td_fbms, repos = "https://cloud.r-project.org", type = "source", quiet = TRUE)
+    utils::untar(dl_res[1, 2], exdir = td_fbms)
+    fbms_pkg_dir <- file.path(td_fbms, "FBMS")
+  }
 
-  ns_lines <- readLines(file.path(fbms_pkg_dir, "NAMESPACE"))
-  ns_lines <- ns_lines[!grepl("useDynLib(FBMS)", ns_lines, fixed = TRUE)]
-  ns_lines <- ns_lines[!grepl("importFrom(Rcpp,", ns_lines, fixed = TRUE)]
-  writeLines(ns_lines, file.path(fbms_pkg_dir, "NAMESPACE"))
+  # Try native compiled Rcpp build first (~10x faster vec_in_mat), verify load cleanly
+  compiled_ok <- FALSE
+  if (requireNamespace("Rcpp", quietly = TRUE)) {
+    message("[INSTALL] Attempting native C++/Rcpp build of FBMS@JCS...")
+    try(utils::install.packages(fbms_pkg_dir, lib = target_lib, repos = NULL, type = "source", dependencies = FALSE), silent = TRUE)
+    compiled_ok <- tryCatch({
+      ns <- loadNamespace("FBMS", lib.loc = target_lib)
+      ok <- utils::packageVersion("FBMS", lib.loc = target_lib) >= "1.4.1" &&
+        "troot" %in% getNamespaceExports(ns)
+      unloadNamespace("FBMS")
+      isTRUE(ok)
+    }, error = function(e) {
+      message("[WARN] Native FBMS C++ build failed to load (", conditionMessage(e), "); switching to pure-R ABI-safe build.")
+      FALSE
+    })
+  }
 
-  rcpp_r_lines <- c(
-    "set_alphas <- function(formula) {",
-    "  chars <- strsplit(as.character(formula)[1], \"\", fixed = TRUE)[[1]]",
-    "  q_idx <- which(chars == \"?\")",
-    "  n_q <- length(q_idx)",
-    "  if (n_q > 0L) chars[q_idx] <- paste0(\"a[\", seq_len(n_q), \"]\")",
-    "  list(formula = paste(chars, collapse = \"\"), count = as.integer(n_q))",
-    "}",
-    "vec_in_mat <- function(mat, vec, firstCol = 0L, lastCol = 0L) {",
-    "  nr <- nrow(mat)",
-    "  if (is.null(nr) || nr == 0L) return(0L)",
-    "  c1 <- if (firstCol != 0L) as.integer(firstCol) else 1L",
-    "  c2 <- if (lastCol != 0L) as.integer(lastCol) else ncol(mat)",
-    "  if (c1 > c2) return(0L)",
-    "  cols <- c1:c2",
-    "  v_sub <- as.numeric(vec[cols])",
-    "  for (i in seq.int(nr, 1L, by = -1L)) {",
-    "    if (all(mat[i, cols] == v_sub)) return(as.integer(i))",
-    "  }",
-    "  0L",
-    "}"
-  )
-  writeLines(rcpp_r_lines, file.path(fbms_pkg_dir, "R", "RcppExports.R"))
+  if (!compiled_ok) {
+    unlink(file.path(target_lib, "00LOCK-FBMS"), recursive = TRUE, force = TRUE)
+    # Replace set_alphas and vec_in_mat with pure R to avoid C++14/GCC ABI mismatches
+    unlink(file.path(fbms_pkg_dir, "src"), recursive = TRUE, force = TRUE)
 
-  utils::install.packages(fbms_pkg_dir, lib = target_lib, repos = NULL, type = "source", dependencies = FALSE)
+    desc_lines <- readLines(file.path(fbms_pkg_dir, "DESCRIPTION"))
+    desc_lines <- desc_lines[!grepl("^LinkingTo:", desc_lines)]
+    desc_lines <- sub("^NeedsCompilation:.*", "NeedsCompilation: no", desc_lines)
+    writeLines(desc_lines, file.path(fbms_pkg_dir, "DESCRIPTION"))
+
+    ns_lines <- readLines(file.path(fbms_pkg_dir, "NAMESPACE"))
+    ns_lines <- ns_lines[!grepl("useDynLib(FBMS)", ns_lines, fixed = TRUE)]
+    ns_lines <- ns_lines[!grepl("importFrom(Rcpp,", ns_lines, fixed = TRUE)]
+    writeLines(ns_lines, file.path(fbms_pkg_dir, "NAMESPACE"))
+
+    rcpp_r_lines <- c(
+      "set_alphas <- function(formula) {",
+      "  chars <- strsplit(as.character(formula)[1], \"\", fixed = TRUE)[[1]]",
+      "  q_idx <- which(chars == \"?\")",
+      "  n_q <- length(q_idx)",
+      "  if (n_q > 0L) chars[q_idx] <- paste0(\"a[\", seq_len(n_q), \"]\")",
+      "  list(formula = paste(chars, collapse = \"\"), count = as.integer(n_q))",
+      "}",
+      "vec_in_mat <- function(mat, vec, firstCol = 0L, lastCol = 0L) {",
+      "  nr <- nrow(mat)",
+      "  if (is.null(nr) || nr == 0L) return(0L)",
+      "  c1 <- if (firstCol != 0L) as.integer(firstCol) else 1L",
+      "  c2 <- if (lastCol != 0L) as.integer(lastCol) else ncol(mat)",
+      "  if (c1 > c2) return(0L)",
+      "  cols <- c1:c2",
+      "  v_sub <- as.numeric(vec[cols])",
+      "  for (i in seq.int(nr, 1L, by = -1L)) {",
+      "    if (all(mat[i, cols] == v_sub)) return(as.integer(i))",
+      "  }",
+      "  0L",
+      "}"
+    )
+    writeLines(rcpp_r_lines, file.path(fbms_pkg_dir, "R", "RcppExports.R"))
+    utils::install.packages(fbms_pkg_dir, lib = target_lib, repos = NULL, type = "source", dependencies = FALSE)
+  }
   unlink(td_fbms, recursive = TRUE, force = TRUE)
 }
 

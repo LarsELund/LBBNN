@@ -1,0 +1,990 @@
+"seed","benchmark","method","var_tpr","var_fpr","exact_var_recovery","test_rmse","n_terms","formula","prior_key","elapsed_secs"
+1,"nonlinear","FBMS-BGNLM",1,0,1,1.00620755833861,4,"x4 + x5 + sin_pi((x2*x1)) + sin_pi(x3)","eb_local",32.2084958553314
+2,"nonlinear","FBMS-BGNLM",1,0,1,0.965946401056755,4,"x5 + x4 + sin_pi(x3) + sin_pi(1+1*(x1*x2))","eb_local",29.7064456939697
+3,"nonlinear","FBMS-BGNLM",1,0,1,1.04689866654029,5,"x4 + sin_pi((x2*x1)) + x5 + x3 + p3(x3)","eb_local",30.9454581737518
+4,"nonlinear","FBMS-BGNLM",1,0,1,0.987435219161237,4,"x4 + x5 + sin_pi((x1*x2)) + sin_pi(x3)","eb_local",32.6735525131226
+5,"nonlinear","FBMS-BGNLM",1,0,1,1.01715925587703,4,"x5 + sin_pi((x1*x2)) + x4 + sin_pi(x3)","eb_local",35.2750432491302
+6,"nonlinear","FBMS-BGNLM",1,0,1,1.07246334406432,4,"x4 + sin_pi((x1*x2)) + x5 + p05(sin_pi(x3))","eb_local",30.7534773349762
+7,"nonlinear","FBMS-BGNLM",1,0,1,1.02339674154403,5,"x4 + sin_pi(x3) + x5 + sin_rad((x1*x2)) + sin_rad(sin_rad((x2*x1)))","eb_local",30.1054348945618
+8,"nonlinear","FBMS-BGNLM",1,0,1,0.939542323414617,4,"x5 + x4 + sin_pi((x2*x1)) + sin_pi(x3)","eb_local",31.8526592254639
+9,"nonlinear","FBMS-BGNLM",1,0,1,1.05257528550657,4,"x5 + sin_pi((x1*x2)) + sin_pi(x3) + sin_rad(x4)","eb_local",30.9097015857697
+10,"nonlinear","FBMS-BGNLM",1,0,1,1.08326428152585,4,"x4 + sin_rad(x5) + p05(1+1*sin_pi(x3)) + sin_pi((x1*x2))","eb_local",29.922057390213
+11,"nonlinear","FBMS-BGNLM",1,0,1,0.989083307997252,5,"x5 + x4 + sin_pi((x2*x1)) + x3 + sin_rad(x3)","eb_local",29.7828016281128
+12,"nonlinear","FBMS-BGNLM",1,0,1,1.05608082983264,4,"x4 + x5 + sin_pi((x1*x2)) + sin_pi(x3)","eb_local",30.0948178768158
+13,"nonlinear","FBMS-BGNLM",1,0,1,1.06677248733354,4,"x4 + x5 + sin_pi(x3) + sin_pi((x2*x1))","eb_local",29.6572585105896
+14,"nonlinear","FBMS-BGNLM",1,0,1,1.0123008353497,5,"x5 + x4 + x3 + sin_pi((x1*x2)) + p2(x3)","eb_local",29.4085693359375
+15,"nonlinear","FBMS-BGNLM",1,0,1,1.06626826561918,4,"x4 + x5 + sin_pi((x1*x2)) + sin_pi(x3)","eb_local",30.7171239852905
+16,"nonlinear","FBMS-BGNLM",1,0,1,1.07807147160188,5,"x5 + x4 + x3 + sin_pi((x2*x1)) + p3(p05(x3))","eb_local",33.4340059757233
+17,"nonlinear","FBMS-BGNLM",1,0,1,1.01836211367476,4,"x4 + x5 + sin_pi(x3) + sin_pi((x1*x2))","eb_local",32.178601026535
+18,"nonlinear","FBMS-BGNLM",1,0,1,0.985964692832474,5,"sin_pi((x1*x2)) + x3 + x5 + sin_rad(x3) + p05(1+1*x4)","eb_local",28.9394459724426
+19,"nonlinear","FBMS-BGNLM",1,0,1,1.01825585435816,4,"x4 + x5 + sin_pi(x3) + sin_pi((x1*x2))","eb_local",29.4492783546448
+20,"nonlinear","FBMS-BGNLM",1,0,1,1.07677052474319,4,"sin_pi((x1*x2)) + sin_pi(x3) + x4 + x5","eb_local",29.1802723407745
+21,"nonlinear","FBMS-BGNLM",1,0,1,1.02433816287833,4,"x5 + sin_pi(x3) + sin_pi((x1*x2)) + x4","eb_local",30.3227524757385
+22,"nonlinear","FBMS-BGNLM",1,0,1,1.09023902445007,5,"x4 + x3 + x5 + sin_pi((x1*x2)) + p3(p05(x3))","eb_local",30.6875643730164
+23,"nonlinear","FBMS-BGNLM",1,0,1,0.977086996448679,4,"x4 + sin_pi(x3) + sin_pi((x1*x2)) + sin_rad(x5)","eb_local",30.8183617591858
+24,"nonlinear","FBMS-BGNLM",1,0,1,0.941019917472004,4,"x4 + x5 + sin_pi(x3) + sin_pi((x1*x2))","eb_local",30.8085572719574
+25,"nonlinear","FBMS-BGNLM",1,0,1,0.98042604649425,5,"x5 + x4 + x3 + sin_pi((x2*x1)) + cos_rad(x3)","eb_local",29.6317009925842
+26,"nonlinear","FBMS-BGNLM",1,0,1,1.09549252475183,4,"sin_pi((x2*x1)) + x4 + x5 + sin_pi(x3)","eb_local",30.3580040931702
+27,"nonlinear","FBMS-BGNLM",1,0,1,0.98184893792287,5,"x4 + x5 + x3 + sin_pi((x1*x2)) + p2(x3)","eb_local",30.5986454486847
+28,"nonlinear","FBMS-BGNLM",1,0,1,0.959218244626023,4,"x4 + x5 + sin_pi(x3) + sin_pi((x2*x1))","eb_local",32.1723184585571
+29,"nonlinear","FBMS-BGNLM",1,0,1,0.914167468884828,4,"x4 + x5 + sin_pi((x2*x1)) + p05(sin_pi(x3))","eb_local",29.6362180709839
+30,"nonlinear","FBMS-BGNLM",1,0,1,1.04821314277121,4,"sin_pi((x1*x2)) + x4 + x5 + sin_pi(x3)","eb_local",29.9370632171631
+31,"nonlinear","FBMS-BGNLM",1,0,1,0.945940151645436,6,"x4 + x5 + (x2*x1) + x3 + (x3*x3) + p05(cos_rad((x1*x2)))","eb_local",31.5597360134125
+32,"nonlinear","FBMS-BGNLM",1,0,1,1.01905619913093,5,"x4 + x5 + sin_pi((x2*x1)) + cos_rad(x3) + x3","eb_local",31.7781090736389
+33,"nonlinear","FBMS-BGNLM",1,0,1,1.04961660187542,6,"x4 + x5 + (x2*x1) + p3((x1*x2)) + p3(x3) + sin_rad(1+1*x3)","eb_local",30.2289476394653
+34,"nonlinear","FBMS-BGNLM",1,0,1,1.01258351955817,5,"x4 + x5 + x3 + sin_pi((x2*x1)) + p2(x3)","eb_local",33.5924534797668
+35,"nonlinear","FBMS-BGNLM",1,0,1,1.07235893307242,4,"x4 + sin_pi(x3) + sin_pi((x1*x2)) + x5","eb_local",29.3624627590179
+36,"nonlinear","FBMS-BGNLM",1,0,1,0.957115273981809,6,"x4 + x5 + p2(x3) + sin_rad((x1*x2)) + x3 + p2((x1*x2))","eb_local",29.5730783939362
+37,"nonlinear","FBMS-BGNLM",1,0,1,1.02426327392223,4,"x5 + sin_pi((x1*x2)) + x4 + sin_pi(x3)","eb_local",29.5670285224915
+38,"nonlinear","FBMS-BGNLM",1,0,1,0.892054728913524,5,"x4 + x5 + p2(x3) + x3 + sin_pi(1+1*(x1*x2))","eb_local",29.7533786296844
+39,"nonlinear","FBMS-BGNLM",1,0,1,1.01332692233576,4,"x4 + sin_pi((x1*x2)) + x5 + sin_pi(x3)","eb_local",30.4762041568756
+40,"nonlinear","FBMS-BGNLM",1,0,1,1.01974359651194,5,"x4 + sin_pi((x1*x2)) + x5 + p05(x3) + p3(x3)","eb_local",30.2839875221252
+41,"nonlinear","FBMS-BGNLM",1,0,1,1.00039867175116,4,"x4 + x5 + sin_pi(x3) + sin_pi((x2*x1))","eb_local",30.8330419063568
+42,"nonlinear","FBMS-BGNLM",1,0,1,1.00313610451368,7,"x4 + x3 + x1 + x5 + x2 + p2(x3) + p05(p2(1+1*sin_pi(sin_rad((x1*x2)))+1*x5))","eb_local",32.2150843143463
+43,"nonlinear","FBMS-BGNLM",1,0,1,1.00281941775468,4,"x5 + sin_pi((x1*x2)) + x4 + x3","eb_local",30.848931312561
+44,"nonlinear","FBMS-BGNLM",1,0,1,1.01853614193716,5,"x5 + x4 + x3 + sin_pi((x1*x2)) + sin_rad(p3(x3))","eb_local",30.9229958057404
+45,"nonlinear","FBMS-BGNLM",1,0,1,1.04234150804024,5,"p2(x3) + x3 + sin_pi((x2*x1)) + sin_rad(x5) + cos_rad(1+1*x4)","eb_local",31.4523456096649
+46,"nonlinear","FBMS-BGNLM",1,0,1,1.00652225938087,5,"x5 + (x2*x1) + sin_pi(x3) + x4 + p2((x2*x1))","eb_local",30.0464406013489
+47,"nonlinear","FBMS-BGNLM",1,0,1,1.0613603796054,4,"x4 + sin_pi((x1*x2)) + sin_pi(x3) + sin_rad(x5)","eb_local",30.4933476448059
+48,"nonlinear","FBMS-BGNLM",1,0,1,1.02017486994689,6,"x4 + x3 + (x5*x5) + cos_rad(x3) + sin_pi((x1*x2)) + sin_pi(x5)","eb_local",29.069659948349
+49,"nonlinear","FBMS-BGNLM",1,0,1,1.07269981421727,6,"x5 + x3 + x4 + (x2*x1) + p2((x2*x1)) + p2(x3)","eb_local",30.0673208236694
+50,"nonlinear","FBMS-BGNLM",1,0,1,1.06430081558327,5,"x4 + sin_pi((x1*x2)) + x5 + x3 + cos_rad(x3)","eb_local",28.9569094181061
+51,"nonlinear","FBMS-BGNLM",1,0,1,1.04557803936948,4,"x4 + sin_pi((x1*x2)) + x5 + sin_pi(x3)","eb_local",30.7417123317719
+52,"nonlinear","FBMS-BGNLM",1,0,1,1.05737875175214,5,"x4 + x5 + sin_rad((x1*x2)) + sin_pi(x3) + (x1*x2)","eb_local",29.5058257579803
+53,"nonlinear","FBMS-BGNLM",1,0,1,1.05433050964799,4,"x4 + x5 + sin_pi(x3) + sin_pi((x2*x1))","eb_local",30.4308989048004
+54,"nonlinear","FBMS-BGNLM",1,0,1,1.02891581209368,4,"x4 + sin_pi((x1*x2)) + sin_pi(x3) + x5","eb_local",29.2606821060181
+55,"nonlinear","FBMS-BGNLM",1,0,1,1.05344433417999,4,"x4 + sin_pi((x1*x2)) + x5 + sin_pi(x3)","eb_local",31.428065776825
+56,"nonlinear","FBMS-BGNLM",1,0,1,1.03878024530276,5,"x4 + x5 + sin_pi((x1*x2)) + x3 + cos_rad(x3)","eb_local",29.0844578742981
+57,"nonlinear","FBMS-BGNLM",1,0,1,1.01170029218996,4,"x4 + x5 + sin_pi((x1*x2)) + sin_pi(x3)","eb_local",34.3851668834686
+58,"nonlinear","FBMS-BGNLM",1,0,1,0.965516934231815,5,"sin_pi((x2*x1)) + x5 + x4 + x3 + (x3*x3)","eb_local",30.0667855739594
+59,"nonlinear","FBMS-BGNLM",1,0,1,1.08663162335677,4,"x4 + x5 + sin_pi(x3) + sin_pi((x1*x2))","eb_local",32.2738518714905
+60,"nonlinear","FBMS-BGNLM",1,0,1,0.972367068182994,4,"x4 + x5 + sin_pi((x1*x2)) + sin_pi(x3)","eb_local",29.8514695167542
+61,"nonlinear","FBMS-BGNLM",1,0,1,0.985720416834359,4,"x4 + x5 + sin_pi(x3) + sin_pi((x2*x1))","eb_local",29.5982227325439
+62,"nonlinear","FBMS-BGNLM",1,0,1,0.993775606541071,4,"x4 + sin_pi((x1*x2)) + x5 + sin_pi(x3)","eb_local",30.3731672763824
+63,"nonlinear","FBMS-BGNLM",1,0,1,0.967071289257094,6,"x4 + x5 + (x1*x2) + x3 + p2(x3) + sin_rad(sin_rad((x1*x2)))","eb_local",30.4796230792999
+64,"nonlinear","FBMS-BGNLM",1,0,1,1.0136488314377,4,"x4 + x5 + sin_pi((x1*x2)) + sin_pi(x3)","eb_local",29.1490445137024
+65,"nonlinear","FBMS-BGNLM",0.6,0,0,1.03051565959889,3,"x4 + x5 + sin_pi(x3)","eb_local",31.1374251842499
+66,"nonlinear","FBMS-BGNLM",1,0,1,0.964242339509347,4,"x4 + x5 + sin_pi((x1*x2)) + sin_pi(x3)","eb_local",29.2081406116486
+67,"nonlinear","FBMS-BGNLM",1,0,1,1.07007872195066,6,"x5 + x4 + p2(x3) + x3 + (x1*x2) + sin_pi((sin_rad(x1)*x2))","eb_local",29.2147402763367
+68,"nonlinear","FBMS-BGNLM",1,0,1,1.05465699194337,5,"x4 + x3 + cos_rad(x3) + cos_rad(x5) + sin_pi((x1*x2))","eb_local",32.9241881370544
+69,"nonlinear","FBMS-BGNLM",1,0,1,1.0133583091715,4,"x4 + x5 + sin_pi((x1*x2)) + sin_pi(x3)","eb_local",29.7129783630371
+70,"nonlinear","FBMS-BGNLM",1,0,1,0.985138371632802,4,"x5 + x4 + sin_pi((x1*x2)) + sin_pi(x3)","eb_local",30.4157359600067
+71,"nonlinear","FBMS-BGNLM",1,0,1,1.00737466095834,4,"x4 + sin_pi(x3) + x5 + sin_pi((x2*x1))","eb_local",29.7849128246307
+72,"nonlinear","FBMS-BGNLM",1,0,1,0.993885133382084,5,"x4 + x5 + sin_pi((x1*x2)) + x3 + p2(x3)","eb_local",30.1655631065369
+73,"nonlinear","FBMS-BGNLM",1,0,1,1.04304809744724,5,"x4 + x5 + sin_pi((x2*x1)) + x3 + p2(x3)","eb_local",29.0650074481964
+74,"nonlinear","FBMS-BGNLM",1,0,1,1.02847373141681,4,"x5 + x4 + sin_pi((x1*x2)) + sin_pi(x3)","eb_local",30.9277107715607
+75,"nonlinear","FBMS-BGNLM",1,0,1,1.03851537389389,5,"x4 + x5 + x3 + p3(x3) + sin_pi((x1*x2))","eb_local",30.5233011245728
+76,"nonlinear","FBMS-BGNLM",1,0,1,1.0569618598536,5,"x5 + x4 + sin_pi(x3) + p2((x2*x1)) + sin_rad((x1*x2))","eb_local",30.0984077453613
+77,"nonlinear","FBMS-BGNLM",1,0,1,0.963855668065387,4,"x4 + sin_pi(x3) + x5 + sin_pi((x2*x1))","eb_local",31.1997330188751
+78,"nonlinear","FBMS-BGNLM",1,0,1,1.02383645848697,5,"x4 + x5 + (x1*x2) + sin_pi(x3) + p3((x2*x1))","eb_local",30.3277885913849
+79,"nonlinear","FBMS-BGNLM",1,0,1,1.0054046271751,4,"x4 + x5 + sin_pi(x3) + sin_pi((x2*x1))","eb_local",29.6601941585541
+80,"nonlinear","FBMS-BGNLM",1,0,1,0.973913959637948,4,"x5 + sin_pi(x3) + p3(p05(p05(x4))) + sin_pi((x1*x2))","eb_local",32.7153072357178
+81,"nonlinear","FBMS-BGNLM",0.8,0,0,1.00414682192291,3,"x4 + sin_pi((x2*x1)) + x5","eb_local",30.2283897399902
+82,"nonlinear","FBMS-BGNLM",1,0,1,0.992335135636476,5,"x4 + x5 + sin_pi((x1*x2)) + x3 + (x3*x3)","eb_local",30.8090794086456
+83,"nonlinear","FBMS-BGNLM",1,0,1,0.971618605166088,4,"x5 + x4 + sin_pi(x3) + sin_pi((x2*x1))","eb_local",30.6388554573059
+84,"nonlinear","FBMS-BGNLM",1,0,1,1.0772200491143,5,"x4 + (x1*x2) + x5 + sin_pi(x3) + cos_rad((x2*x1))","eb_local",29.2884790897369
+85,"nonlinear","FBMS-BGNLM",1,0,1,0.9783457854449,4,"x4 + sin_pi((x2*x1)) + sin_pi(x3) + x5","eb_local",29.7570495605469
+86,"nonlinear","FBMS-BGNLM",1,0,1,0.972438779347513,5,"x4 + p2(x3) + x3 + sin_pi((x2*x1)) + x5","eb_local",30.5354723930359
+87,"nonlinear","FBMS-BGNLM",1,0,1,1.00423775959115,4,"x5 + sin_pi(x3) + sin_pi((x1*x2)) + x4","eb_local",30.0842635631561
+88,"nonlinear","FBMS-BGNLM",1,0,1,1.03142309346002,5,"x4 + x5 + sin_pi(x3) + sin_rad((x2*x1)) + sin_pi(sin_rad((x2*x1)))","eb_local",29.6364197731018
+89,"nonlinear","FBMS-BGNLM",1,0,1,0.980216820133639,5,"x5 + x4 + x3 + p2(x3) + sin_pi((x1*x2))","eb_local",29.4960453510284
+90,"nonlinear","FBMS-BGNLM",1,0,1,0.982368804955572,4,"x4 + x5 + sin_pi((x2*x1)) + sin_pi(x3)","eb_local",30.2824187278748
+91,"nonlinear","FBMS-BGNLM",1,0,1,1.04295501152542,5,"x4 + x5 + x3 + sin_pi((x2*x1)) + cos_rad(x3)","eb_local",35.0857102870941
+92,"nonlinear","FBMS-BGNLM",1,0,1,0.982022790348257,4,"sin_pi(x3) + x4 + x5 + sin_pi((x2*x1))","eb_local",29.8045909404755
+93,"nonlinear","FBMS-BGNLM",1,0,1,1.02992156433252,4,"x5 + sin_pi((x2*x1)) + x4 + sin_pi(x3)","eb_local",30.244701385498
+94,"nonlinear","FBMS-BGNLM",1,0,1,0.95930498684835,5,"x4 + x3 + p2(x3) + sin_pi((x1*x2)) + x5","eb_local",30.7241764068604
+95,"nonlinear","FBMS-BGNLM",1,0,1,1.04532931393978,6,"x4 + x3 + sin_rad(x5) + (x1*x2) + cos_rad((x3*x3)) + (x2*((x1*x1)*x2))","eb_local",30.9248752593994
+96,"nonlinear","FBMS-BGNLM",1,0,1,1.04232672147309,5,"x4 + x5 + x3 + (x3*x3) + sin_pi((x2*x1))","eb_local",30.7661428451538
+97,"nonlinear","FBMS-BGNLM",1,0,1,0.99398324135113,4,"x5 + x4 + sin_pi(x3) + sin_pi((x2*x1))","eb_local",30.7386765480042
+98,"nonlinear","FBMS-BGNLM",1,0,1,0.995755010238213,4,"x4 + sin_pi(x3) + x5 + sin_pi((x2*x1))","eb_local",32.2661247253418
+99,"nonlinear","FBMS-BGNLM",1,0,1,1.05009531085021,5,"x4 + x5 + sin_pi((x1*x2)) + x3 + cos_rad(x3)","eb_local",30.8748483657837
+100,"nonlinear","FBMS-BGNLM",1,0,1,1.0015441594338,4,"x4 + x5 + sin_pi(x3) + sin_pi((x2*x1))","eb_local",32.8698160648346
+1,"nonlinear","FBMS-BGNLM",1,0,1,1.01007521124998,4,"x5 + x4 + sin_pi((x2*x1)) + sin_rad(sin_pi(x3))","g_prior_def",30.3629925251007
+2,"nonlinear","FBMS-BGNLM",1,0,1,0.965858318742901,4,"x4 + sin_pi((x1*x2)) + x5 + sin_pi(x3)","g_prior_def",31.1583344936371
+3,"nonlinear","FBMS-BGNLM",1,0,1,1.02837584361658,4,"x4 + sin_pi((x2*x1)) + x5 + sin_pi(x3)","g_prior_def",32.106677532196
+4,"nonlinear","FBMS-BGNLM",1,0,1,0.987268353060491,4,"x5 + x4 + sin_pi((x2*x1)) + sin_pi(x3)","g_prior_def",30.2817225456238
+5,"nonlinear","FBMS-BGNLM",1,0,1,1.01931760741587,5,"x5 + sin_pi((x1*x2)) + x4 + cos_rad(x3) + x3","g_prior_def",29.9109857082367
+6,"nonlinear","FBMS-BGNLM",1,0,1,1.056816629797,4,"sin_pi((x2*x1)) + sin_pi(x3) + x5 + x4","g_prior_def",32.1440804004669
+7,"nonlinear","FBMS-BGNLM",1,0,1,1.05244600942821,4,"x4 + sin_pi((x1*x2)) + sin_pi(x3) + cos_rad(x5)","g_prior_def",31.5511426925659
+8,"nonlinear","FBMS-BGNLM",1,0,1,0.938057092817267,4,"x4 + sin_pi((x1*x2)) + x5 + sin_rad(sin_pi(x3))","g_prior_def",31.9096577167511
+9,"nonlinear","FBMS-BGNLM",1,0,1,1.04006124016446,5,"x5 + x4 + sin_pi((x2*x1)) + x3 + (x3*x3)","g_prior_def",30.1175944805145
+10,"nonlinear","FBMS-BGNLM",1,0,1,1.07778364269334,4,"x5 + sin_pi(x3) + sin_pi((x2*x1)) + x4","g_prior_def",30.7423508167267
+11,"nonlinear","FBMS-BGNLM",1,0,1,0.977196016070484,4,"x4 + x5 + sin_pi((x2*x1)) + sin_pi(x3)","g_prior_def",30.5703179836273
+12,"nonlinear","FBMS-BGNLM",1,0,1,1.05811915374602,4,"x5 + sin_pi((x1*x2)) + x4 + sin_pi(x3)","g_prior_def",30.7264082431793
+13,"nonlinear","FBMS-BGNLM",1,0,1,1.0719544351818,4,"x4 + x5 + sin_pi((x1*x2)) + sin_pi(x3)","g_prior_def",30.1418738365173
+14,"nonlinear","FBMS-BGNLM",1,0,1,1.05477973189962,5,"x5 + sin_pi(x3) + p05(x4) + sin_pi((x1*x2)) + (x4*x4)","g_prior_def",30.217059135437
+15,"nonlinear","FBMS-BGNLM",1,0,1,1.0674593732753,5,"x5 + sin_pi((x1*x2)) + x4 + x3 + p2(x3)","g_prior_def",34.2359812259674
+16,"nonlinear","FBMS-BGNLM",1,0,1,1.07189132069094,4,"x5 + x4 + sin_pi(x3) + sin_pi((x2*x1))","g_prior_def",30.9729020595551
+17,"nonlinear","FBMS-BGNLM",1,0,1,1.01838614240703,4,"x5 + x4 + sin_pi(x3) + sin_pi((x2*x1))","g_prior_def",30.1525568962097
+18,"nonlinear","FBMS-BGNLM",1,0,1,0.955878982945878,5,"x4 + x5 + x3 + cos_rad(x3) + sin_pi((x1*x2))","g_prior_def",30.27166223526
+19,"nonlinear","FBMS-BGNLM",1,0,1,1.02846516238437,5,"x4 + x5 + sin_pi((x2*x1)) + sin_pi(x3) + x3","g_prior_def",30.5923280715942
+20,"nonlinear","FBMS-BGNLM",1,0,1,1.07668847761857,4,"x4 + x5 + sin_pi((x2*x1)) + sin_pi(x3)","g_prior_def",33.9890217781067
+21,"nonlinear","FBMS-BGNLM",1,0,1,1.02390705426143,4,"x5 + x4 + sin_pi(x3) + sin_pi((x2*x1))","g_prior_def",33.0249962806702
+22,"nonlinear","FBMS-BGNLM",1,0,1,1.06580905422393,4,"x5 + sin_pi(x3) + sin_pi((x2*x1)) + sin_rad(x4)","g_prior_def",33.9659962654114
+23,"nonlinear","FBMS-BGNLM",1,0,1,0.969680406203416,4,"x4 + sin_pi((x2*x1)) + x5 + sin_pi(x3)","g_prior_def",32.2159917354584
+24,"nonlinear","FBMS-BGNLM",1,0,1,0.95256559050747,5,"x5 + x3 + sin_pi((x1*x2)) + x4 + (x3*cos_rad(x3))","g_prior_def",30.5545608997345
+25,"nonlinear","FBMS-BGNLM",1,0,1,1.00565449515259,6,"x5 + x4 + x3 + (x1*x2) + p2(x3) + p2((x2*x1))","g_prior_def",30.0272500514984
+26,"nonlinear","FBMS-BGNLM",1,0,1,1.09417323842393,4,"x4 + x5 + sin_pi((x1*x2)) + sin_pi(x3)","g_prior_def",33.9619672298431
+27,"nonlinear","FBMS-BGNLM",1,0,1,0.982067824482913,5,"x4 + x5 + sin_pi((x2*x1)) + x3 + (x3*x3)","g_prior_def",30.6292819976807
+28,"nonlinear","FBMS-BGNLM",1,0,1,0.94903243049087,5,"x4 + x5 + sin_pi((x2*x1)) + x3 + p2(x3)","g_prior_def",31.0957870483398
+29,"nonlinear","FBMS-BGNLM",1,0,1,0.899506104547351,5,"x4 + sin_pi((x1*x2)) + x5 + x3 + (x3*x3)","g_prior_def",29.9725325107574
+30,"nonlinear","FBMS-BGNLM",1,0,1,1.05027443036328,4,"x4 + x5 + sin_pi((x1*x2)) + p05(1+1*sin_pi(x3))","g_prior_def",32.1396751403809
+31,"nonlinear","FBMS-BGNLM",1,0,1,0.93934656471248,5,"x4 + x5 + sin_pi((x2*x1)) + x3 + (x3*x3)","g_prior_def",32.0351979732513
+32,"nonlinear","FBMS-BGNLM",1,0,1,1.01744946602863,4,"x5 + sin_pi(x3) + sin_pi((x2*x1)) + x4","g_prior_def",35.0942451953888
+33,"nonlinear","FBMS-BGNLM",1,0,1,1.02849027959871,4,"x4 + x5 + sin_pi((x1*x2)) + x3","g_prior_def",31.8555269241333
+34,"nonlinear","FBMS-BGNLM",1,0,1,1.01061584276642,4,"x4 + sin_pi((x2*x1)) + x5 + x3","g_prior_def",32.5516798496246
+35,"nonlinear","FBMS-BGNLM",1,0,1,1.06846578151938,5,"x5 + sin_pi((x2*x1)) + x4 + x3 + p2(x3)","g_prior_def",30.3863773345947
+36,"nonlinear","FBMS-BGNLM",1,0,1,0.975590173100891,5,"x4 + x5 + sin_pi(x3) + (x2*x1) + p2((x2*x1))","g_prior_def",29.5488893985748
+37,"nonlinear","FBMS-BGNLM",1,0,1,1.0236067251321,5,"x4 + x3 + (x3*x3) + sin_pi((x1*x2)) + x5","g_prior_def",29.9240136146545
+38,"nonlinear","FBMS-BGNLM",1,0,1,0.89371385379456,5,"x4 + x5 + sin_pi((x2*x1)) + (x3*x3) + x3","g_prior_def",31.894225358963
+39,"nonlinear","FBMS-BGNLM",1,0,1,1.01327815194023,4,"x4 + x5 + sin_pi((x2*x1)) + sin_pi(x3)","g_prior_def",30.7236866950989
+40,"nonlinear","FBMS-BGNLM",1,0,1,1.0175395820662,5,"x4 + x5 + (x2*x1) + sin_pi(x3) + p2((x2*x1))","g_prior_def",32.228529214859
+41,"nonlinear","FBMS-BGNLM",1,0,1,1.02194805921696,5,"x4 + sin_pi(x3) + (x1*x2) + p2((x2*x1)) + sin_pi(cos_rad(x5))","g_prior_def",32.2726097106934
+42,"nonlinear","FBMS-BGNLM",1,0,1,0.993534083139225,5,"x4 + sin_pi((x1*x2)) + x5 + x3 + (x3*x3)","g_prior_def",32.1953353881836
+43,"nonlinear","FBMS-BGNLM",1,0,1,1.00202014849169,5,"x4 + x5 + sin_pi((x2*x1)) + x3 + p2(x3)","g_prior_def",35.3074901103973
+44,"nonlinear","FBMS-BGNLM",1,0,1,1.01604516859602,5,"p2(x3) + x3 + x4 + x5 + sin_pi((x1*x2))","g_prior_def",30.8318915367126
+45,"nonlinear","FBMS-BGNLM",1,0,1,1.03376631075742,4,"x4 + x5 + sin_pi((x1*x2)) + sin_pi(x3)","g_prior_def",30.9581043720245
+46,"nonlinear","FBMS-BGNLM",1,0,1,0.999000793462789,4,"x4 + x5 + sin_pi((x1*x2)) + sin_pi(x3)","g_prior_def",30.317332983017
+47,"nonlinear","FBMS-BGNLM",1,0,1,1.05051470503818,5,"x4 + x5 + sin_pi((x2*x1)) + p2(x3) + x3","g_prior_def",30.3527593612671
+48,"nonlinear","FBMS-BGNLM",1,0,1,1.01951559630541,5,"x4 + x5 + x3 + cos_rad(x3) + sin_pi((x2*x1))","g_prior_def",31.9184885025024
+49,"nonlinear","FBMS-BGNLM",1,0,1,1.0546180665172,5,"x4 + x5 + x3 + sin_pi((x2*x1)) + p05(p3(x3))","g_prior_def",29.2166719436646
+50,"nonlinear","FBMS-BGNLM",1,0,1,1.06528706290149,5,"x5 + x3 + cos_rad(x3) + sin_pi((x2*x1)) + x4","g_prior_def",31.8658261299133
+51,"nonlinear","FBMS-BGNLM",1,0,1,1.04254128265714,4,"x5 + x4 + sin_pi((x2*x1)) + sin_pi(x3)","g_prior_def",34.7084908485413
+52,"nonlinear","FBMS-BGNLM",1,0,1,1.04578272694952,5,"x5 + x4 + sin_pi(x3) + sin_rad((x1*x2)) + (x1*x2)","g_prior_def",31.0998613834381
+53,"nonlinear","FBMS-BGNLM",1,0,1,1.0539499314713,5,"x5 + x4 + sin_pi((x1*x2)) + (x3*x3) + x3","g_prior_def",31.8117964267731
+54,"nonlinear","FBMS-BGNLM",1,0,1,1.02219188958159,5,"x4 + sin_pi((x1*x2)) + x5 + x3 + p2(x3)","g_prior_def",31.1361501216888
+55,"nonlinear","FBMS-BGNLM",1,0,1,1.05342899785044,4,"x4 + sin_pi((x2*x1)) + x5 + sin_pi(x3)","g_prior_def",38.4862112998962
+56,"nonlinear","FBMS-BGNLM",1,0.2,0,1.04295329745553,6,"x5 + sin_pi((x1*x2)) + x4 + x3 + cos_rad(x3) + x9","g_prior_def",30.9067087173462
+57,"nonlinear","FBMS-BGNLM",1,0,1,1.01160220695675,4,"x4 + x5 + sin_pi((x1*x2)) + sin_pi(x3)","g_prior_def",30.8966357707977
+58,"nonlinear","FBMS-BGNLM",1,0,1,0.965587884258529,5,"x4 + x5 + (x3*x3) + sin_pi((x2*x1)) + x3","g_prior_def",30.1980772018433
+59,"nonlinear","FBMS-BGNLM",1,0,1,1.1146751427471,4,"x4 + x5 + sin_pi((x2*x1)) + cos_rad(sin_rad(sin_pi(x3)))","g_prior_def",29.998761177063
+60,"nonlinear","FBMS-BGNLM",1,0,1,0.972470425150006,5,"x4 + sin_pi((x1*x2)) + x5 + x3 + (x3*x3)","g_prior_def",30.4954299926758
+61,"nonlinear","FBMS-BGNLM",1,0,1,0.985615863538202,4,"x4 + sin_pi(x3) + sin_pi((x2*x1)) + x5","g_prior_def",32.0267155170441
+62,"nonlinear","FBMS-BGNLM",1,0,1,0.99686653334422,5,"x4 + sin_pi((x2*x1)) + x3 + x5 + p2(x3)","g_prior_def",30.5575804710388
+63,"nonlinear","FBMS-BGNLM",1,0,1,0.988839257278358,5,"x5 + sin_pi((x2*x1)) + x3 + x4 + p3(x3)","g_prior_def",29.711669921875
+64,"nonlinear","FBMS-BGNLM",1,0,1,1.01526142003521,5,"x4 + x5 + sin_pi((x2*x1)) + x3 + cos_rad(x3)","g_prior_def",29.5583941936493
+65,"nonlinear","FBMS-BGNLM",1,0,1,1.01580207299144,4,"x4 + x5 + sin_rad(sin_pi(x3)) + sin_pi((x1*x2))","g_prior_def",31.0155913829803
+66,"nonlinear","FBMS-BGNLM",1,0,1,0.966803981435975,5,"x4 + x3 + sin_pi((x2*x1)) + x5 + p2(x3)","g_prior_def",28.8753046989441
+67,"nonlinear","FBMS-BGNLM",1,0,1,1.07192428678516,4,"x4 + x5 + sin_pi((x1*x2)) + sin_pi(x3)","g_prior_def",29.6782040596008
+68,"nonlinear","FBMS-BGNLM",1,0,1,1.00985469552504,5,"x4 + x5 + x3 + p2(x3) + sin_pi((x2*x1))","g_prior_def",28.9265220165253
+69,"nonlinear","FBMS-BGNLM",1,0,1,1.01335496341234,4,"x4 + x5 + sin_pi((x2*x1)) + sin_pi(x3)","g_prior_def",28.8818056583405
+70,"nonlinear","FBMS-BGNLM",1,0,1,0.982572219008666,5,"x5 + sin_pi((x2*x1)) + x4 + (x3*x3) + x3","g_prior_def",29.0057382583618
+71,"nonlinear","FBMS-BGNLM",1,0,1,1.00332636726128,6,"x4 + x5 + cos_rad((x2*x1)) + p2(x3) + (x2*x1) + x3","g_prior_def",30.4544336795807
+72,"nonlinear","FBMS-BGNLM",1,0,1,0.991426458116937,4,"x5 + x4 + sin_pi((x1*x2)) + sin_pi(x3)","g_prior_def",29.4819579124451
+73,"nonlinear","FBMS-BGNLM",1,0,1,1.04671368629076,4,"x4 + x5 + sin_pi((x2*x1)) + sin_pi(x3)","g_prior_def",33.7583441734314
+74,"nonlinear","FBMS-BGNLM",1,0,1,1.02685463215401,5,"x5 + x4 + sin_pi((x1*x2)) + x3 + cos_rad(x3)","g_prior_def",30.7704892158508
+75,"nonlinear","FBMS-BGNLM",1,0,1,1.03132517285839,4,"x5 + x4 + sin_pi(x3) + sin_pi((x1*x2))","g_prior_def",30.5711004734039
+76,"nonlinear","FBMS-BGNLM",1,0,1,1.05233257493505,4,"x5 + x4 + sin_pi((x1*x2)) + sin_pi(x3)","g_prior_def",29.7148809432983
+77,"nonlinear","FBMS-BGNLM",1,0,1,0.96353842968206,4,"x4 + x5 + sin_pi((x1*x2)) + sin_pi(x3)","g_prior_def",29.2931680679321
+78,"nonlinear","FBMS-BGNLM",1,0,1,0.939904653861926,4,"x4 + x5 + sin_pi((x1*x2)) + sin_rad(sin_pi(1+1*x3))","g_prior_def",28.1083347797394
+79,"nonlinear","FBMS-BGNLM",1,0,1,1.00505704892954,4,"x5 + x4 + sin_pi((x2*x1)) + sin_pi(x3)","g_prior_def",28.7899191379547
+80,"nonlinear","FBMS-BGNLM",1,0,1,0.969378898433827,4,"x5 + x4 + sin_pi(x3) + sin_pi((x1*x2))","g_prior_def",31.8404717445374
+81,"nonlinear","FBMS-BGNLM",1,0,1,1.00687574275304,4,"x4 + sin_pi((x1*x2)) + sin_pi(x3) + x5","g_prior_def",29.8492968082428
+82,"nonlinear","FBMS-BGNLM",1,0,1,0.992494385583419,4,"x4 + x5 + sin_pi((x2*x1)) + sin_pi(x3)","g_prior_def",29.5839347839355
+83,"nonlinear","FBMS-BGNLM",1,0,1,0.975660825896391,5,"x4 + x5 + sin_pi((x2*x1)) + x3 + p2(x3)","g_prior_def",30.4030964374542
+84,"nonlinear","FBMS-BGNLM",1,0,1,1.06290206708054,4,"x5 + x4 + sin_pi((x1*x2)) + sin_pi(x3)","g_prior_def",28.6056771278381
+85,"nonlinear","FBMS-BGNLM",1,0,1,0.99010049442993,5,"x3 + x4 + sin_pi((x1*x2)) + cos_rad(x3) + sin_rad(x5)","g_prior_def",34.1189405918121
+86,"nonlinear","FBMS-BGNLM",1,0,1,0.978520863743537,4,"x4 + x5 + sin_pi(x3) + sin_pi((x2*x1))","g_prior_def",32.8954627513885
+87,"nonlinear","FBMS-BGNLM",1,0,1,1.0028812725713,5,"x5 + sin_pi((x2*x1)) + x4 + (x3*x3) + x3","g_prior_def",31.624659538269
+88,"nonlinear","FBMS-BGNLM",1,0,1,1.03364179887315,4,"x4 + sin_pi((x1*x2)) + sin_pi(x3) + p05(x5)","g_prior_def",31.1512722969055
+89,"nonlinear","FBMS-BGNLM",1,0,1,1.00257684307354,5,"x5 + x4 + sin_pi((x2*x1)) + x3 + sin_rad(x3)","g_prior_def",30.9342398643494
+90,"nonlinear","FBMS-BGNLM",1,0,1,0.993436417769281,4,"sin_pi(x3) + x4 + sin_rad(x5) + sin_pi((x2*x1))","g_prior_def",30.2766938209534
+91,"nonlinear","FBMS-BGNLM",1,0,1,1.03631886076173,4,"x5 + x4 + sin_pi((x2*x1)) + sin_pi(x3)","g_prior_def",30.181314945221
+92,"nonlinear","FBMS-BGNLM",1,0,1,1.05391317661123,5,"x5 + x4 + (x1*x2) + sin_rad((x1*x2)) + sin_pi(x3)","g_prior_def",31.2816116809845
+93,"nonlinear","FBMS-BGNLM",1,0,1,1.02791272588988,5,"x4 + x5 + x3 + (x3*x3) + sin_pi((x1*x2))","g_prior_def",30.1628868579865
+94,"nonlinear","FBMS-BGNLM",1,0,1,0.950597599064395,4,"x4 + x5 + sin_pi((x2*x1)) + sin_pi(x3)","g_prior_def",29.5086481571198
+95,"nonlinear","FBMS-BGNLM",1,0,1,0.977234966791189,6,"x3 + p2(x3) + x5 + x4 + (x2*x1) + p2((x2*x1))","g_prior_def",30.5446448326111
+96,"nonlinear","FBMS-BGNLM",1,0,1,1.06501087855872,5,"x5 + x4 + (x2*x1) + p2((x1*x2)) + sin_pi(x3)","g_prior_def",29.6301317214966
+97,"nonlinear","FBMS-BGNLM",1,0,1,0.993911777171361,5,"x4 + sin_pi((x1*x2)) + x5 + cos_rad(x3) + x3","g_prior_def",36.5829474925995
+98,"nonlinear","FBMS-BGNLM",0.8,0,0,0.995874884042387,3,"x4 + x5 + sin_pi((x1*x2))","g_prior_def",31.1338336467743
+99,"nonlinear","FBMS-BGNLM",1,0,1,1.06153446516821,6,"x4 + (x1*x2) + x5 + x3 + p2((x1*x2)) + p2(x3)","g_prior_def",31.7929723262787
+100,"nonlinear","FBMS-BGNLM",1,0,1,0.998636945287555,4,"x4 + x5 + sin_pi((x1*x2)) + sin_rad(sin_pi(x3))","g_prior_def",29.8368356227875
+1,"nonlinear","FBMS-BGNLM",1,0,1,1.00542079553251,4,"x4 + x5 + sin_pi((x1*x2)) + sin_pi(x3)","g_prior_n",29.0333001613617
+2,"nonlinear","FBMS-BGNLM",1,0,1,0.965831918204257,4,"x4 + sin_pi((x1*x2)) + sin_pi(x3) + x5","g_prior_n",31.2829232215881
+3,"nonlinear","FBMS-BGNLM",1,0,1,1.01936280943901,5,"x4 + x5 + x3 + sin_pi((x2*x1)) + p2(x3)","g_prior_n",29.1113157272339
+4,"nonlinear","FBMS-BGNLM",1,0,1,0.987463773065193,4,"x4 + x5 + sin_pi(x3) + sin_pi((x1*x2))","g_prior_n",29.7880718708038
+5,"nonlinear","FBMS-BGNLM",1,0,1,1.01794734846336,4,"x5 + x4 + sin_pi((x1*x2)) + sin_pi(x3)","g_prior_n",31.1888782978058
+6,"nonlinear","FBMS-BGNLM",1,0,1,1.05649365455073,4,"x4 + x5 + sin_pi(x3) + sin_pi((x2*x1))","g_prior_n",32.2613136768341
+7,"nonlinear","FBMS-BGNLM",1,0,1,1.04957246379116,5,"x4 + sin_rad(x3) + cos_rad(cos_rad(x5)) + p2(x3) + sin_pi((x1*x2))","g_prior_n",31.7520005702972
+8,"nonlinear","FBMS-BGNLM",1,0,1,0.946105658887051,5,"x4 + (x1*x2) + x5 + sin_pi(x3) + p2((x2*x1))","g_prior_n",33.3016245365143
+9,"nonlinear","FBMS-BGNLM",1,0,1,1.0452910331963,5,"x5 + p2(x3) + sin_rad(x4) + sin_rad(x3) + sin_pi((x1*x2))","g_prior_n",29.3365426063538
+10,"nonlinear","FBMS-BGNLM",1,0,1,1.09819542320785,5,"x5 + x4 + sin_pi(x3) + (x1*sin_rad(x2)) + p3((x1*sin_rad(x2)))","g_prior_n",29.9021103382111
+11,"nonlinear","FBMS-BGNLM",1,0,1,0.977240590416382,4,"x4 + x5 + sin_pi((x1*x2)) + sin_pi(x3)","g_prior_n",30.5141401290894
+12,"nonlinear","FBMS-BGNLM",1,0,1,1.05799498413937,4,"x5 + x4 + sin_pi((x2*x1)) + sin_pi(x3)","g_prior_n",31.1725788116455
+13,"nonlinear","FBMS-BGNLM",1,0,1,1.07825998014991,5,"x4 + x5 + sin_pi((x2*x1)) + sin_pi(x3) + x3","g_prior_n",30.984804391861
+14,"nonlinear","FBMS-BGNLM",1,0,1,1.02022534433879,5,"x4 + x5 + sin_pi(x3) + (x2*x1) + p05(cos_rad((x2*x1)))","g_prior_n",29.7414171695709
+15,"nonlinear","FBMS-BGNLM",1,0,1,1.06845477095834,4,"sin_pi(x3) + x4 + sin_pi((x2*x1)) + sin_rad(x5)","g_prior_n",29.6339364051819
+16,"nonlinear","FBMS-BGNLM",1,0,1,1.07175167717435,4,"x5 + sin_pi((x1*x2)) + x4 + sin_pi(x3)","g_prior_n",31.8374738693237
+17,"nonlinear","FBMS-BGNLM",1,0,1,1.03494285823958,5,"x4 + x5 + (x1*x2) + p2((x1*x2)) + sin_pi(x3)","g_prior_n",31.0632441043854
+18,"nonlinear","FBMS-BGNLM",1,0,1,0.95758383679153,6,"x4 + x3 + x5 + (x2*x1) + p2(x3) + p3(1+1*(x2*x1))","g_prior_n",30.9191946983337
+19,"nonlinear","FBMS-BGNLM",1,0,1,1.03498905003827,5,"x4 + sin_pi((x1*x2)) + x5 + x3 + cos_rad(x3)","g_prior_n",30.0193388462067
+20,"nonlinear","FBMS-BGNLM",1,0,1,1.07945756259728,4,"x4 + sin_pi((x2*x1)) + sin_pi(x3) + p3(cos_rad(x5))","g_prior_n",29.3638451099396
+21,"nonlinear","FBMS-BGNLM",1,0,1,1.02390618287293,4,"x4 + x5 + sin_pi((x1*x2)) + sin_pi(x3)","g_prior_n",29.8947718143463
+22,"nonlinear","FBMS-BGNLM",1,0,1,1.07385488403414,5,"x4 + x5 + x3 + sin_pi((x1*x2)) + cos_rad(x3)","g_prior_n",29.6567063331604
+23,"nonlinear","FBMS-BGNLM",1,0,1,0.973171508200146,5,"x4 + x5 + x3 + p2(x3) + sin_rad(sin_pi((x2*x1)))","g_prior_n",30.3840596675873
+24,"nonlinear","FBMS-BGNLM",1,0,1,0.941229722577155,4,"sin_pi((x1*x2)) + x4 + x5 + sin_pi(x3)","g_prior_n",31.0293295383453
+25,"nonlinear","FBMS-BGNLM",1,0,1,0.988033266517574,4,"x5 + x4 + sin_pi((x1*x2)) + sin_pi(x3)","g_prior_n",29.2579281330109
+26,"nonlinear","FBMS-BGNLM",1,0,1,1.10173155246996,5,"x5 + x4 + sin_pi((x2*x1)) + x3 + cos_rad(x3)","g_prior_n",30.4024045467377
+27,"nonlinear","FBMS-BGNLM",1,0,1,0.980058666681582,5,"x4 + x5 + x3 + sin_pi((x1*x2)) + cos_rad(x3)","g_prior_n",30.576536655426
+28,"nonlinear","FBMS-BGNLM",1,0,1,0.957225244423335,4,"x5 + x4 + sin_pi((x2*x1)) + sin_pi(x3)","g_prior_n",30.719940662384
+29,"nonlinear","FBMS-BGNLM",1,0,1,0.898384906928467,4,"x4 + x5 + sin_pi((x2*x1)) + sin_pi(x3)","g_prior_n",30.6214511394501
+30,"nonlinear","FBMS-BGNLM",1,0,1,1.04860115876031,4,"sin_pi((x2*x1)) + x4 + x5 + sin_pi(x3)","g_prior_n",28.9762670993805
+31,"nonlinear","FBMS-BGNLM",1,0,1,0.942397066362611,5,"x4 + sin_pi((x2*x1)) + x3 + x5 + cos_rad(x3)","g_prior_n",31.5092878341675
+32,"nonlinear","FBMS-BGNLM",1,0,1,1.01755877720547,4,"x4 + x5 + sin_pi(x3) + sin_pi((x2*x1))","g_prior_n",29.9509472846985
+33,"nonlinear","FBMS-BGNLM",1,0,1,1.0281564484003,5,"x4 + x5 + p2((x1*x2)) + sin_pi(x3) + (x1*x2)","g_prior_n",30.0291178226471
+34,"nonlinear","FBMS-BGNLM",1,0,1,1.00551564540986,4,"x5 + sin_pi(x3) + sin_pi((x2*x1)) + x4","g_prior_n",30.8429601192474
+35,"nonlinear","FBMS-BGNLM",1,0,1,1.06902428732185,5,"x4 + x5 + x3 + p2(x3) + sin_pi((x2*x1))","g_prior_n",30.949159860611
+36,"nonlinear","FBMS-BGNLM",1,0,1,0.947462842103406,4,"x4 + x5 + sin_pi((x1*x2)) + sin_pi(x3)","g_prior_n",30.9173085689545
+37,"nonlinear","FBMS-BGNLM",1,0,1,1.03292728906138,5,"x4 + x5 + sin_pi(x3) + (x2*x1) + p2((x1*x2))","g_prior_n",30.5075123310089
+38,"nonlinear","FBMS-BGNLM",1,0,1,0.898511289354183,5,"x5 + x4 + x3 + sin_rad(x3) + sin_pi((x1*x2))","g_prior_n",30.251565694809
+39,"nonlinear","FBMS-BGNLM",1,0,1,1.01238248836122,6,"x4 + x5 + (x1*x2) + p2((x2*x1)) + x3 + p2(x3)","g_prior_n",29.9031641483307
+40,"nonlinear","FBMS-BGNLM",1,0,1,1.05185236680011,6,"x4 + (x2*x1) + x3 + p3(x3) + cos_rad(p05(x5)) + p3(1+1*(x2*x1))","g_prior_n",29.166095495224
+41,"nonlinear","FBMS-BGNLM",1,0,1,0.985241698678471,4,"x4 + x5 + sin_rad(sin_pi(x3)) + sin_pi(1+1*(x1*x2))","g_prior_n",28.9947736263275
+42,"nonlinear","FBMS-BGNLM",1,0,1,0.993899962484244,4,"x5 + sin_pi((x1*x2)) + x4 + sin_pi(x3)","g_prior_n",29.4815940856934
+43,"nonlinear","FBMS-BGNLM",1,0,1,1.00177056227339,5,"x4 + x5 + sin_pi((x2*x1)) + (x3*x3) + x3","g_prior_n",33.2421009540558
+44,"nonlinear","FBMS-BGNLM",1,0,1,1.005195381538,5,"x5 + x4 + sin_pi((x1*x2)) + x3 + (x3*x3)","g_prior_n",30.518486738205
+45,"nonlinear","FBMS-BGNLM",1,0,1,1.05830638538638,5,"x4 + sin_pi((x2*x1)) + pm1(x5) + (x5*x5) + sin_pi(x3)","g_prior_n",30.9075260162354
+46,"nonlinear","FBMS-BGNLM",1,0,1,1.00037985898945,4,"x4 + x5 + sin_pi(x3) + sin_pi((x2*x1))","g_prior_n",30.6943619251251
+47,"nonlinear","FBMS-BGNLM",1,0,1,1.05672447913807,4,"x4 + x5 + sin_pi((x1*x2)) + sin_pi(x3)","g_prior_n",30.4445986747742
+48,"nonlinear","FBMS-BGNLM",1,0,1,1.00777081160743,4,"x4 + x5 + sin_pi((x2*x1)) + sin_pi(x3)","g_prior_n",30.5978140830994
+49,"nonlinear","FBMS-BGNLM",1,0,1,1.05629634971505,4,"x4 + x5 + sin_pi((x1*x2)) + sin_pi(x3)","g_prior_n",35.8459076881409
+50,"nonlinear","FBMS-BGNLM",1,0,1,1.06596111722273,4,"x4 + sin_pi(x3) + x5 + sin_pi((x2*x1))","g_prior_n",31.8913173675537
+51,"nonlinear","FBMS-BGNLM",1,0,1,1.04605983597166,4,"x5 + x4 + sin_pi((x1*x2)) + sin_pi(x3)","g_prior_n",31.0323090553284
+52,"nonlinear","FBMS-BGNLM",1,0,1,1.01884904550882,4,"x5 + sin_pi((x1*x2)) + sin_pi(x3) + x4","g_prior_n",31.1203052997589
+53,"nonlinear","FBMS-BGNLM",1,0,1,1.05332120988265,5,"x4 + x5 + sin_pi((x1*x2)) + x3 + p2(x3)","g_prior_n",29.7409880161285
+54,"nonlinear","FBMS-BGNLM",1,0,1,1.02893913683847,4,"x4 + x5 + sin_pi((x2*x1)) + sin_pi(x3)","g_prior_n",29.9506850242615
+55,"nonlinear","FBMS-BGNLM",1,0,1,1.05921015401012,5,"x4 + (x2*x1) + x5 + sin_pi(x3) + cos_rad((x1*x2))","g_prior_n",31.8351991176605
+56,"nonlinear","FBMS-BGNLM",1,0,1,1.0373073595915,4,"x5 + x4 + sin_pi((x2*x1)) + sin_pi(x3)","g_prior_n",30.3998067378998
+57,"nonlinear","FBMS-BGNLM",1,0,1,1.02428419704012,5,"x4 + x5 + x3 + cos_rad(x3) + sin_rad(sin_pi((x2*x1)))","g_prior_n",30.7656099796295
+58,"nonlinear","FBMS-BGNLM",1,0,1,0.965580140659512,5,"sin_pi((x1*x2)) + x4 + x5 + x3 + p2(1+1*x3)","g_prior_n",29.9420032501221
+59,"nonlinear","FBMS-BGNLM",1,0,1,1.0866351954027,4,"x4 + sin_pi((x2*x1)) + x5 + sin_pi(x3)","g_prior_n",31.3607251644135
+60,"nonlinear","FBMS-BGNLM",1,0,1,0.968504649201073,4,"x5 + sin_pi((x2*x1)) + sin_rad(sin_pi(x3)) + x4","g_prior_n",29.7305595874786
+61,"nonlinear","FBMS-BGNLM",1,0,1,0.985327284103393,4,"x4 + x5 + sin_pi((x1*x2)) + sin_pi(x3)","g_prior_n",34.6061873435974
+62,"nonlinear","FBMS-BGNLM",1,0,1,0.99686309267915,5,"x4 + x5 + sin_pi((x2*x1)) + x3 + (x3*x3)","g_prior_n",30.8147222995758
+63,"nonlinear","FBMS-BGNLM",1,0,1,0.963877270701367,4,"x5 + x4 + sin_pi(x3) + sin_pi((x1*x2))","g_prior_n",30.3639912605286
+64,"nonlinear","FBMS-BGNLM",1,0,1,1.00005101778002,5,"x4 + x5 + x3 + sin_pi((x1*x2)) + p3(1+1*x3)","g_prior_n",31.3569157123566
+65,"nonlinear","FBMS-BGNLM",1,0,1,1.02074131155544,5,"x4 + sin_rad(x5) + x3 + p2(x3) + sin_pi((x2*x1))","g_prior_n",30.050549030304
+66,"nonlinear","FBMS-BGNLM",1,0,1,0.963814398545659,4,"x5 + x4 + sin_pi((x2*x1)) + sin_pi(x3)","g_prior_n",30.2803168296814
+67,"nonlinear","FBMS-BGNLM",1,0,1,1.20789283199984,6,"x4 + x5 + (x1*x2) + x3 + p2(x3) + p3((x1*x2))","g_prior_n",29.7966799736023
+68,"nonlinear","FBMS-BGNLM",1,0,1,1.00882644827296,5,"x5 + x4 + sin_pi((x1*x2)) + x3 + p2(x3)","g_prior_n",32.1536870002747
+69,"nonlinear","FBMS-BGNLM",1,0,1,1.01197498132515,4,"x4 + x5 + sin_rad(sin_pi(x3)) + sin_pi(1+1*(x1*x2))","g_prior_n",29.7604024410248
+70,"nonlinear","FBMS-BGNLM",1,0,1,0.983082633710375,5,"x4 + x5 + x3 + sin_pi((x2*x1)) + cos_rad(x3)","g_prior_n",30.6661360263824
+71,"nonlinear","FBMS-BGNLM",1,0,1,1.00709404878275,4,"x4 + x5 + sin_pi((x1*x2)) + sin_pi(x3)","g_prior_n",30.540203332901
+72,"nonlinear","FBMS-BGNLM",1,0,1,0.991427081591743,4,"x4 + x5 + sin_pi(x3) + sin_pi((x1*x2))","g_prior_n",33.1519198417664
+73,"nonlinear","FBMS-BGNLM",1,0,1,1.04772714529858,4,"x4 + sin_pi((x1*x2)) + x5 + sin_pi(x3)","g_prior_n",36.9412965774536
+74,"nonlinear","FBMS-BGNLM",1,0,1,1.02830907590986,4,"x5 + x4 + sin_pi((x1*x2)) + sin_pi(x3)","g_prior_n",29.6742091178894
+75,"nonlinear","FBMS-BGNLM",1,0,1,1.03161120004853,4,"x5 + x4 + sin_pi((x2*x1)) + sin_pi(x3)","g_prior_n",29.3284196853638
+76,"nonlinear","FBMS-BGNLM",1,0,1,1.06973664294676,5,"x4 + x5 + x3 + sin_pi((x2*x1)) + p05((x3*p2(x3)))","g_prior_n",29.9656820297241
+77,"nonlinear","FBMS-BGNLM",1,0,1,0.963855680119899,4,"x5 + x4 + sin_pi(x3) + sin_pi((x2*x1))","g_prior_n",31.5783727169037
+78,"nonlinear","FBMS-BGNLM",1,0,1,0.937391311639112,5,"x4 + x5 + sin_pi((x1*x2)) + p2(x3) + x3","g_prior_n",30.0977220535278
+79,"nonlinear","FBMS-BGNLM",1,0,1,1.00536311090622,4,"x4 + sin_pi((x2*x1)) + x5 + sin_pi(x3)","g_prior_n",29.7451894283295
+80,"nonlinear","FBMS-BGNLM",1,0,1,0.971151438279953,4,"sin_pi(x3) + sin_pi((x2*x1)) + x4 + x5","g_prior_n",29.8416140079498
+81,"nonlinear","FBMS-BGNLM",1,0,1,1.0029662390669,5,"x4 + sin_pi((x2*x1)) + x5 + x3 + (x3*x3)","g_prior_n",29.7140760421753
+82,"nonlinear","FBMS-BGNLM",1,0,1,0.994516019916624,5,"x4 + (x2*x1) + x5 + sin_pi(x3) + p3(sin_rad((x2*x1)))","g_prior_n",29.9668910503387
+83,"nonlinear","FBMS-BGNLM",1,0,1,0.975708306935567,5,"x5 + sin_pi((x1*x2)) + x3 + x4 + (x3*x3)","g_prior_n",29.5735821723938
+84,"nonlinear","FBMS-BGNLM",1,0,1,1.0629956019895,4,"x4 + x5 + sin_pi(x3) + sin_pi((x1*x2))","g_prior_n",34.6191141605377
+85,"nonlinear","FBMS-BGNLM",1,0,1,1.00367145064128,5,"x5 + x4 + (x1*x2) + p2((x1*x2)) + sin_pi(x3)","g_prior_n",30.4058170318604
+86,"nonlinear","FBMS-BGNLM",1,0,1,0.972492230664823,5,"x4 + x5 + sin_pi((x1*x2)) + x3 + p2(x3)","g_prior_n",29.1517221927643
+87,"nonlinear","FBMS-BGNLM",1,0,1,1.00451780061031,4,"x4 + sin_pi((x2*x1)) + x5 + sin_pi(x3)","g_prior_n",29.6119103431702
+88,"nonlinear","FBMS-BGNLM",1,0,1,0.999356758128552,4,"sin_pi((x2*x1)) + x5 + sin_pi(x3) + x4","g_prior_n",29.5353493690491
+89,"nonlinear","FBMS-BGNLM",1,0,1,1.0037434150455,5,"x4 + x3 + sin_rad(x5) + sin_pi((x2*x1)) + p3(x3)","g_prior_n",29.8316514492035
+90,"nonlinear","FBMS-BGNLM",1,0,1,0.989061740352393,5,"x4 + x5 + (x1*x2) + sin_pi(x3) + p3(1+1*(x2*x1))","g_prior_n",29.7371640205383
+91,"nonlinear","FBMS-BGNLM",1,0,1,1.05001003094311,4,"sin_pi((x2*x1)) + sin_pi(x3) + x4 + sin_rad(x5)","g_prior_n",28.416615486145
+92,"nonlinear","FBMS-BGNLM",1,0,1,1.00504428568595,5,"x4 + x5 + (x1*x2) + sin_pi(x3) + sin_rad(sin_rad((x2*x1)))","g_prior_n",29.8012163639069
+93,"nonlinear","FBMS-BGNLM",1,0,1,1.02944903714841,4,"x4 + x5 + sin_pi((x1*x2)) + sin_pi(x3)","g_prior_n",29.274676322937
+94,"nonlinear","FBMS-BGNLM",1,0,1,0.95926966949677,5,"x5 + x4 + sin_pi((x2*x1)) + x3 + (x3*x3)","g_prior_n",29.2962756156921
+95,"nonlinear","FBMS-BGNLM",1,0,1,0.970783689120734,4,"x4 + x5 + sin_pi(x3) + sin_pi((x2*x1))","g_prior_n",31.4411919116974
+96,"nonlinear","FBMS-BGNLM",1,0,1,1.03896611304335,5,"x4 + x5 + sin_pi((x1*x2)) + x3 + sin_rad(x3)","g_prior_n",33.4078276157379
+97,"nonlinear","FBMS-BGNLM",1,0,1,0.992612239638174,4,"x5 + x4 + sin_pi((x2*x1)) + sin_pi(x3)","g_prior_n",30.950635433197
+98,"nonlinear","FBMS-BGNLM",1,0,1,0.988592554183865,5,"x4 + (x1*x2) + p2((x2*x1)) + x5 + cos_rad(p05(sin_pi(1+1*x3)))","g_prior_n",28.9361660480499
+99,"nonlinear","FBMS-BGNLM",1,0,1,1.05705900064716,5,"x5 + x4 + sin_rad((x1*x2)) + sin_pi(x3) + p2((x1*x2))","g_prior_n",32.7774028778076
+100,"nonlinear","FBMS-BGNLM",1,0,1,1.00160760129121,4,"x4 + sin_pi((x2*x1)) + x5 + sin_pi(x3)","g_prior_n",31.811500787735
+1,"nonlinear","FBMS-BGNLM",0,0,0,4.94000533101514,0,"1","hyper_g_laplace",30.5656039714813
+2,"nonlinear","FBMS-BGNLM",0,0,0,4.60860954841806,0,"1","hyper_g_laplace",29.4148535728455
+3,"nonlinear","FBMS-BGNLM",0,0,0,4.98487649464708,0,"1","hyper_g_laplace",30.9260120391846
+4,"nonlinear","FBMS-BGNLM",0,0,0,5.07663754023992,0,"1","hyper_g_laplace",30.6333177089691
+5,"nonlinear","FBMS-BGNLM",0,0,0,4.82402716347723,0,"1","hyper_g_laplace",30.063538312912
+6,"nonlinear","FBMS-BGNLM",0,0,0,4.74562183231131,0,"1","hyper_g_laplace",30.5866365432739
+7,"nonlinear","FBMS-BGNLM",0,0,0,4.78365163803008,0,"1","hyper_g_laplace",31.5282742977142
+8,"nonlinear","FBMS-BGNLM",0,0,0,4.57359588339087,0,"1","hyper_g_laplace",30.8698506355286
+9,"nonlinear","FBMS-BGNLM",0,0,0,4.76126654346661,0,"1","hyper_g_laplace",29.9291803836823
+10,"nonlinear","FBMS-BGNLM",0,0,0,4.76996080476768,0,"1","hyper_g_laplace",29.5948708057404
+11,"nonlinear","FBMS-BGNLM",0,0,0,4.71912948520367,0,"1","hyper_g_laplace",30.0157513618469
+12,"nonlinear","FBMS-BGNLM",0,0,0,4.74343082541543,0,"1","hyper_g_laplace",30.0337002277374
+13,"nonlinear","FBMS-BGNLM",0,0,0,4.68806267754173,0,"1","hyper_g_laplace",30.8417789936066
+14,"nonlinear","FBMS-BGNLM",0,0,0,4.77978645099052,0,"1","hyper_g_laplace",29.045459985733
+15,"nonlinear","FBMS-BGNLM",0,0,0,4.81662970133785,0,"1","hyper_g_laplace",29.0607643127441
+16,"nonlinear","FBMS-BGNLM",0,0,0,4.95320727310813,0,"1","hyper_g_laplace",29.8380868434906
+17,"nonlinear","FBMS-BGNLM",0,0,0,4.67751110375061,0,"1","hyper_g_laplace",30.2566726207733
+18,"nonlinear","FBMS-BGNLM",0,0,0,4.74423070755808,0,"1","hyper_g_laplace",30.1657135486603
+19,"nonlinear","FBMS-BGNLM",0,0,0,4.83326374384308,0,"1","hyper_g_laplace",31.7139587402344
+20,"nonlinear","FBMS-BGNLM",0,0,0,4.76735667668803,0,"1","hyper_g_laplace",30.7982447147369
+21,"nonlinear","FBMS-BGNLM",0,0,0,4.33819338474389,0,"1","hyper_g_laplace",31.0120759010315
+22,"nonlinear","FBMS-BGNLM",0,0,0,4.74218849055149,0,"1","hyper_g_laplace",30.1334493160248
+23,"nonlinear","FBMS-BGNLM",0,0,0,4.70441130416209,0,"1","hyper_g_laplace",31.4969067573547
+24,"nonlinear","FBMS-BGNLM",0,0,0,4.66521905616276,0,"1","hyper_g_laplace",31.488959312439
+25,"nonlinear","FBMS-BGNLM",0,0,0,4.7719798567006,0,"1","hyper_g_laplace",29.854620218277
+26,"nonlinear","FBMS-BGNLM",0,0,0,4.456967768498,0,"1","hyper_g_laplace",30.6873776912689
+27,"nonlinear","FBMS-BGNLM",0,0,0,4.93737381321906,0,"1","hyper_g_laplace",33.8079063892365
+28,"nonlinear","FBMS-BGNLM",0,0,0,4.65352015890061,0,"1","hyper_g_laplace",30.3809025287628
+29,"nonlinear","FBMS-BGNLM",0,0,0,4.70249982083199,0,"1","hyper_g_laplace",29.3596189022064
+30,"nonlinear","FBMS-BGNLM",0,0,0,4.63796188993754,0,"1","hyper_g_laplace",31.0253355503082
+31,"nonlinear","FBMS-BGNLM",0,0,0,4.80210861631106,0,"1","hyper_g_laplace",31.0463826656342
+32,"nonlinear","FBMS-BGNLM",0,0,0,4.78846917601064,0,"1","hyper_g_laplace",32.55921626091
+33,"nonlinear","FBMS-BGNLM",0,0,0,4.68284212198759,0,"1","hyper_g_laplace",31.5264949798584
+34,"nonlinear","FBMS-BGNLM",0,0,0,4.50200246777603,0,"1","hyper_g_laplace",32.2925047874451
+35,"nonlinear","FBMS-BGNLM",0,0,0,4.6961281833273,0,"1","hyper_g_laplace",29.7753210067749
+36,"nonlinear","FBMS-BGNLM",0,0,0,4.55424801725454,0,"1","hyper_g_laplace",29.6191663742065
+37,"nonlinear","FBMS-BGNLM",0,0,0,4.65727050726219,0,"1","hyper_g_laplace",30.4341473579407
+38,"nonlinear","FBMS-BGNLM",0,0,0,4.58074268332867,0,"1","hyper_g_laplace",29.6523489952087
+39,"nonlinear","FBMS-BGNLM",0,0,0,4.54775443235631,0,"1","hyper_g_laplace",30.6120767593384
+40,"nonlinear","FBMS-BGNLM",0,0,0,4.79043290784368,0,"1","hyper_g_laplace",30.4758217334747
+41,"nonlinear","FBMS-BGNLM",0,0,0,4.96289485175672,0,"1","hyper_g_laplace",31.844705581665
+42,"nonlinear","FBMS-BGNLM",0,0,0,4.6932811592344,0,"1","hyper_g_laplace",30.7392024993896
+43,"nonlinear","FBMS-BGNLM",0,0,0,4.54559918410315,0,"1","hyper_g_laplace",30.5988526344299
+44,"nonlinear","FBMS-BGNLM",0,0,0,4.87437960660897,0,"1","hyper_g_laplace",33.4908030033112
+45,"nonlinear","FBMS-BGNLM",0,0,0,4.62591942082115,0,"1","hyper_g_laplace",30.5419352054596
+46,"nonlinear","FBMS-BGNLM",0,0,0,4.63557302907757,0,"1","hyper_g_laplace",29.761885881424
+47,"nonlinear","FBMS-BGNLM",0,0,0,4.54458834604103,0,"1","hyper_g_laplace",30.6324605941772
+48,"nonlinear","FBMS-BGNLM",0,0,0,4.70752124208686,0,"1","hyper_g_laplace",30.5137708187103
+49,"nonlinear","FBMS-BGNLM",0,0,0,4.79925451965632,0,"1","hyper_g_laplace",30.1351914405823
+50,"nonlinear","FBMS-BGNLM",0,0,0,4.58323759216453,0,"1","hyper_g_laplace",29.1368870735168
+51,"nonlinear","FBMS-BGNLM",0,0,0,5.04814746474056,0,"1","hyper_g_laplace",30.8975818157196
+52,"nonlinear","FBMS-BGNLM",0,0,0,4.55315901801832,0,"1","hyper_g_laplace",30.7823433876038
+53,"nonlinear","FBMS-BGNLM",0,0,0,4.80190711755794,0,"1","hyper_g_laplace",28.8364489078522
+54,"nonlinear","FBMS-BGNLM",0,0,0,4.81113300796254,0,"1","hyper_g_laplace",29.6027979850769
+55,"nonlinear","FBMS-BGNLM",0,0,0,4.9063874930541,0,"1","hyper_g_laplace",32.2558023929596
+56,"nonlinear","FBMS-BGNLM",0,0,0,4.63288585389073,0,"1","hyper_g_laplace",29.7045748233795
+57,"nonlinear","FBMS-BGNLM",0,0,0,4.74189879930786,0,"1","hyper_g_laplace",30.3487088680267
+58,"nonlinear","FBMS-BGNLM",0,0,0,4.59380205549203,0,"1","hyper_g_laplace",30.0480546951294
+59,"nonlinear","FBMS-BGNLM",0,0,0,4.80636958560271,0,"1","hyper_g_laplace",30.5217757225037
+60,"nonlinear","FBMS-BGNLM",0,0,0,4.57646302491481,0,"1","hyper_g_laplace",30.7775821685791
+61,"nonlinear","FBMS-BGNLM",0,0,0,4.51907059976426,0,"1","hyper_g_laplace",33.2332549095154
+62,"nonlinear","FBMS-BGNLM",0,0,0,4.59045133446909,0,"1","hyper_g_laplace",30.8675563335419
+63,"nonlinear","FBMS-BGNLM",0,0,0,4.60870056220076,0,"1","hyper_g_laplace",28.9460084438324
+64,"nonlinear","FBMS-BGNLM",0,0,0,4.75061770210383,0,"1","hyper_g_laplace",30.3234853744507
+65,"nonlinear","FBMS-BGNLM",0,0,0,4.44376682293458,0,"1","hyper_g_laplace",30.2544543743134
+66,"nonlinear","FBMS-BGNLM",0,0,0,4.53765613283668,0,"1","hyper_g_laplace",31.7534172534943
+67,"nonlinear","FBMS-BGNLM",0,0,0,4.80563223092375,0,"1","hyper_g_laplace",33.4261701107025
+68,"nonlinear","FBMS-BGNLM",0,0,0,4.74729126107727,0,"1","hyper_g_laplace",30.0193152427673
+70,"nonlinear","FBMS-BGNLM",0,0,0,4.55075639660299,0,"1","hyper_g_laplace",29.8839299678802
+71,"nonlinear","FBMS-BGNLM",0,0,0,4.58705877691032,0,"1","hyper_g_laplace",29.6356208324432
+72,"nonlinear","FBMS-BGNLM",0,0,0,4.58224947081087,0,"1","hyper_g_laplace",29.2462396621704
+73,"nonlinear","FBMS-BGNLM",0,0,0,4.6661200506418,0,"1","hyper_g_laplace",31.1236476898193
+74,"nonlinear","FBMS-BGNLM",0,0,0,4.6103225587309,0,"1","hyper_g_laplace",30.442289352417
+75,"nonlinear","FBMS-BGNLM",0,0,0,4.76634866948992,0,"1","hyper_g_laplace",31.5501492023468
+77,"nonlinear","FBMS-BGNLM",0,0,0,4.79619730413058,0,"1","hyper_g_laplace",30.1307008266449
+78,"nonlinear","FBMS-BGNLM",0,0,0,4.51531252066646,0,"1","hyper_g_laplace",33.7355961799622
+79,"nonlinear","FBMS-BGNLM",0,0,0,4.43954596501865,0,"1","hyper_g_laplace",30.1490428447723
+80,"nonlinear","FBMS-BGNLM",0,0,0,5.1662232245062,0,"1","hyper_g_laplace",31.6389589309692
+83,"nonlinear","FBMS-BGNLM",0,0,0,4.71841806494228,0,"1","hyper_g_laplace",31.3531806468964
+84,"nonlinear","FBMS-BGNLM",0,0,0,4.77916846142655,0,"1","hyper_g_laplace",29.781254529953
+85,"nonlinear","FBMS-BGNLM",0,0,0,4.85565217990943,0,"1","hyper_g_laplace",30.8402326107025
+86,"nonlinear","FBMS-BGNLM",0,0,0,4.48874498333631,0,"1","hyper_g_laplace",29.2356202602386
+87,"nonlinear","FBMS-BGNLM",0,0,0,4.82704638937436,0,"1","hyper_g_laplace",30.3179664611816
+88,"nonlinear","FBMS-BGNLM",0,0,0,4.54348819964858,0,"1","hyper_g_laplace",29.7929885387421
+89,"nonlinear","FBMS-BGNLM",0,0,0,4.85587693352377,0,"1","hyper_g_laplace",31.9632103443146
+90,"nonlinear","FBMS-BGNLM",0,0,0,4.61755272723146,0,"1","hyper_g_laplace",33.4077954292297
+92,"nonlinear","FBMS-BGNLM",0,0,0,4.54520413822215,0,"1","hyper_g_laplace",29.9257917404175
+93,"nonlinear","FBMS-BGNLM",0,0,0,4.85009380239388,0,"1","hyper_g_laplace",30.3305206298828
+94,"nonlinear","FBMS-BGNLM",0,0,0,4.77680988791087,0,"1","hyper_g_laplace",29.7085089683533
+95,"nonlinear","FBMS-BGNLM",0,0,0,4.90480644464621,0,"1","hyper_g_laplace",28.9690933227539
+96,"nonlinear","FBMS-BGNLM",0,0,0,4.63897742153544,0,"1","hyper_g_laplace",30.114504814148
+97,"nonlinear","FBMS-BGNLM",0,0,0,4.66955201589501,0,"1","hyper_g_laplace",30.5454926490784
+98,"nonlinear","FBMS-BGNLM",0,0,0,4.86003361993926,0,"1","hyper_g_laplace",31.0430428981781
+99,"nonlinear","FBMS-BGNLM",0,0,0,4.62151846552132,0,"1","hyper_g_laplace",29.7215483188629
+100,"nonlinear","FBMS-BGNLM",0,0,0,4.70152275324235,0,"1","hyper_g_laplace",30.897967338562
+1,"nonlinear","FBMS-BGNLM",1,0.2,0,1.01057477726903,6,"x5 + x4 + sin_pi((x1*x2)) + x3 + p2(x3) + x9","intrinsic",40.9497530460358
+3,"nonlinear","FBMS-BGNLM",1,0,1,1.03001047777668,4,"x5 + x4 + sin_pi(x3) + sin_pi((x2*x1))","intrinsic",41.8619933128357
+4,"nonlinear","FBMS-BGNLM",1,0,1,0.987585373482882,4,"x4 + sin_pi((x1*x2)) + x5 + sin_pi(x3)","intrinsic",41.0557041168213
+5,"nonlinear","FBMS-BGNLM",1,0.2,0,1.01615636459358,6,"x4 + sin_pi((x1*x2)) + x5 + x3 + (x3*x3) + x9","intrinsic",40.462696313858
+6,"nonlinear","FBMS-BGNLM",1,0,1,1.058395807041,4,"x4 + sin_pi((x2*x1)) + x5 + sin_pi(x3)","intrinsic",41.422815322876
+7,"nonlinear","FBMS-BGNLM",1,0.2,0,1.02375027603044,5,"x5 + sin_pi((x2*x1)) + x4 + x6 + sin_pi(x3)","intrinsic",41.4924268722534
+8,"nonlinear","FBMS-BGNLM",1,0.2,0,0.951313601554187,6,"x5 + x3 + x4 + sin_pi((x1*x2)) + cos_rad(x3) + x7","intrinsic",47.2727119922638
+9,"nonlinear","FBMS-BGNLM",1,0.2,0,1.04521811322145,7,"x5 + x4 + sin_pi((x1*x2)) + x3 + (x3*x3) + x7 + x1","intrinsic",40.8509106636047
+11,"nonlinear","FBMS-BGNLM",1,0,1,0.977943262468098,5,"x4 + x5 + sin_pi((x1*x2)) + x3 + p2(x3)","intrinsic",43.6285848617554
+12,"nonlinear","FBMS-BGNLM",1,0.4,0,1.05315292181123,7,"x4 + x5 + sin_pi((x2*x1)) + x9 + x3 + p2(x3) + x8","intrinsic",41.443327665329
+13,"nonlinear","FBMS-BGNLM",1,0.2,0,1.10004193266115,6,"x4 + x5 + sin_pi((x2*x1)) + x3 + p2(x3) + x7","intrinsic",40.2713348865509
+14,"nonlinear","FBMS-BGNLM",1,0.2,0,1.04830924006291,6,"x5 + sin_pi((x2*x1)) + x3 + x8 + x4 + p2(x3)","intrinsic",45.3768491744995
+15,"nonlinear","FBMS-BGNLM",1,0.2,0,1.07359861599168,6,"x5 + x4 + sin_pi((x2*x1)) + x3 + p2(x3) + x9","intrinsic",41.3827774524689
+16,"nonlinear","FBMS-BGNLM",1,0,1,1.06430683267537,5,"x4 + x5 + sin_pi((x2*x1)) + x3 + p2(x3)","intrinsic",40.8927822113037
+17,"nonlinear","FBMS-BGNLM",1,0.2,0,1.03046645668055,6,"x4 + x5 + sin_pi((x2*x1)) + x3 + cos_rad(x3) + x10","intrinsic",40.831102848053
+18,"nonlinear","FBMS-BGNLM",1,0,1,0.961852991549443,5,"x4 + sin_pi((x2*x1)) + x5 + sin_pi(x3) + x3","intrinsic",43.5100169181824
+19,"nonlinear","FBMS-BGNLM",1,0,1,1.03116130520077,5,"x4 + x5 + sin_pi((x2*x1)) + x3 + sin_pi(x3)","intrinsic",40.3789451122284
+20,"nonlinear","FBMS-BGNLM",1,0,1,1.07743482121378,4,"x4 + x5 + sin_pi((x2*x1)) + sin_pi(x3)","intrinsic",44.8573262691498
+21,"nonlinear","FBMS-BGNLM",1,0.2,0,1.01200634853432,6,"x4 + sin_pi((x1*x2)) + x5 + x3 + x6 + cos_rad(x3)","intrinsic",42.5458023548126
+22,"nonlinear","FBMS-BGNLM",1,0,1,1.07083338903632,5,"x4 + sin_pi((x1*x2)) + x5 + x3 + cos_rad(x3)","intrinsic",41.6261801719666
+23,"nonlinear","FBMS-BGNLM",1,0,1,0.980661502780706,5,"x5 + x4 + sin_pi((x2*x1)) + x3 + cos_rad(x3)","intrinsic",42.9039273262024
+24,"nonlinear","FBMS-BGNLM",1,0,1,0.942444101062843,5,"x5 + x4 + x3 + (x3*x3) + sin_pi((x2*x1))","intrinsic",42.2449290752411
+25,"nonlinear","FBMS-BGNLM",1,0,1,0.994948264163058,6,"x4 + x5 + sin_pi((x2*x1)) + x1 + x3 + p2(x3)","intrinsic",40.5519745349884
+26,"nonlinear","FBMS-BGNLM",1,0.2,0,1.0904665075401,6,"x4 + x5 + x3 + p2(x3) + sin_pi((x2*x1)) + x9","intrinsic",40.6880671977997
+27,"nonlinear","FBMS-BGNLM",1,0.4,0,0.990975313743681,8,"x4 + sin_pi((x2*x1)) + x3 + (x3*x3) + x5 + x7 + x10 + x2","intrinsic",40.6730968952179
+28,"nonlinear","FBMS-BGNLM",1,0,1,0.950320283380839,5,"x5 + x4 + x3 + p2(x3) + sin_pi((x1*x2))","intrinsic",41.1358885765076
+29,"nonlinear","FBMS-BGNLM",1,0.2,0,0.898856372473496,6,"x4 + sin_pi((x1*x2)) + x5 + x10 + x3 + p2(x3)","intrinsic",41.0832726955414
+30,"nonlinear","FBMS-BGNLM",1,0.2,0,1.05470355055815,6,"x4 + x5 + sin_pi((x1*x2)) + x3 + (x3*x3) + x9","intrinsic",41.5950262546539
+31,"nonlinear","FBMS-BGNLM",1,0.6,0,0.952879923980786,9,"x4 + sin_pi((x2*x1)) + x3 + x5 + cos_rad(x3) + x6 + x7 + x10 + x1","intrinsic",41.1677286624908
+32,"nonlinear","FBMS-BGNLM",1,0,1,1.01757012185635,5,"x5 + sin_pi((x1*x2)) + x4 + x3 + p2(x3)","intrinsic",45.3069343566895
+33,"nonlinear","FBMS-BGNLM",1,0.4,0,1.03756870736277,7,"x4 + x5 + sin_pi((x2*x1)) + x3 + cos_rad(x3) + x6 + x8","intrinsic",41.1420660018921
+34,"nonlinear","FBMS-BGNLM",1,0.2,0,1.02870965492281,6,"x4 + x5 + sin_pi((x1*x2)) + x3 + (x3*x3) + x8","intrinsic",42.0982718467712
+35,"nonlinear","FBMS-BGNLM",1,0.2,0,1.07500460280156,5,"x4 + sin_pi((x1*x2)) + sin_pi(x3) + x5 + x10","intrinsic",42.4691586494446
+36,"nonlinear","FBMS-BGNLM",1,0.2,0,0.947738459016403,6,"x4 + sin_pi((x1*x2)) + x5 + x3 + p2(x3) + x8","intrinsic",42.0733776092529
+37,"nonlinear","FBMS-BGNLM",1,0,1,1.03550747971947,6,"x4 + x5 + x3 + p2((x1*x2)) + cos_rad(x3) + (x2*x1)","intrinsic",43.8041589260101
+38,"nonlinear","FBMS-BGNLM",1,0.2,0,0.915992852256068,6,"x5 + x4 + sin_pi((x2*x1)) + sin_rad(sin_pi(x3)) + x10 + sin_rad(x4)","intrinsic",44.8024640083313
+39,"nonlinear","FBMS-BGNLM",1,0,1,1.0143215286826,5,"x4 + x5 + x3 + sin_pi((x1*x2)) + p2(x3)","intrinsic",41.8457577228546
+40,"nonlinear","FBMS-BGNLM",1,0,1,1.01183920202313,6,"x4 + sin_pi((x1*x2)) + x5 + x3 + p2(x3) + x2","intrinsic",39.2411334514618
+42,"nonlinear","FBMS-BGNLM",1,0,1,1.00005939873034,5,"x4 + x5 + sin_pi((x1*x2)) + x3 + cos_rad(x3)","intrinsic",41.0031740665436
+43,"nonlinear","FBMS-BGNLM",1,0,1,1.00001548655282,5,"x4 + x5 + x3 + sin_pi((x2*x1)) + p2(x3)","intrinsic",40.9867146015167
+44,"nonlinear","FBMS-BGNLM",1,0,1,1.01221014889349,5,"x5 + x4 + sin_pi((x2*x1)) + x3 + sin_rad(x3)","intrinsic",42.0169806480408
+45,"nonlinear","FBMS-BGNLM",1,0.2,0,1.04465722787082,5,"x4 + x5 + sin_pi((x1*x2)) + sin_rad(sin_pi(x3)) + x9","intrinsic",42.4811565876007
+46,"nonlinear","FBMS-BGNLM",1,0,1,1.00776176478292,6,"x4 + x5 + (x1*x2) + sin_pi(x3) + sin_rad(1+1*(x2*x1)) + x2","intrinsic",41.4309060573578
+47,"nonlinear","FBMS-BGNLM",1,0.2,0,1.05219460027477,7,"sin_pi((x2*x1)) + x4 + x5 + x3 + (x3*x3) + x7 + x1","intrinsic",40.6995503902435
+48,"nonlinear","FBMS-BGNLM",1,0,1,1.00722278050482,4,"x5 + x4 + sin_pi((x1*x2)) + sin_pi(x3)","intrinsic",41.456595659256
+49,"nonlinear","FBMS-BGNLM",1,0,1,1.04900987817111,5,"x5 + x4 + sin_pi((x1*x2)) + x3 + cos_rad(x3)","intrinsic",42.8152055740356
+50,"nonlinear","FBMS-BGNLM",1,0.2,0,1.07903293025565,7,"x4 + x3 + cos_rad(x3) + sin_rad(x5) + sin_pi((x2*x1)) + x6 + (x5*x5)","intrinsic",46.1129236221313
+51,"nonlinear","FBMS-BGNLM",1,0,1,1.04319562518192,4,"x4 + x5 + sin_pi((x1*x2)) + sin_pi(x3)","intrinsic",40.3724584579468
+52,"nonlinear","FBMS-BGNLM",1,0,1,1.0180022822267,5,"x4 + sin_pi((x1*x2)) + x5 + x3 + p2(x3)","intrinsic",40.8781442642212
+53,"nonlinear","FBMS-BGNLM",1,0,1,1.05392014013549,5,"x4 + sin_pi((x1*x2)) + x5 + x3 + p2(x3)","intrinsic",40.5058281421661
+54,"nonlinear","FBMS-BGNLM",1,0,1,1.02144239245656,5,"x4 + x5 + (x3*x3) + sin_rad(x3) + sin_pi((x1*x2))","intrinsic",40.3561000823975
+55,"nonlinear","FBMS-BGNLM",1,0.2,0,1.05110105295409,5,"x4 + sin_pi((x1*x2)) + x5 + sin_pi(x3) + x7","intrinsic",41.406542301178
+56,"nonlinear","FBMS-BGNLM",1,0.2,0,1.04205308490681,5,"x4 + x5 + sin_pi(x3) + sin_pi((x1*x2)) + x9","intrinsic",44.6277129650116
+57,"nonlinear","FBMS-BGNLM",1,0,1,1.00508975173155,5,"x5 + sin_pi((x2*x1)) + x4 + x3 + p2(x3)","intrinsic",42.1646687984467
+58,"nonlinear","FBMS-BGNLM",1,0.2,0,0.961270379056066,6,"x4 + x5 + sin_pi((x2*x1)) + x3 + sin_pi(x3) + x10","intrinsic",40.4773945808411
+60,"nonlinear","FBMS-BGNLM",1,0.2,0,0.972918837954733,6,"x4 + x5 + sin_pi((x2*x1)) + x3 + cos_rad(x3) + x8","intrinsic",40.5080833435059
+61,"nonlinear","FBMS-BGNLM",1,0,1,0.984978531908486,4,"x4 + x5 + sin_pi((x1*x2)) + sin_pi(x3)","intrinsic",42.0488381385803
+62,"nonlinear","FBMS-BGNLM",1,0,1,0.996331101676567,5,"x4 + x5 + sin_pi((x1*x2)) + x3 + p2(1+1*x3)","intrinsic",42.8597147464752
+63,"nonlinear","FBMS-BGNLM",1,0,1,0.968053124644701,6,"x4 + x5 + (x2*x1) + x3 + (x3*x3) + sin_rad(cos_rad((x1*x2)))","intrinsic",40.3789756298065
+64,"nonlinear","FBMS-BGNLM",1,0.2,0,1.02356338971053,5,"x4 + x5 + sin_pi((x2*x1)) + x10 + sin_pi(x3)","intrinsic",40.9276924133301
+65,"nonlinear","FBMS-BGNLM",1,0.4,0,1.02325218518172,7,"x4 + x5 + sin_pi((x2*x1)) + x3 + p2(x3) + x6 + x8","intrinsic",40.4885900020599
+66,"nonlinear","FBMS-BGNLM",1,0,1,0.971997280386049,5,"x5 + x4 + sin_pi((x1*x2)) + sin_pi(x3) + x1","intrinsic",40.1302194595337
+67,"nonlinear","FBMS-BGNLM",1,0,1,1.12076213479042,5,"x5 + (x1*x2) + x4 + sin_pi(x3) + sin_rad(p3((x1*x2)))","intrinsic",41.1996998786926
+68,"nonlinear","FBMS-BGNLM",1,0,1,1.03618503148658,6,"x4 + x3 + cos_rad(x3) + (x2*x1) + p2((x2*x1)) + x5","intrinsic",42.2967419624329
+69,"nonlinear","FBMS-BGNLM",1,0,1,1.02163445922746,6,"x5 + x4 + x3 + p3(x3) + pm1(x3) + sin_pi((x2*x1))","intrinsic",40.5087509155273
+70,"nonlinear","FBMS-BGNLM",1,0,1,0.985300842743665,4,"x4 + sin_pi(x3) + sin_pi((x2*x1)) + x5","intrinsic",40.4241671562195
+71,"nonlinear","FBMS-BGNLM",1,0.2,0,1.02413392608316,5,"x4 + x5 + sin_pi((x1*x2)) + x7 + sin_pi(x3)","intrinsic",42.2476055622101
+72,"nonlinear","FBMS-BGNLM",1,0,1,0.993898478176744,5,"x4 + x5 + (x3*x3) + sin_pi((x2*x1)) + x3","intrinsic",40.2332653999329
+73,"nonlinear","FBMS-BGNLM",1,0,1,1.04926596473482,5,"x4 + x5 + sin_pi((x2*x1)) + x2 + sin_pi(x3)","intrinsic",39.7661507129669
+74,"nonlinear","FBMS-BGNLM",1,0,1,1.02842364710875,5,"x4 + x5 + sin_pi((x2*x1)) + sin_pi(x3) + x3","intrinsic",44.5352869033813
+75,"nonlinear","FBMS-BGNLM",1,0,1,1.03173892317936,4,"x4 + x5 + sin_pi(x3) + sin_pi((x2*x1))","intrinsic",41.2882435321808
+76,"nonlinear","FBMS-BGNLM",1,0,1,1.04850557317166,5,"x4 + x5 + sin_pi(x3) + sin_pi((x1*x2)) + x1","intrinsic",42.9567673206329
+77,"nonlinear","FBMS-BGNLM",1,0.2,0,0.967941990735077,6,"x4 + sin_pi((x1*x2)) + x5 + x7 + x3 + (x3*x3)","intrinsic",42.2739162445068
+78,"nonlinear","FBMS-BGNLM",1,0,1,0.940432250065245,6,"x4 + sin_pi((x1*x2)) + x3 + x5 + p2(x3) + x1","intrinsic",41.6297373771667
+79,"nonlinear","FBMS-BGNLM",1,0.2,0,1.02001082105294,7,"x4 + x5 + x9 + x3 + sin_pi((x2*x1)) + p2(x3) + p3(x3)","intrinsic",44.1471734046936
+80,"nonlinear","FBMS-BGNLM",1,0.4,0,0.982107138355098,6,"x5 + sin_pi((x2*x1)) + x4 + sin_pi(x3) + x7 + x6","intrinsic",42.2197592258453
+81,"nonlinear","FBMS-BGNLM",1,0.2,0,1.01108650389616,7,"x4 + sin_pi((x2*x1)) + x3 + (x3*x3) + x5 + x7 + (x5*x5)","intrinsic",42.4051489830017
+82,"nonlinear","FBMS-BGNLM",1,0.4,0,1.00416464349241,7,"x4 + x5 + sin_pi((x1*x2)) + x7 + x3 + p2(x3) + x6","intrinsic",41.1669867038727
+83,"nonlinear","FBMS-BGNLM",1,0,1,0.975086921083929,5,"x4 + x5 + x3 + sin_pi((x1*x2)) + sin_rad(1+1*x3)","intrinsic",41.3982303142548
+84,"nonlinear","FBMS-BGNLM",1,0,1,1.0632615583778,4,"sin_pi((x2*x1)) + x4 + x5 + sin_pi(x3)","intrinsic",42.8576536178589
+85,"nonlinear","FBMS-BGNLM",1,0,1,0.981173229259631,5,"x4 + x5 + sin_pi((x1*x2)) + sin_pi(x3) + x1","intrinsic",41.212418794632
+86,"nonlinear","FBMS-BGNLM",1,0,1,0.971619678501689,5,"x5 + sin_pi((x2*x1)) + x4 + x3 + p2(x3)","intrinsic",41.1550161838531
+87,"nonlinear","FBMS-BGNLM",1,0,1,1.00579334300223,5,"x5 + x4 + sin_pi((x2*x1)) + x3 + cos_rad(x3)","intrinsic",41.0425231456757
+88,"nonlinear","FBMS-BGNLM",1,0,1,0.99998452674809,4,"x4 + x5 + sin_pi((x2*x1)) + sin_pi(x3)","intrinsic",42.230388879776
+89,"nonlinear","FBMS-BGNLM",1,0,1,0.986221734118424,5,"x5 + x4 + sin_pi((x1*x2)) + x3 + p3(1+1*x3)","intrinsic",41.3405945301056
+90,"nonlinear","FBMS-BGNLM",1,0,1,0.985611424876976,4,"x4 + x5 + sin_pi((x2*x1)) + sin_pi(x3)","intrinsic",41.5788471698761
+91,"nonlinear","FBMS-BGNLM",1,0,1,1.0423646666911,5,"x4 + x5 + sin_pi((x2*x1)) + x3 + cos_rad(x3)","intrinsic",40.9827008247375
+92,"nonlinear","FBMS-BGNLM",1,0.2,0,0.984794920097429,7,"x4 + x5 + x3 + sin_pi((x1*x2)) + cos_rad(x3) + x2 + x7","intrinsic",43.5641186237335
+93,"nonlinear","FBMS-BGNLM",1,0,1,1.02881507084741,5,"x4 + x5 + x3 + p2(x3) + sin_pi((x2*x1))","intrinsic",41.6459872722626
+94,"nonlinear","FBMS-BGNLM",1,0,1,0.950254131494926,4,"x4 + x5 + sin_pi(x3) + sin_pi((x1*x2))","intrinsic",42.180068731308
+95,"nonlinear","FBMS-BGNLM",1,0,1,0.966671790947072,5,"x5 + x4 + sin_pi((x2*x1)) + x3 + p2(x3)","intrinsic",42.3139779567719
+96,"nonlinear","FBMS-BGNLM",1,0,1,1.04175630033576,5,"x5 + sin_pi((x2*x1)) + x4 + x3 + p2(x3)","intrinsic",41.4452486038208
+97,"nonlinear","FBMS-BGNLM",1,0.2,0,0.987256065005153,5,"x4 + x5 + sin_pi((x1*x2)) + x3 + x6","intrinsic",40.4532141685486
+98,"nonlinear","FBMS-BGNLM",1,0,1,0.984572584215707,5,"x4 + x5 + x3 + sin_pi((x2*x1)) + p2(x3)","intrinsic",44.9690160751343
+99,"nonlinear","FBMS-BGNLM",1,0,1,1.05931227803578,4,"x5 + sin_pi((x2*x1)) + x4 + sin_pi(x3)","intrinsic",40.943727016449
+100,"nonlinear","FBMS-BGNLM",1,0,1,0.998037550521005,5,"x4 + x5 + sin_pi((x1*x2)) + x3 + p2(x3)","intrinsic",42.0239996910095
+1,"nonlinear","FBMS-BGNLM",1,0,1,1.00818525428647,5,"x5 + sin_pi((x2*x1)) + x4 + x3 + p2(x3)","jbic_known_var",40.3347940444946
+2,"nonlinear","FBMS-BGNLM",1,0,1,0.965954986358243,4,"x5 + x4 + sin_pi((x2*x1)) + sin_pi(x3)","jbic_known_var",41.0143928527832
+3,"nonlinear","FBMS-BGNLM",1,0,1,1.02956635148074,4,"x4 + x5 + sin_pi((x1*x2)) + sin_pi(x3)","jbic_known_var",40.8810751438141
+4,"nonlinear","FBMS-BGNLM",1,0,1,0.987433497222604,4,"x4 + x5 + sin_pi((x2*x1)) + sin_pi(x3)","jbic_known_var",44.7096383571625
+5,"nonlinear","FBMS-BGNLM",1,0,1,1.01858609029512,4,"x5 + sin_pi((x2*x1)) + x4 + sin_pi(x3)","jbic_known_var",40.0254220962524
+6,"nonlinear","FBMS-BGNLM",1,0,1,1.05643186723302,4,"x4 + sin_pi((x1*x2)) + x5 + sin_pi(x3)","jbic_known_var",40.4650149345398
+7,"nonlinear","FBMS-BGNLM",1,0,1,1.0234779456561,4,"x4 + x5 + sin_pi((x1*x2)) + sin_pi(x3)","jbic_known_var",41.3313610553741
+8,"nonlinear","FBMS-BGNLM",1,0,1,0.939929409950261,4,"x4 + x5 + sin_pi((x2*x1)) + sin_pi(x3)","jbic_known_var",40.3563044071198
+9,"nonlinear","FBMS-BGNLM",1,0,1,1.04629137079564,4,"x4 + x5 + sin_pi((x2*x1)) + sin_pi(x3)","jbic_known_var",41.4374816417694
+10,"nonlinear","FBMS-BGNLM",1,0,1,1.08143454663786,5,"x5 + sin_pi((x2*x1)) + sin_pi(x3) + sin_rad(x4) + p3(x4)","jbic_known_var",41.1031682491302
+11,"nonlinear","FBMS-BGNLM",1,0,1,0.977296941360421,4,"x4 + x5 + sin_pi((x1*x2)) + sin_pi(x3)","jbic_known_var",40.2820298671722
+12,"nonlinear","FBMS-BGNLM",1,0,1,1.0464982560344,5,"x4 + x5 + sin_pi((x1*x2)) + (x3*x3) + x3","jbic_known_var",39.920821428299
+13,"nonlinear","FBMS-BGNLM",1,0,1,1.08183223670878,5,"x5 + x4 + sin_pi((x2*x1)) + sin_pi(x3) + x3","jbic_known_var",40.5954456329346
+14,"nonlinear","FBMS-BGNLM",1,0,1,1.04610199432167,5,"x5 + x3 + sin_pi((x1*x2)) + sin_rad(x4) + p2(x3)","jbic_known_var",41.1488058567047
+15,"nonlinear","FBMS-BGNLM",1,0,1,1.06734526504654,5,"x4 + sin_pi((x1*x2)) + x5 + x3 + cos_rad(x3)","jbic_known_var",41.6443848609924
+16,"nonlinear","FBMS-BGNLM",1,0,1,1.07113722706694,4,"x4 + x5 + sin_pi((x1*x2)) + sin_pi(x3)","jbic_known_var",44.5054490566254
+17,"nonlinear","FBMS-BGNLM",1,0,1,1.01838610072536,4,"x4 + x5 + sin_pi((x2*x1)) + sin_pi(x3)","jbic_known_var",40.1621499061584
+18,"nonlinear","FBMS-BGNLM",1,0,1,0.971104771232657,6,"x5 + x3 + (x3*x3) + x4 + (x1*x2) + p2((x2*x1))","jbic_known_var",40.3466455936432
+19,"nonlinear","FBMS-BGNLM",1,0,1,1.02739358955078,5,"x5 + x4 + sin_pi((x2*x1)) + x3 + p2(x3)","jbic_known_var",40.8571534156799
+20,"nonlinear","FBMS-BGNLM",1,0,1,1.07655755464196,5,"x4 + x5 + x3 + sin_pi((x1*x2)) + p2(x3)","jbic_known_var",40.0181837081909
+21,"nonlinear","FBMS-BGNLM",1,0,1,1.01330112952198,5,"x4 + x5 + x3 + sin_pi((x1*x2)) + p2(x3)","jbic_known_var",39.053539276123
+22,"nonlinear","FBMS-BGNLM",1,0,1,1.06141259263508,4,"sin_pi((x2*x1)) + x4 + x5 + sin_pi(x3)","jbic_known_var",43.6201822757721
+23,"nonlinear","FBMS-BGNLM",1,0,1,0.971218064763503,5,"x4 + sin_pi((x2*x1)) + x5 + x3 + sin_pi(x3)","jbic_known_var",43.1437571048737
+24,"nonlinear","FBMS-BGNLM",1,0,1,0.945213143292391,5,"x4 + sin_pi((x1*x2)) + x5 + x3 + p2(x3)","jbic_known_var",39.8116612434387
+25,"nonlinear","FBMS-BGNLM",1,0,1,0.988708048522907,4,"x5 + x4 + sin_pi((x1*x2)) + sin_pi(x3)","jbic_known_var",41.0129647254944
+26,"nonlinear","FBMS-BGNLM",1,0,1,1.09461522964145,4,"x4 + x5 + sin_pi((x2*x1)) + sin_pi(x3)","jbic_known_var",40.5529162883759
+27,"nonlinear","FBMS-BGNLM",1,0,1,0.981435829892578,5,"x4 + sin_pi((x2*x1)) + x5 + x3 + p2(x3)","jbic_known_var",38.7502784729004
+28,"nonlinear","FBMS-BGNLM",1,0,1,0.959179951230625,4,"x5 + x4 + sin_pi((x2*x1)) + sin_pi(x3)","jbic_known_var",45.37273478508
+29,"nonlinear","FBMS-BGNLM",1,0,1,0.899771118626831,5,"x4 + x5 + x3 + sin_pi((x1*x2)) + (x3*x3)","jbic_known_var",42.5538372993469
+30,"nonlinear","FBMS-BGNLM",1,0,1,1.04935407093457,5,"x4 + sin_pi((x2*x1)) + x5 + x3 + (x3*x3)","jbic_known_var",42.0066869258881
+31,"nonlinear","FBMS-BGNLM",1,0,1,0.945839131405841,4,"x4 + sin_pi((x2*x1)) + x5 + sin_rad(sin_pi(x3))","jbic_known_var",41.0588572025299
+32,"nonlinear","FBMS-BGNLM",1,0,1,1.01755877623782,4,"x4 + x5 + sin_pi((x1*x2)) + sin_pi(x3)","jbic_known_var",41.8827459812164
+33,"nonlinear","FBMS-BGNLM",1,0,1,1.02760283126308,4,"x4 + x5 + x3 + sin_pi((x2*x1))","jbic_known_var",39.7540988922119
+34,"nonlinear","FBMS-BGNLM",1,0,1,1.00551576988499,4,"x4 + sin_pi(x3) + sin_pi((x1*x2)) + x5","jbic_known_var",41.4469430446625
+35,"nonlinear","FBMS-BGNLM",1,0,1,1.06783651785971,5,"x4 + sin_pi((x2*x1)) + x5 + x3 + cos_rad(x3)","jbic_known_var",40.6721603870392
+36,"nonlinear","FBMS-BGNLM",1,0,1,0.976650420062883,5,"x4 + x5 + sin_pi(x3) + (x2*x1) + p2((x2*x1))","jbic_known_var",41.102210521698
+37,"nonlinear","FBMS-BGNLM",1,0,1,1.02522714334854,4,"x5 + x4 + sin_pi((x2*x1)) + sin_rad(sin_pi(x3))","jbic_known_var",40.5580544471741
+38,"nonlinear","FBMS-BGNLM",1,0,1,0.893552446410837,5,"x5 + x4 + sin_pi((x1*x2)) + x3 + p2(x3)","jbic_known_var",41.6975629329681
+39,"nonlinear","FBMS-BGNLM",1,0,1,1.0085372221286,4,"x4 + x5 + sin_pi((x2*x1)) + sin_rad(sin_pi(x3))","jbic_known_var",42.3136124610901
+40,"nonlinear","FBMS-BGNLM",1,0,1,1.01560672777727,4,"x4 + x5 + sin_pi(x3) + sin_pi((x1*x2))","jbic_known_var",45.4657618999481
+41,"nonlinear","FBMS-BGNLM",1,0,1,1.00009804401066,4,"x5 + x4 + sin_pi((x1*x2)) + cos_rad(1+1*sin_pi(x3))","jbic_known_var",41.7180762290955
+42,"nonlinear","FBMS-BGNLM",1,0,1,0.999651149420258,5,"x5 + x3 + sin_pi((x2*x1)) + cos_rad(x3) + x4","jbic_known_var",44.2798314094543
+43,"nonlinear","FBMS-BGNLM",1,0,1,1.00246463402975,4,"x4 + x5 + x3 + sin_pi((x1*x2))","jbic_known_var",41.7070128917694
+44,"nonlinear","FBMS-BGNLM",1,0,1,1.00847579286578,4,"x4 + x5 + sin_pi((x2*x1)) + x3","jbic_known_var",41.7501180171967
+45,"nonlinear","FBMS-BGNLM",1,0,1,1.03401551664675,4,"x4 + sin_pi((x1*x2)) + x5 + sin_pi(x3)","jbic_known_var",41.0242984294891
+46,"nonlinear","FBMS-BGNLM",1,0,1,0.999764782996733,5,"x4 + x5 + (x3*x3) + sin_pi((x1*x2)) + p05(x3)","jbic_known_var",43.9898827075958
+47,"nonlinear","FBMS-BGNLM",1,0,1,1.0587378053737,4,"x5 + x4 + sin_pi(x3) + sin_pi((x1*x2))","jbic_known_var",41.0101757049561
+48,"nonlinear","FBMS-BGNLM",1,0,1,1.00775736473652,4,"x4 + x5 + sin_pi((x2*x1)) + sin_pi(x3)","jbic_known_var",41.0130524635315
+49,"nonlinear","FBMS-BGNLM",1,0,1,1.05628853364938,4,"x5 + x4 + sin_pi((x2*x1)) + sin_pi(x3)","jbic_known_var",40.6782476902008
+50,"nonlinear","FBMS-BGNLM",1,0,1,1.08350714452347,6,"x5 + x4 + (x2*x1) + x3 + p2((x2*x1)) + cos_rad(x3)","jbic_known_var",39.0983545780182
+51,"nonlinear","FBMS-BGNLM",1,0,1,1.04348111938795,4,"x4 + sin_pi((x1*x2)) + x5 + sin_pi(x3)","jbic_known_var",40.3721289634705
+52,"nonlinear","FBMS-BGNLM",1,0,1,1.01886327160775,4,"x4 + x5 + sin_pi(x3) + sin_pi((x1*x2))","jbic_known_var",41.3666386604309
+53,"nonlinear","FBMS-BGNLM",1,0,1,1.05347353993788,4,"x5 + x4 + sin_pi((x1*x2)) + sin_pi(x3)","jbic_known_var",40.9198009967804
+54,"nonlinear","FBMS-BGNLM",1,0,1,1.02212201649413,5,"x5 + x4 + sin_pi((x1*x2)) + x3 + (x3*x3)","jbic_known_var",40.3772332668304
+55,"nonlinear","FBMS-BGNLM",1,0,1,1.05557146087902,5,"x4 + x5 + x3 + cos_rad(x3) + sin_pi((x1*x2))","jbic_known_var",40.6552360057831
+56,"nonlinear","FBMS-BGNLM",1,0,1,1.03276506326411,5,"x4 + x3 + p2(x3) + sin_pi((x1*x2)) + x5","jbic_known_var",39.8979291915894
+57,"nonlinear","FBMS-BGNLM",1,0,1,1.01083046417153,4,"x5 + x4 + sin_pi((x2*x1)) + sin_pi(x3)","jbic_known_var",40.2213084697723
+58,"nonlinear","FBMS-BGNLM",1,0,1,0.965018541633488,4,"x4 + sin_pi((x2*x1)) + x5 + sin_pi(x3)","jbic_known_var",46.648149728775
+59,"nonlinear","FBMS-BGNLM",1,0,1,1.10252798552389,5,"x4 + sin_pi(x3) + x5 + (x2*x1) + p2((x1*x2))","jbic_known_var",39.3100159168243
+60,"nonlinear","FBMS-BGNLM",1,0,1,0.971789639819807,5,"x4 + sin_pi((x1*x2)) + x5 + x3 + p2(x3)","jbic_known_var",40.7103872299194
+61,"nonlinear","FBMS-BGNLM",1,0,1,0.981455066188645,5,"x5 + x4 + x3 + sin_pi((x2*x1)) + (x3*x3)","jbic_known_var",40.5126791000366
+62,"nonlinear","FBMS-BGNLM",1,0,1,0.995146623558694,5,"sin_pi((x1*x2)) + x5 + x4 + x3 + (x3*x3)","jbic_known_var",42.029944896698
+63,"nonlinear","FBMS-BGNLM",1,0,1,0.965754973730715,4,"x5 + x4 + sin_pi((x1*x2)) + sin_pi(x3)","jbic_known_var",42.4405701160431
+64,"nonlinear","FBMS-BGNLM",1,0,1,1.01536363798419,4,"x4 + x5 + sin_pi((x2*x1)) + sin_pi(x3)","jbic_known_var",45.5681021213531
+65,"nonlinear","FBMS-BGNLM",1,0,1,1.05588161351806,5,"x4 + x5 + (x2*x1) + sin_pi(x3) + p2((x1*x2))","jbic_known_var",43.8508682250977
+66,"nonlinear","FBMS-BGNLM",1,0,1,0.963890358959199,4,"x5 + x4 + sin_pi((x1*x2)) + sin_pi(x3)","jbic_known_var",41.2731249332428
+67,"nonlinear","FBMS-BGNLM",1,0,1,1.07132903188823,5,"x4 + x5 + sin_pi((x1*x2)) + x3 + (x3*x3)","jbic_known_var",41.1745252609253
+68,"nonlinear","FBMS-BGNLM",1,0,1,1.01433390551466,5,"x5 + x3 + x4 + sin_pi(x3) + sin_pi((x1*x2))","jbic_known_var",42.3283727169037
+69,"nonlinear","FBMS-BGNLM",1,0,1,1.0199503673524,5,"x5 + x3 + sin_pi((x1*x2)) + p2(x3) + sin_rad(x4)","jbic_known_var",41.7548942565918
+70,"nonlinear","FBMS-BGNLM",1,0,1,0.982528620350591,5,"x5 + sin_pi((x2*x1)) + x4 + x3 + p2(x3)","jbic_known_var",44.1422731876373
+71,"nonlinear","FBMS-BGNLM",1,0,1,0.996503175392005,5,"x5 + x4 + sin_pi((x1*x2)) + x3 + (x3*x3)","jbic_known_var",41.4236707687378
+72,"nonlinear","FBMS-BGNLM",1,0,1,0.993885413749767,5,"sin_pi((x2*x1)) + x3 + x4 + (x3*x3) + x5","jbic_known_var",40.0908908843994
+73,"nonlinear","FBMS-BGNLM",1,0,1,1.04691427188267,4,"x4 + sin_pi((x1*x2)) + x5 + sin_pi(x3)","jbic_known_var",40.5384747982025
+74,"nonlinear","FBMS-BGNLM",1,0,1,1.02789444461612,4,"x5 + sin_pi((x2*x1)) + x4 + sin_pi(x3)","jbic_known_var",41.4981100559235
+75,"nonlinear","FBMS-BGNLM",1,0,1,1.04096452769539,5,"x4 + x5 + sin_pi((x1*x2)) + (x3*x3) + p05(x3)","jbic_known_var",45.0309774875641
+76,"nonlinear","FBMS-BGNLM",1,0,1,1.06272869324986,5,"x5 + x4 + x3 + sin_pi((x2*x1)) + sin_pi(sin_rad(x3))","jbic_known_var",40.7810778617859
+77,"nonlinear","FBMS-BGNLM",1,0,1,0.963719276328395,4,"x4 + x5 + sin_pi(x3) + sin_pi((x1*x2))","jbic_known_var",42.444328546524
+78,"nonlinear","FBMS-BGNLM",1,0,1,0.937399990950326,5,"x4 + x5 + sin_pi((x2*x1)) + x3 + p2(x3)","jbic_known_var",41.1868937015533
+79,"nonlinear","FBMS-BGNLM",1,0,1,1.02705982992622,5,"x4 + x5 + (x1*x2) + sin_pi(x3) + sin_rad(sin_rad((x2*x1)))","jbic_known_var",43.0809237957001
+80,"nonlinear","FBMS-BGNLM",1,0,1,0.96835601704044,4,"x5 + sin_pi((x1*x2)) + x4 + sin_pi(x3)","jbic_known_var",41.4997272491455
+81,"nonlinear","FBMS-BGNLM",1,0,1,1.00455656985076,4,"x4 + sin_pi((x1*x2)) + sin_pi(x3) + x5","jbic_known_var",43.1252775192261
+82,"nonlinear","FBMS-BGNLM",1,0,1,0.992057853803699,4,"x4 + sin_pi((x1*x2)) + x5 + sin_pi(x3)","jbic_known_var",41.8316400051117
+83,"nonlinear","FBMS-BGNLM",1,0,1,0.975843310038874,5,"x5 + x4 + x3 + sin_pi((x1*x2)) + (x3*x3)","jbic_known_var",40.0256776809692
+84,"nonlinear","FBMS-BGNLM",1,0,1,1.06280477203068,4,"x5 + x4 + sin_pi((x1*x2)) + sin_pi(x3)","jbic_known_var",42.1268565654755
+85,"nonlinear","FBMS-BGNLM",1,0,1,0.978261008338234,4,"x5 + sin_pi((x1*x2)) + x4 + sin_pi(x3)","jbic_known_var",41.0469899177551
+86,"nonlinear","FBMS-BGNLM",1,0,1,0.975761308590451,4,"x4 + x5 + sin_pi((x1*x2)) + sin_pi(x3)","jbic_known_var",40.4048426151276
+87,"nonlinear","FBMS-BGNLM",1,0,1,1.00438989278356,4,"x4 + x5 + sin_pi((x1*x2)) + sin_pi(x3)","jbic_known_var",44.6718635559082
+88,"nonlinear","FBMS-BGNLM",1,0,1,0.999297000780602,4,"x5 + sin_pi((x2*x1)) + x4 + sin_pi(x3)","jbic_known_var",41.7378880977631
+89,"nonlinear","FBMS-BGNLM",1,0,1,0.984927154659388,5,"x4 + x5 + x3 + sin_pi((x1*x2)) + p2(x3)","jbic_known_var",41.1343102455139
+90,"nonlinear","FBMS-BGNLM",1,0,1,0.98350293531078,5,"x4 + x5 + x3 + p2(x3) + sin_pi((x2*x1))","jbic_known_var",42.0750303268433
+91,"nonlinear","FBMS-BGNLM",1,0,1,1.03642210044293,4,"x5 + x4 + sin_pi((x2*x1)) + sin_pi(x3)","jbic_known_var",41.5773866176605
+92,"nonlinear","FBMS-BGNLM",1,0,1,0.978917290973104,4,"x4 + x5 + sin_pi((x2*x1)) + sin_rad(sin_pi(x3))","jbic_known_var",41.640576839447
+93,"nonlinear","FBMS-BGNLM",1,0,1,1.02837548627023,5,"x4 + x5 + x3 + (x3*x3) + sin_pi((x1*x2))","jbic_known_var",40.7068355083466
+94,"nonlinear","FBMS-BGNLM",1,0,1,0.992595500989433,6,"x4 + (x1*x2) + x5 + x3 + (x3*x3) + p2((x1*x2))","jbic_known_var",40.7187526226044
+95,"nonlinear","FBMS-BGNLM",1,0,1,0.970805612948619,4,"x4 + x5 + sin_pi((x2*x1)) + sin_pi(x3)","jbic_known_var",40.4080312252045
+96,"nonlinear","FBMS-BGNLM",1,0,1,1.04522661595691,5,"x4 + sin_pi((x2*x1)) + x3 + x5 + p2(x3)","jbic_known_var",40.5069513320923
+97,"nonlinear","FBMS-BGNLM",1,0,1,0.992505797067964,4,"x4 + x5 + sin_pi((x2*x1)) + sin_pi(x3)","jbic_known_var",40.3795595169067
+98,"nonlinear","FBMS-BGNLM",1,0,1,0.995926843509216,4,"x5 + x4 + sin_pi(x3) + sin_pi((x2*x1))","jbic_known_var",43.2481772899628
+99,"nonlinear","FBMS-BGNLM",1,0,1,1.05498830253499,4,"x4 + sin_pi((x2*x1)) + x5 + sin_pi(x3)","jbic_known_var",40.418977022171
+100,"nonlinear","FBMS-BGNLM",1,0,1,0.998742620476172,4,"x5 + x4 + sin_pi((x2*x1)) + sin_rad(sin_pi(x3))","jbic_known_var",40.4314255714417
+1,"nonlinear","FBMS-BGNLM",1,0,1,1.00529452135077,4,"x4 + x5 + sin_pi(x3) + sin_pi((x2*x1))","jbic_unknown",40.0136902332306
+2,"nonlinear","FBMS-BGNLM",1,0,1,0.966707611119324,5,"x4 + p2(x3) + x3 + sin_pi((x1*x2)) + x5","jbic_unknown",46.9490773677826
+3,"nonlinear","FBMS-BGNLM",0.6,0,0,1.02999212731269,3,"x4 + x5 + sin_pi(x3)","jbic_unknown",41.8254127502441
+4,"nonlinear","FBMS-BGNLM",1,0,1,0.987451092538781,4,"x4 + x5 + sin_pi(x3) + sin_pi((x2*x1))","jbic_unknown",40.8405039310455
+5,"nonlinear","FBMS-BGNLM",1,0,1,1.01787688159352,4,"x5 + sin_pi((x2*x1)) + x4 + sin_pi(x3)","jbic_unknown",41.4377899169922
+6,"nonlinear","FBMS-BGNLM",1,0,1,1.05642221379621,4,"sin_pi((x2*x1)) + x4 + x5 + sin_pi(x3)","jbic_unknown",40.1391842365265
+7,"nonlinear","FBMS-BGNLM",1,0,1,1.02635070519041,5,"x4 + x5 + x3 + sin_pi((x2*x1)) + cos_rad(x3)","jbic_unknown",40.4545388221741
+8,"nonlinear","FBMS-BGNLM",1,0,1,0.93830213715589,4,"x4 + x5 + sin_rad(sin_pi(x3)) + sin_pi((x1*x2))","jbic_unknown",40.0842323303223
+9,"nonlinear","FBMS-BGNLM",1,0,1,1.0462958679255,4,"x5 + sin_pi(x3) + sin_pi((x1*x2)) + x4","jbic_unknown",41.0237784385681
+10,"nonlinear","FBMS-BGNLM",1,0,1,1.09989109971519,5,"x4 + x3 + p2(x3) + p05(x5) + sin_pi((x2*x1))","jbic_unknown",40.3308990001678
+11,"nonlinear","FBMS-BGNLM",1,0,1,0.977196018588662,4,"x4 + x5 + sin_pi(x3) + sin_pi((x1*x2))","jbic_unknown",40.3709907531738
+12,"nonlinear","FBMS-BGNLM",1,0,1,1.0478803685262,4,"x4 + x5 + sin_pi((x2*x1)) + p05(sin_rad(p2(sin_pi(x3))))","jbic_unknown",40.8226869106293
+13,"nonlinear","FBMS-BGNLM",1,0,1,1.07866655438223,4,"x4 + x5 + sin_pi((x2*x1)) + sin_pi(x3)","jbic_unknown",43.0842831134796
+14,"nonlinear","FBMS-BGNLM",1,0,1,1.01074698744027,4,"sin_pi((x1*x2)) + x5 + x4 + sin_pi(x3)","jbic_unknown",45.0517129898071
+15,"nonlinear","FBMS-BGNLM",1,0,1,1.06624094967517,5,"x4 + x5 + sin_pi((x2*x1)) + x3 + cos_rad(x3)","jbic_unknown",39.9359402656555
+16,"nonlinear","FBMS-BGNLM",1,0,1,1.07189133204035,4,"x4 + x5 + sin_pi(x3) + sin_pi((x2*x1))","jbic_unknown",39.7193565368652
+17,"nonlinear","FBMS-BGNLM",1,0,1,1.01819010763032,4,"x4 + sin_pi((x1*x2)) + x5 + sin_pi(x3)","jbic_unknown",41.4554224014282
+18,"nonlinear","FBMS-BGNLM",1,0,1,0.955990583630786,5,"x4 + sin_pi(x3) + x5 + p3((x1*x2)) + p05(p05(p3((x2*x1))))","jbic_unknown",39.8013110160828
+19,"nonlinear","FBMS-BGNLM",1,0,1,1.03380307082476,5,"x4 + x5 + x3 + (x3*x3) + sin_pi((x1*x2))","jbic_unknown",40.2334094047546
+20,"nonlinear","FBMS-BGNLM",1,0,1,1.07699016211553,4,"x5 + sin_pi(x3) + sin_pi((x2*x1)) + x4","jbic_unknown",44.3665342330933
+21,"nonlinear","FBMS-BGNLM",1,0,1,1.02001081601676,4,"x5 + x4 + sin_pi((x1*x2)) + sin_pi(x3)","jbic_unknown",39.7233712673187
+22,"nonlinear","FBMS-BGNLM",1,0,1,1.06102017200471,4,"x4 + x5 + sin_pi((x1*x2)) + sin_pi(x3)","jbic_unknown",40.0669503211975
+23,"nonlinear","FBMS-BGNLM",1,0,1,0.976153508734208,5,"x4 + x5 + x3 + p2(x3) + sin_pi((x2*x1))","jbic_unknown",40.1297903060913
+24,"nonlinear","FBMS-BGNLM",1,0,1,0.941355735573168,4,"sin_pi((x2*x1)) + x4 + x5 + sin_pi(x3)","jbic_unknown",41.5008065700531
+25,"nonlinear","FBMS-BGNLM",1,0,1,0.987749589383709,4,"x4 + x5 + sin_pi((x1*x2)) + sin_pi(x3)","jbic_unknown",40.9055078029633
+26,"nonlinear","FBMS-BGNLM",1,0,1,1.09771362961404,6,"x5 + x3 + p2(x4) + sin_pi(x4) + cos_rad(x3) + sin_pi((x2*x1))","jbic_unknown",41.4251756668091
+27,"nonlinear","FBMS-BGNLM",1,0,1,0.979450059450943,4,"x4 + sin_pi((x2*x1)) + x5 + sin_rad(sin_pi(x3))","jbic_unknown",41.4014070034027
+28,"nonlinear","FBMS-BGNLM",1,0,1,0.956105160854168,4,"x4 + x5 + sin_pi((x1*x2)) + sin_pi(x3)","jbic_unknown",40.2438852787018
+29,"nonlinear","FBMS-BGNLM",1,0,1,0.899783665956451,5,"x4 + x5 + p2(x3) + x3 + sin_pi((x2*x1))","jbic_unknown",42.1437358856201
+30,"nonlinear","FBMS-BGNLM",1,0,1,1.05316471836096,5,"x4 + x5 + x3 + p2(x3) + sin_pi((x2*x1))","jbic_unknown",41.4095528125763
+31,"nonlinear","FBMS-BGNLM",1,0,1,0.939444685414289,4,"x4 + sin_pi((x1*x2)) + x5 + sin_pi(x3)","jbic_unknown",40.9955716133118
+32,"nonlinear","FBMS-BGNLM",1,0,1,1.01825541279242,5,"x5 + x4 + x3 + sin_pi((x2*x1)) + p2(x3)","jbic_unknown",44.6413671970367
+33,"nonlinear","FBMS-BGNLM",1,0,1,1.03406617018233,5,"x4 + sin_pi((x2*x1)) + x5 + x3 + cos_rad(x3)","jbic_unknown",42.6320145130157
+34,"nonlinear","FBMS-BGNLM",1,0.2,0,1.01203603155944,5,"x4 + x5 + sin_pi(x3) + sin_pi((x1*x2)) + x8","jbic_unknown",44.128075838089
+35,"nonlinear","FBMS-BGNLM",1,0,1,1.07231426760802,4,"x4 + x5 + sin_pi((x2*x1)) + sin_pi(x3)","jbic_unknown",44.729273557663
+36,"nonlinear","FBMS-BGNLM",1,0,1,0.949988404601742,4,"x4 + sin_pi(x3) + sin_pi((x2*x1)) + x5","jbic_unknown",42.6456441879272
+37,"nonlinear","FBMS-BGNLM",1,0,1,1.02405600331569,4,"x4 + sin_pi((x1*x2)) + x5 + sin_pi(x3)","jbic_unknown",40.9643173217773
+38,"nonlinear","FBMS-BGNLM",1,0,1,0.898384138855011,4,"x4 + sin_pi(x3) + sin_pi((x2*x1)) + x5","jbic_unknown",45.0098979473114
+39,"nonlinear","FBMS-BGNLM",1,0,1,1.0140922425298,5,"x5 + sin_pi((x2*x1)) + x4 + x3 + cos_rad(x3)","jbic_unknown",40.9981555938721
+40,"nonlinear","FBMS-BGNLM",1,0,1,1.01641077066389,4,"x4 + x5 + sin_pi(x3) + sin_pi((x2*x1))","jbic_unknown",40.7957859039307
+41,"nonlinear","FBMS-BGNLM",1,0,1,1.01479484163745,6,"x4 + sin_pi((x2*x1)) + x3 + x5 + pm1(x3) + p05(x3)","jbic_unknown",41.5344090461731
+42,"nonlinear","FBMS-BGNLM",1,0,1,0.991857877089402,5,"x4 + x5 + p2(x3) + sin_rad(x3) + sin_pi((x2*x1))","jbic_unknown",40.1336884498596
+43,"nonlinear","FBMS-BGNLM",1,0,1,1.01251790131059,4,"x5 + sin_pi((x1*x2)) + x4 + sin_pi(x3)","jbic_unknown",39.709552526474
+44,"nonlinear","FBMS-BGNLM",1,0,1,1.00998728222307,5,"x4 + x5 + x3 + cos_rad(x3) + sin_pi((x2*x1))","jbic_unknown",42.7010319232941
+45,"nonlinear","FBMS-BGNLM",1,0,1,1.03454240147965,5,"x4 + sin_pi((x2*x1)) + x3 + x5 + (x3*x3)","jbic_unknown",40.2255835533142
+46,"nonlinear","FBMS-BGNLM",1,0,1,1.00758004555782,5,"x4 + x5 + sin_pi(x3) + (x1*x2) + p2((x2*x1))","jbic_unknown",41.5272796154022
+47,"nonlinear","FBMS-BGNLM",0.8,0,0,1.05864841170135,3,"x4 + x5 + sin_pi((x1*x2))","jbic_unknown",40.0336573123932
+48,"nonlinear","FBMS-BGNLM",1,0,1,1.00793178588645,4,"x5 + x4 + sin_pi((x2*x1)) + sin_pi(x3)","jbic_unknown",42.4109511375427
+49,"nonlinear","FBMS-BGNLM",1,0,1,1.05629806467134,4,"x4 + x5 + sin_pi((x1*x2)) + sin_pi(x3)","jbic_unknown",41.6718935966492
+50,"nonlinear","FBMS-BGNLM",1,0,1,1.06547857617426,4,"x4 + sin_pi((x2*x1)) + x5 + sin_pi(x3)","jbic_unknown",39.307014465332
+51,"nonlinear","FBMS-BGNLM",1,0,1,1.04604635887178,4,"x5 + x4 + sin_pi((x2*x1)) + sin_pi(x3)","jbic_unknown",41.61106300354
+52,"nonlinear","FBMS-BGNLM",1,0,1,1.01688996007933,5,"x4 + sin_pi((x1*x2)) + x5 + x3 + p2(x3)","jbic_unknown",40.9303910732269
+53,"nonlinear","FBMS-BGNLM",1,0,1,1.05431910560195,4,"x4 + x5 + sin_pi(x3) + sin_pi((x1*x2))","jbic_unknown",38.6783003807068
+54,"nonlinear","FBMS-BGNLM",1,0,1,1.02218678834188,5,"x4 + x5 + x3 + (x3*x3) + sin_pi((x2*x1))","jbic_unknown",39.6860525608063
+55,"nonlinear","FBMS-BGNLM",1,0,1,1.05313393954567,5,"x4 + x5 + (x2*x1) + sin_pi(x3) + cos_rad((x2*x1))","jbic_unknown",40.0904920101166
+56,"nonlinear","FBMS-BGNLM",1,0,1,1.03276287177571,5,"x4 + sin_pi((x1*x2)) + x5 + x3 + p2(x3)","jbic_unknown",44.4866781234741
+57,"nonlinear","FBMS-BGNLM",1,0,1,1.01170000817479,4,"x4 + x5 + sin_pi((x1*x2)) + sin_pi(x3)","jbic_unknown",42.5413415431976
+58,"nonlinear","FBMS-BGNLM",1,0,1,0.964217823010785,5,"x4 + x5 + sin_pi(p05(((x1*p2(x2))*x1))) + x3 + p2(x3)","jbic_unknown",41.8019466400146
+59,"nonlinear","FBMS-BGNLM",1,0,1,1.08669912694742,4,"sin_pi((x2*x1)) + x5 + x4 + sin_pi(x3)","jbic_unknown",41.4464380741119
+60,"nonlinear","FBMS-BGNLM",1,0,1,0.998848457410443,5,"x5 + x4 + (x1*x2) + cos_rad((x1*x2)) + p05(sin_pi(x3))","jbic_unknown",39.6609690189362
+61,"nonlinear","FBMS-BGNLM",1,0,1,0.985720235918514,4,"x4 + x5 + sin_pi(x3) + sin_pi((x1*x2))","jbic_unknown",43.0846905708313
+62,"nonlinear","FBMS-BGNLM",1,0,1,0.995224364047675,5,"x5 + x4 + sin_pi((x1*x2)) + x3 + (x3*x3)","jbic_unknown",44.4445853233337
+63,"nonlinear","FBMS-BGNLM",1,0,1,0.978546108370756,6,"x4 + x5 + (x1*x2) + x3 + sin_rad((x1*x2)) + p2(x3)","jbic_unknown",42.1855216026306
+64,"nonlinear","FBMS-BGNLM",1,0,1,1.01377151514059,4,"x4 + x5 + sin_pi(x3) + sin_pi((x2*x1))","jbic_unknown",40.3245437145233
+65,"nonlinear","FBMS-BGNLM",1,0,1,1.01931711519275,5,"x4 + x5 + x3 + sin_rad(1+1*x3) + sin_pi((x1*x2))","jbic_unknown",39.9776020050049
+66,"nonlinear","FBMS-BGNLM",1,0,1,0.96381075004747,4,"x5 + sin_pi((x1*x2)) + x4 + sin_pi(x3)","jbic_unknown",41.5241150856018
+67,"nonlinear","FBMS-BGNLM",1,0,1,1.29934265390992,7,"x4 + sin_pi(x3) + x2 + x5 + x1 + (x1*sin_rad(x2)) + p2(p2((x1*sin_rad(x2))))","jbic_unknown",41.1379945278168
+68,"nonlinear","FBMS-BGNLM",1,0,1,1.00987322469531,5,"x4 + x3 + x5 + p2(x3) + sin_pi((x2*x1))","jbic_unknown",41.8560557365417
+69,"nonlinear","FBMS-BGNLM",1,0,1,1.010847697622,5,"x5 + x4 + sin_pi((x1*x2)) + x3 + p2(x3)","jbic_unknown",42.3179478645325
+70,"nonlinear","FBMS-BGNLM",1,0,1,0.982632669735535,5,"x4 + x5 + x3 + (x3*x3) + sin_pi((x1*x2))","jbic_unknown",41.9691455364227
+71,"nonlinear","FBMS-BGNLM",1,0,1,1.00361613637981,5,"x4 + x5 + x3 + cos_rad(x3) + sin_pi((x2*x1))","jbic_unknown",40.6721889972687
+72,"nonlinear","FBMS-BGNLM",1,0,1,0.991714544442507,4,"sin_pi((x1*x2)) + x5 + x4 + sin_pi(x3)","jbic_unknown",43.7241320610046
+73,"nonlinear","FBMS-BGNLM",1,0,1,1.04769300535595,4,"x4 + sin_pi(x3) + sin_pi((x1*x2)) + x5","jbic_unknown",41.7920348644257
+74,"nonlinear","FBMS-BGNLM",1,0,1,1.02809362438097,4,"x4 + x5 + sin_pi((x1*x2)) + sin_pi(x3)","jbic_unknown",44.0532455444336
+75,"nonlinear","FBMS-BGNLM",1,0,1,1.03173936973375,4,"x5 + x4 + sin_pi(x3) + sin_pi((x1*x2))","jbic_unknown",41.9693429470062
+76,"nonlinear","FBMS-BGNLM",1,0,1,1.05187210999801,4,"x4 + x5 + sin_pi((x2*x1)) + sin_pi(x3)","jbic_unknown",40.7912263870239
+77,"nonlinear","FBMS-BGNLM",1,0,1,0.968644863798118,5,"x4 + x5 + sin_pi((x2*x1)) + x3 + p2(x3)","jbic_unknown",41.885805606842
+78,"nonlinear","FBMS-BGNLM",1,0,1,0.937396894053295,5,"sin_pi((x2*x1)) + x4 + x3 + x5 + (x3*x3)","jbic_unknown",40.1028010845184
+79,"nonlinear","FBMS-BGNLM",1,0.2,0,1.01404056606167,6,"x4 + x5 + x3 + cos_rad(x3) + sin_pi((x2*x1)) + x9","jbic_unknown",40.9623620510101
+80,"nonlinear","FBMS-BGNLM",1,0,1,0.96225875519712,6,"x4 + x3 + x5 + (x3*x3) + p3(sin_rad((x1*x2))) + sin_rad((x1*x2))","jbic_unknown",42.4441657066345
+81,"nonlinear","FBMS-BGNLM",1,0,1,1.00512618289698,4,"x5 + x4 + sin_pi((x1*x2)) + x3","jbic_unknown",40.4056096076965
+82,"nonlinear","FBMS-BGNLM",1,0,1,0.994931980475251,5,"x3 + sin_pi((x2*x1)) + x4 + x5 + p2(x3)","jbic_unknown",40.2008051872253
+83,"nonlinear","FBMS-BGNLM",1,0,1,0.971522373063751,4,"x4 + sin_pi((x2*x1)) + x5 + sin_pi(x3)","jbic_unknown",40.4845542907715
+84,"nonlinear","FBMS-BGNLM",1,0,1,1.06337859029636,4,"x5 + x4 + sin_pi(x3) + sin_pi((x2*x1))","jbic_unknown",40.6985721588135
+85,"nonlinear","FBMS-BGNLM",1,0,1,1.0204143569518,5,"x5 + sin_pi(x3) + sin_rad(x4) + (x1*x2) + p2((x1*x2))","jbic_unknown",40.1224703788757
+86,"nonlinear","FBMS-BGNLM",1,0,1,0.976739693680329,4,"x4 + x5 + sin_pi((x2*x1)) + sin_pi(x3)","jbic_unknown",44.066864490509
+87,"nonlinear","FBMS-BGNLM",1,0,1,1.00597735368027,5,"x4 + sin_pi((x2*x1)) + x3 + x5 + cos_rad(x3)","jbic_unknown",40.0782587528229
+88,"nonlinear","FBMS-BGNLM",1,0,1,1.01056049494535,5,"x4 + x5 + sin_rad((x2*x1)) + sin_pi(x3) + (x2*x1)","jbic_unknown",40.0068142414093
+89,"nonlinear","FBMS-BGNLM",1,0,1,0.984303570672913,4,"x4 + sin_pi(x3) + sin_pi((x2*x1)) + x5","jbic_unknown",39.6622538566589
+90,"nonlinear","FBMS-BGNLM",1,0,1,0.982474090242182,4,"x5 + sin_pi(x3) + x4 + sin_pi((x2*x1))","jbic_unknown",40.0338401794434
+91,"nonlinear","FBMS-BGNLM",1,0,1,1.07317982927503,5,"x4 + sin_pi(x3) + x5 + (x2*x1) + cos_rad((x1*x2))","jbic_unknown",38.5573787689209
+92,"nonlinear","FBMS-BGNLM",1,0,1,0.994979177643183,6,"x4 + x5 + p2(x3) + (x2*x1) + p3(1+1*(x1*x2)) + x3","jbic_unknown",41.0615253448486
+93,"nonlinear","FBMS-BGNLM",1,0,1,1.02984354952566,4,"x4 + x5 + sin_pi((x2*x1)) + sin_pi(x3)","jbic_unknown",39.8243243694305
+94,"nonlinear","FBMS-BGNLM",1,0,1,0.950239392381569,4,"x5 + x4 + sin_pi((x2*x1)) + sin_pi(x3)","jbic_unknown",38.7671773433685
+95,"nonlinear","FBMS-BGNLM",1,0,1,0.970212473597069,4,"sin_pi((x1*x2)) + x4 + x5 + sin_pi(x3)","jbic_unknown",39.8644635677338
+96,"nonlinear","FBMS-BGNLM",1,0,1,1.04232599852008,5,"x4 + x5 + sin_pi((x2*x1)) + x3 + (x3*x3)","jbic_unknown",38.6715407371521
+97,"nonlinear","FBMS-BGNLM",1,0,1,0.995783422817233,4,"x4 + x5 + sin_pi(x3) + sin_pi((x1*x2))","jbic_unknown",41.3680546283722
+98,"nonlinear","FBMS-BGNLM",1,0,1,0.987036977273483,6,"x4 + x5 + x3 + (x1*x2) + p2(x3) + cos_rad((x1*x2))","jbic_unknown",42.7009570598602
+99,"nonlinear","FBMS-BGNLM",1,0,1,1.05507807184668,4,"x4 + sin_pi((x2*x1)) + sin_pi(x3) + x5","jbic_unknown",39.9726068973541
+100,"nonlinear","FBMS-BGNLM",1,0,1,1.00154755122723,4,"x5 + x4 + sin_pi(x3) + sin_pi((x2*x1))","jbic_unknown",40.531539440155
+1,"nonlinear","FBMS-BGNLM",1,0.2,0,1.00976864073285,6,"x4 + sin_pi((x1*x2)) + x5 + x3 + (x3*x3) + x9","robust",41.2119822502136
+2,"nonlinear","FBMS-BGNLM",1,0,1,0.965932855751461,4,"x4 + sin_pi((x1*x2)) + x5 + sin_pi(x3)","robust",44.0415821075439
+3,"nonlinear","FBMS-BGNLM",1,0,1,1.01772980076973,4,"x5 + x4 + sin_pi((x2*x1)) + sin_rad(sin_pi(x3))","robust",41.1601226329803
+4,"nonlinear","FBMS-BGNLM",1,0,1,0.987712666071321,4,"x4 + x5 + sin_pi((x1*x2)) + sin_pi(x3)","robust",41.1827709674835
+5,"nonlinear","FBMS-BGNLM",1,0,1,1.01567543734039,5,"x4 + x5 + sin_pi((x2*x1)) + x3 + p2(x3)","robust",41.4923007488251
+6,"nonlinear","FBMS-BGNLM",1,0,1,1.06238662523052,5,"x4 + sin_pi((x2*x1)) + x5 + x3 + cos_rad(x3)","robust",40.7096614837646
+7,"nonlinear","FBMS-BGNLM",1,0.2,0,1.02442569813173,5,"x5 + x4 + sin_pi((x1*x2)) + sin_pi(x3) + x6","robust",41.3494436740875
+8,"nonlinear","FBMS-BGNLM",1,0.2,0,0.950006291595281,6,"x4 + sin_pi((x1*x2)) + x5 + x3 + cos_rad(x3) + x7","robust",45.7112195491791
+9,"nonlinear","FBMS-BGNLM",1,0.2,0,1.0484721603493,7,"x4 + x5 + sin_pi((x1*x2)) + x3 + x7 + cos_rad(x3) + x1","robust",41.2665920257568
+10,"nonlinear","FBMS-BGNLM",1,0.2,0,1.08613715301363,6,"x4 + sin_pi(x3) + sin_pi((x2*x1)) + sin_rad(x5) + x6 + x3","robust",42.0405371189117
+11,"nonlinear","FBMS-BGNLM",1,0,1,0.978277569530586,4,"x5 + x4 + sin_pi((x1*x2)) + sin_pi(x3)","robust",42.7878859043121
+12,"nonlinear","FBMS-BGNLM",1,0.4,0,1.05251029280579,7,"x5 + sin_pi((x1*x2)) + p2(x3) + x4 + x3 + x9 + x8","robust",42.4868772029877
+13,"nonlinear","FBMS-BGNLM",1,0.2,0,1.10273187599166,7,"x4 + x5 + x3 + sin_pi((x2*x1)) + sin_rad(x3) + p3(x3) + p3(x7)","robust",42.085629940033
+14,"nonlinear","FBMS-BGNLM",1,0,1,1.04619661595731,4,"x5 + sin_pi(x3) + sin_pi((x1*x2)) + sin_rad(x4)","robust",44.4161853790283
+15,"nonlinear","FBMS-BGNLM",1,0.2,0,1.07421347681126,6,"x4 + sin_pi((x2*x1)) + x5 + x3 + cos_rad(x3) + x9","robust",42.1082365512848
+16,"nonlinear","FBMS-BGNLM",1,0,1,1.06805327424677,4,"x4 + x5 + sin_pi((x1*x2)) + sin_pi(x3)","robust",42.5145008563995
+17,"nonlinear","FBMS-BGNLM",1,0.2,0,1.03754459596513,8,"x4 + x5 + (x3*x3) + x3 + p2((x1*x2)) + (x1*x2) + x1 + x10","robust",41.9520311355591
+18,"nonlinear","FBMS-BGNLM",1,0,1,0.971266930525226,8,"x4 + x5 + (x2*x1) + p2((x2*x1)) + x2 + x1 + x3 + sin_pi(x3)","robust",42.6976828575134
+19,"nonlinear","FBMS-BGNLM",1,0,1,1.03215181219467,4,"x4 + x5 + sin_pi((x2*x1)) + x3","robust",41.9211442470551
+20,"nonlinear","FBMS-BGNLM",1,0,1,1.07731166785722,4,"x4 + x5 + sin_pi(x3) + sin_pi((x2*x1))","robust",44.155647277832
+21,"nonlinear","FBMS-BGNLM",1,0.2,0,1.03844018803887,7,"x4 + x5 + x3 + (x3*x3) + p2((x2*x1)) + (x1*x2) + x6","robust",41.8113303184509
+22,"nonlinear","FBMS-BGNLM",1,0,1,1.0683294685625,5,"x5 + sin_pi((x1*x2)) + x4 + x3 + cos_rad(x3)","robust",42.6222751140594
+23,"nonlinear","FBMS-BGNLM",1,0,1,0.975919403446432,5,"x4 + x5 + x3 + p2(x3) + sin_pi((x2*x1))","robust",43.4497973918915
+24,"nonlinear","FBMS-BGNLM",1,0.6,0,0.956131167795184,8,"x4 + sin_pi((x1*x2)) + x5 + x3 + x7 + x10 + p2(x3) + x8","robust",41.555367231369
+25,"nonlinear","FBMS-BGNLM",1,0,1,0.987428440353692,5,"x4 + x5 + sin_pi((x1*x2)) + x3 + (x3*x3)","robust",40.4101541042328
+26,"nonlinear","FBMS-BGNLM",1,0.2,0,1.09191194631562,6,"x4 + sin_pi((x1*x2)) + x5 + x3 + x9 + (x3*x3)","robust",43.4202756881714
+27,"nonlinear","FBMS-BGNLM",1,0.4,0,0.992538804008705,7,"x4 + sin_pi((x1*x2)) + x3 + (x3*x3) + x5 + x7 + x10","robust",39.8480055332184
+28,"nonlinear","FBMS-BGNLM",1,0,1,0.95057505026479,5,"x4 + x5 + sin_pi((x1*x2)) + x3 + p2(x3)","robust",41.518527507782
+29,"nonlinear","FBMS-BGNLM",1,0,1,0.898079503298863,5,"x5 + x4 + sin_pi((x2*x1)) + x3 + p2(x3)","robust",41.7962486743927
+30,"nonlinear","FBMS-BGNLM",1,0.2,0,1.05368656580635,6,"x4 + sin_pi((x1*x2)) + x5 + (x3*x3) + x3 + x9","robust",40.2339816093445
+31,"nonlinear","FBMS-BGNLM",1,0.2,0,0.943236575844317,6,"x4 + x5 + sin_pi((x1*x2)) + x3 + x7 + (x3*x3)","robust",42.0924844741821
+32,"nonlinear","FBMS-BGNLM",1,0.2,0,1.01889997498539,6,"x4 + x5 + sin_pi((x1*x2)) + x3 + p2(x3) + x10","robust",43.6376700401306
+33,"nonlinear","FBMS-BGNLM",1,0,1,1.03407231809538,5,"x4 + x5 + sin_pi((x1*x2)) + x3 + cos_rad(x3)","robust",42.8624277114868
+34,"nonlinear","FBMS-BGNLM",1,0.2,0,1.02036879934262,5,"x4 + x5 + sin_pi((x1*x2)) + sin_pi(x3) + x8","robust",42.0394897460938
+35,"nonlinear","FBMS-BGNLM",1,0.2,0,1.07409589014534,5,"x4 + x5 + sin_pi((x1*x2)) + sin_pi(x3) + x10","robust",41.5507934093475
+36,"nonlinear","FBMS-BGNLM",1,0.4,0,0.952040819988488,7,"x4 + (x3*x3) + sin_pi((x2*x1)) + x3 + x5 + x8 + x9","robust",39.9996049404144
+37,"nonlinear","FBMS-BGNLM",1,0,1,1.02445665511817,4,"x4 + x5 + sin_pi((x2*x1)) + sin_pi(x3)","robust",46.016179561615
+38,"nonlinear","FBMS-BGNLM",1,0,1,0.901276684242915,4,"x5 + x4 + sin_pi((x1*x2)) + sin_pi(x3)","robust",39.6377229690552
+39,"nonlinear","FBMS-BGNLM",1,0,1,1.01393351538781,5,"x4 + x5 + sin_pi((x1*x2)) + x3 + p2(x3)","robust",40.7631497383118
+40,"nonlinear","FBMS-BGNLM",1,0,1,1.01126479587552,5,"x4 + x3 + sin_pi((x1*x2)) + x5 + (x3*x3)","robust",40.5225179195404
+41,"nonlinear","FBMS-BGNLM",1,0,1,0.990237625750167,5,"x4 + sin_pi((x2*x1)) + x5 + x3 + cos_rad(x3)","robust",41.7257859706879
+42,"nonlinear","FBMS-BGNLM",1,0,1,0.996278877896805,4,"x4 + x5 + sin_pi((x1*x2)) + sin_pi(x3)","robust",42.2255444526672
+43,"nonlinear","FBMS-BGNLM",1,0,1,1.00142169028635,5,"x4 + x5 + sin_pi((x1*x2)) + x3 + cos_rad(x3)","robust",46.2660264968872
+44,"nonlinear","FBMS-BGNLM",1,0,1,1.01764232208825,5,"x4 + x5 + x3 + sin_pi((x1*x2)) + sin_rad(x3)","robust",41.1462502479553
+45,"nonlinear","FBMS-BGNLM",1,0,1,1.05690592550258,5,"x4 + x5 + (x2*x1) + p2((x1*x2)) + sin_pi(x3)","robust",41.8929634094238
+47,"nonlinear","FBMS-BGNLM",1,0,1,1.05254803501952,5,"x5 + x4 + sin_pi((x2*x1)) + p2(x3) + x3","robust",41.4912178516388
+48,"nonlinear","FBMS-BGNLM",0.8,0,0,1.00629701005353,3,"x4 + x5 + sin_pi((x1*x2))","robust",42.6796572208405
+49,"nonlinear","FBMS-BGNLM",1,0.2,0,1.05261229516274,7,"x4 + x3 + x5 + sin_pi((x1*x2)) + cos_rad(x3) + x1 + x6","robust",44.0907649993896
+50,"nonlinear","FBMS-BGNLM",1,0.2,0,1.0762456332115,6,"x4 + x5 + sin_pi((x1*x2)) + x6 + x3 + cos_rad(x3)","robust",42.3175327777863
+51,"nonlinear","FBMS-BGNLM",1,0,1,1.03968065483022,5,"x5 + x4 + x3 + sin_pi((x1*x2)) + (x3*x3)","robust",40.5330235958099
+52,"nonlinear","FBMS-BGNLM",1,0,1,1.01799604618274,5,"x4 + x5 + sin_pi((x2*x1)) + x3 + p2(x3)","robust",41.3294401168823
+53,"nonlinear","FBMS-BGNLM",1,0,1,1.05386517868672,5,"x4 + x5 + x3 + p2(x3) + sin_pi((x1*x2))","robust",41.0517122745514
+54,"nonlinear","FBMS-BGNLM",1,0,1,1.02218676951407,5,"x4 + x5 + sin_pi((x2*x1)) + x3 + (x3*x3)","robust",40.5480999946594
+55,"nonlinear","FBMS-BGNLM",1,0,1,1.05343292991752,4,"x4 + x5 + sin_pi(x3) + sin_pi((x2*x1))","robust",43.3701395988464
+56,"nonlinear","FBMS-BGNLM",1,0,1,1.03283805045017,5,"x4 + x5 + sin_pi((x2*x1)) + p2(x3) + x3","robust",39.7685713768005
+57,"nonlinear","FBMS-BGNLM",1,0.2,0,0.998565395631532,6,"x5 + x4 + p2(x3) + sin_pi((x1*x2)) + x3 + x6","robust",39.48273229599
+58,"nonlinear","FBMS-BGNLM",1,0,1,0.965319194238332,5,"x5 + sin_pi((x1*x2)) + x4 + x3 + cos_rad(x3)","robust",39.5511932373047
+59,"nonlinear","FBMS-BGNLM",1,0,1,1.0873980254184,4,"x5 + x4 + sin_pi(x3) + sin_pi((x2*x1))","robust",42.2586102485657
+60,"nonlinear","FBMS-BGNLM",1,0.2,0,0.97464107754211,6,"x4 + x5 + sin_pi((x2*x1)) + x3 + (x3*x3) + x8","robust",44.5920531749725
+61,"nonlinear","FBMS-BGNLM",1,0,1,0.980772384234768,5,"x4 + sin_pi((x1*x2)) + x5 + x3 + (x3*x3)","robust",43.8040533065796
+62,"nonlinear","FBMS-BGNLM",1,0,1,0.997106043564309,5,"x4 + x5 + sin_pi((x1*x2)) + x3 + (x3*x3)","robust",41.0077555179596
+63,"nonlinear","FBMS-BGNLM",1,0,1,0.964179053475135,5,"x5 + x4 + x3 + p2(x3) + sin_pi((x1*x2))","robust",40.2141726016998
+64,"nonlinear","FBMS-BGNLM",1,0.2,0,1.02401052988712,5,"x4 + x5 + sin_pi(x3) + x10 + sin_pi(1+1*(x1*x2))","robust",43.0510857105255
+65,"nonlinear","FBMS-BGNLM",1,0.2,0,1.0332913493573,5,"x4 + x5 + sin_pi(x3) + sin_pi((x2*x1)) + x8","robust",42.1092286109924
+66,"nonlinear","FBMS-BGNLM",1,0.2,0,0.998631791982891,8,"x4 + x5 + sin_pi((x2*x1)) + sin_pi(x3) + x1 + pm1(x1) + x7 + (x5*x7)","robust",46.2425584793091
+67,"nonlinear","FBMS-BGNLM",1,0,1,1.07108434769532,5,"x4 + x5 + sin_pi((x1*x2)) + x3 + (x3*x3)","robust",40.5195920467377
+68,"nonlinear","FBMS-BGNLM",1,0.2,0,1.01812010239855,6,"x3 + sin_pi(x3) + x5 + x10 + p2(p05(1+1*x4+1*x5+1*x10)) + sin_pi((x1*x2))","robust",40.2835376262665
+69,"nonlinear","FBMS-BGNLM",1,0,1,1.01315511114593,4,"sin_pi((x2*x1)) + x4 + x5 + sin_pi(x3)","robust",40.028801202774
+70,"nonlinear","FBMS-BGNLM",1,0,1,0.982779252477598,5,"x5 + x4 + sin_pi((x2*x1)) + x3 + (x3*x3)","robust",41.2244584560394
+71,"nonlinear","FBMS-BGNLM",1,0,1,1.00971649407176,6,"x4 + x5 + (x2*x1) + sin_pi(x3) + p3((x2*x1)) + sin_rad((x2*x1))","robust",40.8718934059143
+72,"nonlinear","FBMS-BGNLM",1,0,1,0.993780736995943,5,"x4 + x5 + x3 + sin_pi((x2*x1)) + p2(x3)","robust",42.9889423847198
+73,"nonlinear","FBMS-BGNLM",1,0,1,1.04572828909228,6,"x4 + x5 + sin_pi((x2*x1)) + x3 + p2(x3) + x2","robust",41.5290431976318
+74,"nonlinear","FBMS-BGNLM",1,0,1,1.02869254893274,5,"x5 + x4 + sin_pi((x2*x1)) + sin_pi(x3) + x3","robust",40.9470229148865
+75,"nonlinear","FBMS-BGNLM",1,0.4,0,1.03117971749792,7,"x3 + x4 + x5 + (x3*x3) + x9 + x8 + sin_pi(1+1*(x2*x1))","robust",40.723141670227
+76,"nonlinear","FBMS-BGNLM",1,0,1,1.04824825683122,5,"x5 + x4 + sin_pi((x2*x1)) + sin_pi(x3) + x1","robust",40.4787137508392
+77,"nonlinear","FBMS-BGNLM",1,0,1,0.965982578144226,5,"x5 + x4 + sin_pi((x2*x1)) + x3 + (x3*x3)","robust",42.7395467758179
+78,"nonlinear","FBMS-BGNLM",1,0.2,0,0.943403004611615,7,"x5 + x4 + sin_pi((x1*x2)) + x3 + p2(x3) + x1 + x8","robust",43.2543697357178
+79,"nonlinear","FBMS-BGNLM",1,0.2,0,1.02089754921476,5,"x4 + x5 + sin_pi((x1*x2)) + x9 + sin_pi(x3)","robust",43.1250939369202
+80,"nonlinear","FBMS-BGNLM",1,0.2,0,0.976483070936196,6,"x4 + x5 + sin_pi((x2*x1)) + x7 + x3 + p2(x3)","robust",40.2414960861206
+81,"nonlinear","FBMS-BGNLM",1,0.2,0,1.01682721790172,6,"x4 + x3 + p2(x3) + x7 + p05(x5) + sin_pi(1+1*(x2*x1))","robust",42.3667767047882
+82,"nonlinear","FBMS-BGNLM",1,0.2,0,1.00384362178218,6,"x5 + x4 + sin_pi((x2*x1)) + x3 + x7 + (x3*x3)","robust",41.3098940849304
+83,"nonlinear","FBMS-BGNLM",1,0,1,0.975790404007972,5,"x4 + x5 + sin_pi((x2*x1)) + x3 + p2(x3)","robust",41.2455880641937
+84,"nonlinear","FBMS-BGNLM",1,0,1,1.06381769641323,4,"x5 + sin_pi((x1*x2)) + x4 + sin_pi(x3)","robust",45.6495411396027
+85,"nonlinear","FBMS-BGNLM",1,0,1,0.979837395453141,5,"x4 + x5 + sin_pi((x1*x2)) + sin_pi(x3) + x1","robust",41.1980259418488
+86,"nonlinear","FBMS-BGNLM",1,0,1,0.972189489953488,5,"x4 + x5 + sin_pi((x2*x1)) + x3 + p2(x3)","robust",41.2630391120911
+87,"nonlinear","FBMS-BGNLM",1,0,1,1.00283441297136,4,"x4 + sin_pi((x2*x1)) + x5 + sin_pi(x3)","robust",41.8715755939484
+88,"nonlinear","FBMS-BGNLM",1,0,1,1.01165195134288,5,"x5 + sin_pi(x3) + p2(x4) + sin_pi(x4) + sin_pi((x2*x1))","robust",41.600227355957
+89,"nonlinear","FBMS-BGNLM",1,0,1,1.00216679948528,5,"x4 + x5 + sin_pi((x1*x2)) + x3 + sin_rad(x3)","robust",39.672835111618
+90,"nonlinear","FBMS-BGNLM",1,0,1,0.983210756179417,4,"x4 + x5 + sin_pi((x1*x2)) + sin_pi(x3)","robust",44.3069531917572
+91,"nonlinear","FBMS-BGNLM",1,0,1,1.03563070589176,4,"x4 + x5 + sin_pi((x1*x2)) + sin_pi(x3)","robust",40.4446196556091
+92,"nonlinear","FBMS-BGNLM",1,0,1,0.976852902122074,5,"x5 + x4 + x3 + sin_pi((x2*x1)) + p2(x3)","robust",40.1043291091919
+93,"nonlinear","FBMS-BGNLM",1,0,1,1.0283804133665,4,"x4 + sin_pi((x1*x2)) + x5 + sin_pi(x3)","robust",40.528167963028
+94,"nonlinear","FBMS-BGNLM",1,0,1,0.959306358745418,5,"x4 + x5 + sin_pi((x2*x1)) + x3 + cos_rad(x3)","robust",41.0886430740356
+95,"nonlinear","FBMS-BGNLM",1,0.2,0,0.964752471443142,6,"x4 + x5 + sin_pi((x2*x1)) + x3 + x9 + cos_rad(x3)","robust",41.4137070178986
+97,"nonlinear","FBMS-BGNLM",1,0.2,0,0.98902042121348,6,"x4 + x5 + sin_pi((x2*x1)) + x3 + x6 + cos_rad(x3)","robust",39.7440207004547
+98,"nonlinear","FBMS-BGNLM",1,0,1,0.98633777772847,5,"x4 + x5 + sin_pi((x2*x1)) + x3 + sin_rad(1+1*x3)","robust",40.7187438011169
+99,"nonlinear","FBMS-BGNLM",1,0.2,0,1.0667660852247,6,"x4 + x5 + sin_pi(x3) + sin_pi((x1*x2)) + x2 + x8","robust",40.9032709598541
+100,"nonlinear","FBMS-BGNLM",1,0.2,0,1.00947907074457,5,"x4 + x5 + x7 + sin_pi((x2*x1)) + sin_pi(x3)","robust",41.6266043186188
+1,"nonlinear","FBMS-BGNLM",0,0,0,4.91377368099044,0,"1","zs_full",31.502623796463
+2,"nonlinear","FBMS-BGNLM",0,0,0,4.58666207550435,0,"1","zs_full",31.7295763492584
+3,"nonlinear","FBMS-BGNLM",0,0,0,4.95927339850871,0,"1","zs_full",30.9466617107391
+4,"nonlinear","FBMS-BGNLM",0,0,0,5.04796434068774,0,"1","zs_full",31.2079837322235
+5,"nonlinear","FBMS-BGNLM",0,0,0,4.79741370666477,0,"1","zs_full",32.2246670722961
+6,"nonlinear","FBMS-BGNLM",0,0,0,4.72104460923599,0,"1","zs_full",31.3584859371185
+7,"nonlinear","FBMS-BGNLM",0,0,0,4.75777703044251,0,"1","zs_full",32.5446290969849
+8,"nonlinear","FBMS-BGNLM",0,0,0,4.55406499445695,0,"1","zs_full",31.4167516231537
+9,"nonlinear","FBMS-BGNLM",0,0,0,4.73785587580881,0,"1","zs_full",33.2964961528778
+10,"nonlinear","FBMS-BGNLM",0,0,0,4.74911081209714,0,"1","zs_full",31.2504875659943
+11,"nonlinear","FBMS-BGNLM",0,0,0,4.69584934193659,0,"1","zs_full",32.0173206329346
+12,"nonlinear","FBMS-BGNLM",0,0,0,4.72877687540632,0,"1","zs_full",30.9167637825012
+13,"nonlinear","FBMS-BGNLM",0,0,0,4.66051324160077,0,"1","zs_full",35.0751111507416
+14,"nonlinear","FBMS-BGNLM",0,0,0,4.76758508854756,0,"1","zs_full",29.5461900234222
+15,"nonlinear","FBMS-BGNLM",0,0,0,4.79475120399396,0,"1","zs_full",28.1431849002838
+16,"nonlinear","FBMS-BGNLM",0,0,0,4.9388935002364,0,"1","zs_full",28.1372833251953
+17,"nonlinear","FBMS-BGNLM",0,0,0,4.65774975168206,0,"1","zs_full",28.8136501312256
+18,"nonlinear","FBMS-BGNLM",0,0,0,4.7142277587581,0,"1","zs_full",27.9326167106628
+19,"nonlinear","FBMS-BGNLM",0,0,0,4.81578747466022,0,"1","zs_full",29.3279631137848
+20,"nonlinear","FBMS-BGNLM",0,0,0,4.74675185977744,0,"1","zs_full",28.947167634964
+21,"nonlinear","FBMS-BGNLM",0,0,0,4.31397735563773,0,"1","zs_full",28.6955375671387
+22,"nonlinear","FBMS-BGNLM",0,0,0,4.70970555609337,0,"1","zs_full",29.1014885902405
+23,"nonlinear","FBMS-BGNLM",0,0,0,4.67737391740977,0,"1","zs_full",30.7575917243958
+24,"nonlinear","FBMS-BGNLM",0,0,0,4.64343054921799,0,"1","zs_full",30.5220079421997
+25,"nonlinear","FBMS-BGNLM",0,0,0,4.73608464729052,0,"1","zs_full",31.1781048774719
+26,"nonlinear","FBMS-BGNLM",0,0,0,4.42170154928844,0,"1","zs_full",28.197685956955
+27,"nonlinear","FBMS-BGNLM",0,0,0,4.923905791743,0,"1","zs_full",29.8861503601074
+28,"nonlinear","FBMS-BGNLM",0,0,0,4.6327689192926,0,"1","zs_full",30.9165649414062
+29,"nonlinear","FBMS-BGNLM",0,0,0,4.67426645080084,0,"1","zs_full",30.10356092453
+30,"nonlinear","FBMS-BGNLM",0,0,0,4.61803224265605,0,"1","zs_full",29.5142729282379
+31,"nonlinear","FBMS-BGNLM",0,0,0,4.79111759742627,0,"1","zs_full",29.3378758430481
+32,"nonlinear","FBMS-BGNLM",0,0,0,4.76072758335765,0,"1","zs_full",29.6248672008514
+33,"nonlinear","FBMS-BGNLM",0,0,0,4.64868134702881,0,"1","zs_full",30.5184717178345
+34,"nonlinear","FBMS-BGNLM",0,0,0,4.47511651171516,0,"1","zs_full",29.2041611671448
+35,"nonlinear","FBMS-BGNLM",0,0,0,4.67734512742124,0,"1","zs_full",28.5021436214447
+36,"nonlinear","FBMS-BGNLM",0,0,0,4.54028390778633,0,"1","zs_full",29.5792729854584
+37,"nonlinear","FBMS-BGNLM",0,0,0,4.63215235228886,0,"1","zs_full",29.4795820713043
+38,"nonlinear","FBMS-BGNLM",0,0,0,4.5555594931951,0,"1","zs_full",29.0992028713226
+39,"nonlinear","FBMS-BGNLM",0,0,0,4.5227973710633,0,"1","zs_full",29.6699633598328
+40,"nonlinear","FBMS-BGNLM",0,0,0,4.76011032448297,0,"1","zs_full",30.228741645813
+41,"nonlinear","FBMS-BGNLM",0,0,0,4.94985589475076,0,"1","zs_full",29.981703042984
+42,"nonlinear","FBMS-BGNLM",0,0,0,4.6761068257614,0,"1","zs_full",32.9737865924835
+43,"nonlinear","FBMS-BGNLM",0,0,0,4.51707764327162,0,"1","zs_full",28.4538698196411
+44,"nonlinear","FBMS-BGNLM",0,0,0,4.8570543265028,0,"1","zs_full",30.2494218349457
+45,"nonlinear","FBMS-BGNLM",0,0,0,4.61016166319857,0,"1","zs_full",29.2551665306091
+46,"nonlinear","FBMS-BGNLM",0,0,0,4.61695818057561,0,"1","zs_full",28.7114493846893
+47,"nonlinear","FBMS-BGNLM",0,0,0,4.52247955702332,0,"1","zs_full",29.1096270084381
+48,"nonlinear","FBMS-BGNLM",0,0,0,4.68733673323608,0,"1","zs_full",28.762594461441
+49,"nonlinear","FBMS-BGNLM",0,0,0,4.78324168849017,0,"1","zs_full",28.8442211151123
+50,"nonlinear","FBMS-BGNLM",0,0,0,4.5654346120267,0,"1","zs_full",29.3280572891235
+51,"nonlinear","FBMS-BGNLM",0,0,0,5.02592123556389,0,"1","zs_full",30.3107368946075
+52,"nonlinear","FBMS-BGNLM",0,0,0,4.5312137949697,0,"1","zs_full",28.9599032402039
+53,"nonlinear","FBMS-BGNLM",0,0,0,4.77333381142291,0,"1","zs_full",32.0488533973694
+54,"nonlinear","FBMS-BGNLM",0,0,0,4.79175825996474,0,"1","zs_full",29.775711774826
+55,"nonlinear","FBMS-BGNLM",0,0,0,4.87981240992232,0,"1","zs_full",31.3279309272766
+56,"nonlinear","FBMS-BGNLM",0,0,0,4.59603263325855,0,"1","zs_full",29.2262270450592
+57,"nonlinear","FBMS-BGNLM",0,0,0,4.72040533374864,0,"1","zs_full",30.6489777565002
+58,"nonlinear","FBMS-BGNLM",0,0,0,4.57358546655013,0,"1","zs_full",29.8957061767578
+59,"nonlinear","FBMS-BGNLM",0,0,0,4.78592329735157,0,"1","zs_full",29.0203194618225
+60,"nonlinear","FBMS-BGNLM",0,0,0,4.55740004959165,0,"1","zs_full",29.2966415882111
+61,"nonlinear","FBMS-BGNLM",0,0,0,4.49683046965255,0,"1","zs_full",30.0919213294983
+62,"nonlinear","FBMS-BGNLM",0,0,0,4.56983638833681,0,"1","zs_full",28.322119474411
+63,"nonlinear","FBMS-BGNLM",0,0,0,4.58954779168218,0,"1","zs_full",29.2739598751068
+64,"nonlinear","FBMS-BGNLM",0,0,0,4.73664878819452,0,"1","zs_full",29.5530078411102
+65,"nonlinear","FBMS-BGNLM",0,0,0,4.41988901219706,0,"1","zs_full",34.0620956420898
+66,"nonlinear","FBMS-BGNLM",0,0,0,4.51663109554081,0,"1","zs_full",29.0317854881287
+67,"nonlinear","FBMS-BGNLM",0,0,0,4.78565681501485,0,"1","zs_full",28.802163362503
+68,"nonlinear","FBMS-BGNLM",0,0,0,4.72838411872025,0,"1","zs_full",29.1089043617249
+69,"nonlinear","FBMS-BGNLM",0,0,0,4.72705388095536,0,"1","zs_full",28.7355194091797
+70,"nonlinear","FBMS-BGNLM",0,0,0,4.52672815316326,0,"1","zs_full",30.8059735298157
+71,"nonlinear","FBMS-BGNLM",0,0,0,4.57203547145539,0,"1","zs_full",30.6634659767151
+72,"nonlinear","FBMS-BGNLM",0,0,0,4.57068442289084,0,"1","zs_full",31.0271842479706
+73,"nonlinear","FBMS-BGNLM",0,0,0,4.63449799947478,0,"1","zs_full",31.9837970733643
+74,"nonlinear","FBMS-BGNLM",0,0,0,4.581757241432,0,"1","zs_full",30.8488802909851
+75,"nonlinear","FBMS-BGNLM",0,0,0,4.73345088959328,0,"1","zs_full",32.5407772064209
+76,"nonlinear","FBMS-BGNLM",0,0,0,4.47599299908947,0,"1","zs_full",36.2172222137451
+77,"nonlinear","FBMS-BGNLM",0,0,0,4.76596347974798,0,"1","zs_full",28.2003285884857
+78,"nonlinear","FBMS-BGNLM",0,0,0,4.49603498038709,0,"1","zs_full",28.3467946052551
+79,"nonlinear","FBMS-BGNLM",0,0,0,4.41404865132511,0,"1","zs_full",27.9990003108978
+80,"nonlinear","FBMS-BGNLM",0,0,0,5.14333083860726,0,"1","zs_full",28.5643770694733
+81,"nonlinear","FBMS-BGNLM",0,0,0,4.48028646049177,0,"1","zs_full",29.5858755111694
+82,"nonlinear","FBMS-BGNLM",0,0,0,4.89257212121893,0,"1","zs_full",29.6808080673218
+83,"nonlinear","FBMS-BGNLM",0,0,0,4.69652501213332,0,"1","zs_full",29.3869931697845
+84,"nonlinear","FBMS-BGNLM",0,0,0,4.76581886785582,0,"1","zs_full",28.6491210460663
+85,"nonlinear","FBMS-BGNLM",0,0,0,4.83210996788955,0,"1","zs_full",31.4005393981934
+86,"nonlinear","FBMS-BGNLM",0,0,0,4.4772788634296,0,"1","zs_full",31.3882639408112
+87,"nonlinear","FBMS-BGNLM",0,0,0,4.79848674029763,0,"1","zs_full",29.3287198543549
+88,"nonlinear","FBMS-BGNLM",0,0,0,4.52585503946756,0,"1","zs_full",29.4544785022736
+89,"nonlinear","FBMS-BGNLM",0,0,0,4.84084369625915,0,"1","zs_full",29.2828760147095
+90,"nonlinear","FBMS-BGNLM",0,0,0,4.59031756996328,0,"1","zs_full",29.5462870597839
+91,"nonlinear","FBMS-BGNLM",0,0,0,4.94499408938077,0,"1","zs_full",28.3601717948914
+92,"nonlinear","FBMS-BGNLM",0,0,0,4.52210535892249,0,"1","zs_full",27.4686634540558
+93,"nonlinear","FBMS-BGNLM",0,0,0,4.8325660556987,0,"1","zs_full",29.067807674408
+94,"nonlinear","FBMS-BGNLM",0,0,0,4.73669763252403,0,"1","zs_full",31.5638632774353
+95,"nonlinear","FBMS-BGNLM",0,0,0,4.88757134341332,0,"1","zs_full",28.8188025951385
+96,"nonlinear","FBMS-BGNLM",0,0,0,4.62038033007683,0,"1","zs_full",30.7407739162445
+97,"nonlinear","FBMS-BGNLM",0,0,0,4.65028584377539,0,"1","zs_full",28.3319392204285
+98,"nonlinear","FBMS-BGNLM",0,0,0,4.84689397154573,0,"1","zs_full",27.7460796833038
+99,"nonlinear","FBMS-BGNLM",0,0,0,4.59708826111674,0,"1","zs_full",29.5964229106903
+100,"nonlinear","FBMS-BGNLM",0,0,0,4.66273746782247,0,"1","zs_full",29.5719194412231
+1,"nonlinear","FBMS-BGNLM",1,0,1,1.00491686562716,4,"x4 + sin_pi((x1*x2)) + x5 + sin_pi(x3)","zs_null",31.482506275177
+2,"nonlinear","FBMS-BGNLM",1,0,1,0.965968677782375,4,"x4 + sin_pi(x3) + sin_pi((x2*x1)) + x5","zs_null",29.7637319564819
+3,"nonlinear","FBMS-BGNLM",1,0,1,1.01988418310269,5,"x4 + sin_pi((x2*x1)) + x5 + p2(x3) + x3","zs_null",32.1870014667511
+4,"nonlinear","FBMS-BGNLM",1,0,1,0.996533280665525,5,"x5 + x4 + x3 + sin_pi((x2*x1)) + cos_rad(x3)","zs_null",30.0938177108765
+5,"nonlinear","FBMS-BGNLM",1,0,1,1.01789718760523,4,"x4 + sin_pi((x1*x2)) + x5 + sin_pi(x3)","zs_null",31.9822900295258
+6,"nonlinear","FBMS-BGNLM",1,0,1,1.06095227078901,5,"x4 + sin_pi((x1*x2)) + x3 + x5 + (x3*x3)","zs_null",31.5360004901886
+7,"nonlinear","FBMS-BGNLM",1,0,1,1.01962646551849,5,"x4 + sin_pi((x1*x2)) + x5 + x3 + p2(x3)","zs_null",30.8024280071259
+8,"nonlinear","FBMS-BGNLM",1,0,1,0.95243739112347,4,"x4 + x5 + sin_pi(x3) + sin_pi((x2*x1))","zs_null",32.3679406642914
+9,"nonlinear","FBMS-BGNLM",1,0,1,1.04009745317443,5,"x4 + sin_pi((x1*x2)) + x5 + x3 + p2(x3)","zs_null",31.3790171146393
+10,"nonlinear","FBMS-BGNLM",1,0,1,1.11495191195744,4,"x5 + x4 + p3(p05(sin_pi(x3))) + sin_pi((x1*x2))","zs_null",30.545117855072
+11,"nonlinear","FBMS-BGNLM",1,0,1,0.977097906049458,4,"sin_pi((x1*x2)) + x5 + x4 + sin_pi(x3)","zs_null",31.0597212314606
+12,"nonlinear","FBMS-BGNLM",1,0,1,1.03884534099395,5,"x5 + sin_pi((x2*x1)) + x4 + x3 + cos_rad(x3)","zs_null",31.0301344394684
+13,"nonlinear","FBMS-BGNLM",1,0,1,1.0668763031418,4,"x5 + x4 + sin_pi((x2*x1)) + sin_pi(x3)","zs_null",31.0987772941589
+14,"nonlinear","FBMS-BGNLM",1,0,1,1.04766700824114,4,"sin_pi((x2*x1)) + sin_rad(x4) + x5 + sin_pi(x3)","zs_null",30.9211864471436
+15,"nonlinear","FBMS-BGNLM",1,0,1,1.06626793380806,4,"x4 + sin_pi(x3) + x5 + sin_pi((x2*x1))","zs_null",31.1293680667877
+16,"nonlinear","FBMS-BGNLM",1,0,1,1.07866283787303,5,"x5 + x4 + sin_pi(x3) + (x1*x2) + p2((x2*x1))","zs_null",31.405365228653
+17,"nonlinear","FBMS-BGNLM",1,0,1,1.01838610546972,4,"x4 + x5 + sin_pi(1+1*x3) + sin_pi((x1*x2))","zs_null",31.5358872413635
+18,"nonlinear","FBMS-BGNLM",1,0,1,0.963352892120466,4,"sin_pi(x3) + sin_pi((x1*x2)) + x4 + x5","zs_null",30.3610489368439
+19,"nonlinear","FBMS-BGNLM",1,0,1,1.02710601101117,5,"x4 + sin_pi((x1*x2)) + x5 + x3 + (x3*x3)","zs_null",30.4818301200867
+20,"nonlinear","FBMS-BGNLM",1,0,1,1.08963514726613,5,"x4 + sin_rad(x5) + p2(sin_pi(x3)) + sin_pi((x2*x1)) + sin_pi(x3)","zs_null",31.2927029132843
+21,"nonlinear","FBMS-BGNLM",1,0,1,1.02097275569318,4,"x4 + sin_pi((x1*x2)) + x5 + sin_pi(x3)","zs_null",36.2099587917328
+22,"nonlinear","FBMS-BGNLM",1,0,1,1.06102535447471,4,"sin_pi((x2*x1)) + x5 + x4 + sin_pi(x3)","zs_null",32.2320871353149
+23,"nonlinear","FBMS-BGNLM",1,0,1,0.969762423227408,4,"x5 + x4 + sin_pi((x2*x1)) + sin_pi(x3)","zs_null",31.7488963603973
+24,"nonlinear","FBMS-BGNLM",1,0,1,0.942362300136442,5,"x4 + sin_pi((x1*x2)) + x5 + x3 + cos_rad(x3)","zs_null",31.0059452056885
+25,"nonlinear","FBMS-BGNLM",1,0,1,1.033771144109,5,"x5 + x4 + x3 + p3(x3) + sin_pi((x1*x2))","zs_null",31.926029920578
+26,"nonlinear","FBMS-BGNLM",1,0,1,1.0959733590116,4,"x4 + sin_pi(x3) + sin_pi((x2*x1)) + x5","zs_null",33.8673112392426
+27,"nonlinear","FBMS-BGNLM",1,0,1,0.982858627258338,5,"x5 + x4 + sin_pi((x2*x1)) + x3 + p2(x3)","zs_null",32.7531402111053
+28,"nonlinear","FBMS-BGNLM",1,0,1,0.95677052340205,4,"x4 + sin_pi((x1*x2)) + x5 + sin_pi(x3)","zs_null",31.1913957595825
+29,"nonlinear","FBMS-BGNLM",1,0,1,0.898210938856989,4,"x4 + x5 + sin_pi((x1*x2)) + sin_pi(1+1*x3)","zs_null",31.3790168762207
+30,"nonlinear","FBMS-BGNLM",1,0,1,1.04786592573441,4,"x4 + x5 + sin_pi((x1*x2)) + sin_pi(x3)","zs_null",31.8084208965302
+31,"nonlinear","FBMS-BGNLM",1,0,1,0.938921605178527,4,"sin_pi((x2*x1)) + sin_pi(x3) + x5 + x4","zs_null",30.5167551040649
+32,"nonlinear","FBMS-BGNLM",1,0,1,1.01755877720002,4,"x4 + x5 + sin_pi(x3) + sin_pi((x2*x1))","zs_null",30.9483315944672
+33,"nonlinear","FBMS-BGNLM",1,0,1,1.18227506716149,6,"x4 + (x1*x2) + x5 + x3 + cos_rad((x1*x2)) + p05(x3)","zs_null",35.1154360771179
+34,"nonlinear","FBMS-BGNLM",1,0,1,1.01204100630099,5,"x4 + x5 + x3 + p2(x3) + sin_pi((x1*x2))","zs_null",30.9673953056335
+35,"nonlinear","FBMS-BGNLM",1,0,1,1.07792107474513,5,"sin_pi(x3) + sin_pi((x1*x2)) + x5 + sin_pi(x4) + (x4*x4)","zs_null",30.5146663188934
+36,"nonlinear","FBMS-BGNLM",1,0,1,0.949988131345166,4,"x4 + x5 + sin_pi(1+1*x3) + sin_pi((x2*x1))","zs_null",30.4175980091095
+37,"nonlinear","FBMS-BGNLM",1,0,1,1.02359068472617,5,"x4 + x5 + x3 + sin_pi((x1*x2)) + p2(x3)","zs_null",30.4549288749695
+38,"nonlinear","FBMS-BGNLM",1,0,1,0.896251150230366,5,"x5 + x4 + x3 + sin_pi((x1*x2)) + sin_rad(x3)","zs_null",30.0099658966064
+39,"nonlinear","FBMS-BGNLM",1,0,1,1.01346297209166,5,"x4 + x5 + sin_pi((x2*x1)) + x3 + p2(x3)","zs_null",31.0638465881348
+40,"nonlinear","FBMS-BGNLM",1,0,1,1.02821553291854,5,"sin_pi(x3) + x5 + p3(x4) + sin_pi((x1*x2)) + (x4*x4)","zs_null",31.0781617164612
+41,"nonlinear","FBMS-BGNLM",1,0,1,0.996940304048152,4,"x5 + x4 + sin_pi((x1*x2)) + sin_pi(x3)","zs_null",31.1342644691467
+42,"nonlinear","FBMS-BGNLM",1,0,1,0.999319398575741,5,"x4 + x5 + x3 + cos_rad(x3) + sin_pi(1+1*(x1*x2))","zs_null",32.0420405864716
+43,"nonlinear","FBMS-BGNLM",1,0,1,1.0029962897295,5,"x5 + x4 + sin_pi((x2*x1)) + x3 + p2(x3)","zs_null",31.3632900714874
+44,"nonlinear","FBMS-BGNLM",1,0,1,1.00557943597487,5,"sin_pi((x2*x1)) + x4 + x5 + x3 + (x3*x3)","zs_null",33.8232381343842
+45,"nonlinear","FBMS-BGNLM",1,0,1,1.03401561317984,4,"x4 + sin_pi(x3) + x5 + sin_pi((x1*x2))","zs_null",31.9204659461975
+46,"nonlinear","FBMS-BGNLM",1,0,1,1.00035273489142,4,"x4 + x5 + sin_pi((x2*x1)) + sin_pi(x3)","zs_null",31.8113977909088
+47,"nonlinear","FBMS-BGNLM",1,0,1,1.05873749154671,4,"x5 + sin_pi((x2*x1)) + sin_pi(x3) + x4","zs_null",32.5394632816315
+48,"nonlinear","FBMS-BGNLM",1,0,1,1.00247155235155,5,"x4 + x5 + sin_pi((x2*x1)) + x3 + (cos_rad(x3)*x3)","zs_null",32.8749141693115
+49,"nonlinear","FBMS-BGNLM",1,0,1,1.0764904406764,6,"x4 + x5 + x3 + cos_rad(x3) + (x2*x1) + p2((x2*x1))","zs_null",31.5628774166107
+50,"nonlinear","FBMS-BGNLM",1,0,1,1.06528722790881,5,"x4 + x5 + sin_pi((x1*x2)) + x3 + cos_rad(x3)","zs_null",32.7374851703644
+51,"nonlinear","FBMS-BGNLM",1,0,1,1.04426264380716,4,"x4 + sin_pi((x1*x2)) + x5 + sin_pi(x3)","zs_null",31.3870732784271
+52,"nonlinear","FBMS-BGNLM",1,0,1,1.0416173497891,6,"x3 + p2(x3) + x4 + cos_rad(1+1*x5) + (x2*sin_rad(x1)) + sin_pi((x2*sin_rad(x1)))","zs_null",31.9251832962036
+53,"nonlinear","FBMS-BGNLM",1,0,1,1.05431905723446,4,"x4 + sin_pi((x1*x2)) + sin_pi(x3) + x5","zs_null",31.4633467197418
+54,"nonlinear","FBMS-BGNLM",1,0,1,1.02187068759946,5,"x4 + sin_pi((x1*x2)) + p2(x3) + x5 + sin_rad(x3)","zs_null",30.398110628128
+55,"nonlinear","FBMS-BGNLM",1,0,1,1.05343249302266,4,"sin_pi(x3) + x4 + x5 + sin_pi((x2*x1))","zs_null",31.4402546882629
+56,"nonlinear","FBMS-BGNLM",1,0,1,1.04007705459233,5,"x4 + x5 + sin_pi((x2*x1)) + x3 + p3(sin_rad(x3))","zs_null",32.4519193172455
+57,"nonlinear","FBMS-BGNLM",1,0,1,1.00651327362891,5,"x4 + x5 + sin_pi((x2*x1)) + (x3*x3) + x3","zs_null",31.9953300952911
+58,"nonlinear","FBMS-BGNLM",1,0,1,0.97215594058295,4,"x4 + x5 + p05(sin_pi(x3)) + sin_pi((x1*x2))","zs_null",31.5354211330414
+59,"nonlinear","FBMS-BGNLM",1,0,1,1.0855329715588,4,"x4 + x5 + sin_pi((x1*x2)) + sin_pi(x3)","zs_null",30.2645661830902
+60,"nonlinear","FBMS-BGNLM",1,0,1,0.971642967194,4,"sin_pi((x2*x1)) + x4 + x5 + sin_pi(x3)","zs_null",31.6018381118774
+61,"nonlinear","FBMS-BGNLM",1,0,1,0.985447164680468,4,"x4 + sin_pi((x2*x1)) + x5 + sin_pi(x3)","zs_null",30.7807834148407
+62,"nonlinear","FBMS-BGNLM",1,0,1,0.993793270902961,4,"x4 + x5 + sin_pi((x2*x1)) + sin_pi(x3)","zs_null",30.5208778381348
+63,"nonlinear","FBMS-BGNLM",1,0,1,0.983207542308705,5,"x4 + x5 + (x2*x1) + p2((x1*x2)) + sin_pi(x3)","zs_null",30.2482810020447
+64,"nonlinear","FBMS-BGNLM",1,0,1,1.01360662010805,4,"x4 + sin_pi((x1*x2)) + x5 + sin_pi(x3)","zs_null",31.9437298774719
+65,"nonlinear","FBMS-BGNLM",1,0,1,1.02007997102422,5,"x4 + x3 + sin_pi((x2*x1)) + x5 + sin_rad(x3)","zs_null",30.1213915348053
+66,"nonlinear","FBMS-BGNLM",1,0,1,0.963867397459989,4,"x4 + sin_pi((x2*x1)) + x5 + sin_pi(x3)","zs_null",32.9084396362305
+67,"nonlinear","FBMS-BGNLM",1,0,1,1.07402410120122,4,"sin_pi(x3) + sin_pi((x1*x2)) + x4 + x5","zs_null",32.2025380134583
+68,"nonlinear","FBMS-BGNLM",1,0,1,1.00514636664573,4,"x4 + x5 + sin_pi(x3) + sin_pi((x1*x2))","zs_null",32.2144784927368
+69,"nonlinear","FBMS-BGNLM",1,0,1,1.01401841870536,5,"sin_pi((x2*x1)) + x5 + x3 + x4 + cos_rad(x3)","zs_null",32.7174737453461
+70,"nonlinear","FBMS-BGNLM",1,0,1,0.985564336684247,6,"x4 + x3 + x5 + (x1*x2) + p2(x3) + p2((x1*x2))","zs_null",34.7034401893616
+71,"nonlinear","FBMS-BGNLM",1,0,1,1.00937928663282,5,"x4 + x5 + sin_rad(x3) + p05(p3(1+1*sin_pi((x2*x1)))) + (x3*x3)","zs_null",30.7005641460419
+72,"nonlinear","FBMS-BGNLM",1,0,1,0.991448064748054,4,"x4 + x5 + sin_pi((x2*x1)) + sin_pi(x3)","zs_null",32.1894690990448
+73,"nonlinear","FBMS-BGNLM",1,0,1,1.04917921193359,5,"x5 + x4 + x3 + sin_rad(x3) + sin_pi((x2*x1))","zs_null",32.7068777084351
+74,"nonlinear","FBMS-BGNLM",1,0,1,1.02843791802938,4,"x5 + sin_pi((x2*x1)) + x4 + sin_pi(x3)","zs_null",31.5397346019745
+75,"nonlinear","FBMS-BGNLM",1,0,1,1.02785156581067,4,"x4 + x5 + sin_pi((x1*x2)) + cos_rad(sin_rad(p05(sin_pi(x3))))","zs_null",32.7359194755554
+76,"nonlinear","FBMS-BGNLM",1,0,1,1.05193701689817,4,"x4 + sin_pi((x2*x1)) + x5 + sin_pi(x3)","zs_null",32.2996900081635
+77,"nonlinear","FBMS-BGNLM",1,0,1,0.980728190224174,5,"x4 + x5 + x3 + sin_pi((x1*x2)) + sin_rad(cos_rad(x3))","zs_null",32.2130374908447
+78,"nonlinear","FBMS-BGNLM",1,0,1,0.93710202806177,5,"x4 + x5 + sin_pi((x1*x2)) + x3 + p2(x3)","zs_null",31.0600719451904
+79,"nonlinear","FBMS-BGNLM",1,0,1,1.00521953106358,4,"x4 + sin_pi((x1*x2)) + x5 + sin_pi(x3)","zs_null",32.6312394142151
+80,"nonlinear","FBMS-BGNLM",1,0,1,0.9667378890063,5,"x5 + sin_pi((x2*x1)) + x4 + cos_rad(x3) + x3","zs_null",30.2695882320404
+81,"nonlinear","FBMS-BGNLM",1,0,1,1.00504836223025,4,"x4 + x5 + sin_pi((x1*x2)) + x3","zs_null",32.199912071228
+82,"nonlinear","FBMS-BGNLM",1,0,1,0.992126678291394,4,"x4 + sin_pi(x3) + x5 + sin_pi((x1*x2))","zs_null",30.7200615406036
+83,"nonlinear","FBMS-BGNLM",1,0,1,0.971553726725451,4,"x4 + x5 + sin_pi((x2*x1)) + sin_pi(x3)","zs_null",33.4261221885681
+84,"nonlinear","FBMS-BGNLM",1,0,1,1.06299503516667,4,"sin_pi((x1*x2)) + x4 + sin_pi(x3) + x5","zs_null",35.7050628662109
+85,"nonlinear","FBMS-BGNLM",1,0,1,0.999629947732443,6,"x4 + x5 + p2((x1*x2)) + (x1*x2) + x3 + cos_rad(x3)","zs_null",31.0618147850037
+86,"nonlinear","FBMS-BGNLM",1,0,1,0.972455490749003,5,"x4 + sin_pi((x2*x1)) + x5 + x3 + p2(x3)","zs_null",31.7711679935455
+87,"nonlinear","FBMS-BGNLM",1,0,1,1.05630418464306,6,"(x2*x1) + x4 + x5 + p05(x3) + p2(x3) + sin_rad((x1*x2))","zs_null",31.3209836483002
+88,"nonlinear","FBMS-BGNLM",1,0,1,0.999335669686929,4,"x4 + sin_pi((x1*x2)) + x5 + sin_pi(x3)","zs_null",32.6691133975983
+89,"nonlinear","FBMS-BGNLM",1,0,1,0.978104521459263,4,"x4 + x5 + sin_pi((x1*x2)) + sin_pi(x3)","zs_null",31.5868189334869
+90,"nonlinear","FBMS-BGNLM",1,0,1,0.999311852881195,6,"x4 + x5 + (x2*x1) + x3 + p2((x1*x2)) + p2(x3)","zs_null",30.2341494560242
+91,"nonlinear","FBMS-BGNLM",1,0,1,1.03631843628347,4,"x4 + x5 + sin_pi(x3) + sin_pi((x2*x1))","zs_null",31.1497478485107
+92,"nonlinear","FBMS-BGNLM",1,0,1,1.04944879503321,6,"x5 + x4 + (x2*x1) + x3 + (x3*x3) + sin_rad((x1*x2))","zs_null",31.2671020030975
+93,"nonlinear","FBMS-BGNLM",1,0,1,1.02837879529173,5,"x4 + x5 + x3 + (x3*x3) + sin_pi((x2*x1))","zs_null",31.2224707603455
+94,"nonlinear","FBMS-BGNLM",1,0,1,0.95069841228236,4,"x4 + x5 + sin_pi(x3) + sin_pi((x2*x1))","zs_null",31.4176025390625
+95,"nonlinear","FBMS-BGNLM",1,0,1,0.970783690436362,4,"sin_pi((x2*x1)) + sin_pi(x3) + x5 + x4","zs_null",31.1329143047333
+96,"nonlinear","FBMS-BGNLM",1,0,1,1.06850450593557,5,"x4 + (x1*x2) + x5 + sin_pi(x3) + p2((x1*x2))","zs_null",33.312162399292
+97,"nonlinear","FBMS-BGNLM",1,0,1,1.00102825160083,5,"x4 + x3 + sin_rad(x5) + sin_pi((x1*x2)) + cos_rad(x3)","zs_null",31.3055689334869
+98,"nonlinear","FBMS-BGNLM",1,0,1,0.973652057107447,4,"x4 + x5 + sin_rad(sin_pi(x3)) + sin_pi((x2*x1))","zs_null",30.909152507782
+99,"nonlinear","FBMS-BGNLM",1,0,1,1.05231031103994,4,"x4 + sin_pi(x3) + sin_rad(x5) + sin_pi((x1*x2))","zs_null",30.9263582229614
+100,"nonlinear","FBMS-BGNLM",1,0,1,0.997711388637849,5,"x4 + x5 + sin_pi((x1*x2)) + x3 + p2(x3)","zs_null",32.4319033622742

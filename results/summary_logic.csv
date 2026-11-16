@@ -1,0 +1,4 @@
+"seed","benchmark","tpr","fpr","exact_match","test_rmse","active_density","active_edges","formula","latex"
+1,"logic",1,0,1,0.504914943693915,0.0367647058823529,10,"1.002 + 3.009 * (x4 & !x5) + 2.028 * (x7 & x8 & x11) + 1.467 * (x1 & x2)","1.002 + 3.009 \left(x_{4} \land \neg x_{5}\right) + 2.028 \left(x_{7} \land x_{8} \land x_{11}\right) + 1.467 \left(x_{1} \land x_{2}\right)"
+2,"logic",1,0,1,0.497605087434071,0.0367647058823529,10,"0.98 + 3.034 * (x4 & !x5) + 1.569 * (x1 & x2) + 2.048 * (x7 & x8 & x11)","0.98 + 3.034 \left(x_{4} \land \neg x_{5}\right) + 1.569 \left(x_{1} \land x_{2}\right) + 2.048 \left(x_{7} \land x_{8} \land x_{11}\right)"
+3,"logic",1,0,1,0.511302924166364,0.0367647058823529,10,"1.003 + 2.997 * (x4 & !x5) + 1.514 * (x1 & x2) + 1.953 * (x7 & x8 & x11)","1.003 + 2.997 \left(x_{4} \land \neg x_{5}\right) + 1.514 \left(x_{1} \land x_{2}\right) + 1.953 \left(x_{7} \land x_{8} \land x_{11}\right)"
