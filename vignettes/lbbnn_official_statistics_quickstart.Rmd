@@ -190,15 +190,15 @@ print(hajek_res)
 
 ### Step 1A.6 — Williams–Savitsky (2021) Cholesky Sandwich UQ on Active MPM Slab Parameters (`adjust_slab_sandwich_lbbnn`)
 
-Raw mean-field variational posterior SDs (`Unadj_SD`) under-cover under informative sampling both because diagonal VI ignores posterior parameter correlations and because conditioning on a single sample omits design variance under $P_\nu$. `adjust_slab_sandwich_lbbnn()` restricts to the active Median Probability Model (MPM) slab subspace (where Bernstein--von Mises holds), forms the weighted bread $H_1$, prior-regularized design meat $J_{2,\text{reg}} = J_2 + \Lambda_{\text{prior}}$, and unweighted SRS baseline $\Sigma_{\text{SRS}} = H_{\text{SRS}}^{-1} J_{\text{SRS}} H_{\text{SRS}}^{-1}$ using the DoF-adjusted weighted empirical residual variance $\hat{\sigma}_w^2$, and transports raw draws via exact Cholesky projection $R_2^\top R_1^{-\top}$.
+Raw mean-field variational posterior SDs (`Unadj_SD`) under-cover under informative sampling both because diagonal VI ignores posterior parameter correlations and because conditioning on a single sample omits design variance under $P_\nu$. `adjust_slab_sandwich_lbbnn()` conditions on the active Median Probability Model (MPM) slab subspace so that dead paths are pruned and the Generalized Gauss--Newton bread matrix $H_1$ is invertible. It then evaluates the design-consistent score covariance meat $J_2$ (stabilized with the slab prior precision $\Lambda_{\text{prior}}$ so locally collinear ReLU hidden units revert to the prior variance rather than collapsing toward zero) using the DoF-adjusted weighted residual variance ${\hat{\sigma}_w}^2$, and transports raw mean-field draws via the affine Cholesky projection $R_2^\top R_1^{-\top}$.
 
-The summary table cleanly decomposes each source of uncertainty:
+Because this procedure conditions on a fixed MPM graph and applies an affine Gaussian transport over piecewise-linear ReLU activations, the resulting sandwich intervals are an approximation, but they effectively correct the severe under-coverage of unadjusted mean-field VI:
 
 - `Post_Mean`: Posterior MPM mean of each active slab parameter.
 - `Unadj_SD`: Naive mean-field diagonal variational SD.
-- `Hessian_SD`: Unweighted SRS baseline sandwich SD ($\sqrt{\text{diag}(H_{\text{SRS}}^{-1} J_{\text{SRS}} H_{\text{SRS}}^{-1})}$).
-- `Sandwich_SD`: Frequentist Williams--Savitsky sandwich SD ($\sqrt{\text{diag}(H_1^{-1} J_{2,\text{reg}} H_1^{-1})}$).
-- `Survey_DEFF`: Pure complex survey design effect ($\text{Sandwich\_SD}^2 / \text{Hessian\_SD}^2$).
+- `Hessian_SD`: Unweighted (SRS) curvature-adjusted baseline SD (accounting for parameter collinearity prior to survey-weight inflation).
+- `Sandwich_SD`: Frequentist Williams--Savitsky sandwich SD incorporating both parameter collinearity and complex survey design weights.
+- `Survey_DEFF`: Complex survey design effect (`Sandwich_SD^2 / Hessian_SD^2`).
 - `Sand_Low`, `Sand_High`: Calibrated $95\%$ frequentist credible bounds.
 
 ```{r step_1a_6_sandwich}
