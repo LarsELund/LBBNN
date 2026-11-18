@@ -1,901 +1,901 @@
-"seed","benchmark","method","structural_recovery","exact_law","exp_err","var_tpr","var_fpr","test_rmse","n_terms","formula"
-1,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00500973498373688,5,"1.001 * M_star^(1/3) * T^(2/3)"
-1,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.116863684666139,2,"Piecewise-linear ReLU network"
-1,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00499027963270823,1,"troot((p2(T)*M_star))"
-1,"kepler","SR-PySR",0,0,1,1,0.25,0.00604840376935662,19,"0.025 + -0.106*M_star + 0.070*(T)^2 + 0.148*sin(T) + 0.887*(M_star^0.5)*(T^0.5) + -0.000*(x8^2)*x10"
-1,"kepler","SR-Operon",1,0,0.00107314090122568,1,0,0.00500830551355142,9,"1.000*(M_star^0.333)*(T^0.667)"
-1,"kepler","Lasso",1,0,NA,1,0,0.0735552500152806,2,"0.017 + 0.304*M_star + 0.653*T"
-1,"kepler","MARS",1,0,NA,1,0,0.0153663291472392,9,"Piecewise degree-2 hinge splines"
-1,"kepler","GAM",0,0,NA,1,0.125,0.0592942115622421,8,"Additive thin-plate splines"
-1,"kepler","RandomForest",1,0,NA,1,0,0.103259354311777,300,"Black-box ensemble (300 trees)"
-2,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00518422359718909,5,"0.001 + M_star^(1/3) * T^(2/3)"
-2,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.21708730038512,1,"Piecewise-linear ReLU network"
-2,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00516478102447016,1,"troot(((T*T)*M_star))"
-2,"kepler","SR-PySR",0,0,1,1,0.25,0.00625167960302868,19,"0.126 + 0.215*T + -0.016*(M_star)^2 + -0.217*(M_star)^(1/3) + 0.892*sqrt(M_star*T) + -0.000*sin(x3*x7)"
-2,"kepler","SR-Operon",1,1,0.000433609698471671,1,0,0.00514598998168445,9,"1.000*(M_star^0.333)*(T^0.667)"
-2,"kepler","Lasso",1,0,NA,1,0,0.0704638803617725,2,"-0.015 + 0.327*M_star + 0.644*T"
-2,"kepler","MARS",1,0,NA,1,0,0.0137462952738434,8,"Piecewise degree-2 hinge splines"
-2,"kepler","GAM",0,0,NA,1,0.5,0.0578686282895616,11,"Additive thin-plate splines"
-2,"kepler","RandomForest",1,0,NA,1,0,0.124238567363509,300,"Black-box ensemble (300 trees)"
-3,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00503928573591379,5,"M_star^(1/3) * T^(2/3)"
-3,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.136299596594859,2,"Piecewise-linear ReLU network"
-3,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00505691042241337,1,"troot(((T*M_star)*T))"
-3,"kepler","SR-PySR",0,0,1,1,0.125,0.0056474180817078,23,"-0.113 + -0.035*(M_star)^2 + -0.070*sin(M_star) + 0.367*(T)^(2/3) + -0.061*sin(T) + 0.893*sqrt(M_star*T) + -0.000*sin(M_star*x9)"
-3,"kepler","SR-Operon",1,1,0.000429024584432114,1,0,0.00506400905964815,9,"1.000*(M_star^0.333)*(T^0.667)"
-3,"kepler","Lasso",1,0,NA,1,0,0.0644294982854512,2,"0.005 + 0.320*M_star + 0.638*T"
-3,"kepler","MARS",1,0,NA,1,0,0.0110514549119702,9,"Piecewise degree-2 hinge splines"
-3,"kepler","GAM",0,0,NA,1,0.25,0.0522765994795696,10,"Additive thin-plate splines"
-3,"kepler","RandomForest",1,0,NA,1,0,0.111865429665008,300,"Black-box ensemble (300 trees)"
-4,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00493478997581081,5,"M_star^(1/3) * T^(2/3)"
-4,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.132589759891666,2,"Piecewise-linear ReLU network"
-4,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00493323209315249,1,"troot((T*(M_star*T)))"
-4,"kepler","SR-PySR",0,0,1,1,0.25,0.00578775016963141,18,"-0.015 + 0.216*T + -0.035*(M_star)^2 + -0.067*sin(M_star) + 0.891*sqrt(M_star*T) + -0.000*x5*(x7^2)"
-4,"kepler","SR-Operon",1,0,0.00109460783245502,1,0,0.00498246759495814,9,"1.000*(M_star^0.333)*(T^0.667)"
-4,"kepler","Lasso",1,0,NA,1,0,0.073366781736461,2,"0.013 + 0.313*M_star + 0.644*T"
-4,"kepler","MARS",1,0,NA,1,0,0.0115082058922243,9,"Piecewise degree-2 hinge splines"
-4,"kepler","GAM",0,0,NA,1,0.375,0.0578160081552753,11,"Additive thin-plate splines"
-4,"kepler","RandomForest",1,0,NA,1,0,0.112305010537167,300,"Black-box ensemble (300 trees)"
-5,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.0046875975094434,5,"0.001 + M_star^(1/3) * T^(2/3)"
-5,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.109602763811986,2,"Piecewise-linear ReLU network"
-5,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00463374021661589,1,"troot((M_star*(T*T)))"
-5,"kepler","SR-PySR",1,0,1,1,0,0.00538997626626272,14,"-0.006 + 0.221*T + -0.048*(M_star-0.5)^2 + -0.098*sin(M_star) + 0.881*sqrt(M_star*T)"
-5,"kepler","SR-Operon",1,1,0.00054123654459648,1,0,0.00463759032936336,9,"1.000*(M_star^0.333)*(T^0.666)"
-5,"kepler","Lasso",1,0,NA,1,0,0.0713735670243503,2,"0.011 + 0.312*M_star + 0.643*T"
-5,"kepler","MARS",1,0,NA,1,0,0.0161914524635008,7,"Piecewise degree-2 hinge splines"
-5,"kepler","GAM",0,0,NA,1,0.25,0.0523380567575462,10,"Additive thin-plate splines"
-5,"kepler","RandomForest",1,0,NA,1,0,0.109111049556844,300,"Black-box ensemble (300 trees)"
-6,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00507072832353633,5,"M_star^(1/3) * T^(2/3)"
-6,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0757338076262893,2,"Piecewise-linear ReLU network"
-6,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00508557280548771,1,"troot(p2((T*p05(M_star))))"
-6,"kepler","SR-PySR",1,0,0.00557336862750379,1,0,0.00677598125034013,9,"1.000*(M_star^0.328)*(T^0.667)"
-6,"kepler","SR-Operon",1,1,0.000294243206181044,1,0,0.00508904232485488,9,"1.000*(M_star^0.334)*(T^0.667)"
-6,"kepler","Lasso",1,0,NA,1,0,0.0683185501464554,2,"-0.009 + 0.317*M_star + 0.656*T"
-6,"kepler","MARS",1,0,NA,1,0,0.0185426395562532,7,"Piecewise degree-2 hinge splines"
-6,"kepler","GAM",0,0,NA,1,0.125,0.052548288669803,8,"Additive thin-plate splines"
-6,"kepler","RandomForest",1,0,NA,1,0,0.103272171626177,300,"Black-box ensemble (300 trees)"
-7,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00531762822508274,5,"0.001 + 1 * M_star^(1/3) * T^(2/3)"
-7,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0835407261690729,2,"Piecewise-linear ReLU network"
-7,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00531762157903489,1,"troot((T*(T*M_star)))"
-7,"kepler","SR-PySR",0,0,1,1,0.125,0.00640848127787562,19,"0.013 + -0.106*M_star + 0.102*(T-0.5)^2 + 0.213*sin(T) + 0.888*sqrt(M_star*T) + -0.000*T*(x10^2)"
-7,"kepler","SR-Operon",1,1,0.000719806596305272,1,0,0.00530701628495432,9,"1.000*(M_star^0.333)*(T^0.666)"
-7,"kepler","Lasso",1,0,NA,1,0,0.0677053008755896,2,"-0.011 + 0.321*M_star + 0.655*T"
-7,"kepler","MARS",1,0,NA,1,0,0.0115735420587918,9,"Piecewise degree-2 hinge splines"
-7,"kepler","GAM",0,0,NA,1,0.125,0.0556538546044476,8,"Additive thin-plate splines"
-7,"kepler","RandomForest",1,0,NA,1,0,0.107669196142993,300,"Black-box ensemble (300 trees)"
-8,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.0053637637700929,5,"-0.001 + 1.001 * M_star^(1/3) * T^(2/3)"
-8,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.101480319954074,2,"Piecewise-linear ReLU network"
-8,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00539372047306876,1,"troot((M_star*p2(T)))"
-8,"kepler","SR-PySR",1,0,1,1,0,0.00603488577165024,13,"-0.018 + 0.218*T + -0.033*(M_star)^2 + -0.063*sin(M_star) + 0.886*sqrt(M_star*T)"
-8,"kepler","SR-Operon",1,1,0.000997767607826661,1,0,0.00535695277588,9,"0.999*(M_star^0.334)*(T^0.667)"
-8,"kepler","Lasso",0,0,NA,1,0.125,0.0644002228413526,3,"-0.017 + 0.324*M_star + 0.653*T + -0.001*x10"
-8,"kepler","MARS",1,0,NA,1,0,0.0112303130663945,9,"Piecewise degree-2 hinge splines"
-8,"kepler","GAM",0,0,NA,1,0.5,0.0521221842028387,11,"Additive thin-plate splines"
-8,"kepler","RandomForest",1,0,NA,1,0,0.098425264856093,300,"Black-box ensemble (300 trees)"
-9,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00504271279360353,5,"M_star^(1/3) * T^(2/3)"
-9,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0823784623053527,2,"Piecewise-linear ReLU network"
-9,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00504279743210146,1,"troot(((M_star*T)*T))"
-9,"kepler","SR-PySR",1,0,0.0117269127162279,1,0,0.00697808099687568,9,"1.000*(M_star^0.338)*(T^0.660)"
-9,"kepler","SR-Operon",1,1,0.000166746268214057,1,0,0.00504074146462684,9,"1.000*(M_star^0.333)*(T^0.667)"
-9,"kepler","Lasso",1,0,NA,1,0,0.0651113943262611,2,"-0.008 + 0.324*M_star + 0.650*T"
-9,"kepler","MARS",1,0,NA,1,0,0.0121483155904994,8,"Piecewise degree-2 hinge splines"
-9,"kepler","GAM",0,0,NA,1,0.25,0.0519287765948197,10,"Additive thin-plate splines"
-9,"kepler","RandomForest",1,0,NA,1,0,0.106598536934437,300,"Black-box ensemble (300 trees)"
-10,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00507547130945632,5,"M_star^(1/3) * T^(2/3)"
-10,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.118734860753012,2,"Piecewise-linear ReLU network"
-10,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00507522245100728,1,"troot(((M_star*T)*T))"
-10,"kepler","SR-PySR",0,0,1,1,0.125,0.0142601514155075,18,"-0.749 + -0.006*(M_star)^3 + 0.215*log(M_star) + 1.603*(T)^(1/3) + -0.001*cos(x3) + 0.159*M_star*T"
-10,"kepler","SR-Operon",1,1,0.000446502304306762,1,0,0.00506053815002265,9,"1.000*(M_star^0.333)*(T^0.666)"
-10,"kepler","Lasso",1,0,NA,1,0,0.0686008403581006,2,"-0.029 + 0.323*M_star + 0.658*T"
-10,"kepler","MARS",1,0,NA,1,0,0.01222164153276,8,"Piecewise degree-2 hinge splines"
-10,"kepler","GAM",0,0,NA,1,0.625,0.061053929609411,13,"Additive thin-plate splines"
-10,"kepler","RandomForest",1,0,NA,1,0,0.123340101495364,300,"Black-box ensemble (300 trees)"
-11,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00463105015069589,5,"M_star^(1/3) * T^(2/3)"
-11,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.108160553759827,2,"Piecewise-linear ReLU network"
-11,"kepler","FBMS-BGNLM",1,1,0,1,0,0.0046623588959958,1,"troot(((M_star*T)*T))"
-11,"kepler","SR-PySR",1,0,0.00571385954015508,1,0,0.00621973364896486,9,"1.000*(M_star^0.334)*(T^0.662)"
-11,"kepler","SR-Operon",1,1,0.000775075394790992,1,0,0.00469328635358532,9,"1.000*(M_star^0.333)*(T^0.667)"
-11,"kepler","Lasso",1,0,NA,1,0,0.0710885444085524,2,"-0.003 + 0.324*M_star + 0.641*T"
-11,"kepler","MARS",1,0,NA,1,0,0.0106980425346417,9,"Piecewise degree-2 hinge splines"
-11,"kepler","GAM",0,0,NA,1,0.25,0.052804099949173,10,"Additive thin-plate splines"
-11,"kepler","RandomForest",1,0,NA,1,0,0.108109088166259,300,"Black-box ensemble (300 trees)"
-12,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00478339626569171,5,"0.001 + 0.999 * M_star^(1/3) * T^(2/3)"
-12,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0745438410814289,2,"Piecewise-linear ReLU network"
-12,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00478338510052819,1,"troot((T*(T*M_star)))"
-12,"kepler","SR-PySR",1,0,1,1,0,0.00552995478964728,13,"-0.012 + 0.216*T + -0.034*(M_star)^2 + -0.070*sin(M_star) + 0.889*sqrt(M_star*T)"
-12,"kepler","SR-Operon",1,1,0.000481344406795703,1,0,0.00476875273309854,9,"1.000*(M_star^0.333)*(T^0.666)"
-12,"kepler","Lasso",1,0,NA,1,0,0.0644392283042449,2,"0.002 + 0.320*M_star + 0.642*T"
-12,"kepler","MARS",1,0,NA,1,0,0.0117484258073486,8,"Piecewise degree-2 hinge splines"
-12,"kepler","GAM",0,0,NA,1,0.25,0.0511574900239149,9,"Additive thin-plate splines"
-12,"kepler","RandomForest",1,0,NA,1,0,0.10484375223092,300,"Black-box ensemble (300 trees)"
-13,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00522622543847126,5,"0.001 + 0.999 * M_star^(1/3) * T^(2/3)"
-13,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.100935090610742,2,"Piecewise-linear ReLU network"
-13,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00522620896123446,1,"troot(((T*M_star)*T))"
-13,"kepler","SR-PySR",0,0,1,1,0.25,0.00598504974564884,23,"-0.008 + 0.218*T + -0.048*(M_star-0.5)^2 + -0.097*sin(M_star) + 0.000*(x3)^3 + 0.884*(M_star^0.5)*(T^0.5) + 0.000*T*x9"
-13,"kepler","SR-Operon",1,0,0.00149102208521867,1,0,0.00523031724260395,9,"1.000*(M_star^0.334)*(T^0.666)"
-13,"kepler","Lasso",1,0,NA,1,0,0.06858595333665,2,"-0.017 + 0.326*M_star + 0.644*T"
-13,"kepler","MARS",1,0,NA,1,0,0.0141378395446203,8,"Piecewise degree-2 hinge splines"
-13,"kepler","GAM",0,0,NA,1,0.125,0.0587535431714509,8,"Additive thin-plate splines"
-13,"kepler","RandomForest",1,0,NA,1,0,0.113779093431929,300,"Black-box ensemble (300 trees)"
-14,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00535742711671962,5,"-0.001 + 1.001 * M_star^(1/3) * T^(2/3)"
-14,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.223311345394957,1,"Piecewise-linear ReLU network"
-14,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00535742140862737,1,"troot((T*(M_star*T)))"
-14,"kepler","SR-PySR",1,0,0.00760220529291122,1,0,0.00700565823970938,9,"0.999*(M_star^0.332)*(T^0.673)"
-14,"kepler","SR-Operon",1,1,0.0007584925048989,1,0,0.00536867278175131,9,"0.999*(M_star^0.333)*(T^0.667)"
-14,"kepler","Lasso",1,0,NA,1,0,0.0732870445434944,2,"0.004 + 0.311*M_star + 0.648*T"
-14,"kepler","MARS",1,0,NA,1,0,0.0135974187665017,9,"Piecewise degree-2 hinge splines"
-14,"kepler","GAM",0,0,NA,1,0.375,0.0587874111225262,9,"Additive thin-plate splines"
-14,"kepler","RandomForest",1,0,NA,1,0,0.112499917315746,300,"Black-box ensemble (300 trees)"
-15,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00498022637825962,5,"M_star^(1/3) * T^(2/3)"
-15,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.214389006532477,1,"Piecewise-linear ReLU network"
-15,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00502903613766891,1,"troot((T*(T*M_star)))"
-15,"kepler","SR-PySR",1,0,1,1,0,0.00569058047774205,18,"-0.008 + 0.208*T + -0.035*(M_star)^2 + -0.073*sin(M_star) + 0.002*(T-0.5)^2 + 0.897*(M_star^0.5)*(T^0.5)"
-15,"kepler","SR-Operon",1,1,0.000165724673756751,1,0,0.00503138248153224,9,"1.000*(M_star^0.333)*(T^0.667)"
-15,"kepler","Lasso",1,0,NA,1,0,0.0688423551676038,2,"-0.033 + 0.332*M_star + 0.654*T"
-15,"kepler","MARS",1,0,NA,1,0,0.0143236384893261,9,"Piecewise degree-2 hinge splines"
-15,"kepler","GAM",0,0,NA,1,0.125,0.055419150079118,8,"Additive thin-plate splines"
-15,"kepler","RandomForest",1,0,NA,1,0,0.108490007113774,300,"Black-box ensemble (300 trees)"
-16,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00465471639062145,5,"0.002 + 0.999 * M_star^(1/3) * T^(2/3)"
-16,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.106785189732181,2,"Piecewise-linear ReLU network"
-16,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00465468879246017,1,"troot(((T*M_star)*T))"
-16,"kepler","SR-PySR",1,0,1,1,0,0.00568596943015407,13,"-0.014 + 0.213*T + -0.035*(M_star)^2 + -0.068*sin(M_star) + 0.895*sqrt(M_star*T)"
-16,"kepler","SR-Operon",1,0,0.0011064641232984,1,0,0.00465338860889243,9,"1.000*(M_star^0.333)*(T^0.666)"
-16,"kepler","Lasso",1,0,NA,1,0,0.0657319297603862,2,"-0.006 + 0.328*M_star + 0.638*T"
-16,"kepler","MARS",1,0,NA,1,0,0.010996006352519,9,"Piecewise degree-2 hinge splines"
-16,"kepler","GAM",1,0,NA,1,0,0.0506927031815206,8,"Additive thin-plate splines"
-16,"kepler","RandomForest",1,0,NA,1,0,0.119752941089371,300,"Black-box ensemble (300 trees)"
-17,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.0045111380306874,5,"0.001 + 0.999 * M_star^(1/3) * T^(2/3)"
-17,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0715399471362555,2,"Piecewise-linear ReLU network"
-17,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00451112043213701,1,"troot((M_star*p2(T)))"
-17,"kepler","SR-PySR",1,0,1,1,0,0.00613276723858822,20,"-0.296 + -0.020*(M_star-0.5)^2 + 0.618*sqrt(T) + -0.033*sin(T) + 0.702*sqrt(M_star*T) + 0.011*M_star*(T^2)"
-17,"kepler","SR-Operon",1,1,0.00079755033894835,1,0,0.00451328565372574,9,"1.000*(M_star^0.334)*(T^0.666)"
-17,"kepler","Lasso",1,0,NA,1,0,0.0680785456072776,2,"0.003 + 0.307*M_star + 0.651*T"
-17,"kepler","MARS",1,0,NA,1,0,0.0124790326409323,9,"Piecewise degree-2 hinge splines"
-17,"kepler","GAM",0,0,NA,1,0.125,0.0567507222313773,8,"Additive thin-plate splines"
-17,"kepler","RandomForest",1,0,NA,1,0,0.112554628715308,300,"Black-box ensemble (300 trees)"
-18,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00472458622686493,5,"-0.001 + 1 * M_star^(1/3) * T^(2/3)"
-18,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0860610596371966,2,"Piecewise-linear ReLU network"
-18,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00472464024464882,1,"(troot((T*M_star))*troot(T))"
-18,"kepler","SR-PySR",1,0,1,1,0,0.00571657995788573,13,"-0.015 + 0.212*T + -0.036*(M_star)^2 + -0.071*sin(M_star) + 0.900*sqrt(M_star*T)"
-18,"kepler","SR-Operon",1,0,0.00112002282430235,1,0,0.00475836547304038,9,"1.000*(M_star^0.333)*(T^0.667)"
-18,"kepler","Lasso",1,0,NA,1,0,0.0674911523930887,2,"-0.040 + 0.338*M_star + 0.650*T"
-18,"kepler","MARS",1,0,NA,1,0,0.0125426545665945,8,"Piecewise degree-2 hinge splines"
-18,"kepler","GAM",0,0,NA,1,0.25,0.0567807768365032,10,"Additive thin-plate splines"
-18,"kepler","RandomForest",1,0,NA,1,0,0.109974933304054,300,"Black-box ensemble (300 trees)"
-19,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00485808836297834,5,"M_star^(1/3) * T^(2/3)"
-19,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0772426247961119,2,"Piecewise-linear ReLU network"
-19,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00485834581703157,1,"troot((p2(T)*M_star))"
-19,"kepler","SR-PySR",0,0,1,1,0.125,0.00801183258518904,23,"-0.718 + -0.027*(M_star-0.5)^2 + 0.222*log(M_star) + 1.618*(T)^(1/3) + -0.053*sin(T) + 0.158*M_star*T + 0.001*sin(M_star*x4)"
-19,"kepler","SR-Operon",1,1,0.000794992231893499,1,0,0.00483748180458752,9,"1.000*(M_star^0.334)*(T^0.666)"
-19,"kepler","Lasso",1,0,NA,1,0,0.0610845602215143,2,"-0.010 + 0.317*M_star + 0.654*T"
-19,"kepler","MARS",1,0,NA,1,0,0.0166314359056577,9,"Piecewise degree-2 hinge splines"
-19,"kepler","GAM",0,0,NA,1,0.375,0.0487007072062221,12,"Additive thin-plate splines"
-19,"kepler","RandomForest",1,0,NA,1,0,0.105021047806212,300,"Black-box ensemble (300 trees)"
-20,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00488644268041156,5,"0.001 + 0.999 * M_star^(1/3) * T^(2/3)"
-20,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.138015095564463,2,"Piecewise-linear ReLU network"
-20,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00488645428079547,1,"troot(((M_star*T)*T))"
-20,"kepler","SR-PySR",1,0,0.0110560689868515,1,0,0.00710613882707861,9,"1.000*(M_star^0.326)*(T^0.671)"
-20,"kepler","SR-Operon",1,1,0.000831352227612048,1,0,0.00489087691692469,9,"1.000*(M_star^0.333)*(T^0.666)"
-20,"kepler","Lasso",1,0,NA,1,0,0.0700094731286544,2,"-0.038 + 0.333*M_star + 0.654*T"
-20,"kepler","MARS",1,0,NA,1,0,0.0110358020966828,9,"Piecewise degree-2 hinge splines"
-20,"kepler","GAM",0,0,NA,1,0.375,0.0585869125814483,10,"Additive thin-plate splines"
-20,"kepler","RandomForest",1,0,NA,1,0,0.118884944747861,300,"Black-box ensemble (300 trees)"
-21,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.005148705137507,5,"0.001 + 1 * M_star^(1/3) * T^(2/3)"
-21,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.151508526798494,2,"Piecewise-linear ReLU network"
-21,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00514870870985147,1,"troot(((T*T)*M_star))"
-21,"kepler","SR-PySR",0,0,1,1,0.125,0.00574128836770254,17,"-0.015 + 0.215*T + -0.034*(M_star)^2 + -0.067*sin(M_star) + 0.000*(x7)^(2/3) + 0.891*sqrt(M_star*T)"
-21,"kepler","SR-Operon",1,1,0.000456524994233154,1,0,0.00514560328878385,9,"1.000*(M_star^0.333)*(T^0.666)"
-21,"kepler","Lasso",1,0,NA,1,0,0.0669539350915644,2,"-0.027 + 0.334*M_star + 0.647*T"
-21,"kepler","MARS",1,0,NA,1,0,0.0143405435762385,9,"Piecewise degree-2 hinge splines"
-21,"kepler","GAM",0,0,NA,1,0.5,0.0529299573224467,12,"Additive thin-plate splines"
-21,"kepler","RandomForest",1,0,NA,1,0,0.116251756349155,300,"Black-box ensemble (300 trees)"
-22,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00466007731459316,5,"M_star^(1/3) * T^(2/3)"
-22,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0821921815248394,2,"Piecewise-linear ReLU network"
-22,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00466384449973202,1,"troot((M_star*(T*T)))"
-22,"kepler","SR-PySR",1,0,1,1,0,0.00601325244800541,14,"-0.135 + 0.112*cos(M_star) + 0.071*(T)^2 + 0.148*sin(T) + 0.880*sqrt(M_star*T)"
-22,"kepler","SR-Operon",1,1,0.000550995552018263,1,0,0.00466769582686187,9,"1.000*(M_star^0.334)*(T^0.667)"
-22,"kepler","Lasso",1,0,NA,1,0,0.0746066417670958,2,"0.009 + 0.325*M_star + 0.636*T"
-22,"kepler","MARS",1,0,NA,1,0,0.014559460010794,9,"Piecewise degree-2 hinge splines"
-22,"kepler","GAM",0,0,NA,1,0.125,0.0646021510038201,9,"Additive thin-plate splines"
-22,"kepler","RandomForest",1,0,NA,1,0,0.124419428353252,300,"Black-box ensemble (300 trees)"
-23,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00506668150144209,5,"M_star^(1/3) * T^(2/3)"
-23,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.121671852132008,2,"Piecewise-linear ReLU network"
-23,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00510202694661489,1,"troot((M_star*(T*T)))"
-23,"kepler","SR-PySR",0,0,1,1,0.125,0.00601975984243364,20,"-0.149 + 0.116*cos(M_star) + 0.102*(T-0.5)^2 + 0.211*sin(T) + 0.888*sqrt(M_star*T) + -0.002*sqrt(T*x10)"
-23,"kepler","SR-Operon",1,1,0.000688279103261413,1,0,0.00513896226866927,9,"1.000*(M_star^0.333)*(T^0.667)"
-23,"kepler","Lasso",1,0,NA,1,0,0.0689620333412067,2,"-0.002 + 0.312*M_star + 0.652*T"
-23,"kepler","MARS",1,0,NA,1,0,0.0116207486948348,9,"Piecewise degree-2 hinge splines"
-23,"kepler","GAM",0,0,NA,1,0.25,0.0548125867033791,9,"Additive thin-plate splines"
-23,"kepler","RandomForest",1,0,NA,1,0,0.106414571083286,300,"Black-box ensemble (300 trees)"
-24,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00515090974101442,5,"0.001 + 1 * M_star^(1/3) * T^(2/3)"
-24,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0804133034341318,2,"Piecewise-linear ReLU network"
-24,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00515091666310256,1,"troot((T*(T*M_star)))"
-24,"kepler","SR-PySR",1,0,1,1,0,0.00560884443099981,14,"-0.006 + 0.217*T + -0.050*(M_star-0.5)^2 + -0.103*sin(M_star) + 0.889*sqrt(M_star*T)"
-24,"kepler","SR-Operon",1,1,0.000731600457143211,1,0,0.00516979628685692,9,"1.000*(M_star^0.333)*(T^0.667)"
-24,"kepler","Lasso",1,0,NA,1,0,0.0662824323024065,2,"-0.011 + 0.331*M_star + 0.642*T"
-24,"kepler","MARS",1,0,NA,1,0,0.0131844603965791,9,"Piecewise degree-2 hinge splines"
-24,"kepler","GAM",0,0,NA,1,0.25,0.0585934605162753,9,"Additive thin-plate splines"
-24,"kepler","RandomForest",1,0,NA,1,0,0.120627342774422,300,"Black-box ensemble (300 trees)"
-25,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00488032144794682,5,"M_star^(1/3) * T^(2/3)"
-25,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.147663365741282,2,"Piecewise-linear ReLU network"
-25,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00489417232199453,1,"troot((p2(T)*M_star))"
-25,"kepler","SR-PySR",0,0,1,1,0.25,0.00540317347079242,19,"-0.009 + 0.219*T + -0.050*(M_star-0.5)^2 + -0.100*sin(M_star) + 0.887*sqrt(M_star*T) + 0.001*sqrt(x9*x10)"
-25,"kepler","SR-Operon",1,0,0.00133851835269094,1,0,0.0049270675100917,9,"1.000*(M_star^0.333)*(T^0.667)"
-25,"kepler","Lasso",1,0,NA,1,0,0.0714888025592994,2,"0.015 + 0.322*M_star + 0.631*T"
-25,"kepler","MARS",1,0,NA,1,0,0.012161628034377,9,"Piecewise degree-2 hinge splines"
-25,"kepler","GAM",0,0,NA,1,0.125,0.0536235893392442,9,"Additive thin-plate splines"
-25,"kepler","RandomForest",1,0,NA,1,0,0.114990946245577,300,"Black-box ensemble (300 trees)"
-26,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00529247720838893,5,"M_star^(1/3) * T^(2/3)"
-26,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0993170473554182,2,"Piecewise-linear ReLU network"
-26,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00527273494401452,1,"troot((T*(T*M_star)))"
-26,"kepler","SR-PySR",0,0,1,1,0.375,0.00555573520766291,23,"-0.007 + 0.222*T + -0.047*(M_star-0.5)^2 + -0.095*sin(M_star) + -0.002*1/(1+x4) + 0.877*sqrt(M_star*T) + 0.000*x3*(x7^2)"
-26,"kepler","SR-Operon",1,1,0.000131885367433471,1,0,0.00527688400362952,9,"1.000*(M_star^0.333)*(T^0.667)"
-26,"kepler","Lasso",1,0,NA,1,0,0.0713604994480796,2,"-0.005 + 0.313*M_star + 0.651*T"
-26,"kepler","MARS",1,0,NA,1,0,0.0114075995201143,8,"Piecewise degree-2 hinge splines"
-26,"kepler","GAM",0,0,NA,1,0.375,0.0542109511121656,10,"Additive thin-plate splines"
-26,"kepler","RandomForest",1,0,NA,1,0,0.11734195814266,300,"Black-box ensemble (300 trees)"
-27,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00504818032455429,5,"-0.001 + 1.001 * M_star^(1/3) * T^(2/3)"
-27,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.07724518334678,2,"Piecewise-linear ReLU network"
-27,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00504793298371533,1,"troot((T*(M_star*T)))"
-27,"kepler","SR-PySR",1,0,1,1,0,0.00760829710535611,15,"0.317 + -0.055*(M_star-0.5)^2 + -0.117*sin(M_star) + -0.228*cos(T) + 0.913*sqrt(M_star*T)"
-27,"kepler","SR-Operon",1,0,0.00130269764693525,1,0,0.00498642987114964,9,"1.000*(M_star^0.333)*(T^0.667)"
-27,"kepler","Lasso",1,0,NA,1,0,0.0602237596774956,2,"-0.010 + 0.319*M_star + 0.650*T"
-27,"kepler","MARS",1,0,NA,1,0,0.0134115966289905,9,"Piecewise degree-2 hinge splines"
-27,"kepler","GAM",0,0,NA,1,0.125,0.0521289950831492,8,"Additive thin-plate splines"
-27,"kepler","RandomForest",1,0,NA,1,0,0.118461212528353,300,"Black-box ensemble (300 trees)"
-28,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.0051960288601529,5,"M_star^(1/3) * T^(2/3)"
-28,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.091384207630303,2,"Piecewise-linear ReLU network"
-28,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00520962162013423,1,"troot((T*(T*M_star)))"
-28,"kepler","SR-PySR",1,0,0.0223161632245554,1,0,0.0111312978652231,9,"1.000*(M_star^0.325)*(T^0.680)"
-28,"kepler","SR-Operon",1,1,0.000470665991410824,1,0,0.00521465723543056,9,"1.000*(M_star^0.334)*(T^0.666)"
-28,"kepler","Lasso",1,0,NA,1,0,0.0658014235979689,2,"0.014 + 0.300*M_star + 0.651*T"
-28,"kepler","MARS",1,0,NA,1,0,0.00969170509493492,8,"Piecewise degree-2 hinge splines"
-28,"kepler","GAM",0,0,NA,1,0.125,0.0539535607117663,9,"Additive thin-plate splines"
-28,"kepler","RandomForest",1,0,NA,1,0,0.107892613346949,300,"Black-box ensemble (300 trees)"
-29,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00492563675645159,5,"-0.001 + 1 * M_star^(1/3) * T^(2/3)"
-29,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.162774557873234,4,"Piecewise-linear ReLU network"
-29,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00492561631533679,1,"troot(((T*T)*M_star))"
-29,"kepler","SR-PySR",0,0,1,1,0.375,0.00594798706674711,22,"-0.015 + 0.214*T + -0.035*(M_star)^2 + -0.069*sin(M_star) + -0.000*sin(x9) + 0.895*(M_star^0.5)*(T^0.5) + 0.000*sin(x4*x5)"
-29,"kepler","SR-Operon",1,1,0.000690637477817058,1,0,0.00494411954329128,9,"1.000*(M_star^0.334)*(T^0.667)"
-29,"kepler","Lasso",1,0,NA,1,0,0.0712774861310491,2,"-0.016 + 0.326*M_star + 0.645*T"
-29,"kepler","MARS",1,0,NA,1,0,0.0127215097937376,9,"Piecewise degree-2 hinge splines"
-29,"kepler","GAM",0,0,NA,1,0.5,0.0592886455264711,11,"Additive thin-plate splines"
-29,"kepler","RandomForest",1,0,NA,1,0,0.11683572663865,300,"Black-box ensemble (300 trees)"
-30,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00510070144798271,5,"0.001 + M_star^(1/3) * T^(2/3)"
-30,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0948881634151108,2,"Piecewise-linear ReLU network"
-30,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00508104420193985,1,"troot((M_star*p2(T)))"
-30,"kepler","SR-PySR",1,0,1,1,0,0.00588897231412101,13,"-0.014 + 0.215*T + -0.034*(M_star)^2 + -0.068*sin(M_star) + 0.892*sqrt(M_star*T)"
-30,"kepler","SR-Operon",1,1,0.000416850481182951,1,0,0.00507876026600209,9,"1.000*(M_star^0.333)*(T^0.666)"
-30,"kepler","Lasso",1,0,NA,1,0,0.0718430102069902,2,"-0.012 + 0.332*M_star + 0.638*T"
-30,"kepler","MARS",1,0,NA,1,0,0.0126032849677559,8,"Piecewise degree-2 hinge splines"
-30,"kepler","GAM",0,0,NA,1,0.125,0.058219662651388,8,"Additive thin-plate splines"
-30,"kepler","RandomForest",1,0,NA,1,0,0.100385127067519,300,"Black-box ensemble (300 trees)"
-31,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00537452337028278,5,"-0.001 + 1.001 * M_star^(1/3) * T^(2/3)"
-31,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.173184986146943,2,"Piecewise-linear ReLU network"
-31,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00537454604741119,1,"troot((T*(M_star*T)))"
-31,"kepler","SR-PySR",1,0,1,1,0,0.00633798747809332,13,"-0.016 + 0.215*T + -0.035*(M_star)^2 + -0.069*sin(M_star) + 0.894*sqrt(M_star*T)"
-31,"kepler","SR-Operon",1,0,0.00100497236054059,1,0,0.00543011539880311,9,"0.999*(M_star^0.333)*(T^0.668)"
-31,"kepler","Lasso",1,0,NA,1,0,0.0733120717062162,2,"0.018 + 0.319*M_star + 0.635*T"
-31,"kepler","MARS",1,0,NA,1,0,0.0134267165070908,9,"Piecewise degree-2 hinge splines"
-31,"kepler","GAM",0,0,NA,1,0.5,0.0567759351593889,11,"Additive thin-plate splines"
-31,"kepler","RandomForest",1,0,NA,1,0,0.0950155014966675,300,"Black-box ensemble (300 trees)"
-32,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00489998367202024,5,"M_star^(1/3) * T^(2/3)"
-32,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0847096921137878,2,"Piecewise-linear ReLU network"
-32,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00493376340096196,1,"troot((T*(M_star*T)))"
-32,"kepler","SR-PySR",1,0,0.0128830543297465,1,0,0.0114420096580623,9,"1.000*(M_star^0.335)*(T^0.678)"
-32,"kepler","SR-Operon",1,1,0.000383351392203857,1,0,0.00493348075993443,9,"1.000*(M_star^0.334)*(T^0.667)"
-32,"kepler","Lasso",1,0,NA,1,0,0.0649964092785265,2,"0.009 + 0.319*M_star + 0.637*T"
-32,"kepler","MARS",1,0,NA,1,0,0.0109890704416141,8,"Piecewise degree-2 hinge splines"
-32,"kepler","GAM",0,0,NA,1,0.375,0.049750433989516,12,"Additive thin-plate splines"
-32,"kepler","RandomForest",1,0,NA,1,0,0.10939856595898,300,"Black-box ensemble (300 trees)"
-33,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00507941958861392,5,"M_star^(1/3) * T^(2/3)"
-33,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0762761632668891,2,"Piecewise-linear ReLU network"
-33,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00507469884932866,1,"troot(((M_star*T)*T))"
-33,"kepler","SR-PySR",1,0,1,1,0,0.00573032586963198,14,"0.025 + -0.107*M_star + 0.069*(T)^2 + 0.145*sin(T) + 0.890*(M_star^0.5)*(T^0.5)"
-33,"kepler","SR-Operon",1,1,0.000389540323077031,1,0,0.00508241681657436,9,"1.000*(M_star^0.333)*(T^0.666)"
-33,"kepler","Lasso",1,0,NA,1,0,0.0702000835299411,2,"0.017 + 0.310*M_star + 0.642*T"
-33,"kepler","MARS",1,0,NA,1,0,0.00953028675298164,9,"Piecewise degree-2 hinge splines"
-33,"kepler","GAM",0,0,NA,1,0.125,0.0553979682687351,8,"Additive thin-plate splines"
-33,"kepler","RandomForest",1,0,NA,1,0,0.108563877861626,300,"Black-box ensemble (300 trees)"
-34,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00473573295932873,5,"M_star^(1/3) * T^(2/3)"
-34,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.264637718561027,1,"Piecewise-linear ReLU network"
-34,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00471033074330473,1,"troot(((M_star*T)*T))"
-34,"kepler","SR-PySR",1,0,1,1,0,0.00552227784767861,13,"-0.015 + 0.216*T + -0.034*(M_star)^2 + -0.068*sin(M_star) + 0.891*sqrt(M_star*T)"
-34,"kepler","SR-Operon",1,1,1.98916772175539e-05,1,0,0.00470911918942807,9,"1.000*(M_star^0.333)*(T^0.667)"
-34,"kepler","Lasso",1,0,NA,1,0,0.0708041724005108,2,"-0.003 + 0.322*M_star + 0.646*T"
-34,"kepler","MARS",1,0,NA,1,0,0.0109909783048053,9,"Piecewise degree-2 hinge splines"
-34,"kepler","GAM",0,0,NA,1,0.25,0.05622631864776,9,"Additive thin-plate splines"
-34,"kepler","RandomForest",1,0,NA,1,0,0.112707570294269,300,"Black-box ensemble (300 trees)"
-35,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00478837052194054,5,"M_star^(1/3) * T^(2/3)"
-35,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.202451416090652,1,"Piecewise-linear ReLU network"
-35,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00484177079293552,1,"troot(((T*T)*M_star))"
-35,"kepler","SR-PySR",0,0,1,1,0.25,0.00575848840196084,17,"0.030 + -0.114*M_star + 0.067*(T)^2 + 0.135*sin(T) + 0.904*sqrt(M_star*T) + -0.000*x4*x8"
-35,"kepler","SR-Operon",1,1,0.000111575417972409,1,0,0.00483209049083424,9,"1.000*(M_star^0.333)*(T^0.667)"
-35,"kepler","Lasso",1,0,NA,1,0,0.0661889401547647,2,"0.011 + 0.308*M_star + 0.652*T"
-35,"kepler","MARS",1,0,NA,1,0,0.0129479626624594,9,"Piecewise degree-2 hinge splines"
-35,"kepler","GAM",0,0,NA,1,0.125,0.0516418098459707,10,"Additive thin-plate splines"
-35,"kepler","RandomForest",1,0,NA,1,0,0.114018344583131,300,"Black-box ensemble (300 trees)"
-36,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00517514185485951,5,"M_star^(1/3) * T^(2/3)"
-36,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0834665034013522,2,"Piecewise-linear ReLU network"
-36,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00516502286072455,1,"troot(((M_star*T)*T))"
-36,"kepler","SR-PySR",1,0,1,1,0,0.00730200555510794,15,"0.315 + -0.057*(M_star-0.5)^2 + -0.122*sin(M_star) + -0.223*cos(T) + 0.919*sqrt(M_star*T)"
-36,"kepler","SR-Operon",1,1,0.000749858616375831,1,0,0.00516914597082613,9,"1.000*(M_star^0.333)*(T^0.667)"
-36,"kepler","Lasso",1,0,NA,1,0,0.0687679849289496,2,"-0.003 + 0.321*M_star + 0.646*T"
-36,"kepler","MARS",1,0,NA,1,0,0.0103961277158264,9,"Piecewise degree-2 hinge splines"
-36,"kepler","GAM",0,0,NA,1,0.125,0.0541995508963945,9,"Additive thin-plate splines"
-36,"kepler","RandomForest",1,0,NA,1,0,0.103383696856274,300,"Black-box ensemble (300 trees)"
-37,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00520280977718167,5,"M_star^(1/3) * T^(2/3)"
-37,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0864247611771846,2,"Piecewise-linear ReLU network"
-37,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00519651028068847,1,"troot((M_star*(T*T)))"
-37,"kepler","SR-PySR",0,0,1,1,0.125,0.00561163706089442,20,"-0.015 + 0.218*T + -0.033*(M_star)^2 + -0.066*sin(M_star) + 0.887*(M_star^0.5)*(T^0.5) + 0.000*sin(pi*T*x6)"
-37,"kepler","SR-Operon",1,1,0.000126821281268397,1,0,0.00519520017761212,9,"1.000*(M_star^0.333)*(T^0.667)"
-37,"kepler","Lasso",1,0,NA,1,0,0.0754028652612538,2,"0.015 + 0.320*M_star + 0.634*T"
-37,"kepler","MARS",1,0,NA,1,0,0.0119123193883169,9,"Piecewise degree-2 hinge splines"
-37,"kepler","GAM",0,0,NA,1,0.125,0.0569502208359183,8,"Additive thin-plate splines"
-37,"kepler","RandomForest",1,0,NA,1,0,0.114000140794161,300,"Black-box ensemble (300 trees)"
-38,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00522626535816057,5,"-0.002 + 1.001 * M_star^(1/3) * T^(2/3)"
-38,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0660995457323812,2,"Piecewise-linear ReLU network"
-38,"kepler","FBMS-BGNLM",1,1,0,1,0,0.0052262590454867,1,"troot((T*(M_star*T)))"
-38,"kepler","SR-PySR",0,0,1,1,0.25,0.00577069451421593,19,"-0.018 + 0.216*T + -0.035*(M_star)^2 + -0.068*sin(M_star) + 0.894*(M_star^0.5)*(T^0.5) + 0.000*sin(x3*x8)"
-38,"kepler","SR-Operon",1,1,0.000982936944822876,1,0,0.00521969249822652,9,"1.000*(M_star^0.333)*(T^0.667)"
-38,"kepler","Lasso",1,0,NA,1,0,0.0662387582744469,2,"-0.001 + 0.331*M_star + 0.638*T"
-38,"kepler","MARS",1,0,NA,1,0,0.00996886448841809,9,"Piecewise degree-2 hinge splines"
-38,"kepler","GAM",1,0,NA,1,0,0.0549020065735758,8,"Additive thin-plate splines"
-38,"kepler","RandomForest",1,0,NA,1,0,0.100698554456602,300,"Black-box ensemble (300 trees)"
-39,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00514235423787003,5,"-0.002 + 1.001 * M_star^(1/3) * T^(2/3)"
-39,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0878168807540552,2,"Piecewise-linear ReLU network"
-39,"kepler","FBMS-BGNLM",1,1,0,1,0,0.0051424035130031,1,"troot(((T*T)*M_star))"
-39,"kepler","SR-PySR",0,0,1,1,0.25,0.00567651192132108,24,"-0.016 + 0.214*T + -0.035*(M_star)^2 + -0.071*sin(M_star) + 0.895*(M_star^0.5)*(T^0.5) + 0.000*sqrt(T*x4) + 0.000*sin(T*x8)"
-39,"kepler","SR-Operon",1,0,0.00128204917281893,1,0,0.00519834447213165,9,"1.000*(M_star^0.334)*(T^0.667)"
-39,"kepler","Lasso",1,0,NA,1,0,0.069814044614916,2,"0.009 + 0.325*M_star + 0.630*T"
-39,"kepler","MARS",1,0,NA,1,0,0.0117019701250083,9,"Piecewise degree-2 hinge splines"
-39,"kepler","GAM",0,0,NA,1,0.25,0.0568335749857707,11,"Additive thin-plate splines"
-39,"kepler","RandomForest",1,0,NA,1,0,0.119246350305408,300,"Black-box ensemble (300 trees)"
-40,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00522341355949168,5,"M_star^(1/3) * T^(2/3)"
-40,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.105341495554214,2,"Piecewise-linear ReLU network"
-40,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00525570553012774,1,"troot((T*(M_star*T)))"
-40,"kepler","SR-PySR",1,0,1,1,0,0.00590256564686003,14,"-0.009 + 0.219*T + -0.049*(M_star-0.5)^2 + -0.098*sin(M_star) + 0.884*sqrt(M_star*T)"
-40,"kepler","SR-Operon",1,1,0.000801418377895935,1,0,0.00533174849122781,9,"1.000*(M_star^0.333)*(T^0.667)"
-40,"kepler","Lasso",1,0,NA,1,0,0.0673975995378864,2,"-0.003 + 0.325*M_star + 0.641*T"
-40,"kepler","MARS",1,0,NA,1,0,0.0125011420513388,9,"Piecewise degree-2 hinge splines"
-40,"kepler","GAM",0,0,NA,1,0.5,0.0541980044191236,11,"Additive thin-plate splines"
-40,"kepler","RandomForest",1,0,NA,1,0,0.114859501914573,300,"Black-box ensemble (300 trees)"
-41,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00466993962822645,5,"M_star^(1/3) * T^(2/3)"
-41,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.093973485042075,2,"Piecewise-linear ReLU network"
-41,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00467964943895751,1,"troot(((T*M_star)*T))"
-41,"kepler","SR-PySR",0,0,1,1,0.125,0.00737642019155134,19,"0.076 + -0.170*(M_star)^(2/3) + 0.105*(T-0.5)^2 + 0.222*sin(T) + -0.000*log(x8) + 0.878*sqrt(M_star*T)"
-41,"kepler","SR-Operon",1,1,0.000446563048519921,1,0,0.00469486190965612,9,"1.000*(M_star^0.333)*(T^0.667)"
-41,"kepler","Lasso",1,0,NA,1,0,0.0665689205227029,2,"-0.013 + 0.306*M_star + 0.672*T"
-41,"kepler","MARS",1,0,NA,1,0,0.0172936703156867,7,"Piecewise degree-2 hinge splines"
-41,"kepler","GAM",0,0,NA,1,0.125,0.0548134915210252,8,"Additive thin-plate splines"
-41,"kepler","RandomForest",1,0,NA,1,0,0.102270617691624,300,"Black-box ensemble (300 trees)"
-42,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00502882352129385,5,"-0.001 + 1.001 * M_star^(1/3) * T^(2/3)"
-42,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0718393770625443,2,"Piecewise-linear ReLU network"
-42,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00502881813868902,1,"troot(((T*T)*M_star))"
-42,"kepler","SR-PySR",1,0,1,1,0,0.00607084775035436,19,"0.065 + -0.176*(M_star)^(2/3) + 0.034*sin(M_star) + 0.070*(T)^2 + 0.150*sin(T) + 0.884*(M_star^0.5)*(T^0.5)"
-42,"kepler","SR-Operon",1,1,0.000516260591697126,1,0,0.00502392220506048,9,"1.000*(M_star^0.334)*(T^0.667)"
-42,"kepler","Lasso",0,0,NA,1,0.125,0.0665301408193947,3,"-0.031 + 0.332*M_star + 0.657*T + -0.003*x6"
-42,"kepler","MARS",1,0,NA,1,0,0.0197515524431728,7,"Piecewise degree-2 hinge splines"
-42,"kepler","GAM",0,0,NA,1,0.375,0.0576147565147991,11,"Additive thin-plate splines"
-42,"kepler","RandomForest",1,0,NA,1,0,0.122306261853213,300,"Black-box ensemble (300 trees)"
-43,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00503718239124592,5,"0.001 + 0.999 * M_star^(1/3) * T^(2/3)"
-43,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.17519377951286,2,"Piecewise-linear ReLU network"
-43,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00503718326128205,1,"troot(((T*M_star)*T))"
-43,"kepler","SR-PySR",1,0,1,1,0,0.00674113135430477,18,"-0.149 + -0.005*(M_star)^3 + 0.449*(T)^(2/3) + 0.693*sqrt(M_star*T) + 0.011*M_star*(T^2)"
-43,"kepler","SR-Operon",1,1,0.000818281926029729,1,0,0.00503343870925797,9,"1.000*(M_star^0.333)*(T^0.666)"
-43,"kepler","Lasso",1,0,NA,1,0,0.0777553608361267,2,"0.015 + 0.305*M_star + 0.649*T"
-43,"kepler","MARS",1,0,NA,1,0,0.0117466586875208,8,"Piecewise degree-2 hinge splines"
-43,"kepler","GAM",0,0,NA,1,0.5,0.0607297168458537,12,"Additive thin-plate splines"
-43,"kepler","RandomForest",1,0,NA,1,0,0.113762364555243,300,"Black-box ensemble (300 trees)"
-44,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00511043800297671,5,"M_star^(1/3) * T^(2/3)"
-44,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.123839685515895,2,"Piecewise-linear ReLU network"
-44,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00512149179359597,1,"troot(((M_star*T)*T))"
-44,"kepler","SR-PySR",1,0,1,1,0,0.00588206599030922,14,"-0.010 + 0.220*T + -0.048*(M_star-0.5)^2 + -0.095*sin(M_star) + 0.882*sqrt(M_star*T)"
-44,"kepler","SR-Operon",1,1,0.000667700375027336,1,0,0.00510802076787899,9,"1.000*(M_star^0.334)*(T^0.666)"
-44,"kepler","Lasso",1,0,NA,1,0,0.0719689825106109,2,"0.013 + 0.312*M_star + 0.641*T"
-44,"kepler","MARS",1,0,NA,1,0,0.0119881676045617,8,"Piecewise degree-2 hinge splines"
-44,"kepler","GAM",0,0,NA,1,0.5,0.0524391456759203,11,"Additive thin-plate splines"
-44,"kepler","RandomForest",1,0,NA,1,0,0.0936634143486536,300,"Black-box ensemble (300 trees)"
-45,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00468217526583936,5,"M_star^(1/3) * T^(2/3)"
-45,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.108259379901713,2,"Piecewise-linear ReLU network"
-45,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00469525535403535,1,"troot((p2(T)*M_star))"
-45,"kepler","SR-PySR",1,0,1,1,0,0.0052069590905203,13,"-0.015 + 0.216*T + -0.034*(M_star)^2 + -0.069*sin(M_star) + 0.892*sqrt(M_star*T)"
-45,"kepler","SR-Operon",1,1,0.000263220770265304,1,0,0.00468820304016052,9,"1.000*(M_star^0.333)*(T^0.667)"
-45,"kepler","Lasso",1,0,NA,1,0,0.0624531012169792,2,"-0.015 + 0.329*M_star + 0.644*T"
-45,"kepler","MARS",1,0,NA,1,0,0.010029843736524,9,"Piecewise degree-2 hinge splines"
-45,"kepler","GAM",0,0,NA,1,0.375,0.0541659216465152,10,"Additive thin-plate splines"
-45,"kepler","RandomForest",1,0,NA,1,0,0.116006065317136,300,"Black-box ensemble (300 trees)"
-46,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00502893464276479,5,"0.001 + 0.999 * M_star^(1/3) * T^(2/3)"
-46,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0717693655583794,2,"Piecewise-linear ReLU network"
-46,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00502925785236104,1,"troot((T*(T*M_star)))"
-46,"kepler","SR-PySR",0,0,1,1,0.125,0.00554619873742446,17,"-0.008 + 0.216*T + -0.049*(M_star-0.5)^2 + -0.098*sin(M_star) + -0.000*cos(x7) + 0.887*sqrt(M_star*T)"
-46,"kepler","SR-Operon",1,0,0.00156357714414673,1,0,0.0050889260685583,9,"1.000*(M_star^0.334)*(T^0.666)"
-46,"kepler","Lasso",1,0,NA,1,0,0.0590103946178837,2,"0.021 + 0.317*M_star + 0.633*T"
-46,"kepler","MARS",1,0,NA,1,0,0.0154996656654478,9,"Piecewise degree-2 hinge splines"
-46,"kepler","GAM",0,0,NA,1,0.375,0.0575996757785946,11,"Additive thin-plate splines"
-46,"kepler","RandomForest",1,0,NA,1,0,0.121678113377291,300,"Black-box ensemble (300 trees)"
-47,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00520030997664058,5,"-0.002 + 1.001 * M_star^(1/3) * T^(2/3)"
-47,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.126313588286705,2,"Piecewise-linear ReLU network"
-47,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00525422211617194,1,"troot(((T*T)*M_star))"
-47,"kepler","SR-PySR",1,0,1,1,0,0.00761161926341206,15,"0.100 + -0.191*(M_star)^(2/3) + 0.066*(T)^2 + 0.137*sin(T) + 0.907*sqrt(M_star*T)"
-47,"kepler","SR-Operon",1,0,0.0011973798463481,1,0,0.00522137658351555,9,"0.999*(M_star^0.334)*(T^0.667)"
-47,"kepler","Lasso",1,0,NA,1,0,0.0620891997728732,2,"-0.011 + 0.314*M_star + 0.658*T"
-47,"kepler","MARS",1,0,NA,1,0,0.0164127385124788,9,"Piecewise degree-2 hinge splines"
-47,"kepler","GAM",0,0,NA,1,0.25,0.0591213702977777,10,"Additive thin-plate splines"
-47,"kepler","RandomForest",1,0,NA,1,0,0.109170914400149,300,"Black-box ensemble (300 trees)"
-48,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00522319439184603,5,"0.002 + 0.999 * M_star^(1/3) * T^(2/3)"
-48,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0853225798986379,2,"Piecewise-linear ReLU network"
-48,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00522317248170534,1,"troot(((T*M_star)*T))"
-48,"kepler","SR-PySR",1,0,1,1,0,0.00622431495691391,13,"-0.017 + 0.218*T + -0.034*(M_star)^2 + -0.062*sin(M_star) + 0.886*sqrt(M_star*T)"
-48,"kepler","SR-Operon",1,0,0.00131815581898331,1,0,0.00520116955906236,9,"1.001*(M_star^0.333)*(T^0.666)"
-48,"kepler","Lasso",1,0,NA,1,0,0.0715267755822572,2,"0.012 + 0.314*M_star + 0.643*T"
-48,"kepler","MARS",1,0,NA,1,0,0.013691838664374,9,"Piecewise degree-2 hinge splines"
-48,"kepler","GAM",0,0,NA,1,0.125,0.0574256685749298,10,"Additive thin-plate splines"
-48,"kepler","RandomForest",1,0,NA,1,0,0.112623534740009,300,"Black-box ensemble (300 trees)"
-49,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00547705295285532,5,"1 * M_star^(1/3) * T^(2/3)"
-49,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.121128044499682,2,"Piecewise-linear ReLU network"
-49,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00553471398235001,1,"troot((M_star*(T*T)))"
-49,"kepler","SR-PySR",0,0,1,1,0.5,0.00845679045323191,23,"0.096 + -0.179*(M_star)^(2/3) + 0.069*(T)^2 + 0.141*sin(T) + 0.892*sqrt(M_star*T) + 0.000*x3*x8 + 0.000*x4*x7"
-49,"kepler","SR-Operon",1,1,0.000210644178494146,1,0,0.00553327931890562,9,"1.001*(M_star^0.333)*(T^0.667)"
-49,"kepler","Lasso",1,0,NA,1,0,0.0767784505804779,2,"0.014 + 0.311*M_star + 0.646*T"
-49,"kepler","MARS",1,0,NA,1,0,0.0180224012779328,7,"Piecewise degree-2 hinge splines"
-49,"kepler","GAM",0,0,NA,1,0.25,0.0602212649553789,9,"Additive thin-plate splines"
-49,"kepler","RandomForest",1,0,NA,1,0,0.109798599824699,300,"Black-box ensemble (300 trees)"
-50,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00492391718241509,5,"M_star^(1/3) * T^(2/3)"
-50,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.082829567633502,2,"Piecewise-linear ReLU network"
-50,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00493256289135862,1,"troot((T*(M_star*T)))"
-50,"kepler","SR-PySR",0,0,1,1,0.125,0.00765574230711596,19,"0.080 + -0.182*(M_star)^(2/3) + 0.100*(T-0.5)^2 + 0.210*sin(T) + 0.000*(x9)^2 + 0.897*sqrt(M_star*T)"
-50,"kepler","SR-Operon",1,1,0.000870249065810236,1,0,0.00494901262420822,9,"1.000*(M_star^0.333)*(T^0.667)"
-50,"kepler","Lasso",1,0,NA,1,0,0.0681812251249884,2,"0.009 + 0.316*M_star + 0.640*T"
-50,"kepler","MARS",1,0,NA,1,0,0.0113128868864433,8,"Piecewise degree-2 hinge splines"
-50,"kepler","GAM",0,0,NA,1,0.25,0.0590291053690579,9,"Additive thin-plate splines"
-50,"kepler","RandomForest",1,0,NA,1,0,0.115674285772981,300,"Black-box ensemble (300 trees)"
-51,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00467419010305735,5,"M_star^(1/3) * T^(2/3)"
-51,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.100642304418558,2,"Piecewise-linear ReLU network"
-51,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00468162313199975,1,"troot(((T*M_star)*T))"
-51,"kepler","SR-PySR",1,0,1,1,0,0.00600691306076377,15,"-0.003 + 0.213*T + -0.052*(M_star-0.5)^2 + -0.111*sin(M_star) + 0.897*(M_star^0.5)*(T^0.5)"
-51,"kepler","SR-Operon",1,0,0.00129008725116786,1,0,0.00467189257883355,9,"1.000*(M_star^0.333)*(T^0.667)"
-51,"kepler","Lasso",1,0,NA,1,0,0.0707745174120181,2,"-0.002 + 0.336*M_star + 0.631*T"
-51,"kepler","MARS",1,0,NA,1,0,0.012051971503986,9,"Piecewise degree-2 hinge splines"
-51,"kepler","GAM",0,0,NA,1,0.125,0.058589838364202,9,"Additive thin-plate splines"
-51,"kepler","RandomForest",1,0,NA,1,0,0.123956357474392,300,"Black-box ensemble (300 trees)"
-52,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00480250972693952,5,"M_star^(1/3) * T^(2/3)"
-52,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0944673206481039,2,"Piecewise-linear ReLU network"
-52,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00484430531399407,1,"troot(((T*M_star)*T))"
-52,"kepler","SR-PySR",1,0,1,1,0,0.00580396239348601,14,"0.011 + -0.106*M_star + 0.101*(T-0.5)^2 + 0.211*sin(T) + 0.890*sqrt(M_star*T)"
-52,"kepler","SR-Operon",1,1,0.000364420147319022,1,0,0.0048712809326613,9,"1.000*(M_star^0.333)*(T^0.667)"
-52,"kepler","Lasso",1,0,NA,1,0,0.0741480305048007,2,"-0.002 + 0.317*M_star + 0.644*T"
-52,"kepler","MARS",1,0,NA,1,0,0.0109052572867352,9,"Piecewise degree-2 hinge splines"
-52,"kepler","GAM",0,0,NA,1,0.25,0.0624187659555143,9,"Additive thin-plate splines"
-52,"kepler","RandomForest",1,0,NA,1,0,0.126846825521913,300,"Black-box ensemble (300 trees)"
-53,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00450510301152687,5,"0.001 + 0.999 * M_star^(1/3) * T^(2/3)"
-53,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0979709850927968,2,"Piecewise-linear ReLU network"
-53,"kepler","FBMS-BGNLM",1,1,0,1,0,0.0045050900368441,1,"troot(((M_star*T)*T))"
-53,"kepler","SR-PySR",1,0,1,1,0,0.00504111540399207,14,"-0.005 + 0.215*T + -0.050*(M_star-0.5)^2 + -0.105*sin(M_star) + 0.890*sqrt(M_star*T)"
-53,"kepler","SR-Operon",1,1,0.000883683132874513,1,0,0.00451178591270797,9,"1.000*(M_star^0.333)*(T^0.666)"
-53,"kepler","Lasso",1,0,NA,1,0,0.0658350233133058,2,"-0.013 + 0.328*M_star + 0.646*T"
-53,"kepler","MARS",1,0,NA,1,0,0.0107082682361177,9,"Piecewise degree-2 hinge splines"
-53,"kepler","GAM",0,0,NA,1,0.375,0.0554332613038924,11,"Additive thin-plate splines"
-53,"kepler","RandomForest",1,0,NA,1,0,0.114775865725944,300,"Black-box ensemble (300 trees)"
-54,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.0049465339214003,5,"-0.001 + 1.001 * M_star^(1/3) * T^(2/3)"
-54,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0664687222451824,2,"Piecewise-linear ReLU network"
-54,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00494658801099554,1,"troot(((T*T)*M_star))"
-54,"kepler","SR-PySR",1,0,1,1,0,0.0132555730797747,23,"-0.289 + -0.712*T + 0.304*log(M_star) + -0.001*(T)^3 + 1.995*(T)^(2/3) + -0.031*sin(M_star*T) + 0.040*M_star*(T^2)"
-54,"kepler","SR-Operon",1,1,0.000765299292511956,1,0,0.00500547292556964,9,"1.000*(M_star^0.334)*(T^0.667)"
-54,"kepler","Lasso",1,0,NA,1,0,0.0650799912886513,2,"-0.009 + 0.321*M_star + 0.648*T"
-54,"kepler","MARS",1,0,NA,1,0,0.0123201795193635,8,"Piecewise degree-2 hinge splines"
-54,"kepler","GAM",1,0,NA,1,0,0.0531969455632323,8,"Additive thin-plate splines"
-54,"kepler","RandomForest",1,0,NA,1,0,0.108433754652763,300,"Black-box ensemble (300 trees)"
-55,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00574051271776164,5,"0.002 + 0.999 * M_star^(1/3) * T^(2/3)"
-55,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.100695260499676,2,"Piecewise-linear ReLU network"
-55,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00574049361339161,1,"troot(((M_star*T)*T))"
-55,"kepler","SR-PySR",0,0,1,1,0.25,0.00640197733428946,20,"-0.010 + 0.213*T + -0.035*(M_star)^2 + -0.072*sin(M_star) + 0.893*(M_star^0.5)*(T^0.5) + -0.000*sin(pi*x6*x7)"
-55,"kepler","SR-Operon",1,1,0.000941922281307184,1,0,0.00573158723483629,9,"1.000*(M_star^0.333)*(T^0.666)"
-55,"kepler","Lasso",1,0,NA,1,0,0.0716798784593516,2,"0.021 + 0.308*M_star + 0.640*T"
-55,"kepler","MARS",1,0,NA,1,0,0.0126274854988055,8,"Piecewise degree-2 hinge splines"
-55,"kepler","GAM",0,0,NA,1,0.375,0.0596557015590048,10,"Additive thin-plate splines"
-55,"kepler","RandomForest",1,0,NA,1,0,0.122736930488896,300,"Black-box ensemble (300 trees)"
-56,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00505358145204409,5,"0.001 + 0.999 * M_star^(1/3) * T^(2/3)"
-56,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.14088723543385,2,"Piecewise-linear ReLU network"
-56,"kepler","FBMS-BGNLM",1,1,0,1,0,0.0050536401738433,1,"troot((p2(T)*M_star))"
-56,"kepler","SR-PySR",1,0,1,1,0,0.00594557252815732,14,"-0.011 + 0.208*T + -0.037*(M_star)^2 + -0.077*sin(M_star) + 0.907*(M_star^0.5)*(T^0.5)"
-56,"kepler","SR-Operon",1,1,0.000887792275324262,1,0,0.0050855628472544,9,"1.001*(M_star^0.333)*(T^0.666)"
-56,"kepler","Lasso",1,0,NA,1,0,0.0679254798300079,2,"-0.013 + 0.334*M_star + 0.640*T"
-56,"kepler","MARS",1,0,NA,1,0,0.0190944683418665,7,"Piecewise degree-2 hinge splines"
-56,"kepler","GAM",0,0,NA,1,0.25,0.0549284513895449,11,"Additive thin-plate splines"
-56,"kepler","RandomForest",1,0,NA,1,0,0.125210847176131,300,"Black-box ensemble (300 trees)"
-57,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00487672424392642,5,"M_star^(1/3) * T^(2/3)"
-57,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.174191840544715,2,"Piecewise-linear ReLU network"
-57,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00487824096210211,1,"troot(((T*M_star)*T))"
-57,"kepler","SR-PySR",1,0,0.00689405582755992,1,0,0.00827287247916124,9,"1.000*(M_star^0.334)*(T^0.660)"
-57,"kepler","SR-Operon",1,1,0.000290255583587307,1,0,0.00488006196392828,9,"1.000*(M_star^0.333)*(T^0.667)"
-57,"kepler","Lasso",1,0,NA,1,0,0.0720906873917139,2,"-0.021 + 0.320*M_star + 0.656*T"
-57,"kepler","MARS",1,0,NA,1,0,0.0130968354785903,9,"Piecewise degree-2 hinge splines"
-57,"kepler","GAM",0,0,NA,1,0.125,0.0594441719683589,8,"Additive thin-plate splines"
-57,"kepler","RandomForest",1,0,NA,1,0,0.114899535309974,300,"Black-box ensemble (300 trees)"
-58,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00512454051345847,5,"M_star^(1/3) * T^(2/3)"
-58,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0871084565964576,2,"Piecewise-linear ReLU network"
-58,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00514487737991252,1,"troot((T*(T*M_star)))"
-58,"kepler","SR-PySR",1,0,1,1,0,0.00612753957309953,14,"-0.008 + 0.212*T + -0.052*(M_star-0.5)^2 + -0.108*sin(M_star) + 0.900*sqrt(M_star*T)"
-58,"kepler","SR-Operon",1,1,0.00061344449165901,1,0,0.00515683182822902,9,"1.000*(M_star^0.333)*(T^0.667)"
-58,"kepler","Lasso",1,0,NA,1,0,0.0700895566659457,2,"-0.014 + 0.340*M_star + 0.636*T"
-58,"kepler","MARS",1,0,NA,1,0,0.0180957800015522,7,"Piecewise degree-2 hinge splines"
-58,"kepler","GAM",0,0,NA,1,0.125,0.0558972827644157,9,"Additive thin-plate splines"
-58,"kepler","RandomForest",1,0,NA,1,0,0.126762641200536,300,"Black-box ensemble (300 trees)"
-59,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00544055338912843,5,"-0.002 + 1.001 * M_star^(1/3) * T^(2/3)"
-59,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.146164186652322,2,"Piecewise-linear ReLU network"
-59,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00544055905226236,1,"troot((T*(M_star*T)))"
-59,"kepler","SR-PySR",1,0,1,1,0,0.00641298593319185,16,"-0.153 + 0.113*cos(M_star) + 0.103*(T-0.5)^2 + 0.219*sin(T) + 0.883*(M_star^0.5)*(T^0.5)"
-59,"kepler","SR-Operon",1,0,0.00167733561823408,1,0,0.0054669959863609,9,"0.999*(M_star^0.334)*(T^0.668)"
-59,"kepler","Lasso",1,0,NA,1,0,0.0594733461800303,2,"-0.039 + 0.330*M_star + 0.657*T"
-59,"kepler","MARS",1,0,NA,1,0,0.012314866540594,9,"Piecewise degree-2 hinge splines"
-59,"kepler","GAM",0,0,NA,1,0.125,0.0511235088517292,9,"Additive thin-plate splines"
-59,"kepler","RandomForest",1,0,NA,1,0,0.115705085136082,300,"Black-box ensemble (300 trees)"
-60,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00502789345123351,5,"M_star^(1/3) * T^(2/3)"
-60,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.147419230828261,2,"Piecewise-linear ReLU network"
-60,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00502931879013282,1,"troot((T*(M_star*T)))"
-60,"kepler","SR-PySR",1,0,1,1,0,0.00591498604129186,19,"0.424 + -0.032*(M_star)^2 + -0.065*sin(M_star) + 0.043*(T)^2 + -0.517*1/(1+T) + 0.882*(M_star^0.5)*(T^0.5)"
-60,"kepler","SR-Operon",1,1,0.000327255551925032,1,0,0.00502797616528327,9,"1.000*(M_star^0.333)*(T^0.666)"
-60,"kepler","Lasso",1,0,NA,1,0,0.0764652177264477,2,"-0.027 + 0.322*M_star + 0.659*T"
-60,"kepler","MARS",1,0,NA,1,0,0.0137078570785471,8,"Piecewise degree-2 hinge splines"
-60,"kepler","GAM",0,0,NA,1,0.25,0.0545399380127471,10,"Additive thin-plate splines"
-60,"kepler","RandomForest",1,0,NA,1,0,0.105776609839275,300,"Black-box ensemble (300 trees)"
-61,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.0052309191235793,5,"0.001 + 1 * M_star^(1/3) * T^(2/3)"
-61,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0921150748140623,2,"Piecewise-linear ReLU network"
-61,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00523085533985991,1,"troot(((M_star*T)*T))"
-61,"kepler","SR-PySR",1,0,1,1,0,0.0059095001871695,13,"-0.011 + 0.214*T + -0.035*(M_star)^2 + -0.073*sin(M_star) + 0.894*sqrt(M_star*T)"
-61,"kepler","SR-Operon",1,1,0.000561672490751342,1,0,0.00523485654235717,9,"1.000*(M_star^0.333)*(T^0.666)"
-61,"kepler","Lasso",1,0,NA,1,0,0.0709887252722585,2,"-0.004 + 0.319*M_star + 0.647*T"
-61,"kepler","MARS",1,0,NA,1,0,0.0142448042405508,9,"Piecewise degree-2 hinge splines"
-61,"kepler","GAM",0,0,NA,1,0.125,0.0596065884996942,8,"Additive thin-plate splines"
-61,"kepler","RandomForest",1,0,NA,1,0,0.120425137198846,300,"Black-box ensemble (300 trees)"
-62,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00538826757575116,5,"M_star^(1/3) * T^(2/3)"
-62,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.213621220183048,1,"Piecewise-linear ReLU network"
-62,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00539170027013602,1,"troot((T*(T*M_star)))"
-62,"kepler","SR-PySR",0,0,1,1,0.125,0.00583063597121791,16,"-0.014 + 0.213*T + 0.000*x10 + -0.035*(M_star)^2 + -0.072*sin(M_star) + 0.897*(M_star^0.5)*(T^0.5)"
-62,"kepler","SR-Operon",1,1,0.000472647093511691,1,0,0.00539787848160112,9,"1.000*(M_star^0.334)*(T^0.667)"
-62,"kepler","Lasso",1,0,NA,1,0,0.0684289553138274,2,"-0.009 + 0.333*M_star + 0.642*T"
-62,"kepler","MARS",1,0,NA,1,0,0.0193040120300966,7,"Piecewise degree-2 hinge splines"
-62,"kepler","GAM",0,0,NA,1,0.125,0.0563707870025882,8,"Additive thin-plate splines"
-62,"kepler","RandomForest",1,0,NA,1,0,0.106425694167484,300,"Black-box ensemble (300 trees)"
-63,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00437426661990663,5,"-0.003 + 1.002 * M_star^(1/3) * T^(2/3)"
-63,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.074178889278139,2,"Piecewise-linear ReLU network"
-63,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00437457303176479,1,"troot(((T*T)*M_star))"
-63,"kepler","SR-PySR",1,0,1,1,0,0.00499638070044336,14,"-0.009 + 0.216*T + -0.051*(M_star-0.5)^2 + -0.103*sin(M_star) + 0.893*sqrt(M_star*T)"
-63,"kepler","SR-Operon",1,0,0.00180845056281098,1,0,0.0044398755893511,9,"0.999*(M_star^0.333)*(T^0.668)"
-63,"kepler","Lasso",1,0,NA,1,0,0.070465121712888,2,"-0.020 + 0.325*M_star + 0.645*T"
-63,"kepler","MARS",1,0,NA,1,0,0.0102983512454522,9,"Piecewise degree-2 hinge splines"
-63,"kepler","GAM",0,0,NA,1,0.125,0.0599609591403286,9,"Additive thin-plate splines"
-63,"kepler","RandomForest",1,0,NA,1,0,0.133463138263103,300,"Black-box ensemble (300 trees)"
-64,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00488951148800978,5,"M_star^(1/3) * T^(2/3)"
-64,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0981941667960786,2,"Piecewise-linear ReLU network"
-64,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00493614960119228,1,"troot(((T*T)*M_star))"
-64,"kepler","SR-PySR",1,0,1,1,0,0.00543947646144484,19,"0.062 + -0.014*(M_star)^2 + -0.144*sqrt(M_star) + 0.102*(T-0.5)^2 + 0.217*sin(T) + 0.886*(M_star^0.5)*(T^0.5)"
-64,"kepler","SR-Operon",1,1,6.43950364481172e-05,1,0,0.00493581931608604,9,"1.000*(M_star^0.333)*(T^0.667)"
-64,"kepler","Lasso",1,0,NA,1,0,0.0666200699952799,2,"-0.001 + 0.307*M_star + 0.660*T"
-64,"kepler","MARS",1,0,NA,1,0,0.0119596294929895,9,"Piecewise degree-2 hinge splines"
-64,"kepler","GAM",0,0,NA,1,0.25,0.053345908907494,9,"Additive thin-plate splines"
-64,"kepler","RandomForest",1,0,NA,1,0,0.101399368305652,300,"Black-box ensemble (300 trees)"
-65,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00524950933305564,5,"-0.001 + 1.001 * M_star^(1/3) * T^(2/3)"
-65,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.101622875709203,2,"Piecewise-linear ReLU network"
-65,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00525052149136699,1,"troot((p2(T)*M_star))"
-65,"kepler","SR-PySR",0,0,1,1,0.25,0.00597717369715657,18,"-0.015 + 0.221*T + -0.033*(M_star)^2 + -0.065*sin(M_star) + 0.882*sqrt(M_star*T) + -0.001*sin(x3*x5)"
-65,"kepler","SR-Operon",1,0,0.00173482187995011,1,0,0.00533602730088303,9,"1.000*(M_star^0.333)*(T^0.668)"
-65,"kepler","Lasso",1,0,NA,1,0,0.0703809339273125,2,"-0.010 + 0.322*M_star + 0.646*T"
-65,"kepler","MARS",1,0,NA,1,0,0.0142437617343462,8,"Piecewise degree-2 hinge splines"
-65,"kepler","GAM",1,0,NA,1,0,0.0559178523116707,8,"Additive thin-plate splines"
-65,"kepler","RandomForest",1,0,NA,1,0,0.108712462306004,300,"Black-box ensemble (300 trees)"
-66,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00504129554390393,5,"M_star^(1/3) * T^(2/3)"
-66,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0865020780946378,2,"Piecewise-linear ReLU network"
-66,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00505513851121266,1,"troot((T*(T*M_star)))"
-66,"kepler","SR-PySR",1,0,0.00774458136352851,1,0,0.00845674631805708,9,"1.000*(M_star^0.327)*(T^0.665)"
-66,"kepler","SR-Operon",1,1,0.000480332722840482,1,0,0.00507223753429757,9,"1.000*(M_star^0.333)*(T^0.666)"
-66,"kepler","Lasso",1,0,NA,1,0,0.0684695142434603,2,"-0.011 + 0.322*M_star + 0.653*T"
-66,"kepler","MARS",1,0,NA,1,0,0.0117077421821427,9,"Piecewise degree-2 hinge splines"
-66,"kepler","GAM",0,0,NA,1,0.25,0.0516910044111733,10,"Additive thin-plate splines"
-66,"kepler","RandomForest",1,0,NA,1,0,0.10501122673621,300,"Black-box ensemble (300 trees)"
-67,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00486912831807123,5,"M_star^(1/3) * T^(2/3)"
-67,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.101660793554633,2,"Piecewise-linear ReLU network"
-67,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00486897117593848,1,"troot(((M_star*T)*T))"
-67,"kepler","SR-PySR",1,0,1,1,0,0.00558535446614767,14,"-0.006 + 0.217*T + -0.050*(M_star-0.5)^2 + -0.103*sin(M_star) + 0.889*sqrt(M_star*T)"
-67,"kepler","SR-Operon",1,1,0.000446225550480128,1,0,0.00488101497502048,9,"1.000*(M_star^0.334)*(T^0.666)"
-67,"kepler","Lasso",1,0,NA,1,0,0.0671294966111269,2,"0.032 + 0.318*M_star + 0.628*T"
-67,"kepler","MARS",1,0,NA,1,0,0.0109488090641276,9,"Piecewise degree-2 hinge splines"
-67,"kepler","GAM",0,0,NA,1,0.5,0.0519311593809632,11,"Additive thin-plate splines"
-67,"kepler","RandomForest",1,0,NA,1,0,0.107963178385986,300,"Black-box ensemble (300 trees)"
-68,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00533575037607256,5,"M_star^(1/3) * T^(2/3)"
-68,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.150154744920103,2,"Piecewise-linear ReLU network"
-68,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00533194444189423,1,"troot(((M_star*T)*T))"
-68,"kepler","SR-PySR",1,0,1,1,0,0.00593410882912868,15,"-0.012 + 0.223*T + -0.047*(M_star-0.5)^2 + -0.092*sin(M_star) + 0.878*(M_star^0.5)*(T^0.5)"
-68,"kepler","SR-Operon",1,1,0.000179378970000255,1,0,0.00533466569223646,9,"1.000*(M_star^0.333)*(T^0.667)"
-68,"kepler","Lasso",1,0,NA,1,0,0.0642162704889183,2,"-0.008 + 0.318*M_star + 0.648*T"
-68,"kepler","MARS",1,0,NA,1,0,0.0116125310798821,9,"Piecewise degree-2 hinge splines"
-68,"kepler","GAM",0,0,NA,1,0.25,0.0526996839123003,11,"Additive thin-plate splines"
-68,"kepler","RandomForest",1,0,NA,1,0,0.122706441212703,300,"Black-box ensemble (300 trees)"
-69,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.0048891576212622,5,"M_star^(1/3) * T^(2/3)"
-69,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.154862417495726,2,"Piecewise-linear ReLU network"
-69,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00490581279570411,1,"troot((T*(T*M_star)))"
-69,"kepler","SR-PySR",1,0,1,1,0,0.00583335457937262,13,"-0.018 + 0.218*T + -0.034*(M_star)^2 + -0.063*sin(M_star) + 0.888*sqrt(M_star*T)"
-69,"kepler","SR-Operon",1,1,0.000549225287871768,1,0,0.00491581084572534,9,"1.000*(M_star^0.333)*(T^0.667)"
-69,"kepler","Lasso",1,0,NA,1,0,0.0709654676873146,2,"0.005 + 0.324*M_star + 0.641*T"
-69,"kepler","MARS",1,0,NA,1,0,0.0180712158597101,7,"Piecewise degree-2 hinge splines"
-69,"kepler","GAM",0,0,NA,1,0.25,0.058237138813218,10,"Additive thin-plate splines"
-69,"kepler","RandomForest",1,0,NA,1,0,0.11452079784041,300,"Black-box ensemble (300 trees)"
-70,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.0052254779939518,5,"0.001 + 1 * M_star^(1/3) * T^(2/3)"
-70,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.103958561480792,2,"Piecewise-linear ReLU network"
-70,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00522549519981675,1,"troot((T*(T*M_star)))"
-70,"kepler","SR-PySR",1,0,1,1,0,0.00562077644748072,14,"-0.004 + 0.220*T + -0.048*(M_star-0.5)^2 + -0.101*sin(M_star) + 0.883*sqrt(M_star*T)"
-70,"kepler","SR-Operon",1,1,0.00073047514437663,1,0,0.00524922915720097,9,"1.000*(M_star^0.333)*(T^0.667)"
-70,"kepler","Lasso",1,0,NA,1,0,0.0663635893034193,2,"0.025 + 0.310*M_star + 0.636*T"
-70,"kepler","MARS",1,0,NA,1,0,0.0113367843578838,8,"Piecewise degree-2 hinge splines"
-70,"kepler","GAM",1,0,NA,1,0,0.0509939534817734,8,"Additive thin-plate splines"
-70,"kepler","RandomForest",1,0,NA,1,0,0.0970319589008559,300,"Black-box ensemble (300 trees)"
-71,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00517255417501338,5,"0.001 + M_star^(1/3) * T^(2/3)"
-71,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0873328355048156,2,"Piecewise-linear ReLU network"
-71,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00511781852237218,1,"troot((T*(T*M_star)))"
-71,"kepler","SR-PySR",0,0,1,1,0.25,0.00775109583584867,17,"0.157 + 0.123*cos(M_star) + -0.234*cos(T) + 0.900*(M_star^0.5)*(T^0.5) + -0.000*sqrt(x7*x9)"
-71,"kepler","SR-Operon",1,1,0.000662144572937284,1,0,0.00510789045739822,9,"1.000*(M_star^0.333)*(T^0.666)"
-71,"kepler","Lasso",1,0,NA,1,0,0.0689985637224723,2,"0.017 + 0.323*M_star + 0.631*T"
-71,"kepler","MARS",1,0,NA,1,0,0.0103638065444687,9,"Piecewise degree-2 hinge splines"
-71,"kepler","GAM",0,0,NA,1,0.25,0.0487787368371347,9,"Additive thin-plate splines"
-71,"kepler","RandomForest",1,0,NA,1,0,0.112727272362863,300,"Black-box ensemble (300 trees)"
-72,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00488789554757141,5,"0.001 + 0.999 * M_star^(1/3) * T^(2/3)"
-72,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0973878347714064,2,"Piecewise-linear ReLU network"
-72,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00488788888378848,1,"troot(((M_star*T)*T))"
-72,"kepler","SR-PySR",1,0,0.00679809635704409,1,0,0.00578780641119953,9,"1.000*(M_star^0.331)*(T^0.671)"
-72,"kepler","SR-Operon",1,1,0.000668982198669399,1,0,0.00489573316614007,9,"1.000*(M_star^0.333)*(T^0.666)"
-72,"kepler","Lasso",1,0,NA,1,0,0.0684243601369491,2,"-0.028 + 0.319*M_star + 0.664*T"
-72,"kepler","MARS",1,0,NA,1,0,0.0170353800285843,8,"Piecewise degree-2 hinge splines"
-72,"kepler","GAM",0,0,NA,1,0.125,0.0514648679889591,9,"Additive thin-plate splines"
-72,"kepler","RandomForest",1,0,NA,1,0,0.0892191250913754,300,"Black-box ensemble (300 trees)"
-73,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00480952551399276,5,"M_star^(1/3) * T^(2/3)"
-73,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0819812174885709,2,"Piecewise-linear ReLU network"
-73,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00480874772755878,1,"troot((T*(T*M_star)))"
-73,"kepler","SR-PySR",1,0,1,1,0,0.00565992975896538,21,"-0.127 + -0.025*(M_star-0.5)^2 + 0.461*(T)^(2/3) + -0.029*sin(T) + 0.042*M_star*T + 0.654*(M_star^0.5)*(T^0.5)"
-73,"kepler","SR-Operon",1,1,0.000280334212590605,1,0,0.00481585758714536,9,"1.000*(M_star^0.333)*(T^0.667)"
-73,"kepler","Lasso",1,0,NA,1,0,0.0626924192669635,2,"0.010 + 0.319*M_star + 0.638*T"
-73,"kepler","MARS",1,0,NA,1,0,0.0111591558223257,8,"Piecewise degree-2 hinge splines"
-73,"kepler","GAM",0,0,NA,1,0.125,0.0530677657111185,9,"Additive thin-plate splines"
-73,"kepler","RandomForest",1,0,NA,1,0,0.10790125986008,300,"Black-box ensemble (300 trees)"
-74,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00534422935388838,5,"0.001 + 0.999 * M_star^(1/3) * T^(2/3)"
-74,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0980013424880331,2,"Piecewise-linear ReLU network"
-74,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00534422866372438,1,"troot((T*(M_star*T)))"
-74,"kepler","SR-PySR",1,0,1,1,0,0.00594922735899254,13,"-0.017 + 0.217*T + -0.034*(M_star)^2 + -0.064*sin(M_star) + 0.888*sqrt(M_star*T)"
-74,"kepler","SR-Operon",1,1,0.00053728327863245,1,0,0.00534795896729596,9,"1.000*(M_star^0.333)*(T^0.666)"
-74,"kepler","Lasso",1,0,NA,1,0,0.0717022629998916,2,"-0.007 + 0.324*M_star + 0.642*T"
-74,"kepler","MARS",1,0,NA,1,0,0.0113973024643554,8,"Piecewise degree-2 hinge splines"
-74,"kepler","GAM",0,0,NA,1,0.25,0.0540369211251473,11,"Additive thin-plate splines"
-74,"kepler","RandomForest",1,0,NA,1,0,0.109495521341886,300,"Black-box ensemble (300 trees)"
-75,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00502750127254878,5,"0.001 + 0.999 * M_star^(1/3) * T^(2/3)"
-75,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0994249235526577,2,"Piecewise-linear ReLU network"
-75,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00502744357906008,1,"troot(((T*M_star)*T))"
-75,"kepler","SR-PySR",1,0,0.0170148573272155,1,0,0.0101911990955527,9,"1.000*(M_star^0.321)*(T^0.671)"
-75,"kepler","SR-Operon",1,1,0.000804975347878212,1,0,0.0050212146165193,9,"1.000*(M_star^0.333)*(T^0.667)"
-75,"kepler","Lasso",1,0,NA,1,0,0.0759390041031676,2,"-0.002 + 0.318*M_star + 0.649*T"
-75,"kepler","MARS",1,0,NA,1,0,0.0179546834778335,7,"Piecewise degree-2 hinge splines"
-75,"kepler","GAM",0,0,NA,1,0.125,0.0609684890473666,9,"Additive thin-plate splines"
-75,"kepler","RandomForest",1,0,NA,1,0,0.114640387636189,300,"Black-box ensemble (300 trees)"
-76,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.0047897340308458,5,"0.002 + 0.999 * M_star^(1/3) * T^(2/3)"
-76,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.12291071414258,2,"Piecewise-linear ReLU network"
-76,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00478973643272751,1,"troot((T*(T*M_star)))"
-76,"kepler","SR-PySR",0,0,1,1,0.125,0.0085997897477134,23,"-0.162 + -0.020*(M_star)^2 + 0.235*log(M_star) + 1.029*sqrt(T) + -0.000*1/(1+x9) + 0.156*M_star*T + 0.003*sin(pi*M_star*T)"
-76,"kepler","SR-Operon",1,0,0.00140200977913496,1,0,0.00479350285194527,9,"1.000*(M_star^0.334)*(T^0.666)"
-76,"kepler","Lasso",1,0,NA,1,0,0.0659719851545712,2,"-0.010 + 0.318*M_star + 0.652*T"
-76,"kepler","MARS",1,0,NA,1,0,0.0173361249352084,7,"Piecewise degree-2 hinge splines"
-76,"kepler","GAM",0,0,NA,1,0.25,0.0515605935471814,9,"Additive thin-plate splines"
-76,"kepler","RandomForest",1,0,NA,1,0,0.106867161104479,300,"Black-box ensemble (300 trees)"
-77,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00479797604445412,5,"-0.001 + M_star^(1/3) * T^(2/3)"
-77,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0775369098473866,2,"Piecewise-linear ReLU network"
-77,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00473823774411111,1,"troot(((T*T)*M_star))"
-77,"kepler","SR-PySR",0,0,1,1,0.125,0.0053759028786609,19,"-0.009 + 0.220*T + -0.049*(M_star-0.5)^2 + -0.099*sin(M_star) + 0.883*(M_star^0.5)*(T^0.5) + 0.000*M_star*x7"
-77,"kepler","SR-Operon",1,1,0.000394382842784424,1,0,0.00473552931564002,9,"1.000*(M_star^0.333)*(T^0.667)"
-77,"kepler","Lasso",1,0,NA,1,0,0.0627462007752286,2,"-0.016 + 0.331*M_star + 0.647*T"
-77,"kepler","MARS",1,0,NA,1,0,0.0130891020533657,9,"Piecewise degree-2 hinge splines"
-77,"kepler","GAM",0,0,NA,1,0.125,0.0497312859827298,10,"Additive thin-plate splines"
-77,"kepler","RandomForest",1,0,NA,1,0,0.107047026220843,300,"Black-box ensemble (300 trees)"
-78,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00484650294088215,5,"0.001 + 0.999 * M_star^(1/3) * T^(2/3)"
-78,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.10832965071596,2,"Piecewise-linear ReLU network"
-78,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00484649907901539,1,"troot((M_star*(T*T)))"
-78,"kepler","SR-PySR",1,0,0.00860683081296254,1,0,0.00600897509023111,9,"1.000*(M_star^0.337)*(T^0.662)"
-78,"kepler","SR-Operon",1,1,0.000461093122263667,1,0,0.00484971272942589,9,"1.000*(M_star^0.333)*(T^0.666)"
-78,"kepler","Lasso",1,0,NA,1,0,0.0648924691930793,2,"-0.011 + 0.332*M_star + 0.637*T"
-78,"kepler","MARS",1,0,NA,1,0,0.0106400066877421,9,"Piecewise degree-2 hinge splines"
-78,"kepler","GAM",0,0,NA,1,0.25,0.0582518095895663,10,"Additive thin-plate splines"
-78,"kepler","RandomForest",1,0,NA,1,0,0.127601206398628,300,"Black-box ensemble (300 trees)"
-79,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00498840584678637,5,"0.001 + 0.999 * M_star^(1/3) * T^(2/3)"
-79,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0885775337126139,2,"Piecewise-linear ReLU network"
-79,"kepler","FBMS-BGNLM",1,1,0,1,0,0.0049884094556295,1,"troot((T*(T*M_star)))"
-79,"kepler","SR-PySR",1,0,0.00319380775689343,1,0,0.00566092253985796,9,"1.000*(M_star^0.331)*(T^0.666)"
-79,"kepler","SR-Operon",1,1,0.000967879886935474,1,0,0.00500427614062538,9,"1.000*(M_star^0.333)*(T^0.666)"
-79,"kepler","Lasso",1,0,NA,1,0,0.0677040040411359,2,"0.002 + 0.325*M_star + 0.637*T"
-79,"kepler","MARS",1,0,NA,1,0,0.0133547559881103,9,"Piecewise degree-2 hinge splines"
-79,"kepler","GAM",0,0,NA,1,0.5,0.0577684616043284,11,"Additive thin-plate splines"
-79,"kepler","RandomForest",1,0,NA,1,0,0.116300017881108,300,"Black-box ensemble (300 trees)"
-80,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00489162009923252,5,"M_star^(1/3) * T^(2/3)"
-80,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.086357620417657,2,"Piecewise-linear ReLU network"
-80,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00491156497462091,1,"(troot(T)*troot((T*M_star)))"
-80,"kepler","SR-PySR",0,0,1,1,0.125,0.0055817936674175,17,"-0.015 + 0.219*T + -0.033*(M_star)^2 + -0.066*sin(M_star) + 0.000*cos(x9) + 0.885*(M_star^0.5)*(T^0.5)"
-80,"kepler","SR-Operon",1,1,0.000192050419040746,1,0,0.00490694674917055,9,"1.000*(M_star^0.333)*(T^0.667)"
-80,"kepler","Lasso",1,0,NA,1,0,0.0610188241048166,2,"-0.027 + 0.336*M_star + 0.644*T"
-80,"kepler","MARS",1,0,NA,1,0,0.0103274277800096,9,"Piecewise degree-2 hinge splines"
-80,"kepler","GAM",0,0,NA,1,0.125,0.0583467424661408,9,"Additive thin-plate splines"
-80,"kepler","RandomForest",1,0,NA,1,0,0.118206072518108,300,"Black-box ensemble (300 trees)"
-81,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00518242182031838,5,"M_star^(1/3) * T^(2/3)"
-81,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0918544038849274,2,"Piecewise-linear ReLU network"
-81,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00520146395948171,1,"troot(((M_star*T)*T))"
-81,"kepler","SR-PySR",1,0,0.00552427028861135,1,0,0.00676063634371927,9,"1.000*(M_star^0.334)*(T^0.671)"
-81,"kepler","SR-Operon",1,1,0.000315319729849661,1,0,0.00520905073629314,9,"1.000*(M_star^0.334)*(T^0.667)"
-81,"kepler","Lasso",1,0,NA,1,0,0.0691149864231439,2,"-0.014 + 0.325*M_star + 0.648*T"
-81,"kepler","MARS",1,0,NA,1,0,0.0116755850081159,9,"Piecewise degree-2 hinge splines"
-81,"kepler","GAM",0,0,NA,1,0.5,0.0564217882819406,11,"Additive thin-plate splines"
-81,"kepler","RandomForest",1,0,NA,1,0,0.112507807413642,300,"Black-box ensemble (300 trees)"
-82,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.0048926347201516,5,"0.001 + 0.999 * M_star^(1/3) * T^(2/3)"
-82,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.104487471135667,2,"Piecewise-linear ReLU network"
-82,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00489264540333402,1,"troot(((T*T)*M_star))"
-82,"kepler","SR-PySR",0,0,1,1,0.125,0.00562077998819244,18,"-0.012 + 0.219*T + -0.033*(M_star)^2 + -0.067*sin(M_star) + 0.883*(M_star^0.5)*(T^0.5) + -0.001*M_star*x5"
-82,"kepler","SR-Operon",1,1,0.000741365972593999,1,0,0.00489590280794374,9,"1.000*(M_star^0.333)*(T^0.666)"
-82,"kepler","Lasso",1,0,NA,1,0,0.0699998603881016,2,"-0.025 + 0.335*M_star + 0.646*T"
-82,"kepler","MARS",1,0,NA,1,0,0.010638581862773,9,"Piecewise degree-2 hinge splines"
-82,"kepler","GAM",0,0,NA,1,0.125,0.0544627677269926,9,"Additive thin-plate splines"
-82,"kepler","RandomForest",1,0,NA,1,0,0.0971747955232746,300,"Black-box ensemble (300 trees)"
-83,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00499822695747298,5,"0.001 + 0.999 * M_star^(1/3) * T^(2/3)"
-83,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.107188581528953,2,"Piecewise-linear ReLU network"
-83,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00499828645002503,1,"troot((T*(M_star*T)))"
-83,"kepler","SR-PySR",1,0,1,1,0,0.00729127243398601,16,"0.087 + -0.188*(M_star)^(2/3) + 0.098*(T-0.5)^2 + 0.204*sin(T) + 0.902*sqrt(M_star*T)"
-83,"kepler","SR-Operon",1,1,0.000550977633468952,1,0,0.00499652011679774,9,"1.000*(M_star^0.333)*(T^0.666)"
-83,"kepler","Lasso",1,0,NA,1,0,0.0715748998501803,2,"-0.033 + 0.326*M_star + 0.659*T"
-83,"kepler","MARS",1,0,NA,1,0,0.0171428354969739,7,"Piecewise degree-2 hinge splines"
-83,"kepler","GAM",1,0,NA,1,0,0.0546900246163103,8,"Additive thin-plate splines"
-83,"kepler","RandomForest",1,0,NA,1,0,0.104288545950868,300,"Black-box ensemble (300 trees)"
-84,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.0049291456667764,5,"M_star^(1/3) * T^(2/3)"
-84,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.215551046342737,2,"Piecewise-linear ReLU network"
-84,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00493284762659121,1,"troot((T*(M_star*T)))"
-84,"kepler","SR-PySR",1,0,1,1,0,0.00764076687201035,15,"0.098 + -0.179*(M_star)^(2/3) + 0.069*(T)^2 + 0.141*sin(T) + 0.891*sqrt(M_star*T)"
-84,"kepler","SR-Operon",1,1,0.000203209061371501,1,0,0.00492930901046813,9,"1.000*(M_star^0.333)*(T^0.667)"
-84,"kepler","Lasso",1,0,NA,1,0,0.0759018720566493,2,"-0.011 + 0.311*M_star + 0.664*T"
-84,"kepler","MARS",1,0,NA,1,0,0.0191195921437735,7,"Piecewise degree-2 hinge splines"
-84,"kepler","GAM",0,0,NA,1,0.5,0.0553767102787739,10,"Additive thin-plate splines"
-84,"kepler","RandomForest",1,0,NA,1,0,0.119926128380144,300,"Black-box ensemble (300 trees)"
-85,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00498864688350498,5,"-0.001 + 1.001 * M_star^(1/3) * T^(2/3)"
-85,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.113851780148809,2,"Piecewise-linear ReLU network"
-85,"kepler","FBMS-BGNLM",1,1,0,1,0,0.0049886594621358,1,"troot(((T*M_star)*T))"
-85,"kepler","SR-PySR",0,0,1,1,0.125,0.0105360602626176,24,"-0.281 + 0.617*sqrt(T) + 0.650*(M_star^0.5)*(T^0.5) + 0.014*M_star*(T^2) + -0.004*(M_star^2)*x9 + 0.003*(T^2)*x9"
-85,"kepler","SR-Operon",1,0,0.00106819434901029,1,0,0.00498494743421631,9,"0.999*(M_star^0.334)*(T^0.667)"
-85,"kepler","Lasso",1,0,NA,1,0,0.0697507378426524,2,"0.018 + 0.320*M_star + 0.632*T"
-85,"kepler","MARS",1,0,NA,1,0,0.0110658888995233,9,"Piecewise degree-2 hinge splines"
-85,"kepler","GAM",0,0,NA,1,0.375,0.0566519075475552,10,"Additive thin-plate splines"
-85,"kepler","RandomForest",1,0,NA,1,0,0.115589557023934,300,"Black-box ensemble (300 trees)"
-86,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.0053583022670037,5,"0.001 + 0.999 * M_star^(1/3) * T^(2/3)"
-86,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.083689215067264,2,"Piecewise-linear ReLU network"
-86,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00535829809678662,1,"troot((M_star*p2(T)))"
-86,"kepler","SR-PySR",1,0,1,1,0,0.00645736614564594,14,"0.013 + -0.107*M_star + 0.101*(T-0.5)^2 + 0.211*sin(T) + 0.891*sqrt(M_star*T)"
-86,"kepler","SR-Operon",1,1,0.000573028260054786,1,0,0.00535111882922749,9,"1.000*(M_star^0.333)*(T^0.666)"
-86,"kepler","Lasso",1,0,NA,1,0,0.0719667587420974,2,"-0.046 + 0.331*M_star + 0.663*T"
-86,"kepler","MARS",1,0,NA,1,0,0.0134376399292618,8,"Piecewise degree-2 hinge splines"
-86,"kepler","GAM",0,0,NA,1,0.5,0.0544886166734362,12,"Additive thin-plate splines"
-86,"kepler","RandomForest",1,0,NA,1,0,0.101723174457591,300,"Black-box ensemble (300 trees)"
-87,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00467562892656242,5,"M_star^(1/3) * T^(2/3)"
-87,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0799531119115341,2,"Piecewise-linear ReLU network"
-87,"kepler","FBMS-BGNLM",1,1,0,1,0,0.0046784193272159,1,"troot((M_star*(T*T)))"
-87,"kepler","SR-PySR",1,0,0.00262213838757458,1,0,0.0048174432669747,9,"1.000*(M_star^0.334)*(T^0.665)"
-87,"kepler","SR-Operon",1,1,0.000561076935775229,1,0,0.00467712879482605,9,"1.000*(M_star^0.334)*(T^0.667)"
-87,"kepler","Lasso",1,0,NA,1,0,0.0643726631711157,2,"-0.018 + 0.324*M_star + 0.653*T"
-87,"kepler","MARS",1,0,NA,1,0,0.0120884442168956,9,"Piecewise degree-2 hinge splines"
-87,"kepler","GAM",1,0,NA,1,0,0.0546172211873864,8,"Additive thin-plate splines"
-87,"kepler","RandomForest",1,0,NA,1,0,0.10633853946404,300,"Black-box ensemble (300 trees)"
-88,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00492175795063931,5,"M_star^(1/3) * T^(2/3)"
-88,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.101401159633831,2,"Piecewise-linear ReLU network"
-88,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00492190601385845,1,"troot((T*(T*M_star)))"
-88,"kepler","SR-PySR",0,0,1,1,0.125,0.00589863150672674,17,"-0.016 + 0.217*T + -0.034*(M_star)^2 + -0.065*sin(M_star) + -0.001*cos(x7) + 0.887*(M_star^0.5)*(T^0.5)"
-88,"kepler","SR-Operon",1,1,0.000236453462725772,1,0,0.0049282602008799,9,"1.000*(M_star^0.333)*(T^0.666)"
-88,"kepler","Lasso",1,0,NA,1,0,0.0691092824519481,2,"0.041 + 0.314*M_star + 0.624*T"
-88,"kepler","MARS",1,0,NA,1,0,0.0106622250770213,9,"Piecewise degree-2 hinge splines"
-88,"kepler","GAM",0,0,NA,1,0.125,0.0541493842390474,8,"Additive thin-plate splines"
-88,"kepler","RandomForest",1,0,NA,1,0,0.104440745414892,300,"Black-box ensemble (300 trees)"
-89,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00505363797208134,5,"M_star^(1/3) * T^(2/3)"
-89,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.117063193287091,2,"Piecewise-linear ReLU network"
-89,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00506870165935761,1,"(troot(T)*troot((M_star*T)))"
-89,"kepler","SR-PySR",0,0,1,1,0.25,0.00611860410437994,18,"-0.017 + 0.217*T + -0.034*(M_star)^2 + -0.065*sin(M_star) + 0.887*sqrt(M_star*T) + 0.001*sqrt(x7*x10)"
-89,"kepler","SR-Operon",1,1,0.00031824292880106,1,0,0.00506524193664145,9,"1.000*(M_star^0.333)*(T^0.666)"
-89,"kepler","Lasso",1,0,NA,1,0,0.0738578547196676,2,"-0.020 + 0.325*M_star + 0.651*T"
-89,"kepler","MARS",1,0,NA,1,0,0.0106831883380513,8,"Piecewise degree-2 hinge splines"
-89,"kepler","GAM",0,0,NA,1,0.375,0.0570988520048031,11,"Additive thin-plate splines"
-89,"kepler","RandomForest",1,0,NA,1,0,0.102246931653117,300,"Black-box ensemble (300 trees)"
-90,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00509226741679108,5,"M_star^(1/3) * T^(2/3)"
-90,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.127736144277387,2,"Piecewise-linear ReLU network"
-90,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00509205096803633,1,"troot((T*(M_star*T)))"
-90,"kepler","SR-PySR",0,0,1,1,0.125,0.00580088584141873,17,"-0.006 + 0.214*T + -0.051*(M_star-0.5)^2 + -0.105*sin(M_star) + -0.000*cos(x9) + 0.895*sqrt(M_star*T)"
-90,"kepler","SR-Operon",1,1,0.00055188484776858,1,0,0.00510247682595322,9,"1.000*(M_star^0.334)*(T^0.666)"
-90,"kepler","Lasso",1,0,NA,1,0,0.0648970755793494,2,"-0.006 + 0.332*M_star + 0.637*T"
-90,"kepler","MARS",1,0,NA,1,0,0.0100300406192179,8,"Piecewise degree-2 hinge splines"
-90,"kepler","GAM",0,0,NA,1,0.25,0.0517243580677498,9,"Additive thin-plate splines"
-90,"kepler","RandomForest",1,0,NA,1,0,0.101221386589909,300,"Black-box ensemble (300 trees)"
-91,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.0051601705681652,5,"-0.001 + 1 * M_star^(1/3) * T^(2/3)"
-91,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0846026227602287,2,"Piecewise-linear ReLU network"
-91,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00516016472329643,1,"troot(((T*M_star)*T))"
-91,"kepler","SR-PySR",1,0,1,1,0,0.0058134668805998,14,"-0.007 + 0.210*T + -0.053*(M_star-0.5)^2 + -0.109*sin(M_star) + 0.903*sqrt(M_star*T)"
-91,"kepler","SR-Operon",1,1,0.000595046270402799,1,0,0.00513324443600392,9,"1.000*(M_star^0.334)*(T^0.667)"
-91,"kepler","Lasso",1,0,NA,1,0,0.0690171904670868,2,"0.026 + 0.326*M_star + 0.622*T"
-91,"kepler","MARS",1,0,NA,1,0,0.0121031627072446,8,"Piecewise degree-2 hinge splines"
-91,"kepler","GAM",0,0,NA,1,0.125,0.0558531638076171,9,"Additive thin-plate splines"
-91,"kepler","RandomForest",1,0,NA,1,0,0.0955332157030638,300,"Black-box ensemble (300 trees)"
-92,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00464890740866051,5,"M_star^(1/3) * T^(2/3)"
-92,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.111149557519594,2,"Piecewise-linear ReLU network"
-92,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00464850478666672,1,"troot(((T*M_star)*T))"
-92,"kepler","SR-PySR",1,0,0.00983308572223918,1,0,0.00657272798978123,9,"1.000*(M_star^0.340)*(T^0.664)"
-92,"kepler","SR-Operon",1,1,0.000331558573298307,1,0,0.00465470815869651,9,"1.000*(M_star^0.333)*(T^0.667)"
-92,"kepler","Lasso",1,0,NA,1,0,0.0585164516346961,2,"-0.002 + 0.326*M_star + 0.641*T"
-92,"kepler","MARS",1,0,NA,1,0,0.0109865186608979,8,"Piecewise degree-2 hinge splines"
-92,"kepler","GAM",0,0,NA,1,0.25,0.0507192079053391,9,"Additive thin-plate splines"
-92,"kepler","RandomForest",1,0,NA,1,0,0.107104002760423,300,"Black-box ensemble (300 trees)"
-93,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00452433311493202,5,"-0.001 + 1 * M_star^(1/3) * T^(2/3)"
-93,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.151216343304738,2,"Piecewise-linear ReLU network"
-93,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00452433409892831,1,"troot((T*(M_star*T)))"
-93,"kepler","SR-PySR",1,0,1,1,0,0.00691823532067746,15,"0.097 + -0.181*(M_star)^(2/3) + 0.068*(T)^2 + 0.140*sin(T) + 0.895*sqrt(M_star*T)"
-93,"kepler","SR-Operon",1,1,0.000906072643161171,1,0,0.00451647177562526,9,"1.000*(M_star^0.334)*(T^0.667)"
-93,"kepler","Lasso",1,0,NA,1,0,0.0634586288418142,2,"-0.006 + 0.317*M_star + 0.652*T"
-93,"kepler","MARS",1,0,NA,1,0,0.0113691019306179,9,"Piecewise degree-2 hinge splines"
-93,"kepler","GAM",0,0,NA,1,0.375,0.0564497352813907,11,"Additive thin-plate splines"
-93,"kepler","RandomForest",1,0,NA,1,0,0.103580625655133,300,"Black-box ensemble (300 trees)"
-94,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.0053701114287781,5,"0.001 + 1 * M_star^(1/3) * T^(2/3)"
-94,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.168954433002866,2,"Piecewise-linear ReLU network"
-94,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00537007037550135,1,"troot((T*(M_star*T)))"
-94,"kepler","SR-PySR",0,0,1,1,0.375,0.00619785240170391,22,"0.070 + 0.218*T + -0.016*(M_star-0.5)^2 + -0.171*sqrt(M_star) + -0.000*cos(x8) + 0.887*sqrt(M_star*T) + -0.000*(x4^2)*x6"
-94,"kepler","SR-Operon",1,1,0.000450157147820929,1,0,0.00537251664903367,9,"1.000*(M_star^0.333)*(T^0.666)"
-94,"kepler","Lasso",1,0,NA,1,0,0.0676866017070841,2,"-0.017 + 0.323*M_star + 0.653*T"
-94,"kepler","MARS",1,0,NA,1,0,0.0100790942459262,9,"Piecewise degree-2 hinge splines"
-94,"kepler","GAM",0,0,NA,1,0.125,0.0579703564266696,9,"Additive thin-plate splines"
-94,"kepler","RandomForest",1,0,NA,1,0,0.116884591098246,300,"Black-box ensemble (300 trees)"
-95,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00498796774655119,5,"M_star^(1/3) * T^(2/3)"
-95,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0785687471320057,2,"Piecewise-linear ReLU network"
-95,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00499191450731933,1,"troot((T*(M_star*T)))"
-95,"kepler","SR-PySR",0,0,1,1,0.125,0.00552808939104658,19,"-0.015 + 0.220*T + -0.033*(M_star)^2 + -0.065*sin(M_star) + 0.884*(M_star^0.5)*(T^0.5) + 0.000*M_star*(x3^2)"
-95,"kepler","SR-Operon",1,1,0.000228456154134971,1,0,0.00499394014602264,9,"1.000*(M_star^0.333)*(T^0.667)"
-95,"kepler","Lasso",1,0,NA,1,0,0.0671160988231689,2,"0.007 + 0.312*M_star + 0.650*T"
-95,"kepler","MARS",1,0,NA,1,0,0.0094486516738659,9,"Piecewise degree-2 hinge splines"
-95,"kepler","GAM",0,0,NA,1,0.125,0.0519199747857476,9,"Additive thin-plate splines"
-95,"kepler","RandomForest",1,0,NA,1,0,0.0855436917654542,300,"Black-box ensemble (300 trees)"
-96,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00494243661553417,5,"M_star^(1/3) * T^(2/3)"
-96,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.104026953010942,2,"Piecewise-linear ReLU network"
-96,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00491881853385123,1,"troot((T*(M_star*T)))"
-96,"kepler","SR-PySR",1,0,0.0379513761710036,1,0,0.0170045540460325,9,"1.000*(M_star^0.350)*(T^0.645)"
-96,"kepler","SR-Operon",1,1,0.000403834915291279,1,0,0.00491333702072603,9,"1.000*(M_star^0.334)*(T^0.666)"
-96,"kepler","Lasso",1,0,NA,1,0,0.0740642067739259,2,"-0.004 + 0.316*M_star + 0.649*T"
-96,"kepler","MARS",1,0,NA,1,0,0.0140588097057568,9,"Piecewise degree-2 hinge splines"
-96,"kepler","GAM",1,0,NA,1,0,0.0575549685535861,8,"Additive thin-plate splines"
-96,"kepler","RandomForest",1,0,NA,1,0,0.107521164323145,300,"Black-box ensemble (300 trees)"
-97,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.0045713484557965,5,"-0.001 + 1.001 * M_star^(1/3) * T^(2/3)"
-97,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.161805933300014,2,"Piecewise-linear ReLU network"
-97,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00457136656871763,1,"troot(((T*T)*M_star))"
-97,"kepler","SR-PySR",1,0,0.00829644433426208,1,0,0.00860429875506404,9,"1.000*(M_star^0.328)*(T^0.663)"
-97,"kepler","SR-Operon",1,1,0.00054017212081009,1,0,0.00457415025345461,9,"1.000*(M_star^0.334)*(T^0.667)"
-97,"kepler","Lasso",1,0,NA,1,0,0.0759472374431786,2,"0.015 + 0.319*M_star + 0.631*T"
-97,"kepler","MARS",1,0,NA,1,0,0.0195585589563291,7,"Piecewise degree-2 hinge splines"
-97,"kepler","GAM",0,0,NA,1,0.25,0.0599080759022242,9,"Additive thin-plate splines"
-97,"kepler","RandomForest",1,0,NA,1,0,0.104657234605203,300,"Black-box ensemble (300 trees)"
-98,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00535886256045137,5,"M_star^(1/3) * T^(2/3)"
-98,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0998887607981879,2,"Piecewise-linear ReLU network"
-98,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00535774335245909,1,"troot(((T*M_star)*T))"
-98,"kepler","SR-PySR",1,0,0.00671836422187422,1,0,0.00739509902753574,9,"1.000*(M_star^0.334)*(T^0.661)"
-98,"kepler","SR-Operon",1,1,0.00091517865033397,1,0,0.00532033092224608,9,"1.000*(M_star^0.333)*(T^0.667)"
-98,"kepler","Lasso",1,0,NA,1,0,0.0629409902890842,2,"-0.027 + 0.329*M_star + 0.653*T"
-98,"kepler","MARS",1,0,NA,1,0,0.0200395495677204,7,"Piecewise degree-2 hinge splines"
-98,"kepler","GAM",0,0,NA,1,0.375,0.0567534766543916,10,"Additive thin-plate splines"
-98,"kepler","RandomForest",1,0,NA,1,0,0.102266034239788,300,"Black-box ensemble (300 trees)"
-99,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00445841613904119,5,"M_star^(1/3) * T^(2/3)"
-99,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0712529659954593,2,"Piecewise-linear ReLU network"
-99,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00448241769569181,1,"troot((M_star*p2(T)))"
-99,"kepler","SR-PySR",1,0,0.0079359676014697,1,0,0.00560925666842228,9,"1.000*(M_star^0.337)*(T^0.662)"
-99,"kepler","SR-Operon",1,1,3.59496874274834e-05,1,0,0.0044717288103185,9,"1.000*(M_star^0.333)*(T^0.667)"
-99,"kepler","Lasso",1,0,NA,1,0,0.0670588888990901,2,"-0.006 + 0.318*M_star + 0.648*T"
-99,"kepler","MARS",1,0,NA,1,0,0.0105341431393014,9,"Piecewise degree-2 hinge splines"
-99,"kepler","GAM",0,0,NA,1,0.125,0.0573256003457493,9,"Additive thin-plate splines"
-99,"kepler","RandomForest",1,0,NA,1,0,0.107778580174129,300,"Black-box ensemble (300 trees)"
-100,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00516224997586153,5,"-0.002 + 1.001 * M_star^(1/3) * T^(2/3)"
-100,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0977610206015926,2,"Piecewise-linear ReLU network"
-100,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00516255303831795,1,"troot(((M_star*T)*T))"
-100,"kepler","SR-PySR",1,0,0.00452199783833213,1,0,0.0060452867645044,9,"0.999*(M_star^0.335)*(T^0.664)"
-100,"kepler","SR-Operon",1,0,0.00194344886920039,1,0,0.00517419067068949,9,"0.999*(M_star^0.334)*(T^0.668)"
-100,"kepler","Lasso",1,0,NA,1,0,0.0746543269967452,2,"0.005 + 0.321*M_star + 0.643*T"
-100,"kepler","MARS",1,0,NA,1,0,0.0130058885808266,8,"Piecewise degree-2 hinge splines"
-100,"kepler","GAM",0,0,NA,1,0.25,0.0558212501758699,9,"Additive thin-plate splines"
-100,"kepler","RandomForest",1,0,NA,1,0,0.1052170785894,300,"Black-box ensemble (300 trees)"
+"seed","benchmark","method","structural_recovery","exact_law","exp_err","var_tpr","var_fpr","test_rmse","n_terms","formula","test_r2"
+1,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00500973498373688,5,"1.001 * M_star^(1/3) * T^(2/3)",0.999311472555472
+1,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.116863684666139,2,"Piecewise-linear ReLU network",0.9270859562285
+1,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00499027963270823,1,"troot((p2(T)*M_star))",0.9993125033451
+1,"kepler","SR-PySR",0,0,1,1,0.25,0.00604840376935662,19,"0.025 + -0.106*M_star + 0.070*(T)^2 + 0.148*sin(T) + 0.887*(M_star^0.5)*(T^0.5) + -0.000*(x8^2)*x10",0.999250618510769
+1,"kepler","SR-Operon",1,0,0.00107314090122568,1,0,0.00500830551355142,9,"1.000*(M_star^0.333)*(T^0.667)",0.99931154842864
+1,"kepler","Lasso",1,0,NA,1,0,0.0735552500152806,2,"0.017 + 0.304*M_star + 0.653*T",0.970779065594096
+1,"kepler","MARS",1,0,NA,1,0,0.0153663291472392,9,"Piecewise degree-2 hinge splines",0.998193406169221
+1,"kepler","GAM",0,0,NA,1,0.125,0.0592942115622421,8,"Additive thin-plate splines",0.98081692904351
+1,"kepler","RandomForest",1,0,NA,1,0,0.103259354311777,300,"Black-box ensemble (300 trees)",0.942952159108342
+2,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00518422359718909,5,"0.001 + M_star^(1/3) * T^(2/3)",0.999317601037192
+2,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.21708730038512,1,"Piecewise-linear ReLU network",0.777026774711611
+2,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00516478102447016,1,"troot(((T*T)*M_star))",0.999318550663556
+2,"kepler","SR-PySR",0,0,1,1,0.25,0.00625167960302868,19,"0.126 + 0.215*T + -0.016*(M_star)^2 + -0.217*(M_star)^(1/3) + 0.892*sqrt(M_star*T) + -0.000*sin(x3*x7)",0.999259987982026
+2,"kepler","SR-Operon",1,1,0.000433609698471671,1,0,0.00514598998168445,9,"1.000*(M_star^0.333)*(T^0.667)",0.999319465076729
+2,"kepler","Lasso",1,0,NA,1,0,0.0704638803617725,2,"-0.015 + 0.327*M_star + 0.644*T",0.976011138559447
+2,"kepler","MARS",1,0,NA,1,0,0.0137462952738434,8,"Piecewise degree-2 hinge splines",0.998552635575016
+2,"kepler","GAM",0,0,NA,1,0.5,0.0578686282895616,11,"Additive thin-plate splines",0.983639723705814
+2,"kepler","RandomForest",1,0,NA,1,0,0.124238567363509,300,"Black-box ensemble (300 trees)",0.926597167902244
+3,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00503928573591379,5,"M_star^(1/3) * T^(2/3)",0.999315160477881
+3,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.136299596594859,2,"Piecewise-linear ReLU network",0.904865199933808
+3,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00505691042241337,1,"troot(((T*M_star)*T))",0.999314254566157
+3,"kepler","SR-PySR",0,0,1,1,0.125,0.0056474180817078,23,"-0.113 + -0.035*(M_star)^2 + -0.070*sin(M_star) + 0.367*(T)^(2/3) + -0.061*sin(T) + 0.893*sqrt(M_star*T) + -0.000*sin(M_star*x9)",0.999282074149458
+3,"kepler","SR-Operon",1,1,0.000429024584432114,1,0,0.00506400905964815,9,"1.000*(M_star^0.333)*(T^0.667)",0.999313888801573
+3,"kepler","Lasso",1,0,NA,1,0,0.0644294982854512,2,"0.005 + 0.320*M_star + 0.638*T",0.978310712303435
+3,"kepler","MARS",1,0,NA,1,0,0.0110514549119702,9,"Piecewise degree-2 hinge splines",0.998822651754433
+3,"kepler","GAM",0,0,NA,1,0.25,0.0522765994795696,10,"Additive thin-plate splines",0.985531426065686
+3,"kepler","RandomForest",1,0,NA,1,0,0.111865429665008,300,"Black-box ensemble (300 trees)",0.93573578162175
+4,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00493478997581081,5,"M_star^(1/3) * T^(2/3)",0.999313743275177
+4,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.132589759891666,2,"Piecewise-linear ReLU network",0.905090058327136
+4,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00493323209315249,1,"troot((T*(M_star*T)))",0.999313825785251
+4,"kepler","SR-PySR",0,0,1,1,0.25,0.00578775016963141,18,"-0.015 + 0.216*T + -0.035*(M_star)^2 + -0.067*sin(M_star) + 0.891*sqrt(M_star*T) + -0.000*x5*(x7^2)",0.999264656040156
+4,"kepler","SR-Operon",1,0,0.00109460783245502,1,0,0.00498246759495814,9,"1.000*(M_star^0.333)*(T^0.667)",0.999311205528439
+4,"kepler","Lasso",1,0,NA,1,0,0.073366781736461,2,"0.013 + 0.313*M_star + 0.644*T",0.970554875418789
+4,"kepler","MARS",1,0,NA,1,0,0.0115082058922243,9,"Piecewise degree-2 hinge splines",0.998733628155393
+4,"kepler","GAM",0,0,NA,1,0.375,0.0578160081552753,11,"Additive thin-plate splines",0.981503787945535
+4,"kepler","RandomForest",1,0,NA,1,0,0.112305010537167,300,"Black-box ensemble (300 trees)",0.931751969797384
+5,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.0046875975094434,5,"0.001 + M_star^(1/3) * T^(2/3)",0.999328829755536
+5,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.109602763811986,2,"Piecewise-linear ReLU network",0.936238867971467
+5,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00463374021661589,1,"troot((M_star*(T*T)))",0.999331471161464
+5,"kepler","SR-PySR",1,0,1,1,0,0.00538997626626272,14,"-0.006 + 0.221*T + -0.048*(M_star-0.5)^2 + -0.098*sin(M_star) + 0.881*sqrt(M_star*T)",0.999291587177238
+5,"kepler","SR-Operon",1,1,0.00054123654459648,1,0,0.00463759032936336,9,"1.000*(M_star^0.333)*(T^0.666)",0.999331283347492
+5,"kepler","Lasso",1,0,NA,1,0,0.0713735670243503,2,"0.011 + 0.312*M_star + 0.643*T",0.972641210982851
+5,"kepler","MARS",1,0,NA,1,0,0.0161914524635008,7,"Piecewise degree-2 hinge splines",0.998065064194235
+5,"kepler","GAM",0,0,NA,1,0.25,0.0523380567575462,10,"Additive thin-plate splines",0.985031670570881
+5,"kepler","RandomForest",1,0,NA,1,0,0.109111049556844,300,"Black-box ensemble (300 trees)",0.936804718071486
+6,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00507072832353633,5,"M_star^(1/3) * T^(2/3)",0.999279632578796
+6,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0757338076262893,2,"Piecewise-linear ReLU network",0.962680053616333
+6,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00508557280548771,1,"troot(p2((T*p05(M_star))))",0.999278666197747
+6,"kepler","SR-PySR",1,0,0.00557336862750379,1,0,0.00677598125034013,9,"1.000*(M_star^0.328)*(T^0.667)",0.999150143143988
+6,"kepler","SR-Operon",1,1,0.000294243206181044,1,0,0.00508904232485488,9,"1.000*(M_star^0.334)*(T^0.667)",0.999278439923516
+6,"kepler","Lasso",1,0,NA,1,0,0.0683185501464554,2,"-0.009 + 0.317*M_star + 0.656*T",0.969526960105274
+6,"kepler","MARS",1,0,NA,1,0,0.0185426395562532,7,"Piecewise degree-2 hinge splines",0.997240549429485
+6,"kepler","GAM",0,0,NA,1,0.125,0.052548288669803,8,"Additive thin-plate splines",0.981744783626088
+6,"kepler","RandomForest",1,0,NA,1,0,0.103272171626177,300,"Black-box ensemble (300 trees)",0.931082499681706
+7,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00531762822508274,5,"0.001 + 1 * M_star^(1/3) * T^(2/3)",0.999285947078519
+7,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0835407261690729,2,"Piecewise-linear ReLU network",0.960325907893031
+7,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00531762157903489,1,"troot((T*(T*M_star)))",0.999285947474704
+7,"kepler","SR-PySR",0,0,1,1,0.125,0.00640848127787562,19,"0.013 + -0.106*M_star + 0.102*(T-0.5)^2 + 0.213*sin(T) + 0.888*sqrt(M_star*T) + -0.000*T*(x10^2)",0.999214249200235
+7,"kepler","SR-Operon",1,1,0.000719806596305272,1,0,0.00530701628495432,9,"1.000*(M_star^0.333)*(T^0.666)",0.999286579046836
+7,"kepler","Lasso",1,0,NA,1,0,0.0677053008755896,2,"-0.011 + 0.321*M_star + 0.655*T",0.973750460289317
+7,"kepler","MARS",1,0,NA,1,0,0.0115735420587918,9,"Piecewise degree-2 hinge splines",0.998693654070762
+7,"kepler","GAM",0,0,NA,1,0.125,0.0556538546044476,8,"Additive thin-plate splines",0.9820833697592
+7,"kepler","RandomForest",1,0,NA,1,0,0.107669196142993,300,"Black-box ensemble (300 trees)",0.934466039181165
+8,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.0053637637700929,5,"-0.001 + 1.001 * M_star^(1/3) * T^(2/3)",0.99929268761043
+8,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.101480319954074,2,"Piecewise-linear ReLU network",0.945122835057306
+8,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00539372047306876,1,"troot((M_star*p2(T)))",0.999290987748276
+8,"kepler","SR-PySR",1,0,1,1,0,0.00603488577165024,13,"-0.018 + 0.218*T + -0.033*(M_star)^2 + -0.063*sin(M_star) + 0.886*sqrt(M_star*T)",0.999252335723262
+8,"kepler","SR-Operon",1,1,0.000997767607826661,1,0,0.00535695277588,9,"0.999*(M_star^0.334)*(T^0.667)",0.999293072772309
+8,"kepler","Lasso",0,0,NA,1,0.125,0.0644002228413526,3,"-0.017 + 0.324*M_star + 0.653*T + -0.001*x10",0.977567648651993
+8,"kepler","MARS",1,0,NA,1,0,0.0112303130663945,9,"Piecewise degree-2 hinge splines",0.998779182472024
+8,"kepler","GAM",0,0,NA,1,0.5,0.0521221842028387,11,"Additive thin-plate splines",0.985114180615301
+8,"kepler","RandomForest",1,0,NA,1,0,0.098425264856093,300,"Black-box ensemble (300 trees)",0.948344296569766
+9,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00504271279360353,5,"M_star^(1/3) * T^(2/3)",0.999310779506825
+9,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0823784623053527,2,"Piecewise-linear ReLU network",0.963773353259114
+9,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00504279743210146,1,"troot(((M_star*T)*T))",0.999310775019837
+9,"kepler","SR-PySR",1,0,0.0117269127162279,1,0,0.00697808099687568,9,"1.000*(M_star^0.338)*(T^0.660)",0.999188490960812
+9,"kepler","SR-Operon",1,1,0.000166746268214057,1,0,0.00504074146462684,9,"1.000*(M_star^0.333)*(T^0.667)",0.999310883992673
+9,"kepler","Lasso",1,0,NA,1,0,0.0651113943262611,2,"-0.008 + 0.324*M_star + 0.650*T",0.977159937793004
+9,"kepler","MARS",1,0,NA,1,0,0.0121483155904994,8,"Piecewise degree-2 hinge splines",0.998668695552947
+9,"kepler","GAM",0,0,NA,1,0.25,0.0519287765948197,10,"Additive thin-plate splines",0.985270027135883
+9,"kepler","RandomForest",1,0,NA,1,0,0.106598536934437,300,"Black-box ensemble (300 trees)",0.939714581166258
+10,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00507547130945632,5,"M_star^(1/3) * T^(2/3)",0.99931146940116
+10,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.118734860753012,2,"Piecewise-linear ReLU network",0.926670840884204
+10,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00507522245100728,1,"troot(((M_star*T)*T))",0.999311482440796
+10,"kepler","SR-PySR",0,0,1,1,0.125,0.0142601514155075,18,"-0.749 + -0.006*(M_star)^3 + 0.215*log(M_star) + 1.603*(T)^(1/3) + -0.001*cos(x3) + 0.159*M_star*T",0.998394743326087
+10,"kepler","SR-Operon",1,1,0.000446502304306762,1,0,0.00506053815002265,9,"1.000*(M_star^0.333)*(T^0.666)",0.99931225073403
+10,"kepler","Lasso",1,0,NA,1,0,0.0686008403581006,2,"-0.029 + 0.323*M_star + 0.658*T",0.975151718109483
+10,"kepler","MARS",1,0,NA,1,0,0.01222164153276,8,"Piecewise degree-2 hinge splines",0.998673405225474
+10,"kepler","GAM",0,0,NA,1,0.625,0.061053929609411,13,"Additive thin-plate splines",0.980202691714595
+10,"kepler","RandomForest",1,0,NA,1,0,0.123340101495364,300,"Black-box ensemble (300 trees)",0.920916181844077
+11,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00463105015069589,5,"M_star^(1/3) * T^(2/3)",0.999321877343797
+11,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.108160553759827,2,"Piecewise-linear ReLU network",0.932586541738194
+11,"kepler","FBMS-BGNLM",1,1,0,1,0,0.0046623588959958,1,"troot(((M_star*T)*T))",0.999320214483894
+11,"kepler","SR-PySR",1,0,0.00571385954015508,1,0,0.00621973364896486,9,"1.000*(M_star^0.334)*(T^0.662)",0.999223359830872
+11,"kepler","SR-Operon",1,1,0.000775075394790992,1,0,0.00469328635358532,9,"1.000*(M_star^0.333)*(T^0.667)",0.999318560874577
+11,"kepler","Lasso",1,0,NA,1,0,0.0710885444085524,2,"-0.003 + 0.324*M_star + 0.641*T",0.970563313983179
+11,"kepler","MARS",1,0,NA,1,0,0.0106980425346417,9,"Piecewise degree-2 hinge splines",0.998790375415372
+11,"kepler","GAM",0,0,NA,1,0.25,0.052804099949173,10,"Additive thin-plate splines",0.983509511745963
+11,"kepler","RandomForest",1,0,NA,1,0,0.108109088166259,300,"Black-box ensemble (300 trees)",0.932650152045234
+12,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00478339626569171,5,"0.001 + 0.999 * M_star^(1/3) * T^(2/3)",0.999310919101721
+12,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0745438410814289,2,"Piecewise-linear ReLU network",0.967016866227403
+12,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00478338510052819,1,"troot((T*(T*M_star)))",0.999310919725056
+12,"kepler","SR-PySR",1,0,1,1,0,0.00552995478964728,13,"-0.012 + 0.216*T + -0.034*(M_star)^2 + -0.070*sin(M_star) + 0.889*sqrt(M_star*T)",0.999265987216537
+12,"kepler","SR-Operon",1,1,0.000481344406795703,1,0,0.00476875273309854,9,"1.000*(M_star^0.333)*(T^0.666)",0.999311735379412
+12,"kepler","Lasso",1,0,NA,1,0,0.0644392283042449,2,"0.002 + 0.320*M_star + 0.642*T",0.975212311511801
+12,"kepler","MARS",1,0,NA,1,0,0.0117484258073486,8,"Piecewise degree-2 hinge splines",0.998638972647884
+12,"kepler","GAM",0,0,NA,1,0.25,0.0511574900239149,9,"Additive thin-plate splines",0.984171968929757
+12,"kepler","RandomForest",1,0,NA,1,0,0.10484375223092,300,"Black-box ensemble (300 trees)",0.935297482606046
+13,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00522622543847126,5,"0.001 + 0.999 * M_star^(1/3) * T^(2/3)",0.999299544385128
+13,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.100935090610742,2,"Piecewise-linear ReLU network",0.945396816452315
+13,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00522620896123446,1,"troot(((T*M_star)*T))",0.999299545298808
+13,"kepler","SR-PySR",0,0,1,1,0.25,0.00598504974564884,23,"-0.008 + 0.218*T + -0.048*(M_star-0.5)^2 + -0.097*sin(M_star) + 0.000*(x3)^3 + 0.884*(M_star^0.5)*(T^0.5) + 0.000*T*x9",0.999254411974498
+13,"kepler","SR-Operon",1,0,0.00149102208521867,1,0,0.00523031724260395,9,"1.000*(M_star^0.334)*(T^0.666)",0.999299317401133
+13,"kepler","Lasso",1,0,NA,1,0,0.06858595333665,2,"-0.017 + 0.326*M_star + 0.644*T",0.974489153154564
+13,"kepler","MARS",1,0,NA,1,0,0.0141378395446203,8,"Piecewise degree-2 hinge splines",0.998384072127816
+13,"kepler","GAM",0,0,NA,1,0.125,0.0587535431714509,8,"Additive thin-plate splines",0.981131405941378
+13,"kepler","RandomForest",1,0,NA,1,0,0.113779093431929,300,"Black-box ensemble (300 trees)",0.930766510394428
+14,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00535742711671962,5,"-0.001 + 1.001 * M_star^(1/3) * T^(2/3)",0.999293772883572
+14,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.223311345394957,1,"Piecewise-linear ReLU network",0.737662119517698
+14,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00535742140862737,1,"troot((T*(M_star*T)))",0.999293773204639
+14,"kepler","SR-PySR",1,0,0.00760220529291122,1,0,0.00700565823970938,9,"0.999*(M_star^0.332)*(T^0.673)",0.999186802458285
+14,"kepler","SR-Operon",1,1,0.0007584925048989,1,0,0.00536867278175131,9,"0.999*(M_star^0.333)*(T^0.667)",0.999293139676546
+14,"kepler","Lasso",1,0,NA,1,0,0.0732870445434944,2,"0.004 + 0.311*M_star + 0.648*T",0.971249375516266
+14,"kepler","MARS",1,0,NA,1,0,0.0135974187665017,9,"Piecewise degree-2 hinge splines",0.998473863657257
+14,"kepler","GAM",0,0,NA,1,0.375,0.0587874111225262,9,"Additive thin-plate splines",0.98130235037104
+14,"kepler","RandomForest",1,0,NA,1,0,0.112499917315746,300,"Black-box ensemble (300 trees)",0.933005434704029
+15,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00498022637825962,5,"M_star^(1/3) * T^(2/3)",0.999318814627652
+15,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.214389006532477,1,"Piecewise-linear ReLU network",0.766635543013775
+15,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00502903613766891,1,"troot((T*(T*M_star)))",0.999316340037361
+15,"kepler","SR-PySR",1,0,1,1,0,0.00569058047774205,18,"-0.008 + 0.208*T + -0.035*(M_star)^2 + -0.073*sin(M_star) + 0.002*(T-0.5)^2 + 0.897*(M_star^0.5)*(T^0.5)",0.999280420331698
+15,"kepler","SR-Operon",1,1,0.000165724673756751,1,0,0.00503138248153224,9,"1.000*(M_star^0.333)*(T^0.667)",0.999316220472856
+15,"kepler","Lasso",1,0,NA,1,0,0.0688423551676038,2,"-0.033 + 0.332*M_star + 0.654*T",0.97543920749766
+15,"kepler","MARS",1,0,NA,1,0,0.0143236384893261,9,"Piecewise degree-2 hinge splines",0.998405239365036
+15,"kepler","GAM",0,0,NA,1,0.125,0.055419150079118,8,"Additive thin-plate splines",0.983887858950685
+15,"kepler","RandomForest",1,0,NA,1,0,0.108490007113774,300,"Black-box ensemble (300 trees)",0.939826906979106
+16,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00465471639062145,5,"0.002 + 0.999 * M_star^(1/3) * T^(2/3)",0.999328631082686
+16,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.106785189732181,2,"Piecewise-linear ReLU network",0.938491559501081
+16,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00465468879246017,1,"troot(((T*M_star)*T))",0.999328632456014
+16,"kepler","SR-PySR",1,0,1,1,0,0.00568596943015407,13,"-0.014 + 0.213*T + -0.035*(M_star)^2 + -0.068*sin(M_star) + 0.895*sqrt(M_star*T)",0.999271629514546
+16,"kepler","SR-Operon",1,0,0.0011064641232984,1,0,0.00465338860889243,9,"1.000*(M_star^0.333)*(T^0.666)",0.999328697145973
+16,"kepler","Lasso",1,0,NA,1,0,0.0657319297603862,2,"-0.006 + 0.328*M_star + 0.638*T",0.976349071286732
+16,"kepler","MARS",1,0,NA,1,0,0.010996006352519,9,"Piecewise degree-2 hinge splines",0.998798132499081
+16,"kepler","GAM",1,0,NA,1,0,0.0506927031815206,8,"Additive thin-plate splines",0.985708354696934
+16,"kepler","RandomForest",1,0,NA,1,0,0.119752941089371,300,"Black-box ensemble (300 trees)",0.922788719477568
+17,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.0045111380306874,5,"0.001 + 0.999 * M_star^(1/3) * T^(2/3)",0.999354926377718
+17,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0715399471362555,2,"Piecewise-linear ReLU network",0.976931324109099
+17,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00451112043213701,1,"troot((M_star*p2(T)))",0.999354927076161
+17,"kepler","SR-PySR",1,0,1,1,0,0.00613276723858822,20,"-0.296 + -0.020*(M_star-0.5)^2 + 0.618*sqrt(T) + -0.033*sin(T) + 0.702*sqrt(M_star*T) + 0.011*M_star*(T^2)",0.999279000290125
+17,"kepler","SR-Operon",1,1,0.00079755033894835,1,0,0.00451328565372574,9,"1.000*(M_star^0.334)*(T^0.666)",0.999354841123477
+17,"kepler","Lasso",1,0,NA,1,0,0.0680785456072776,2,"0.003 + 0.307*M_star + 0.651*T",0.979057177887567
+17,"kepler","MARS",1,0,NA,1,0,0.0124790326409323,9,"Piecewise degree-2 hinge splines",0.998759429093015
+17,"kepler","GAM",0,0,NA,1,0.125,0.0567507222313773,8,"Additive thin-plate splines",0.985277335007574
+17,"kepler","RandomForest",1,0,NA,1,0,0.112554628715308,300,"Black-box ensemble (300 trees)",0.943717506242297
+18,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00472458622686493,5,"-0.001 + 1 * M_star^(1/3) * T^(2/3)",0.999330303175043
+18,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0860610596371966,2,"Piecewise-linear ReLU network",0.961571548276592
+18,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00472464024464882,1,"(troot((T*M_star))*troot(T))",0.999330300564997
+18,"kepler","SR-PySR",1,0,1,1,0,0.00571657995788573,13,"-0.015 + 0.212*T + -0.036*(M_star)^2 + -0.071*sin(M_star) + 0.900*sqrt(M_star*T)",0.999277340114334
+18,"kepler","SR-Operon",1,0,0.00112002282430235,1,0,0.00475836547304038,9,"1.000*(M_star^0.333)*(T^0.667)",0.999328665194906
+18,"kepler","Lasso",1,0,NA,1,0,0.0674911523930887,2,"-0.040 + 0.338*M_star + 0.650*T",0.976152334770705
+18,"kepler","MARS",1,0,NA,1,0,0.0125426545665945,8,"Piecewise degree-2 hinge splines",0.998640003694206
+18,"kepler","GAM",0,0,NA,1,0.25,0.0567807768365032,10,"Additive thin-plate splines",0.98295834941238
+18,"kepler","RandomForest",1,0,NA,1,0,0.109974933304054,300,"Black-box ensemble (300 trees)",0.937599734987726
+19,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00485808836297834,5,"M_star^(1/3) * T^(2/3)",0.999312995391653
+19,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0772426247961119,2,"Piecewise-linear ReLU network",0.966213652782215
+19,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00485834581703157,1,"troot((p2(T)*M_star))",0.999312981459018
+19,"kepler","SR-PySR",0,0,1,1,0.125,0.00801183258518904,23,"-0.718 + -0.027*(M_star-0.5)^2 + 0.222*log(M_star) + 1.618*(T)^(1/3) + -0.053*sin(T) + 0.158*M_star*T + 0.001*sin(M_star*x4)",0.999086932650984
+19,"kepler","SR-Operon",1,1,0.000794992231893499,1,0,0.00483748180458752,9,"1.000*(M_star^0.334)*(T^0.666)",0.999314108161782
+19,"kepler","Lasso",1,0,NA,1,0,0.0610845602215143,2,"-0.010 + 0.317*M_star + 0.654*T",0.978662338986335
+19,"kepler","MARS",1,0,NA,1,0,0.0166314359056577,9,"Piecewise degree-2 hinge splines",0.997903857780183
+19,"kepler","GAM",0,0,NA,1,0.375,0.0487007072062221,12,"Additive thin-plate splines",0.986234616015319
+19,"kepler","RandomForest",1,0,NA,1,0,0.105021047806212,300,"Black-box ensemble (300 trees)",0.938014611367365
+20,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00488644268041156,5,"0.001 + 0.999 * M_star^(1/3) * T^(2/3)",0.999321589537383
+20,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.138015095564463,2,"Piecewise-linear ReLU network",0.90143677293774
+20,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00488645428079547,1,"troot(((M_star*T)*T))",0.999321588954068
+20,"kepler","SR-PySR",1,0,0.0110560689868515,1,0,0.00710613882707861,9,"1.000*(M_star^0.326)*(T^0.671)",0.999184623435023
+20,"kepler","SR-Operon",1,1,0.000831352227612048,1,0,0.00489087691692469,9,"1.000*(M_star^0.333)*(T^0.666)",0.999321366465128
+20,"kepler","Lasso",1,0,NA,1,0,0.0700094731286544,2,"-0.038 + 0.333*M_star + 0.654*T",0.974225871409444
+20,"kepler","MARS",1,0,NA,1,0,0.0110358020966828,9,"Piecewise degree-2 hinge splines",0.998817809373006
+20,"kepler","GAM",0,0,NA,1,0.375,0.0585869125814483,10,"Additive thin-plate splines",0.981783736261234
+20,"kepler","RandomForest",1,0,NA,1,0,0.118884944747861,300,"Black-box ensemble (300 trees)",0.926723315757654
+21,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.005148705137507,5,"0.001 + 1 * M_star^(1/3) * T^(2/3)",0.999291437792784
+21,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.151508526798494,2,"Piecewise-linear ReLU network",0.866952821390431
+21,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00514870870985147,1,"troot(((T*T)*M_star))",0.999291437580462
+21,"kepler","SR-PySR",0,0,1,1,0.125,0.00574128836770254,17,"-0.015 + 0.215*T + -0.034*(M_star)^2 + -0.067*sin(M_star) + 0.000*(x7)^(2/3) + 0.891*sqrt(M_star*T)",0.999254190797202
+21,"kepler","SR-Operon",1,1,0.000456524994233154,1,0,0.00514560328878385,9,"1.000*(M_star^0.333)*(T^0.666)",0.999291622095638
+21,"kepler","Lasso",1,0,NA,1,0,0.0669539350915644,2,"-0.027 + 0.334*M_star + 0.647*T",0.973570271089717
+21,"kepler","MARS",1,0,NA,1,0,0.0143405435762385,9,"Piecewise degree-2 hinge splines",0.998257458717642
+21,"kepler","GAM",0,0,NA,1,0.5,0.0529299573224467,12,"Additive thin-plate splines",0.983274171249784
+21,"kepler","RandomForest",1,0,NA,1,0,0.116251756349155,300,"Black-box ensemble (300 trees)",0.921441083489108
+22,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00466007731459316,5,"M_star^(1/3) * T^(2/3)",0.999348455392942
+22,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0821921815248394,2,"Piecewise-linear ReLU network",0.969583985990466
+22,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00466384449973202,1,"troot((M_star*(T*T)))",0.999348300135994
+22,"kepler","SR-PySR",1,0,1,1,0,0.00601325244800541,14,"-0.135 + 0.112*cos(M_star) + 0.071*(T)^2 + 0.148*sin(T) + 0.880*sqrt(M_star*T)",0.999284615905402
+22,"kepler","SR-Operon",1,1,0.000550995552018263,1,0,0.00466769582686187,9,"1.000*(M_star^0.334)*(T^0.667)",0.999348141281611
+22,"kepler","Lasso",1,0,NA,1,0,0.0746066417670958,2,"0.009 + 0.325*M_star + 0.636*T",0.974841310009935
+22,"kepler","MARS",1,0,NA,1,0,0.014559460010794,9,"Piecewise degree-2 hinge splines",0.998507473783828
+22,"kepler","GAM",0,0,NA,1,0.125,0.0646021510038201,9,"Additive thin-plate splines",0.980997288745965
+22,"kepler","RandomForest",1,0,NA,1,0,0.124419428353252,300,"Black-box ensemble (300 trees)",0.931019908696551
+23,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00506668150144209,5,"M_star^(1/3) * T^(2/3)",0.999314457821025
+23,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.121671852132008,2,"Piecewise-linear ReLU network",0.924484079701519
+23,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00510202694661489,1,"troot((M_star*(T*T)))",0.999312637907701
+23,"kepler","SR-PySR",0,0,1,1,0.125,0.00601975984243364,20,"-0.149 + 0.116*cos(M_star) + 0.102*(T-0.5)^2 + 0.211*sin(T) + 0.888*sqrt(M_star*T) + -0.002*sqrt(T*x10)",0.999260955550045
+23,"kepler","SR-Operon",1,1,0.000688279103261413,1,0,0.00513896226866927,9,"1.000*(M_star^0.333)*(T^0.667)",0.999310722614567
+23,"kepler","Lasso",1,0,NA,1,0,0.0689620333412067,2,"-0.002 + 0.312*M_star + 0.652*T",0.975363607933396
+23,"kepler","MARS",1,0,NA,1,0,0.0116207486948348,9,"Piecewise degree-2 hinge splines",0.998760659283546
+23,"kepler","GAM",0,0,NA,1,0.25,0.0548125867033791,9,"Additive thin-plate splines",0.984231543121263
+23,"kepler","RandomForest",1,0,NA,1,0,0.106414571083286,300,"Black-box ensemble (300 trees)",0.942104977568402
+24,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00515090974101442,5,"0.001 + 1 * M_star^(1/3) * T^(2/3)",0.999320728439401
+24,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0804133034341318,2,"Piecewise-linear ReLU network",0.969292604774063
+24,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00515091666310256,1,"troot((T*(T*M_star)))",0.999320728106887
+24,"kepler","SR-PySR",1,0,1,1,0,0.00560884443099981,14,"-0.006 + 0.217*T + -0.050*(M_star-0.5)^2 + -0.103*sin(M_star) + 0.889*sqrt(M_star*T)",0.999297752996029
+24,"kepler","SR-Operon",1,1,0.000731600457143211,1,0,0.00516979628685692,9,"1.000*(M_star^0.333)*(T^0.667)",0.999319819531344
+24,"kepler","Lasso",1,0,NA,1,0,0.0662824323024065,2,"-0.011 + 0.331*M_star + 0.642*T",0.978958552305046
+24,"kepler","MARS",1,0,NA,1,0,0.0131844603965791,9,"Piecewise degree-2 hinge splines",0.998633888998662
+24,"kepler","GAM",0,0,NA,1,0.25,0.0585934605162753,9,"Additive thin-plate splines",0.983435735670721
+24,"kepler","RandomForest",1,0,NA,1,0,0.120627342774422,300,"Black-box ensemble (300 trees)",0.931594494723404
+25,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00488032144794682,5,"M_star^(1/3) * T^(2/3)",0.999317115946806
+25,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.147663365741282,2,"Piecewise-linear ReLU network",0.882877802690205
+25,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00489417232199453,1,"troot((p2(T)*M_star))",0.999316392177415
+25,"kepler","SR-PySR",0,0,1,1,0.25,0.00540317347079242,19,"-0.009 + 0.219*T + -0.050*(M_star-0.5)^2 + -0.100*sin(M_star) + 0.887*sqrt(M_star*T) + 0.001*sqrt(x9*x10)",0.999288371875026
+25,"kepler","SR-Operon",1,0,0.00133851835269094,1,0,0.0049270675100917,9,"1.000*(M_star^0.333)*(T^0.667)",0.999314665037786
+25,"kepler","Lasso",1,0,NA,1,0,0.0714888025592994,2,"0.015 + 0.322*M_star + 0.631*T",0.972122927807243
+25,"kepler","MARS",1,0,NA,1,0,0.012161628034377,9,"Piecewise degree-2 hinge splines",0.998653743621253
+25,"kepler","GAM",0,0,NA,1,0.125,0.0536235893392442,9,"Additive thin-plate splines",0.984072085407713
+25,"kepler","RandomForest",1,0,NA,1,0,0.114990946245577,300,"Black-box ensemble (300 trees)",0.928754758238913
+26,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00529247720838893,5,"M_star^(1/3) * T^(2/3)",0.999309674182605
+26,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0993170473554182,2,"Piecewise-linear ReLU network",0.951984887594893
+26,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00527273494401452,1,"troot((T*(T*M_star)))",0.999310677760911
+26,"kepler","SR-PySR",0,0,1,1,0.375,0.00555573520766291,23,"-0.007 + 0.222*T + -0.047*(M_star-0.5)^2 + -0.095*sin(M_star) + -0.002*1/(1+x4) + 0.877*sqrt(M_star*T) + 0.000*x3*(x7^2)",0.999295933261816
+26,"kepler","SR-Operon",1,1,0.000131885367433471,1,0,0.00527688400362952,9,"1.000*(M_star^0.333)*(T^0.667)",0.999310467158893
+26,"kepler","Lasso",1,0,NA,1,0,0.0713604994480796,2,"-0.005 + 0.313*M_star + 0.651*T",0.974942991371269
+26,"kepler","MARS",1,0,NA,1,0,0.0114075995201143,8,"Piecewise degree-2 hinge splines",0.998818314301758
+26,"kepler","GAM",0,0,NA,1,0.375,0.0542109511121656,10,"Additive thin-plate splines",0.985304420885681
+26,"kepler","RandomForest",1,0,NA,1,0,0.11734195814266,300,"Black-box ensemble (300 trees)",0.93319492357541
+27,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00504818032455429,5,"-0.001 + 1.001 * M_star^(1/3) * T^(2/3)",0.999316567079503
+27,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.07724518334678,2,"Piecewise-linear ReLU network",0.969503411742
+27,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00504793298371533,1,"troot((T*(M_star*T)))",0.999316579610165
+27,"kepler","SR-PySR",1,0,1,1,0,0.00760829710535611,15,"0.317 + -0.055*(M_star-0.5)^2 + -0.117*sin(M_star) + -0.228*cos(T) + 0.913*sqrt(M_star*T)",0.999153976048782
+27,"kepler","SR-Operon",1,0,0.00130269764693525,1,0,0.00498642987114964,9,"1.000*(M_star^0.333)*(T^0.667)",0.999319676393746
+27,"kepler","Lasso",1,0,NA,1,0,0.0602237596774956,2,"-0.010 + 0.319*M_star + 0.650*T",0.981244934764094
+27,"kepler","MARS",1,0,NA,1,0,0.0134115966289905,9,"Piecewise degree-2 hinge splines",0.998541866067543
+27,"kepler","GAM",0,0,NA,1,0.125,0.0521289950831492,8,"Additive thin-plate splines",0.985808580329579
+27,"kepler","RandomForest",1,0,NA,1,0,0.118461212528353,300,"Black-box ensemble (300 trees)",0.929027641051584
+28,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.0051960288601529,5,"M_star^(1/3) * T^(2/3)",0.99929619830361
+28,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.091384207630303,2,"Piecewise-linear ReLU network",0.953589878328314
+28,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00520962162013423,1,"troot((T*(T*M_star)))",0.999295421668233
+28,"kepler","SR-PySR",1,0,0.0223161632245554,1,0,0.0111312978652231,9,"1.000*(M_star^0.325)*(T^0.680)",0.998764095216991
+28,"kepler","SR-Operon",1,1,0.000470665991410824,1,0,0.00521465723543056,9,"1.000*(M_star^0.334)*(T^0.666)",0.999295133438452
+28,"kepler","Lasso",1,0,NA,1,0,0.0658014235979689,2,"0.014 + 0.300*M_star + 0.651*T",0.975669973215636
+28,"kepler","MARS",1,0,NA,1,0,0.00969170509493492,8,"Piecewise degree-2 hinge splines",0.99892869274373
+28,"kepler","GAM",0,0,NA,1,0.125,0.0539535607117663,9,"Additive thin-plate splines",0.983460627005007
+28,"kepler","RandomForest",1,0,NA,1,0,0.107892613346949,300,"Black-box ensemble (300 trees)",0.935526365682462
+29,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00492563675645159,5,"-0.001 + 1 * M_star^(1/3) * T^(2/3)",0.999320787379753
+29,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.162774557873234,4,"Piecewise-linear ReLU network",0.864402955062462
+29,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00492561631533679,1,"troot(((T*T)*M_star))",0.99932078840609
+29,"kepler","SR-PySR",0,0,1,1,0.375,0.00594798706674711,22,"-0.015 + 0.214*T + -0.035*(M_star)^2 + -0.069*sin(M_star) + -0.000*sin(x9) + 0.895*(M_star^0.5)*(T^0.5) + 0.000*sin(x4*x5)",0.999264128470726
+29,"kepler","SR-Operon",1,1,0.000690637477817058,1,0,0.00494411954329128,9,"1.000*(M_star^0.334)*(T^0.667)",0.999319857625754
+29,"kepler","Lasso",1,0,NA,1,0,0.0712774861310491,2,"-0.016 + 0.326*M_star + 0.645*T",0.973550457844383
+29,"kepler","MARS",1,0,NA,1,0,0.0127215097937376,9,"Piecewise degree-2 hinge splines",0.998619601082682
+29,"kepler","GAM",0,0,NA,1,0.5,0.0592886455264711,11,"Additive thin-plate splines",0.981528602267619
+29,"kepler","RandomForest",1,0,NA,1,0,0.11683572663865,300,"Black-box ensemble (300 trees)",0.929870680680243
+30,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00510070144798271,5,"0.001 + M_star^(1/3) * T^(2/3)",0.999304235730561
+30,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0948881634151108,2,"Piecewise-linear ReLU network",0.950922379074377
+30,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00508104420193985,1,"troot((M_star*p2(T)))",0.999305314329812
+30,"kepler","SR-PySR",1,0,1,1,0,0.00588897231412101,13,"-0.014 + 0.215*T + -0.034*(M_star)^2 + -0.068*sin(M_star) + 0.892*sqrt(M_star*T)",0.999257550933764
+30,"kepler","SR-Operon",1,1,0.000416850481182951,1,0,0.00507876026600209,9,"1.000*(M_star^0.333)*(T^0.666)",0.999305439380033
+30,"kepler","Lasso",1,0,NA,1,0,0.0718430102069902,2,"-0.012 + 0.332*M_star + 0.638*T",0.971629113039785
+30,"kepler","MARS",1,0,NA,1,0,0.0126032849677559,8,"Piecewise degree-2 hinge splines",0.998588426814955
+30,"kepler","GAM",0,0,NA,1,0.125,0.058219662651388,8,"Additive thin-plate splines",0.981177977042307
+30,"kepler","RandomForest",1,0,NA,1,0,0.100385127067519,300,"Black-box ensemble (300 trees)",0.945137678198952
+31,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00537452337028278,5,"-0.001 + 1.001 * M_star^(1/3) * T^(2/3)",0.999280795390768
+31,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.173184986146943,2,"Piecewise-linear ReLU network",0.829520701688864
+31,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00537454604741119,1,"troot((T*(M_star*T)))",0.999280794009772
+31,"kepler","SR-PySR",1,0,1,1,0,0.00633798747809332,13,"-0.016 + 0.215*T + -0.035*(M_star)^2 + -0.069*sin(M_star) + 0.894*sqrt(M_star*T)",0.999216863266719
+31,"kepler","SR-Operon",1,0,0.00100497236054059,1,0,0.00543011539880311,9,"0.999*(M_star^0.333)*(T^0.668)",0.999277392434561
+31,"kepler","Lasso",1,0,NA,1,0,0.0733120717062162,2,"0.018 + 0.319*M_star + 0.635*T",0.968994635537389
+31,"kepler","MARS",1,0,NA,1,0,0.0134267165070908,9,"Piecewise degree-2 hinge splines",0.998423097661077
+31,"kepler","GAM",0,0,NA,1,0.5,0.0567759351593889,11,"Additive thin-plate splines",0.981181862426396
+31,"kepler","RandomForest",1,0,NA,1,0,0.0950155014966675,300,"Black-box ensemble (300 trees)",0.948297167533997
+32,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00489998367202024,5,"M_star^(1/3) * T^(2/3)",0.99931291372724
+32,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0847096921137878,2,"Piecewise-linear ReLU network",0.960134346217263
+32,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00493376340096196,1,"troot((T*(M_star*T)))",0.999311093971421
+32,"kepler","SR-PySR",1,0,0.0128830543297465,1,0,0.0114420096580623,9,"1.000*(M_star^0.335)*(T^0.678)",0.998727240709513
+32,"kepler","SR-Operon",1,1,0.000383351392203857,1,0,0.00493348075993443,9,"1.000*(M_star^0.334)*(T^0.667)",0.999311109249509
+32,"kepler","Lasso",1,0,NA,1,0,0.0649964092785265,2,"0.009 + 0.319*M_star + 0.637*T",0.976301604488682
+32,"kepler","MARS",1,0,NA,1,0,0.0109890704416141,8,"Piecewise degree-2 hinge splines",0.998782898765482
+32,"kepler","GAM",0,0,NA,1,0.375,0.049750433989516,12,"Additive thin-plate splines",0.985885319280869
+32,"kepler","RandomForest",1,0,NA,1,0,0.10939856595898,300,"Black-box ensemble (300 trees)",0.933881087687891
+33,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00507941958861392,5,"M_star^(1/3) * T^(2/3)",0.999306871948844
+33,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0762761632668891,2,"Piecewise-linear ReLU network",0.968421635662574
+33,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00507469884932866,1,"troot(((M_star*T)*T))",0.9993071275458
+33,"kepler","SR-PySR",1,0,1,1,0,0.00573032586963198,14,"0.025 + -0.107*M_star + 0.069*(T)^2 + 0.145*sin(T) + 0.890*(M_star^0.5)*(T^0.5)",0.99926935414862
+33,"kepler","SR-Operon",1,1,0.000389540323077031,1,0,0.00508241681657436,9,"1.000*(M_star^0.333)*(T^0.666)",0.999306709545334
+33,"kepler","Lasso",1,0,NA,1,0,0.0702000835299411,2,"0.017 + 0.310*M_star + 0.642*T",0.973167268172715
+33,"kepler","MARS",1,0,NA,1,0,0.00953028675298164,9,"Piecewise degree-2 hinge splines",0.99896014343651
+33,"kepler","GAM",0,0,NA,1,0.125,0.0553979682687351,8,"Additive thin-plate splines",0.983080382643998
+33,"kepler","RandomForest",1,0,NA,1,0,0.108563877861626,300,"Black-box ensemble (300 trees)",0.936598952213992
+34,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00473573295932873,5,"M_star^(1/3) * T^(2/3)",0.99933374029338
+34,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.264637718561027,1,"Piecewise-linear ReLU network",0.653749535960147
+34,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00471033074330473,1,"troot(((M_star*T)*T))",0.999334924730394
+34,"kepler","SR-PySR",1,0,1,1,0,0.00552227784767861,13,"-0.015 + 0.216*T + -0.034*(M_star)^2 + -0.068*sin(M_star) + 0.891*sqrt(M_star*T)",0.999293913424826
+34,"kepler","SR-Operon",1,1,1.98916772175539e-05,1,0,0.00470911918942807,9,"1.000*(M_star^0.333)*(T^0.667)",0.999334981062731
+34,"kepler","Lasso",1,0,NA,1,0,0.0708041724005108,2,"-0.003 + 0.322*M_star + 0.646*T",0.974698319737269
+34,"kepler","MARS",1,0,NA,1,0,0.0109909783048053,9,"Piecewise degree-2 hinge splines",0.998848148031696
+34,"kepler","GAM",0,0,NA,1,0.25,0.05622631864776,9,"Additive thin-plate splines",0.983839264011549
+34,"kepler","RandomForest",1,0,NA,1,0,0.112707570294269,300,"Black-box ensemble (300 trees)",0.936740383168995
+35,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00478837052194054,5,"M_star^(1/3) * T^(2/3)",0.999331650420475
+35,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.202451416090652,1,"Piecewise-linear ReLU network",0.797815799594103
+35,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00484177079293552,1,"troot(((T*T)*M_star))",0.999329120617409
+35,"kepler","SR-PySR",0,0,1,1,0.25,0.00575848840196084,17,"0.030 + -0.114*M_star + 0.067*(T)^2 + 0.135*sin(T) + 0.904*sqrt(M_star*T) + -0.000*x4*x8",0.999281316791974
+35,"kepler","SR-Operon",1,1,0.000111575417972409,1,0,0.00483209049083424,9,"1.000*(M_star^0.333)*(T^0.667)",0.999329581297411
+35,"kepler","Lasso",1,0,NA,1,0,0.0661889401547647,2,"0.011 + 0.308*M_star + 0.652*T",0.977892748687158
+35,"kepler","MARS",1,0,NA,1,0,0.0129479626624594,9,"Piecewise degree-2 hinge splines",0.998619711258534
+35,"kepler","GAM",0,0,NA,1,0.125,0.0516418098459707,10,"Additive thin-plate splines",0.986325058693283
+35,"kepler","RandomForest",1,0,NA,1,0,0.114018344583131,300,"Black-box ensemble (300 trees)",0.935491571945638
+36,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00517514185485951,5,"M_star^(1/3) * T^(2/3)",0.999302144470793
+36,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0834665034013522,2,"Piecewise-linear ReLU network",0.962428848743316
+36,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00516502286072455,1,"troot(((M_star*T)*T))",0.999302700407184
+36,"kepler","SR-PySR",1,0,1,1,0,0.00730200555510794,15,"0.315 + -0.057*(M_star-0.5)^2 + -0.122*sin(M_star) + -0.223*cos(T) + 0.919*sqrt(M_star*T)",0.999161145719175
+36,"kepler","SR-Operon",1,1,0.000749858616375831,1,0,0.00516914597082613,9,"1.000*(M_star^0.333)*(T^0.667)",0.999302474015335
+36,"kepler","Lasso",1,0,NA,1,0,0.0687679849289496,2,"-0.003 + 0.321*M_star + 0.646*T",0.974317892262112
+36,"kepler","MARS",1,0,NA,1,0,0.0103961277158264,9,"Piecewise degree-2 hinge splines",0.998870191124538
+36,"kepler","GAM",0,0,NA,1,0.125,0.0541995508963945,9,"Additive thin-plate splines",0.983836285527959
+36,"kepler","RandomForest",1,0,NA,1,0,0.103383696856274,300,"Black-box ensemble (300 trees)",0.942655418702988
+37,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00520280977718167,5,"M_star^(1/3) * T^(2/3)",0.999298994005593
+37,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0864247611771846,2,"Piecewise-linear ReLU network",0.959310160702277
+37,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00519651028068847,1,"troot((M_star*(T*T)))",0.999299346011478
+37,"kepler","SR-PySR",0,0,1,1,0.125,0.00561163706089442,20,"-0.015 + 0.218*T + -0.033*(M_star)^2 + -0.066*sin(M_star) + 0.887*(M_star^0.5)*(T^0.5) + 0.000*sin(pi*T*x6)",0.999275237458291
+37,"kepler","SR-Operon",1,1,0.000126821281268397,1,0,0.00519520017761212,9,"1.000*(M_star^0.333)*(T^0.667)",0.999299419164394
+37,"kepler","Lasso",1,0,NA,1,0,0.0754028652612538,2,"0.015 + 0.320*M_star + 0.634*T",0.968894189506703
+37,"kepler","MARS",1,0,NA,1,0,0.0119123193883169,9,"Piecewise degree-2 hinge splines",0.99868195857688
+37,"kepler","GAM",0,0,NA,1,0.125,0.0569502208359183,8,"Additive thin-plate splines",0.982017150137693
+37,"kepler","RandomForest",1,0,NA,1,0,0.114000140794161,300,"Black-box ensemble (300 trees)",0.929613178393351
+38,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00522626535816057,5,"-0.002 + 1.001 * M_star^(1/3) * T^(2/3)",0.999292509953309
+38,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0660995457323812,2,"Piecewise-linear ReLU network",0.975140855473525
+38,"kepler","FBMS-BGNLM",1,1,0,1,0,0.0052262590454867,1,"troot((T*(M_star*T)))",0.999292510320344
+38,"kepler","SR-PySR",0,0,1,1,0.25,0.00577069451421593,19,"-0.018 + 0.216*T + -0.035*(M_star)^2 + -0.068*sin(M_star) + 0.894*(M_star^0.5)*(T^0.5) + 0.000*sin(x3*x8)",0.999259206637365
+38,"kepler","SR-Operon",1,1,0.000982936944822876,1,0,0.00521969249822652,9,"1.000*(M_star^0.333)*(T^0.667)",0.99929289187657
+38,"kepler","Lasso",1,0,NA,1,0,0.0662387582744469,2,"-0.001 + 0.331*M_star + 0.638*T",0.975038375880852
+38,"kepler","MARS",1,0,NA,1,0,0.00996886448841809,9,"Piecewise degree-2 hinge splines",0.998891648501573
+38,"kepler","GAM",1,0,NA,1,0,0.0549020065735758,8,"Additive thin-plate splines",0.98267765552509
+38,"kepler","RandomForest",1,0,NA,1,0,0.100698554456602,300,"Black-box ensemble (300 trees)",0.94303914170691
+39,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00514235423787003,5,"-0.002 + 1.001 * M_star^(1/3) * T^(2/3)",0.999319321245475
+39,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0878168807540552,2,"Piecewise-linear ReLU network",0.962954779752447
+39,"kepler","FBMS-BGNLM",1,1,0,1,0,0.0051424035130031,1,"troot(((T*T)*M_star))",0.99931931884755
+39,"kepler","SR-PySR",0,0,1,1,0.25,0.00567651192132108,24,"-0.016 + 0.214*T + -0.035*(M_star)^2 + -0.071*sin(M_star) + 0.895*(M_star^0.5)*(T^0.5) + 0.000*sqrt(T*x4) + 0.000*sin(T*x8)",0.999291977053993
+39,"kepler","SR-Operon",1,0,0.00128204917281893,1,0,0.00519834447213165,9,"1.000*(M_star^0.334)*(T^0.667)",0.999316581715682
+39,"kepler","Lasso",1,0,NA,1,0,0.069814044614916,2,"0.009 + 0.325*M_star + 0.630*T",0.976382312256783
+39,"kepler","MARS",1,0,NA,1,0,0.0117019701250083,9,"Piecewise degree-2 hinge splines",0.998796508864747
+39,"kepler","GAM",0,0,NA,1,0.25,0.0568335749857707,11,"Additive thin-plate splines",0.984160909681934
+39,"kepler","RandomForest",1,0,NA,1,0,0.119246350305408,300,"Black-box ensemble (300 trees)",0.932161645420891
+40,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00522341355949168,5,"M_star^(1/3) * T^(2/3)",0.999299586097121
+40,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.105341495554214,2,"Piecewise-linear ReLU network",0.940528389094192
+40,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00525570553012774,1,"troot((T*(M_star*T)))",0.999297789486236
+40,"kepler","SR-PySR",1,0,1,1,0,0.00590256564686003,14,"-0.009 + 0.219*T + -0.049*(M_star-0.5)^2 + -0.098*sin(M_star) + 0.884*sqrt(M_star*T)",0.999259468031389
+40,"kepler","SR-Operon",1,1,0.000801418377895935,1,0,0.00533174849122781,9,"1.000*(M_star^0.333)*(T^0.667)",0.99929351498685
+40,"kepler","Lasso",1,0,NA,1,0,0.0673975995378864,2,"-0.003 + 0.325*M_star + 0.641*T",0.975327429115244
+40,"kepler","MARS",1,0,NA,1,0,0.0125011420513388,9,"Piecewise degree-2 hinge splines",0.998614719623441
+40,"kepler","GAM",0,0,NA,1,0.5,0.0541980044191236,11,"Additive thin-plate splines",0.983848872952102
+40,"kepler","RandomForest",1,0,NA,1,0,0.114859501914573,300,"Black-box ensemble (300 trees)",0.929400828331878
+41,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00466993962822645,5,"M_star^(1/3) * T^(2/3)",0.999328085721981
+41,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.093973485042075,2,"Piecewise-linear ReLU network",0.952326419440461
+41,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00467964943895751,1,"troot(((T*M_star)*T))",0.999327601349234
+41,"kepler","SR-PySR",0,0,1,1,0.125,0.00737642019155134,19,"0.076 + -0.170*(M_star)^(2/3) + 0.105*(T-0.5)^2 + 0.222*sin(T) + -0.000*log(x8) + 0.878*sqrt(M_star*T)",0.999154130626013
+41,"kepler","SR-Operon",1,1,0.000446563048519921,1,0,0.00469486190965612,9,"1.000*(M_star^0.333)*(T^0.667)",0.999326840454101
+41,"kepler","Lasso",1,0,NA,1,0,0.0665689205227029,2,"-0.013 + 0.306*M_star + 0.672*T",0.975800526630244
+41,"kepler","MARS",1,0,NA,1,0,0.0172936703156867,7,"Piecewise degree-2 hinge splines",0.997848746216258
+41,"kepler","GAM",0,0,NA,1,0.125,0.0548134915210252,8,"Additive thin-plate splines",0.983413786570452
+41,"kepler","RandomForest",1,0,NA,1,0,0.102270617691624,300,"Black-box ensemble (300 trees)",0.943638794564295
+42,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00502882352129385,5,"-0.001 + 1.001 * M_star^(1/3) * T^(2/3)",0.999330436989627
+42,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0718393770625443,2,"Piecewise-linear ReLU network",0.976178238077903
+42,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00502881813868902,1,"troot(((T*T)*M_star))",0.999330437233683
+42,"kepler","SR-PySR",1,0,1,1,0,0.00607084775035436,19,"0.065 + -0.176*(M_star)^(2/3) + 0.034*sin(M_star) + 0.070*(T)^2 + 0.150*sin(T) + 0.884*(M_star^0.5)*(T^0.5)",0.999278294904487
+42,"kepler","SR-Operon",1,1,0.000516260591697126,1,0,0.00502392220506048,9,"1.000*(M_star^0.334)*(T^0.667)",0.999330659114853
+42,"kepler","Lasso",0,0,NA,1,0.125,0.0665301408193947,3,"-0.031 + 0.332*M_star + 0.657*T + -0.003*x6",0.979490105464063
+42,"kepler","MARS",1,0,NA,1,0,0.0197515524431728,7,"Piecewise degree-2 hinge splines",0.997685699213851
+42,"kepler","GAM",0,0,NA,1,0.375,0.0576147565147991,11,"Additive thin-plate splines",0.98447974764516
+42,"kepler","RandomForest",1,0,NA,1,0,0.122306261853213,300,"Black-box ensemble (300 trees)",0.932007505997784
+43,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00503718239124592,5,"0.001 + 0.999 * M_star^(1/3) * T^(2/3)",0.999323044607851
+43,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.17519377951286,2,"Piecewise-linear ReLU network",0.852592360805409
+43,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00503718326128205,1,"troot(((T*M_star)*T))",0.999323044565914
+43,"kepler","SR-PySR",1,0,1,1,0,0.00674113135430477,18,"-0.149 + -0.005*(M_star)^3 + 0.449*(T)^(2/3) + 0.693*sqrt(M_star*T) + 0.011*M_star*(T^2)",0.999227020020305
+43,"kepler","SR-Operon",1,1,0.000818281926029729,1,0,0.00503343870925797,9,"1.000*(M_star^0.333)*(T^0.666)",0.999323224991827
+43,"kepler","Lasso",1,0,NA,1,0,0.0777553608361267,2,"0.015 + 0.305*M_star + 0.649*T",0.970517442058571
+43,"kepler","MARS",1,0,NA,1,0,0.0117466586875208,8,"Piecewise degree-2 hinge splines",0.998784250632704
+43,"kepler","GAM",0,0,NA,1,0.5,0.0607297168458537,12,"Additive thin-plate splines",0.981798485616026
+43,"kepler","RandomForest",1,0,NA,1,0,0.113762364555243,300,"Black-box ensemble (300 trees)",0.937523158095076
+44,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00511043800297671,5,"M_star^(1/3) * T^(2/3)",0.999265464475709
+44,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.123839685515895,2,"Piecewise-linear ReLU network",0.894343199402777
+44,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00512149179359597,1,"troot(((M_star*T)*T))",0.999264689377086
+44,"kepler","SR-PySR",1,0,1,1,0,0.00588206599030922,14,"-0.010 + 0.220*T + -0.048*(M_star-0.5)^2 + -0.095*sin(M_star) + 0.882*sqrt(M_star*T)",0.999207335484889
+44,"kepler","SR-Operon",1,1,0.000667700375027336,1,0,0.00510802076787899,9,"1.000*(M_star^0.334)*(T^0.666)",0.99926563375057
+44,"kepler","Lasso",1,0,NA,1,0,0.0719689825106109,2,"0.013 + 0.312*M_star + 0.641*T",0.963948486164326
+44,"kepler","MARS",1,0,NA,1,0,0.0119881676045617,8,"Piecewise degree-2 hinge splines",0.998459540692119
+44,"kepler","GAM",0,0,NA,1,0.5,0.0524391456759203,11,"Additive thin-plate splines",0.980599303272983
+44,"kepler","RandomForest",1,0,NA,1,0,0.0936634143486536,300,"Black-box ensemble (300 trees)",0.939323173854959
+45,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00468217526583936,5,"M_star^(1/3) * T^(2/3)",0.999339722652403
+45,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.108259379901713,2,"Piecewise-linear ReLU network",0.943459300015996
+45,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00469525535403535,1,"troot((p2(T)*M_star))",0.999339136735179
+45,"kepler","SR-PySR",1,0,1,1,0,0.0052069590905203,13,"-0.015 + 0.216*T + -0.034*(M_star)^2 + -0.069*sin(M_star) + 0.892*sqrt(M_star*T)",0.99931493242844
+45,"kepler","SR-Operon",1,1,0.000263220770265304,1,0,0.00468820304016052,9,"1.000*(M_star^0.333)*(T^0.667)",0.99933945284377
+45,"kepler","Lasso",1,0,NA,1,0,0.0624531012169792,2,"-0.015 + 0.329*M_star + 0.644*T",0.980812861666323
+45,"kepler","MARS",1,0,NA,1,0,0.010029843736524,9,"Piecewise degree-2 hinge splines",0.998963903866641
+45,"kepler","GAM",0,0,NA,1,0.375,0.0541659216465152,10,"Additive thin-plate splines",0.985429415244743
+45,"kepler","RandomForest",1,0,NA,1,0,0.116006065317136,300,"Black-box ensemble (300 trees)",0.935160409877458
+46,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00502893464276479,5,"0.001 + 0.999 * M_star^(1/3) * T^(2/3)",0.999328181644025
+46,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0717693655583794,2,"Piecewise-linear ReLU network",0.975765245254931
+46,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00502925785236104,1,"troot((T*(T*M_star)))",0.999328166699126
+46,"kepler","SR-PySR",0,0,1,1,0.125,0.00554619873742446,17,"-0.008 + 0.216*T + -0.049*(M_star-0.5)^2 + -0.098*sin(M_star) + -0.000*cos(x7) + 0.887*sqrt(M_star*T)",0.999303034597593
+46,"kepler","SR-Operon",1,0,0.00156357714414673,1,0,0.0050889260685583,9,"1.000*(M_star^0.334)*(T^0.666)",0.999325391242654
+46,"kepler","Lasso",1,0,NA,1,0,0.0590103946178837,2,"0.021 + 0.317*M_star + 0.633*T",0.98343612159335
+46,"kepler","MARS",1,0,NA,1,0,0.0154996656654478,9,"Piecewise degree-2 hinge splines",0.99834002649244
+46,"kepler","GAM",0,0,NA,1,0.375,0.0575996757785946,11,"Additive thin-plate splines",0.984192371476072
+46,"kepler","RandomForest",1,0,NA,1,0,0.121678113377291,300,"Black-box ensemble (300 trees)",0.931381030095241
+47,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00520030997664058,5,"-0.002 + 1.001 * M_star^(1/3) * T^(2/3)",0.999314788178592
+47,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.126313588286705,2,"Piecewise-linear ReLU network",0.922949067009646
+47,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00525422211617194,1,"troot(((T*T)*M_star))",0.999312085924308
+47,"kepler","SR-PySR",1,0,1,1,0,0.00761161926341206,15,"0.100 + -0.191*(M_star)^(2/3) + 0.066*(T)^2 + 0.137*sin(T) + 0.907*sqrt(M_star*T)",0.999166672000685
+47,"kepler","SR-Operon",1,0,0.0011973798463481,1,0,0.00522137658351555,9,"0.999*(M_star^0.334)*(T^0.667)",0.999313735568221
+47,"kepler","Lasso",1,0,NA,1,0,0.0620891997728732,2,"-0.011 + 0.314*M_star + 0.658*T",0.98096166965962
+47,"kepler","MARS",1,0,NA,1,0,0.0164127385124788,9,"Piecewise degree-2 hinge splines",0.998152936305855
+47,"kepler","GAM",0,0,NA,1,0.25,0.0591213702977777,10,"Additive thin-plate splines",0.98268637331582
+47,"kepler","RandomForest",1,0,NA,1,0,0.109170914400149,300,"Black-box ensemble (300 trees)",0.942303298948598
+48,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00522319439184603,5,"0.002 + 0.999 * M_star^(1/3) * T^(2/3)",0.999308344389166
+48,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0853225798986379,2,"Piecewise-linear ReLU network",0.963127117104387
+48,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00522317248170534,1,"troot(((T*M_star)*T))",0.999308345530983
+48,"kepler","SR-PySR",1,0,1,1,0,0.00622431495691391,13,"-0.017 + 0.218*T + -0.034*(M_star)^2 + -0.062*sin(M_star) + 0.886*sqrt(M_star*T)",0.999251172398696
+48,"kepler","SR-Operon",1,0,0.00131815581898331,1,0,0.00520116955906236,9,"1.001*(M_star^0.333)*(T^0.666)",0.999309489765245
+48,"kepler","Lasso",1,0,NA,1,0,0.0715267755822572,2,"0.012 + 0.314*M_star + 0.643*T",0.973921944114454
+48,"kepler","MARS",1,0,NA,1,0,0.013691838664374,9,"Piecewise degree-2 hinge splines",0.998509233740017
+48,"kepler","GAM",0,0,NA,1,0.125,0.0574256685749298,10,"Additive thin-plate splines",0.982993226977448
+48,"kepler","RandomForest",1,0,NA,1,0,0.112623534740009,300,"Black-box ensemble (300 trees)",0.936167684896686
+49,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00547705295285532,5,"1 * M_star^(1/3) * T^(2/3)",0.999291963481119
+49,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.121128044499682,2,"Piecewise-linear ReLU network",0.924866371113192
+49,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00553471398235001,1,"troot((M_star*(T*T)))",0.999288736019023
+49,"kepler","SR-PySR",0,0,1,1,0.5,0.00845679045323191,23,"0.096 + -0.179*(M_star)^(2/3) + 0.069*(T)^2 + 0.141*sin(T) + 0.892*sqrt(M_star*T) + 0.000*x3*x8 + 0.000*x4*x7",0.999080920613387
+49,"kepler","SR-Operon",1,1,0.000210644178494146,1,0,0.00553327931890562,9,"1.001*(M_star^0.333)*(T^0.667)",0.999288816731498
+49,"kepler","Lasso",1,0,NA,1,0,0.0767784505804779,2,"0.014 + 0.311*M_star + 0.646*T",0.969480399847765
+49,"kepler","MARS",1,0,NA,1,0,0.0180224012779328,7,"Piecewise degree-2 hinge splines",0.99779344450245
+49,"kepler","GAM",0,0,NA,1,0.25,0.0602212649553789,9,"Additive thin-plate splines",0.981010363299668
+49,"kepler","RandomForest",1,0,NA,1,0,0.109798599824699,300,"Black-box ensemble (300 trees)",0.93816492493183
+50,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00492391718241509,5,"M_star^(1/3) * T^(2/3)",0.999339278463813
+50,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.082829567633502,2,"Piecewise-linear ReLU network",0.969685016058669
+50,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00493256289135862,1,"troot((T*(M_star*T)))",0.999338908826116
+50,"kepler","SR-PySR",0,0,1,1,0.125,0.00765574230711596,19,"0.080 + -0.182*(M_star)^(2/3) + 0.100*(T-0.5)^2 + 0.210*sin(T) + 0.000*(x9)^2 + 0.897*sqrt(M_star*T)",0.999190213500707
+50,"kepler","SR-Operon",1,1,0.000870249065810236,1,0,0.00494901262420822,9,"1.000*(M_star^0.333)*(T^0.667)",0.999338203745396
+50,"kepler","Lasso",1,0,NA,1,0,0.0681812251249884,2,"0.009 + 0.316*M_star + 0.640*T",0.979280132952458
+50,"kepler","MARS",1,0,NA,1,0,0.0113128868864433,8,"Piecewise degree-2 hinge splines",0.998889306790205
+50,"kepler","GAM",0,0,NA,1,0.25,0.0590291053690579,9,"Additive thin-plate splines",0.98433020845881
+50,"kepler","RandomForest",1,0,NA,1,0,0.115674285772981,300,"Black-box ensemble (300 trees)",0.941404438312649
+51,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00467419010305735,5,"M_star^(1/3) * T^(2/3)",0.999346108193548
+51,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.100642304418558,2,"Piecewise-linear ReLU network",0.953855236366244
+51,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00468162313199975,1,"troot(((T*M_star)*T))",0.999345795190713
+51,"kepler","SR-PySR",1,0,1,1,0,0.00600691306076377,15,"-0.003 + 0.213*T + -0.052*(M_star-0.5)^2 + -0.111*sin(M_star) + 0.897*(M_star^0.5)*(T^0.5)",0.999282037873656
+51,"kepler","SR-Operon",1,0,0.00129008725116786,1,0,0.00467189257883355,9,"1.000*(M_star^0.333)*(T^0.667)",0.999346204841047
+51,"kepler","Lasso",1,0,NA,1,0,0.0707745174120181,2,"-0.002 + 0.336*M_star + 0.631*T",0.976899210973307
+51,"kepler","MARS",1,0,NA,1,0,0.012051971503986,9,"Piecewise degree-2 hinge splines",0.998790686324697
+51,"kepler","GAM",0,0,NA,1,0.125,0.058589838364202,9,"Additive thin-plate splines",0.983993838960398
+51,"kepler","RandomForest",1,0,NA,1,0,0.123956357474392,300,"Black-box ensemble (300 trees)",0.930287067101859
+52,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00480250972693952,5,"M_star^(1/3) * T^(2/3)",0.999334983174019
+52,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0944673206481039,2,"Piecewise-linear ReLU network",0.957091152338569
+52,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00484430531399407,1,"troot(((T*M_star)*T))",0.99933306963043
+52,"kepler","SR-PySR",1,0,1,1,0,0.00580396239348601,14,"0.011 + -0.106*M_star + 0.101*(T-0.5)^2 + 0.211*sin(T) + 0.890*sqrt(M_star*T)",0.999284572168512
+52,"kepler","SR-Operon",1,1,0.000364420147319022,1,0,0.0048712809326613,9,"1.000*(M_star^0.333)*(T^0.667)",0.999331825790762
+52,"kepler","Lasso",1,0,NA,1,0,0.0741480305048007,2,"-0.002 + 0.317*M_star + 0.644*T",0.973351492291611
+52,"kepler","MARS",1,0,NA,1,0,0.0109052572867352,9,"Piecewise degree-2 hinge splines",0.99888003300081
+52,"kepler","GAM",0,0,NA,1,0.25,0.0624187659555143,9,"Additive thin-plate splines",0.980953702634367
+52,"kepler","RandomForest",1,0,NA,1,0,0.126846825521913,300,"Black-box ensemble (300 trees)",0.923081408877597
+53,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00450510301152687,5,"0.001 + 0.999 * M_star^(1/3) * T^(2/3)",0.999336827522866
+53,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0979709850927968,2,"Piecewise-linear ReLU network",0.948550505684054
+53,"kepler","FBMS-BGNLM",1,1,0,1,0,0.0045050900368441,1,"troot(((M_star*T)*T))",0.999336828142738
+53,"kepler","SR-PySR",1,0,1,1,0,0.00504111540399207,14,"-0.005 + 0.215*T + -0.050*(M_star-0.5)^2 + -0.105*sin(M_star) + 0.890*sqrt(M_star*T)",0.999309695803869
+53,"kepler","SR-Operon",1,1,0.000883683132874513,1,0,0.00451178591270797,9,"1.000*(M_star^0.333)*(T^0.666)",0.999336508006674
+53,"kepler","Lasso",1,0,NA,1,0,0.0658350233133058,2,"-0.013 + 0.328*M_star + 0.646*T",0.976462588369915
+53,"kepler","MARS",1,0,NA,1,0,0.0107082682361177,9,"Piecewise degree-2 hinge splines",0.998836436020988
+53,"kepler","GAM",0,0,NA,1,0.375,0.0554332613038924,11,"Additive thin-plate splines",0.983151034914799
+53,"kepler","RandomForest",1,0,NA,1,0,0.114775865725944,300,"Black-box ensemble (300 trees)",0.92959350240159
+54,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.0049465339214003,5,"-0.001 + 1.001 * M_star^(1/3) * T^(2/3)",0.999326097737155
+54,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0664687222451824,2,"Piecewise-linear ReLU network",0.978075215282742
+54,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00494658801099554,1,"troot(((T*T)*M_star))",0.999326095148935
+54,"kepler","SR-PySR",1,0,1,1,0,0.0132555730797747,23,"-0.289 + -0.712*T + 0.304*log(M_star) + -0.001*(T)^3 + 1.995*(T)^(2/3) + -0.031*sin(M_star*T) + 0.040*M_star*(T^2)",0.998594576961827
+54,"kepler","SR-Operon",1,1,0.000765299292511956,1,0,0.00500547292556964,9,"1.000*(M_star^0.334)*(T^0.667)",0.999323260682805
+54,"kepler","Lasso",1,0,NA,1,0,0.0650799912886513,2,"-0.009 + 0.321*M_star + 0.648*T",0.978958821814995
+54,"kepler","MARS",1,0,NA,1,0,0.0123201795193635,8,"Piecewise degree-2 hinge splines",0.998710288587166
+54,"kepler","GAM",1,0,NA,1,0,0.0531969455632323,8,"Additive thin-plate splines",0.985756835473342
+54,"kepler","RandomForest",1,0,NA,1,0,0.108433754652763,300,"Black-box ensemble (300 trees)",0.942574449717684
+55,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00574051271776164,5,"0.002 + 0.999 * M_star^(1/3) * T^(2/3)",0.999289732867911
+55,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.100695260499676,2,"Piecewise-linear ReLU network",0.951840876554485
+55,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00574049361339161,1,"troot(((M_star*T)*T))",0.999289733897667
+55,"kepler","SR-PySR",0,0,1,1,0.25,0.00640197733428946,20,"-0.010 + 0.213*T + -0.035*(M_star)^2 + -0.072*sin(M_star) + 0.893*(M_star^0.5)*(T^0.5) + -0.000*sin(pi*x6*x7)",0.999252024666446
+55,"kepler","SR-Operon",1,1,0.000941922281307184,1,0,0.00573158723483629,9,"1.000*(M_star^0.333)*(T^0.666)",0.999290213592228
+55,"kepler","Lasso",1,0,NA,1,0,0.0716798784593516,2,"0.021 + 0.308*M_star + 0.640*T",0.975322297132796
+55,"kepler","MARS",1,0,NA,1,0,0.0126274854988055,8,"Piecewise degree-2 hinge splines",0.998695835172661
+55,"kepler","GAM",0,0,NA,1,0.375,0.0596557015590048,10,"Additive thin-plate splines",0.982736410086406
+55,"kepler","RandomForest",1,0,NA,1,0,0.122736930488896,300,"Black-box ensemble (300 trees)",0.928719606575089
+56,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00505358145204409,5,"0.001 + 0.999 * M_star^(1/3) * T^(2/3)",0.999317371086263
+56,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.14088723543385,2,"Piecewise-linear ReLU network",0.900680310023248
+56,"kepler","FBMS-BGNLM",1,1,0,1,0,0.0050536401738433,1,"troot((p2(T)*M_star))",0.999317368133102
+56,"kepler","SR-PySR",1,0,1,1,0,0.00594557252815732,14,"-0.011 + 0.208*T + -0.037*(M_star)^2 + -0.077*sin(M_star) + 0.907*(M_star^0.5)*(T^0.5)",0.999268553561098
+56,"kepler","SR-Operon",1,1,0.000887792275324262,1,0,0.0050855628472544,9,"1.001*(M_star^0.333)*(T^0.666)",0.999315757639361
+56,"kepler","Lasso",1,0,NA,1,0,0.0679254798300079,2,"-0.013 + 0.334*M_star + 0.640*T",0.976487113369879
+56,"kepler","MARS",1,0,NA,1,0,0.0190944683418665,7,"Piecewise degree-2 hinge splines",0.997630303152299
+56,"kepler","GAM",0,0,NA,1,0.25,0.0549284513895449,11,"Additive thin-plate splines",0.984432025434697
+56,"kepler","RandomForest",1,0,NA,1,0,0.125210847176131,300,"Black-box ensemble (300 trees)",0.921436312972755
+57,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00487672424392642,5,"M_star^(1/3) * T^(2/3)",0.999333699378538
+57,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.174191840544715,2,"Piecewise-linear ReLU network",0.858150482185334
+57,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00487824096210211,1,"troot(((T*M_star)*T))",0.999333630481809
+57,"kepler","SR-PySR",1,0,0.00689405582755992,1,0,0.00827287247916124,9,"1.000*(M_star^0.334)*(T^0.660)",0.999125745483119
+57,"kepler","SR-Operon",1,1,0.000290255583587307,1,0,0.00488006196392828,9,"1.000*(M_star^0.333)*(T^0.667)",0.999333547734732
+57,"kepler","Lasso",1,0,NA,1,0,0.0720906873917139,2,"-0.021 + 0.320*M_star + 0.656*T",0.97524383398417
+57,"kepler","MARS",1,0,NA,1,0,0.0130968354785903,9,"Piecewise degree-2 hinge splines",0.998645713092117
+57,"kepler","GAM",0,0,NA,1,0.125,0.0594441719683589,8,"Additive thin-plate splines",0.982989873903795
+57,"kepler","RandomForest",1,0,NA,1,0,0.114899535309974,300,"Black-box ensemble (300 trees)",0.93796859581624
+58,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00512454051345847,5,"M_star^(1/3) * T^(2/3)",0.999312287756346
+58,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0871084565964576,2,"Piecewise-linear ReLU network",0.961258817755999
+58,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00514487737991252,1,"troot((T*(T*M_star)))",0.99931123674078
+58,"kepler","SR-PySR",1,0,1,1,0,0.00612753957309953,14,"-0.008 + 0.212*T + -0.052*(M_star-0.5)^2 + -0.108*sin(M_star) + 0.900*sqrt(M_star*T)",0.999255492426629
+58,"kepler","SR-Operon",1,1,0.00061344449165901,1,0,0.00515683182822902,9,"1.000*(M_star^0.333)*(T^0.667)",0.999310616988533
+58,"kepler","Lasso",1,0,NA,1,0,0.0700895566659457,2,"-0.014 + 0.340*M_star + 0.636*T",0.974722313032007
+58,"kepler","MARS",1,0,NA,1,0,0.0180957800015522,7,"Piecewise degree-2 hinge splines",0.997796532885263
+58,"kepler","GAM",0,0,NA,1,0.125,0.0558972827644157,9,"Additive thin-plate splines",0.983720529775766
+58,"kepler","RandomForest",1,0,NA,1,0,0.126762641200536,300,"Black-box ensemble (300 trees)",0.918579211181218
+59,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00544055338912843,5,"-0.002 + 1.001 * M_star^(1/3) * T^(2/3)",0.999297297194296
+59,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.146164186652322,2,"Piecewise-linear ReLU network",0.893238715015269
+59,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00544055905226236,1,"troot((T*(M_star*T)))",0.999297296887962
+59,"kepler","SR-PySR",1,0,1,1,0,0.00641298593319185,16,"-0.153 + 0.113*cos(M_star) + 0.103*(T-0.5)^2 + 0.219*sin(T) + 0.883*(M_star^0.5)*(T^0.5)",0.99923999469993
+59,"kepler","SR-Operon",1,0,0.00167733561823408,1,0,0.0054669959863609,9,"0.999*(M_star^0.334)*(T^0.668)",0.999295863365511
+59,"kepler","Lasso",1,0,NA,1,0,0.0594733461800303,2,"-0.039 + 0.330*M_star + 0.657*T",0.98186072499791
+59,"kepler","MARS",1,0,NA,1,0,0.012314866540594,9,"Piecewise degree-2 hinge splines",0.998690524179831
+59,"kepler","GAM",0,0,NA,1,0.125,0.0511235088517292,9,"Additive thin-plate splines",0.986451508260873
+59,"kepler","RandomForest",1,0,NA,1,0,0.115705085136082,300,"Black-box ensemble (300 trees)",0.932890945914769
+60,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00502789345123351,5,"M_star^(1/3) * T^(2/3)",0.999296215867275
+60,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.147419230828261,2,"Piecewise-linear ReLU network",0.872015498666192
+60,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00502931879013282,1,"troot((T*(M_star*T)))",0.999296131813822
+60,"kepler","SR-PySR",1,0,1,1,0,0.00591498604129186,19,"0.424 + -0.032*(M_star)^2 + -0.065*sin(M_star) + 0.043*(T)^2 + -0.517*1/(1+T) + 0.882*(M_star^0.5)*(T^0.5)",0.999239296459
+60,"kepler","SR-Operon",1,1,0.000327255551925032,1,0,0.00502797616528327,9,"1.000*(M_star^0.333)*(T^0.666)",0.999296210990208
+60,"kepler","Lasso",1,0,NA,1,0,0.0764652177264477,2,"-0.027 + 0.322*M_star + 0.659*T",0.965160745929427
+60,"kepler","MARS",1,0,NA,1,0,0.0137078570785471,8,"Piecewise degree-2 hinge splines",0.998342654146363
+60,"kepler","GAM",0,0,NA,1,0.25,0.0545399380127471,10,"Additive thin-plate splines",0.982002733355009
+60,"kepler","RandomForest",1,0,NA,1,0,0.105776609839275,300,"Black-box ensemble (300 trees)",0.933839118766383
+61,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.0052309191235793,5,"0.001 + 1 * M_star^(1/3) * T^(2/3)",0.999316999284325
+61,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0921150748140623,2,"Piecewise-linear ReLU network",0.959923368924717
+61,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00523085533985991,1,"troot(((M_star*T)*T))",0.999317002392336
+61,"kepler","SR-PySR",1,0,1,1,0,0.0059095001871695,13,"-0.011 + 0.214*T + -0.035*(M_star)^2 + -0.073*sin(M_star) + 0.894*sqrt(M_star*T)",0.999281788912597
+61,"kepler","SR-Operon",1,1,0.000561672490751342,1,0,0.00523485654235717,9,"1.000*(M_star^0.333)*(T^0.666)",0.999316807351009
+61,"kepler","Lasso",1,0,NA,1,0,0.0709887252722585,2,"-0.004 + 0.319*M_star + 0.647*T",0.975972660871376
+61,"kepler","MARS",1,0,NA,1,0,0.0142448042405508,9,"Piecewise degree-2 hinge splines",0.99849933890817
+61,"kepler","GAM",0,0,NA,1,0.125,0.0596065884996942,8,"Additive thin-plate splines",0.982896049807425
+61,"kepler","RandomForest",1,0,NA,1,0,0.120425137198846,300,"Black-box ensemble (300 trees)",0.931898133315457
+62,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00538826757575116,5,"M_star^(1/3) * T^(2/3)",0.999297348408533
+62,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.213621220183048,1,"Piecewise-linear ReLU network",0.768242520647787
+62,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00539170027013602,1,"troot((T*(T*M_star)))",0.999297160928394
+62,"kepler","SR-PySR",0,0,1,1,0.125,0.00583063597121791,16,"-0.014 + 0.213*T + 0.000*x10 + -0.035*(M_star)^2 + -0.072*sin(M_star) + 0.897*(M_star^0.5)*(T^0.5)",0.999272204246502
+62,"kepler","SR-Operon",1,1,0.000472647093511691,1,0,0.00539787848160112,9,"1.000*(M_star^0.334)*(T^0.667)",0.999296823198178
+62,"kepler","Lasso",1,0,NA,1,0,0.0684289553138274,2,"-0.009 + 0.333*M_star + 0.642*T",0.975720741342295
+62,"kepler","MARS",1,0,NA,1,0,0.0193040120300966,7,"Piecewise degree-2 hinge splines",0.997556462573248
+62,"kepler","GAM",0,0,NA,1,0.125,0.0563707870025882,8,"Additive thin-plate splines",0.983345001216689
+62,"kepler","RandomForest",1,0,NA,1,0,0.106425694167484,300,"Black-box ensemble (300 trees)",0.942059806773523
+63,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00437426661990663,5,"-0.003 + 1.002 * M_star^(1/3) * T^(2/3)",0.999361033046726
+63,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.074178889278139,2,"Piecewise-linear ReLU network",0.975457465730482
+63,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00437457303176479,1,"troot(((T*T)*M_star))",0.99936102136059
+63,"kepler","SR-PySR",1,0,1,1,0,0.00499638070044336,14,"-0.009 + 0.216*T + -0.051*(M_star-0.5)^2 + -0.103*sin(M_star) + 0.893*sqrt(M_star*T)",0.999335620129533
+63,"kepler","SR-Operon",1,0,0.00180845056281098,1,0,0.0044398755893511,9,"0.999*(M_star^0.333)*(T^0.668)",0.999358512131932
+63,"kepler","Lasso",1,0,NA,1,0,0.070465121712888,2,"-0.020 + 0.325*M_star + 0.645*T",0.977799159350896
+63,"kepler","MARS",1,0,NA,1,0,0.0102983512454522,9,"Piecewise degree-2 hinge splines",0.99898211633639
+63,"kepler","GAM",0,0,NA,1,0.125,0.0599609591403286,9,"Additive thin-plate splines",0.983771447821832
+63,"kepler","RandomForest",1,0,NA,1,0,0.133463138263103,300,"Black-box ensemble (300 trees)",0.921795141243886
+64,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00488951148800978,5,"M_star^(1/3) * T^(2/3)",0.999303028620125
+64,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0981941667960786,2,"Piecewise-linear ReLU network",0.942409838352087
+64,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00493614960119228,1,"troot(((T*T)*M_star))",0.99930031799275
+64,"kepler","SR-PySR",1,0,1,1,0,0.00543947646144484,19,"0.062 + -0.014*(M_star)^2 + -0.144*sqrt(M_star) + 0.102*(T-0.5)^2 + 0.217*sin(T) + 0.886*(M_star^0.5)*(T^0.5)",0.999269427026967
+64,"kepler","SR-Operon",1,1,6.43950364481172e-05,1,0,0.00493581931608604,9,"1.000*(M_star^0.333)*(T^0.667)",0.999300337279535
+64,"kepler","Lasso",1,0,NA,1,0,0.0666200699952799,2,"-0.001 + 0.307*M_star + 0.660*T",0.973191547303351
+64,"kepler","MARS",1,0,NA,1,0,0.0119596294929895,9,"Piecewise degree-2 hinge splines",0.998598381803325
+64,"kepler","GAM",0,0,NA,1,0.25,0.053345908907494,9,"Additive thin-plate splines",0.982611142802723
+64,"kepler","RandomForest",1,0,NA,1,0,0.101399368305652,300,"Black-box ensemble (300 trees)",0.938625683703811
+65,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00524950933305564,5,"-0.001 + 1.001 * M_star^(1/3) * T^(2/3)",0.999300248465831
+65,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.101622875709203,2,"Piecewise-linear ReLU network",0.945406516842252
+65,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00525052149136699,1,"troot((p2(T)*M_star))",0.999300192855594
+65,"kepler","SR-PySR",0,0,1,1,0.25,0.00597717369715657,18,"-0.015 + 0.221*T + -0.033*(M_star)^2 + -0.065*sin(M_star) + 0.882*sqrt(M_star*T) + -0.001*sin(x3*x5)",0.999257502189166
+65,"kepler","SR-Operon",1,0,0.00173482187995011,1,0,0.00533602730088303,9,"1.000*(M_star^0.333)*(T^0.668)",0.999295456266062
+65,"kepler","Lasso",1,0,NA,1,0,0.0703809339273125,2,"-0.010 + 0.322*M_star + 0.646*T",0.973524994826975
+65,"kepler","MARS",1,0,NA,1,0,0.0142437617343462,8,"Piecewise degree-2 hinge splines",0.998382834140692
+65,"kepler","GAM",1,0,NA,1,0,0.0559178523116707,8,"Additive thin-plate splines",0.983083186565629
+65,"kepler","RandomForest",1,0,NA,1,0,0.108712462306004,300,"Black-box ensemble (300 trees)",0.937603745507575
+66,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00504129554390393,5,"M_star^(1/3) * T^(2/3)",0.999308471122613
+66,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0865020780946378,2,"Piecewise-linear ReLU network",0.959411044776108
+66,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00505513851121266,1,"troot((T*(T*M_star)))",0.999307723355094
+66,"kepler","SR-PySR",1,0,0.00774458136352851,1,0,0.00845674631805708,9,"1.000*(M_star^0.327)*(T^0.665)",0.999061817106318
+66,"kepler","SR-Operon",1,1,0.000480332722840482,1,0,0.00507223753429757,9,"1.000*(M_star^0.333)*(T^0.666)",0.99930679687173
+66,"kepler","Lasso",1,0,NA,1,0,0.0684695142434603,2,"-0.011 + 0.322*M_star + 0.653*T",0.97436234507919
+66,"kepler","MARS",1,0,NA,1,0,0.0117077421821427,9,"Piecewise degree-2 hinge splines",0.998711087023763
+66,"kepler","GAM",0,0,NA,1,0.25,0.0516910044111733,10,"Additive thin-plate splines",0.98514894501378
+66,"kepler","RandomForest",1,0,NA,1,0,0.10501122673621,300,"Black-box ensemble (300 trees)",0.940445960179005
+67,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00486912831807123,5,"M_star^(1/3) * T^(2/3)",0.99932467316301
+67,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.101660793554633,2,"Piecewise-linear ReLU network",0.947234017174657
+67,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00486897117593848,1,"troot(((M_star*T)*T))",0.99932468089368
+67,"kepler","SR-PySR",1,0,1,1,0,0.00558535446614767,14,"-0.006 + 0.217*T + -0.050*(M_star-0.5)^2 + -0.103*sin(M_star) + 0.889*sqrt(M_star*T)",0.999286846068853
+67,"kepler","SR-Operon",1,1,0.000446225550480128,1,0,0.00488101497502048,9,"1.000*(M_star^0.334)*(T^0.666)",0.999324087670985
+67,"kepler","Lasso",1,0,NA,1,0,0.0671294966111269,2,"0.032 + 0.318*M_star + 0.628*T",0.976678952606329
+67,"kepler","MARS",1,0,NA,1,0,0.0109488090641276,9,"Piecewise degree-2 hinge splines",0.998838847018133
+67,"kepler","GAM",0,0,NA,1,0.5,0.0519311593809632,11,"Additive thin-plate splines",0.985820392418482
+67,"kepler","RandomForest",1,0,NA,1,0,0.107963178385986,300,"Black-box ensemble (300 trees)",0.940559864758075
+68,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00533575037607256,5,"M_star^(1/3) * T^(2/3)",0.999298995410493
+68,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.150154744920103,2,"Piecewise-linear ReLU network",0.884258906517011
+68,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00533194444189423,1,"troot(((M_star*T)*T))",0.999299202830999
+68,"kepler","SR-PySR",1,0,1,1,0,0.00593410882912868,15,"-0.012 + 0.223*T + -0.047*(M_star-0.5)^2 + -0.092*sin(M_star) + 0.878*(M_star^0.5)*(T^0.5)",0.999264544575307
+68,"kepler","SR-Operon",1,1,0.000179378970000255,1,0,0.00533466569223646,9,"1.000*(M_star^0.333)*(T^0.667)",0.999299054540014
+68,"kepler","Lasso",1,0,NA,1,0,0.0642162704889183,2,"-0.008 + 0.318*M_star + 0.648*T",0.978377090470772
+68,"kepler","MARS",1,0,NA,1,0,0.0116125310798821,9,"Piecewise degree-2 hinge splines",0.998755516799169
+68,"kepler","GAM",0,0,NA,1,0.25,0.0526996839123003,11,"Additive thin-plate splines",0.985255965027983
+68,"kepler","RandomForest",1,0,NA,1,0,0.122706441212703,300,"Black-box ensemble (300 trees)",0.922521738159146
+69,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.0048891576212622,5,"M_star^(1/3) * T^(2/3)",0.999329945728855
+69,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.154862417495726,2,"Piecewise-linear ReLU network",0.884569687179028
+69,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00490581279570411,1,"troot((T*(T*M_star)))",0.999329164308263
+69,"kepler","SR-PySR",1,0,1,1,0,0.00583335457937262,13,"-0.018 + 0.218*T + -0.034*(M_star)^2 + -0.063*sin(M_star) + 0.888*sqrt(M_star*T)",0.999281451318447
+69,"kepler","SR-Operon",1,1,0.000549225287871768,1,0,0.00491581084572534,9,"1.000*(M_star^0.333)*(T^0.667)",0.999328693947451
+69,"kepler","Lasso",1,0,NA,1,0,0.0709654676873146,2,"0.005 + 0.324*M_star + 0.641*T",0.975321702214512
+69,"kepler","MARS",1,0,NA,1,0,0.0180712158597101,7,"Piecewise degree-2 hinge splines",0.997880190406725
+69,"kepler","GAM",0,0,NA,1,0.25,0.058237138813218,10,"Additive thin-plate splines",0.98319896258662
+69,"kepler","RandomForest",1,0,NA,1,0,0.11452079784041,300,"Black-box ensemble (300 trees)",0.936623961971272
+70,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.0052254779939518,5,"0.001 + 1 * M_star^(1/3) * T^(2/3)",0.99928957363229
+70,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.103958561480792,2,"Piecewise-linear ReLU network",0.93814760922969
+70,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00522549519981675,1,"troot((T*(T*M_star)))",0.999289572612406
+70,"kepler","SR-PySR",1,0,1,1,0,0.00562077644748072,14,"-0.004 + 0.220*T + -0.048*(M_star-0.5)^2 + -0.101*sin(M_star) + 0.883*sqrt(M_star*T)",0.99926525593583
+70,"kepler","SR-Operon",1,1,0.00073047514437663,1,0,0.00524922915720097,9,"1.000*(M_star^0.333)*(T^0.667)",0.999288162576113
+70,"kepler","Lasso",1,0,NA,1,0,0.0663635893034193,2,"0.025 + 0.310*M_star + 0.636*T",0.97446531701437
+70,"kepler","MARS",1,0,NA,1,0,0.0113367843578838,8,"Piecewise degree-2 hinge splines",0.998715495181508
+70,"kepler","GAM",1,0,NA,1,0,0.0509939534817734,8,"Additive thin-plate splines",0.984695705233024
+70,"kepler","RandomForest",1,0,NA,1,0,0.0970319589008559,300,"Black-box ensemble (300 trees)",0.946043722587312
+71,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00517255417501338,5,"0.001 + M_star^(1/3) * T^(2/3)",0.999308259150444
+71,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0873328355048156,2,"Piecewise-linear ReLU network",0.960622682806805
+71,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00511781852237218,1,"troot((T*(T*M_star)))",0.999311126109706
+71,"kepler","SR-PySR",0,0,1,1,0.25,0.00775109583584867,17,"0.157 + 0.123*cos(M_star) + -0.234*cos(T) + 0.900*(M_star^0.5)*(T^0.5) + -0.000*sqrt(x7*x9)",0.999138638213576
+71,"kepler","SR-Operon",1,1,0.000662144572937284,1,0,0.00510789045739822,9,"1.000*(M_star^0.333)*(T^0.666)",0.999311642856935
+71,"kepler","Lasso",1,0,NA,1,0,0.0689985637224723,2,"0.017 + 0.323*M_star + 0.631*T",0.975211833047504
+71,"kepler","MARS",1,0,NA,1,0,0.0103638065444687,9,"Piecewise degree-2 hinge splines",0.998897732311522
+71,"kepler","GAM",0,0,NA,1,0.25,0.0487787368371347,9,"Additive thin-plate splines",0.987333410642331
+71,"kepler","RandomForest",1,0,NA,1,0,0.112727272362863,300,"Black-box ensemble (300 trees)",0.93476323768042
+72,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00488789554757141,5,"0.001 + 0.999 * M_star^(1/3) * T^(2/3)",0.999306320531658
+72,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0973878347714064,2,"Piecewise-linear ReLU network",0.944612397383842
+72,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00488788888378848,1,"troot(((M_star*T)*T))",0.999306320908273
+72,"kepler","SR-PySR",1,0,0.00679809635704409,1,0,0.00578780641119953,9,"1.000*(M_star^0.331)*(T^0.671)",0.999250778600642
+72,"kepler","SR-Operon",1,1,0.000668982198669399,1,0,0.00489573316614007,9,"1.000*(M_star^0.333)*(T^0.666)",0.999305877220026
+72,"kepler","Lasso",1,0,NA,1,0,0.0684243601369491,2,"-0.028 + 0.319*M_star + 0.664*T",0.972377045189137
+72,"kepler","MARS",1,0,NA,1,0,0.0170353800285843,8,"Piecewise degree-2 hinge splines",0.997766688864041
+72,"kepler","GAM",0,0,NA,1,0.125,0.0514648679889591,9,"Additive thin-plate splines",0.984131921038094
+72,"kepler","RandomForest",1,0,NA,1,0,0.0892191250913754,300,"Black-box ensemble (300 trees)",0.953425043649976
+73,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00480952551399276,5,"M_star^(1/3) * T^(2/3)",0.999331871129591
+73,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0819812174885709,2,"Piecewise-linear ReLU network",0.966736013131391
+73,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00480874772755878,1,"troot((T*(T*M_star)))",0.99933190753689
+73,"kepler","SR-PySR",1,0,1,1,0,0.00565992975896538,21,"-0.127 + -0.025*(M_star-0.5)^2 + 0.461*(T)^(2/3) + -0.029*sin(T) + 0.042*M_star*T + 0.654*(M_star^0.5)*(T^0.5)",0.999288541947217
+73,"kepler","SR-Operon",1,1,0.000280334212590605,1,0,0.00481585758714536,9,"1.000*(M_star^0.333)*(T^0.667)",0.999331574513344
+73,"kepler","Lasso",1,0,NA,1,0,0.0626924192669635,2,"0.010 + 0.319*M_star + 0.638*T",0.980316819506318
+73,"kepler","MARS",1,0,NA,1,0,0.0111591558223257,8,"Piecewise degree-2 hinge splines",0.998838415073492
+73,"kepler","GAM",0,0,NA,1,0.125,0.0530677657111185,9,"Additive thin-plate splines",0.985739016683574
+73,"kepler","RandomForest",1,0,NA,1,0,0.10790125986008,300,"Black-box ensemble (300 trees)",0.942783472528821
+74,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00534422935388838,5,"0.001 + 0.999 * M_star^(1/3) * T^(2/3)",0.999299653852763
+74,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0980013424880331,2,"Piecewise-linear ReLU network",0.950755067560927
+74,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00534422866372438,1,"troot((T*(M_star*T)))",0.99929965389016
+74,"kepler","SR-PySR",1,0,1,1,0,0.00594922735899254,13,"-0.017 + 0.217*T + -0.034*(M_star)^2 + -0.064*sin(M_star) + 0.888*sqrt(M_star*T)",0.999265015996891
+74,"kepler","SR-Operon",1,1,0.00053728327863245,1,0,0.00534795896729596,9,"1.000*(M_star^0.333)*(T^0.666)",0.999299451690271
+74,"kepler","Lasso",1,0,NA,1,0,0.0717022629998916,2,"-0.007 + 0.324*M_star + 0.642*T",0.97338075501868
+74,"kepler","MARS",1,0,NA,1,0,0.0113973024643554,8,"Piecewise degree-2 hinge splines",0.998785916340152
+74,"kepler","GAM",0,0,NA,1,0.25,0.0540369211251473,11,"Additive thin-plate splines",0.98464138923467
+74,"kepler","RandomForest",1,0,NA,1,0,0.109495521341886,300,"Black-box ensemble (300 trees)",0.938664139024565
+75,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00502750127254878,5,"0.001 + 0.999 * M_star^(1/3) * T^(2/3)",0.999319230195174
+75,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0994249235526577,2,"Piecewise-linear ReLU network",0.950473339062144
+75,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00502744357906008,1,"troot(((T*M_star)*T))",0.99931923306897
+75,"kepler","SR-PySR",1,0,0.0170148573272155,1,0,0.0101911990955527,9,"1.000*(M_star^0.321)*(T^0.671)",0.998929927184973
+75,"kepler","SR-Operon",1,1,0.000804975347878212,1,0,0.0050212146165193,9,"1.000*(M_star^0.333)*(T^0.667)",0.999319543148551
+75,"kepler","Lasso",1,0,NA,1,0,0.0759390041031676,2,"-0.002 + 0.318*M_star + 0.649*T",0.970876488315454
+75,"kepler","MARS",1,0,NA,1,0,0.0179546834778335,7,"Piecewise degree-2 hinge splines",0.997847444568621
+75,"kepler","GAM",0,0,NA,1,0.125,0.0609684890473666,9,"Additive thin-plate splines",0.981029931344858
+75,"kepler","RandomForest",1,0,NA,1,0,0.114640387636189,300,"Black-box ensemble (300 trees)",0.934337896735608
+76,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.0047897340308458,5,"0.002 + 0.999 * M_star^(1/3) * T^(2/3)",0.999328498774476
+76,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.12291071414258,2,"Piecewise-linear ReLU network",0.92309406105363
+76,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00478973643272751,1,"troot((T*(T*M_star)))",0.99932849865819
+76,"kepler","SR-PySR",0,0,1,1,0.125,0.0085997897477134,23,"-0.162 + -0.020*(M_star)^2 + 0.235*log(M_star) + 1.029*sqrt(T) + -0.000*1/(1+x9) + 0.156*M_star*T + 0.003*sin(pi*M_star*T)",0.999070671893011
+76,"kepler","SR-Operon",1,0,0.00140200977913496,1,0,0.00479350285194527,9,"1.000*(M_star^0.334)*(T^0.666)",0.999328316238075
+76,"kepler","Lasso",1,0,NA,1,0,0.0659719851545712,2,"-0.010 + 0.318*M_star + 0.652*T",0.977448083209547
+76,"kepler","MARS",1,0,NA,1,0,0.0173361249352084,7,"Piecewise degree-2 hinge splines",0.997925521318586
+76,"kepler","GAM",0,0,NA,1,0.25,0.0515605935471814,9,"Additive thin-plate splines",0.986008519955127
+76,"kepler","RandomForest",1,0,NA,1,0,0.106867161104479,300,"Black-box ensemble (300 trees)",0.941725247059019
+77,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00479797604445412,5,"-0.001 + M_star^(1/3) * T^(2/3)",0.999323831117758
+77,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0775369098473866,2,"Piecewise-linear ReLU network",0.967945491122665
+77,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00473823774411111,1,"troot(((T*T)*M_star))",0.999326815867933
+77,"kepler","SR-PySR",0,0,1,1,0.125,0.0053759028786609,19,"-0.009 + 0.220*T + -0.049*(M_star-0.5)^2 + -0.099*sin(M_star) + 0.883*(M_star^0.5)*(T^0.5) + 0.000*M_star*x7",0.999293024886558
+77,"kepler","SR-Operon",1,1,0.000394382842784424,1,0,0.00473552931564002,9,"1.000*(M_star^0.333)*(T^0.667)",0.999326950305059
+77,"kepler","Lasso",1,0,NA,1,0,0.0627462007752286,2,"-0.016 + 0.331*M_star + 0.647*T",0.978816592045962
+77,"kepler","MARS",1,0,NA,1,0,0.0130891020533657,9,"Piecewise degree-2 hinge splines",0.998546811355812
+77,"kepler","GAM",0,0,NA,1,0.125,0.0497312859827298,10,"Additive thin-plate splines",0.986486428057947
+77,"kepler","RandomForest",1,0,NA,1,0,0.107047026220843,300,"Black-box ensemble (300 trees)",0.939406148170702
+78,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00484650294088215,5,"0.001 + 0.999 * M_star^(1/3) * T^(2/3)",0.999336429673959
+78,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.10832965071596,2,"Piecewise-linear ReLU network",0.945478364586083
+78,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00484649907901539,1,"troot((M_star*(T*T)))",0.999336429846098
+78,"kepler","SR-PySR",1,0,0.00860683081296254,1,0,0.00600897509023111,9,"1.000*(M_star^0.337)*(T^0.662)",0.99927839898916
+78,"kepler","SR-Operon",1,1,0.000461093122263667,1,0,0.00484971272942589,9,"1.000*(M_star^0.333)*(T^0.666)",0.99933628655246
+78,"kepler","Lasso",1,0,NA,1,0,0.0648924691930793,2,"-0.011 + 0.332*M_star + 0.637*T",0.980079565555623
+78,"kepler","MARS",1,0,NA,1,0,0.0106400066877421,9,"Piecewise degree-2 hinge splines",0.998923837462953
+78,"kepler","GAM",0,0,NA,1,0.25,0.0582518095895663,10,"Additive thin-plate splines",0.983840117956178
+78,"kepler","RandomForest",1,0,NA,1,0,0.127601206398628,300,"Black-box ensemble (300 trees)",0.924569632125569
+79,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00498840584678637,5,"0.001 + 0.999 * M_star^(1/3) * T^(2/3)",0.999328418988061
+79,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0885775337126139,2,"Piecewise-linear ReLU network",0.96286164854175
+79,"kepler","FBMS-BGNLM",1,1,0,1,0,0.0049884094556295,1,"troot((T*(T*M_star)))",0.999328418820185
+79,"kepler","SR-PySR",1,0,0.00319380775689343,1,0,0.00566092253985796,9,"1.000*(M_star^0.331)*(T^0.666)",0.999295026020598
+79,"kepler","SR-Operon",1,1,0.000967879886935474,1,0,0.00500427614062538,9,"1.000*(M_star^0.333)*(T^0.666)",0.999327679558582
+79,"kepler","Lasso",1,0,NA,1,0,0.0677040040411359,2,"0.002 + 0.325*M_star + 0.637*T",0.978071791490686
+79,"kepler","MARS",1,0,NA,1,0,0.0133547559881103,9,"Piecewise degree-2 hinge splines",0.998612869030555
+79,"kepler","GAM",0,0,NA,1,0.5,0.0577684616043284,11,"Additive thin-plate splines",0.98388438217089
+79,"kepler","RandomForest",1,0,NA,1,0,0.116300017881108,300,"Black-box ensemble (300 trees)",0.936379315327639
+80,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00489162009923252,5,"M_star^(1/3) * T^(2/3)",0.99933481185373
+80,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.086357620417657,2,"Piecewise-linear ReLU network",0.965275184786584
+80,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00491156497462091,1,"(troot(T)*troot((T*M_star)))",0.999333916008956
+80,"kepler","SR-PySR",0,0,1,1,0.125,0.0055817936674175,17,"-0.015 + 0.219*T + -0.033*(M_star)^2 + -0.066*sin(M_star) + 0.000*cos(x9) + 0.885*(M_star^0.5)*(T^0.5)",0.999301692578856
+80,"kepler","SR-Operon",1,1,0.000192050419040746,1,0,0.00490694674917055,9,"1.000*(M_star^0.333)*(T^0.667)",0.999334123765651
+80,"kepler","Lasso",1,0,NA,1,0,0.0610188241048166,2,"-0.027 + 0.336*M_star + 0.644*T",0.982385117069489
+80,"kepler","MARS",1,0,NA,1,0,0.0103274277800096,9,"Piecewise degree-2 hinge splines",0.998955771191907
+80,"kepler","GAM",0,0,NA,1,0.125,0.0583467424661408,9,"Additive thin-plate splines",0.983846496606784
+80,"kepler","RandomForest",1,0,NA,1,0,0.118206072518108,300,"Black-box ensemble (300 trees)",0.935424718449071
+81,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00518242182031838,5,"M_star^(1/3) * T^(2/3)",0.99930447298626
+81,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0918544038849274,2,"Piecewise-linear ReLU network",0.955472675770213
+81,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00520146395948171,1,"troot(((M_star*T)*T))",0.99930344248244
+81,"kepler","SR-PySR",1,0,0.00552427028861135,1,0,0.00676063634371927,9,"1.000*(M_star^0.334)*(T^0.671)",0.999206240406055
+81,"kepler","SR-Operon",1,1,0.000315319729849661,1,0,0.00520905073629314,9,"1.000*(M_star^0.334)*(T^0.667)",0.999303030855797
+81,"kepler","Lasso",1,0,NA,1,0,0.0691149864231439,2,"-0.014 + 0.325*M_star + 0.648*T",0.974549083767732
+81,"kepler","MARS",1,0,NA,1,0,0.0116755850081159,9,"Piecewise degree-2 hinge splines",0.998733998124586
+81,"kepler","GAM",0,0,NA,1,0.5,0.0564217882819406,11,"Additive thin-plate splines",0.982853631669383
+81,"kepler","RandomForest",1,0,NA,1,0,0.112507807413642,300,"Black-box ensemble (300 trees)",0.933475537119298
+82,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.0048926347201516,5,"0.001 + 0.999 * M_star^(1/3) * T^(2/3)",0.999296607140175
+82,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.104487471135667,2,"Piecewise-linear ReLU network",0.932018523733653
+82,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00489264540333402,1,"troot(((T*T)*M_star))",0.999296606494562
+82,"kepler","SR-PySR",0,0,1,1,0.125,0.00562077998819244,18,"-0.012 + 0.219*T + -0.033*(M_star)^2 + -0.067*sin(M_star) + 0.883*(M_star^0.5)*(T^0.5) + -0.001*M_star*x5",0.99924932901172
+82,"kepler","SR-Operon",1,1,0.000741365972593999,1,0,0.00489590280794374,9,"1.000*(M_star^0.333)*(T^0.666)",0.999296409575191
+82,"kepler","Lasso",1,0,NA,1,0,0.0699998603881016,2,"-0.025 + 0.335*M_star + 0.646*T",0.969182781020711
+82,"kepler","MARS",1,0,NA,1,0,0.010638581862773,9,"Piecewise degree-2 hinge splines",0.998745462546654
+82,"kepler","GAM",0,0,NA,1,0.125,0.0544627677269926,9,"Additive thin-plate splines",0.981125608864493
+82,"kepler","RandomForest",1,0,NA,1,0,0.0971747955232746,300,"Black-box ensemble (300 trees)",0.941126028390788
+83,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00499822695747298,5,"0.001 + 0.999 * M_star^(1/3) * T^(2/3)",0.999313794715644
+83,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.107188581528953,2,"Piecewise-linear ReLU network",0.939358399946888
+83,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00499828645002503,1,"troot((T*(M_star*T)))",0.999313791605449
+83,"kepler","SR-PySR",1,0,1,1,0,0.00729127243398601,16,"0.087 + -0.188*(M_star)^(2/3) + 0.098*(T-0.5)^2 + 0.204*sin(T) + 0.902*sqrt(M_star*T)",0.99916641984807
+83,"kepler","SR-Operon",1,1,0.000550977633468952,1,0,0.00499652011679774,9,"1.000*(M_star^0.333)*(T^0.666)",0.999313883931359
+83,"kepler","Lasso",1,0,NA,1,0,0.0715748998501803,2,"-0.033 + 0.326*M_star + 0.659*T",0.972652880530434
+83,"kepler","MARS",1,0,NA,1,0,0.0171428354969739,7,"Piecewise degree-2 hinge splines",0.997907557636223
+83,"kepler","GAM",1,0,NA,1,0,0.0546900246163103,8,"Additive thin-plate splines",0.983802425582099
+83,"kepler","RandomForest",1,0,NA,1,0,0.104288545950868,300,"Black-box ensemble (300 trees)",0.94256572735973
+84,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.0049291456667764,5,"M_star^(1/3) * T^(2/3)",0.999309464915438
+84,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.215551046342737,2,"Piecewise-linear ReLU network",0.741322532216919
+84,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00493284762659121,1,"troot((T*(M_star*T)))",0.999309262090661
+84,"kepler","SR-PySR",1,0,1,1,0,0.00764076687201035,15,"0.098 + -0.179*(M_star)^(2/3) + 0.069*(T)^2 + 0.141*sin(T) + 0.891*sqrt(M_star*T)",0.999120105946398
+84,"kepler","SR-Operon",1,1,0.000203209061371501,1,0,0.00492930901046813,9,"1.000*(M_star^0.333)*(T^0.667)",0.999309455969295
+84,"kepler","Lasso",1,0,NA,1,0,0.0759018720566493,2,"-0.011 + 0.311*M_star + 0.664*T",0.967438578776274
+84,"kepler","MARS",1,0,NA,1,0,0.0191195921437735,7,"Piecewise degree-2 hinge splines",0.997413575724469
+84,"kepler","GAM",0,0,NA,1,0.5,0.0553767102787739,10,"Additive thin-plate splines",0.982408002100868
+84,"kepler","RandomForest",1,0,NA,1,0,0.119926128380144,300,"Black-box ensemble (300 trees)",0.919543441661671
+85,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00498864688350498,5,"-0.001 + 1.001 * M_star^(1/3) * T^(2/3)",0.999310094084095
+85,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.113851780148809,2,"Piecewise-linear ReLU network",0.929467824873437
+85,"kepler","FBMS-BGNLM",1,1,0,1,0,0.0049886594621358,1,"troot(((T*M_star)*T))",0.999310093406578
+85,"kepler","SR-PySR",0,0,1,1,0.125,0.0105360602626176,24,"-0.281 + 0.617*sqrt(T) + 0.650*(M_star^0.5)*(T^0.5) + 0.014*M_star*(T^2) + -0.004*(M_star^2)*x9 + 0.003*(T^2)*x9",0.998845164422816
+85,"kepler","SR-Operon",1,0,0.00106819434901029,1,0,0.00498494743421631,9,"0.999*(M_star^0.334)*(T^0.667)",0.999310293271597
+85,"kepler","Lasso",1,0,NA,1,0,0.0697507378426524,2,"0.018 + 0.320*M_star + 0.632*T",0.973179836651795
+85,"kepler","MARS",1,0,NA,1,0,0.0110658888995233,9,"Piecewise degree-2 hinge splines",0.998783376773156
+85,"kepler","GAM",0,0,NA,1,0.375,0.0566519075475552,10,"Additive thin-plate splines",0.982118281945089
+85,"kepler","RandomForest",1,0,NA,1,0,0.115589557023934,300,"Black-box ensemble (300 trees)",0.927315345559001
+86,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.0053583022670037,5,"0.001 + 0.999 * M_star^(1/3) * T^(2/3)",0.999270057019271
+86,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.083689215067264,2,"Piecewise-linear ReLU network",0.956904223946246
+86,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00535829809678662,1,"troot((M_star*p2(T)))",0.999270057290712
+86,"kepler","SR-PySR",1,0,1,1,0,0.00645736614564594,14,"0.013 + -0.107*M_star + 0.101*(T-0.5)^2 + 0.211*sin(T) + 0.891*sqrt(M_star*T)",0.999191181546207
+86,"kepler","SR-Operon",1,1,0.000573028260054786,1,0,0.00535111882922749,9,"1.000*(M_star^0.333)*(T^0.666)",0.999270524279779
+86,"kepler","Lasso",1,0,NA,1,0,0.0719667587420974,2,"-0.046 + 0.331*M_star + 0.663*T",0.967986913388713
+86,"kepler","MARS",1,0,NA,1,0,0.0134376399292618,8,"Piecewise degree-2 hinge splines",0.998347696707633
+86,"kepler","GAM",0,0,NA,1,0.5,0.0544886166734362,12,"Additive thin-plate splines",0.981411264665374
+86,"kepler","RandomForest",1,0,NA,1,0,0.101723174457591,300,"Black-box ensemble (300 trees)",0.936595128256664
+87,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00467562892656242,5,"M_star^(1/3) * T^(2/3)",0.999329052151103
+87,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0799531119115341,2,"Piecewise-linear ReLU network",0.96570270442053
+87,"kepler","FBMS-BGNLM",1,1,0,1,0,0.0046784193272159,1,"troot((M_star*(T*T)))",0.999328914378488
+87,"kepler","SR-PySR",1,0,0.00262213838757458,1,0,0.0048174432669747,9,"1.000*(M_star^0.334)*(T^0.665)",0.999321946176285
+87,"kepler","SR-Operon",1,1,0.000561076935775229,1,0,0.00467712879482605,9,"1.000*(M_star^0.334)*(T^0.667)",0.999328978107161
+87,"kepler","Lasso",1,0,NA,1,0,0.0643726631711157,2,"-0.018 + 0.324*M_star + 0.653*T",0.977571881014364
+87,"kepler","MARS",1,0,NA,1,0,0.0120884442168956,9,"Piecewise degree-2 hinge splines",0.998673119187313
+87,"kepler","GAM",1,0,NA,1,0,0.0546172211873864,8,"Additive thin-plate splines",0.983698963457916
+87,"kepler","RandomForest",1,0,NA,1,0,0.10633853946404,300,"Black-box ensemble (300 trees)",0.939757669500243
+88,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00492175795063931,5,"M_star^(1/3) * T^(2/3)",0.999318557933506
+88,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.101401159633831,2,"Piecewise-linear ReLU network",0.946009601517888
+88,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00492190601385845,1,"troot((T*(T*M_star)))",0.999318550359203
+88,"kepler","SR-PySR",0,0,1,1,0.125,0.00589863150672674,17,"-0.016 + 0.217*T + -0.034*(M_star)^2 + -0.065*sin(M_star) + -0.001*cos(x7) + 0.887*(M_star^0.5)*(T^0.5)",0.999263626625578
+88,"kepler","SR-Operon",1,1,0.000236453462725772,1,0,0.0049282602008799,9,"1.000*(M_star^0.333)*(T^0.666)",0.999318225090524
+88,"kepler","Lasso",1,0,NA,1,0,0.0691092824519481,2,"0.041 + 0.314*M_star + 0.624*T",0.974623890983653
+88,"kepler","MARS",1,0,NA,1,0,0.0106622250770213,9,"Piecewise degree-2 hinge splines",0.998853652743415
+88,"kepler","GAM",0,0,NA,1,0.125,0.0541493842390474,8,"Additive thin-plate splines",0.984206522710718
+88,"kepler","RandomForest",1,0,NA,1,0,0.104440745414892,300,"Black-box ensemble (300 trees)",0.94275807806698
+89,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00505363797208134,5,"M_star^(1/3) * T^(2/3)",0.999297903333301
+89,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.117063193287091,2,"Piecewise-linear ReLU network",0.920813777465258
+89,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00506870165935761,1,"(troot(T)*troot((M_star*T)))",0.999297028423217
+89,"kepler","SR-PySR",0,0,1,1,0.25,0.00611860410437994,18,"-0.017 + 0.217*T + -0.034*(M_star)^2 + -0.065*sin(M_star) + 0.887*sqrt(M_star*T) + 0.001*sqrt(x7*x10)",0.999229633733028
+89,"kepler","SR-Operon",1,1,0.00031824292880106,1,0,0.00506524193664145,9,"1.000*(M_star^0.333)*(T^0.666)",0.999297229596824
+89,"kepler","Lasso",1,0,NA,1,0,0.0738578547196676,2,"-0.020 + 0.325*M_star + 0.651*T",0.968144425245919
+89,"kepler","MARS",1,0,NA,1,0,0.0106831883380513,8,"Piecewise degree-2 hinge splines",0.998789577610929
+89,"kepler","GAM",0,0,NA,1,0.375,0.0570988520048031,11,"Additive thin-plate splines",0.980737365483413
+89,"kepler","RandomForest",1,0,NA,1,0,0.102246931653117,300,"Black-box ensemble (300 trees)",0.939458183259998
+90,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00509226741679108,5,"M_star^(1/3) * T^(2/3)",0.999285011072813
+90,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.127736144277387,2,"Piecewise-linear ReLU network",0.899125158648993
+90,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00509205096803633,1,"troot((T*(M_star*T)))",0.999285024626077
+90,"kepler","SR-PySR",0,0,1,1,0.125,0.00580088584141873,17,"-0.006 + 0.214*T + -0.051*(M_star-0.5)^2 + -0.105*sin(M_star) + -0.000*cos(x9) + 0.895*sqrt(M_star*T)",0.999237551603247
+90,"kepler","SR-Operon",1,1,0.00055188484776858,1,0,0.00510247682595322,9,"1.000*(M_star^0.334)*(T^0.666)",0.999284371140898
+90,"kepler","Lasso",1,0,NA,1,0,0.0648970755793494,2,"-0.006 + 0.332*M_star + 0.637*T",0.973549971267137
+90,"kepler","MARS",1,0,NA,1,0,0.0100300406192179,8,"Piecewise degree-2 hinge splines",0.99882591239223
+90,"kepler","GAM",0,0,NA,1,0.25,0.0517243580677498,9,"Additive thin-plate splines",0.982995158696826
+90,"kepler","RandomForest",1,0,NA,1,0,0.101221386589909,300,"Black-box ensemble (300 trees)",0.936450124704987
+91,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.0051601705681652,5,"-0.001 + 1 * M_star^(1/3) * T^(2/3)",0.999291458938427
+91,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0846026227602287,2,"Piecewise-linear ReLU network",0.958320967546902
+91,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00516016472329643,1,"troot(((T*M_star)*T))",0.999291459284997
+91,"kepler","SR-PySR",1,0,1,1,0,0.0058134668805998,14,"-0.007 + 0.210*T + -0.053*(M_star-0.5)^2 + -0.109*sin(M_star) + 0.903*sqrt(M_star*T)",0.999250269773502
+91,"kepler","SR-Operon",1,1,0.000595046270402799,1,0,0.00513324443600392,9,"1.000*(M_star^0.334)*(T^0.667)",0.999293051351112
+91,"kepler","Lasso",1,0,NA,1,0,0.0690171904670868,2,"0.026 + 0.326*M_star + 0.622*T",0.972076843732688
+91,"kepler","MARS",1,0,NA,1,0,0.0121031627072446,8,"Piecewise degree-2 hinge splines",0.998602816947369
+91,"kepler","GAM",0,0,NA,1,0.125,0.0558531638076171,9,"Additive thin-plate splines",0.981521154508955
+91,"kepler","RandomForest",1,0,NA,1,0,0.0955332157030638,300,"Black-box ensemble (300 trees)",0.947008274082973
+92,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00464890740866051,5,"M_star^(1/3) * T^(2/3)",0.999336088681955
+92,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.111149557519594,2,"Piecewise-linear ReLU network",0.937505229603706
+92,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00464850478666672,1,"troot(((T*M_star)*T))",0.999336107449601
+92,"kepler","SR-PySR",1,0,0.00983308572223918,1,0,0.00657272798978123,9,"1.000*(M_star^0.340)*(T^0.664)",0.999227852879825
+92,"kepler","SR-Operon",1,1,0.000331558573298307,1,0,0.00465470815869651,9,"1.000*(M_star^0.333)*(T^0.667)",0.999335818107914
+92,"kepler","Lasso",1,0,NA,1,0,0.0585164516346961,2,"-0.002 + 0.326*M_star + 0.641*T",0.982276978842338
+92,"kepler","MARS",1,0,NA,1,0,0.0109865186608979,8,"Piecewise degree-2 hinge splines",0.998839284164699
+92,"kepler","GAM",0,0,NA,1,0.25,0.0507192079053391,9,"Additive thin-plate splines",0.986547253061737
+92,"kepler","RandomForest",1,0,NA,1,0,0.107104002760423,300,"Black-box ensemble (300 trees)",0.941932026945068
+93,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00452433311493202,5,"-0.001 + 1 * M_star^(1/3) * T^(2/3)",0.999343339084319
+93,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.151216343304738,2,"Piecewise-linear ReLU network",0.886500617995952
+93,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00452433409892831,1,"troot((T*(M_star*T)))",0.99934333904034
+93,"kepler","SR-PySR",1,0,1,1,0,0.00691823532067746,15,"0.097 + -0.181*(M_star)^(2/3) + 0.068*(T)^2 + 0.140*sin(T) + 0.895*sqrt(M_star*T)",0.99920803996895
+93,"kepler","SR-Operon",1,1,0.000906072643161171,1,0,0.00451647177562526,9,"1.000*(M_star^0.334)*(T^0.667)",0.999343690134072
+93,"kepler","Lasso",1,0,NA,1,0,0.0634586288418142,2,"-0.006 + 0.317*M_star + 0.652*T",0.979553912327706
+93,"kepler","MARS",1,0,NA,1,0,0.0113691019306179,9,"Piecewise degree-2 hinge splines",0.998806008464909
+93,"kepler","GAM",0,0,NA,1,0.375,0.0564497352813907,11,"Additive thin-plate splines",0.983705019789818
+93,"kepler","RandomForest",1,0,NA,1,0,0.103580625655133,300,"Black-box ensemble (300 trees)",0.946451006711843
+94,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.0053701114287781,5,"0.001 + 1 * M_star^(1/3) * T^(2/3)",0.999299637152109
+94,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.168954433002866,2,"Piecewise-linear ReLU network",0.8561058898476
+94,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00537007037550135,1,"troot((T*(M_star*T)))",0.999299639366138
+94,"kepler","SR-PySR",0,0,1,1,0.375,0.00619785240170391,22,"0.070 + 0.218*T + -0.016*(M_star-0.5)^2 + -0.171*sqrt(M_star) + -0.000*cos(x8) + 0.887*sqrt(M_star*T) + -0.000*(x4^2)*x6",0.999251555961472
+94,"kepler","SR-Operon",1,1,0.000450157147820929,1,0,0.00537251664903367,9,"1.000*(M_star^0.333)*(T^0.666)",0.999299507407527
+94,"kepler","Lasso",1,0,NA,1,0,0.0676866017070841,2,"-0.017 + 0.323*M_star + 0.653*T",0.976439072509784
+94,"kepler","MARS",1,0,NA,1,0,0.0100790942459262,9,"Piecewise degree-2 hinge splines",0.998934330905088
+94,"kepler","GAM",0,0,NA,1,0.125,0.0579703564266696,9,"Additive thin-plate splines",0.982569755365349
+94,"kepler","RandomForest",1,0,NA,1,0,0.116884591098246,300,"Black-box ensemble (300 trees)",0.930842194084493
+95,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00498796774655119,5,"M_star^(1/3) * T^(2/3)",0.999305684422508
+95,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0785687471320057,2,"Piecewise-linear ReLU network",0.96501605218328
+95,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00499191450731933,1,"troot((T*(M_star*T)))",0.999305464746157
+95,"kepler","SR-PySR",0,0,1,1,0.125,0.00552808939104658,19,"-0.015 + 0.220*T + -0.033*(M_star)^2 + -0.065*sin(M_star) + 0.884*(M_star^0.5)*(T^0.5) + 0.000*M_star*(x3^2)",0.999274006141636
+95,"kepler","SR-Operon",1,1,0.000228456154134971,1,0,0.00499394014602264,9,"1.000*(M_star^0.333)*(T^0.667)",0.999305351931815
+95,"kepler","Lasso",1,0,NA,1,0,0.0671160988231689,2,"0.007 + 0.312*M_star + 0.650*T",0.97432150240535
+95,"kepler","MARS",1,0,NA,1,0,0.0094486516738659,9,"Piecewise degree-2 hinge splines",0.998946527661949
+95,"kepler","GAM",0,0,NA,1,0.125,0.0519199747857476,9,"Additive thin-plate splines",0.984410046807984
+95,"kepler","RandomForest",1,0,NA,1,0,0.0855436917654542,300,"Black-box ensemble (300 trees)",0.958631957037708
+96,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00494243661553417,5,"M_star^(1/3) * T^(2/3)",0.999321588792009
+96,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.104026953010942,2,"Piecewise-linear ReLU network",0.945018661931106
+96,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00491881853385123,1,"troot((T*(M_star*T)))",0.999322760150262
+96,"kepler","SR-PySR",1,0,0.0379513761710036,1,0,0.0170045540460325,9,"1.000*(M_star^0.350)*(T^0.645)",0.997990179888406
+96,"kepler","SR-Operon",1,1,0.000403834915291279,1,0,0.00491333702072603,9,"1.000*(M_star^0.334)*(T^0.666)",0.999323031208197
+96,"kepler","Lasso",1,0,NA,1,0,0.0740642067739259,2,"-0.004 + 0.316*M_star + 0.649*T",0.971855843481862
+96,"kepler","MARS",1,0,NA,1,0,0.0140588097057568,9,"Piecewise degree-2 hinge splines",0.998450390321545
+96,"kepler","GAM",1,0,NA,1,0,0.0575549685535861,8,"Additive thin-plate splines",0.982784307468093
+96,"kepler","RandomForest",1,0,NA,1,0,0.107521164323145,300,"Black-box ensemble (300 trees)",0.941300988344174
+97,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.0045713484557965,5,"-0.001 + 1.001 * M_star^(1/3) * T^(2/3)",0.999338387451844
+97,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.161805933300014,2,"Piecewise-linear ReLU network",0.866570588162576
+97,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00457136656871763,1,"troot(((T*T)*M_star))",0.99933838661139
+97,"kepler","SR-PySR",1,0,0.00829644433426208,1,0,0.00860429875506404,9,"1.000*(M_star^0.328)*(T^0.663)",0.999068709475023
+97,"kepler","SR-Operon",1,1,0.00054017212081009,1,0,0.00457415025345461,9,"1.000*(M_star^0.334)*(T^0.667)",0.999338257406498
+97,"kepler","Lasso",1,0,NA,1,0,0.0759472374431786,2,"0.015 + 0.319*M_star + 0.631*T",0.970170946780216
+97,"kepler","MARS",1,0,NA,1,0,0.0195585589563291,7,"Piecewise degree-2 hinge splines",0.997503002712447
+97,"kepler","GAM",0,0,NA,1,0.25,0.0599080759022242,9,"Additive thin-plate splines",0.981229770711473
+97,"kepler","RandomForest",1,0,NA,1,0,0.104657234605203,300,"Black-box ensemble (300 trees)",0.94385540575375
+98,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00535886256045137,5,"M_star^(1/3) * T^(2/3)",0.99928451344289
+98,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0998887607981879,2,"Piecewise-linear ReLU network",0.943876968494109
+98,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00535774335245909,1,"troot(((T*M_star)*T))",0.999284580239663
+98,"kepler","SR-PySR",1,0,0.00671836422187422,1,0,0.00739509902753574,9,"1.000*(M_star^0.334)*(T^0.661)",0.999139882660656
+98,"kepler","SR-Operon",1,1,0.00091517865033397,1,0,0.00532033092224608,9,"1.000*(M_star^0.333)*(T^0.667)",0.999286805066818
+98,"kepler","Lasso",1,0,NA,1,0,0.0629409902890842,2,"-0.027 + 0.329*M_star + 0.653*T",0.977381952571833
+98,"kepler","MARS",1,0,NA,1,0,0.0200395495677204,7,"Piecewise degree-2 hinge splines",0.997207973137915
+98,"kepler","GAM",0,0,NA,1,0.375,0.0567534766543916,10,"Additive thin-plate splines",0.981506512929635
+98,"kepler","RandomForest",1,0,NA,1,0,0.102266034239788,300,"Black-box ensemble (300 trees)",0.941200571058523
+99,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00445841613904119,5,"M_star^(1/3) * T^(2/3)",0.999339559233173
+99,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0712529659954593,2,"Piecewise-linear ReLU network",0.972655293624824
+99,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00448241769569181,1,"troot((M_star*p2(T)))",0.999338426909763
+99,"kepler","SR-PySR",1,0,0.0079359676014697,1,0,0.00560925666842228,9,"1.000*(M_star^0.337)*(T^0.662)",0.999278423194652
+99,"kepler","SR-Operon",1,1,3.59496874274834e-05,1,0,0.0044717288103185,9,"1.000*(M_star^0.333)*(T^0.667)",0.999338931931032
+99,"kepler","Lasso",1,0,NA,1,0,0.0670588888990901,2,"-0.006 + 0.318*M_star + 0.648*T",0.975716191699463
+99,"kepler","MARS",1,0,NA,1,0,0.0105341431393014,9,"Piecewise degree-2 hinge splines",0.998858911299918
+99,"kepler","GAM",0,0,NA,1,0.125,0.0573256003457493,9,"Additive thin-plate splines",0.982104397207136
+99,"kepler","RandomForest",1,0,NA,1,0,0.107778580174129,300,"Black-box ensemble (300 trees)",0.938150443706419
+100,"kepler","Symbolic-LBBNN",1,1,2.98023224432065e-08,1,0,0.00516224997586153,5,"-0.002 + 1.001 * M_star^(1/3) * T^(2/3)",0.999293336659388
+100,"kepler","ReLU-LBBNN",0,0,NA,1,0.35,0.0977610206015926,2,"Piecewise-linear ReLU network",0.945251814006981
+100,"kepler","FBMS-BGNLM",1,1,0,1,0,0.00516255303831795,1,"troot(((M_star*T)*T))",0.999293318916566
+100,"kepler","SR-PySR",1,0,0.00452199783833213,1,0,0.0060452867645044,9,"0.999*(M_star^0.335)*(T^0.664)",0.999237219232885
+100,"kepler","SR-Operon",1,0,0.00194344886920039,1,0,0.00517419067068949,9,"0.999*(M_star^0.334)*(T^0.668)",0.999292636802257
+100,"kepler","Lasso",1,0,NA,1,0,0.0746543269967452,2,"0.005 + 0.321*M_star + 0.643*T",0.967842140387706
+100,"kepler","MARS",1,0,NA,1,0,0.0130058885808266,8,"Piecewise degree-2 hinge splines",0.998485289353595
+100,"kepler","GAM",0,0,NA,1,0.25,0.0558212501758699,9,"Additive thin-plate splines",0.98177561024721
+100,"kepler","RandomForest",1,0,NA,1,0,0.1052170785894,300,"Black-box ensemble (300 trees)",0.936670234390088

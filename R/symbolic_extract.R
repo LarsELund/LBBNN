@@ -312,12 +312,38 @@ extract_symbolic_mpm <- function(model,
           if (identical(src$type, "zero")) next
           w_eff <- w_mat[r, ci] * (if (!is.null(src$scale)) src$scale else 1.0)
           if (abs(w_eff) < zero_tol) next
-          if (abs(w_eff - 1.0) < 1e-5) {
+          snap_key <- paste0(r, "_", ci)
+          rat_lbl_u <- if (!is.null(l$snapped_rationals) && !is.null(l$snapped_rationals[[snap_key]]) &&
+                           abs((if (!is.null(src$scale)) src$scale else 1.0) - 1.0) < 1e-6) {
+            l$snapped_rationals[[snap_key]]$q_label
+          } else {
+            NULL
+          }
+          if (!is.null(rat_lbl_u) && nzchar(rat_lbl_u)) {
+            rat_tex_u <- gsub("pi", "\\pi", rat_lbl_u, fixed = TRUE)
+            rat_tex_u <- gsub("*", " ", rat_tex_u, fixed = TRUE)
+            if (rat_lbl_u == "1") {
+              lin_r <- c(lin_r, src$r_str)
+              lin_tex <- c(lin_tex, src$latex_str)
+            } else if (rat_lbl_u == "-1") {
+              lin_r <- c(lin_r, paste0("-", src$r_str))
+              lin_tex <- c(lin_tex, paste0("-", src$latex_str))
+            } else {
+              lin_r <- c(lin_r, paste0(rat_lbl_u, " * ", src$r_str))
+              lin_tex <- c(lin_tex, paste0(rat_tex_u, " ", src$latex_str))
+            }
+          } else if (abs(w_eff - 1.0) < 1e-5) {
             lin_r <- c(lin_r, src$r_str)
             lin_tex <- c(lin_tex, src$latex_str)
           } else if (abs(w_eff + 1.0) < 1e-5) {
             lin_r <- c(lin_r, paste0("-", src$r_str))
             lin_tex <- c(lin_tex, paste0("-", src$latex_str))
+          } else if (abs(w_eff - pi) < 1e-3) {
+            lin_r <- c(lin_r, paste0("pi * ", src$r_str))
+            lin_tex <- c(lin_tex, paste0("\\pi ", src$latex_str))
+          } else if (abs(w_eff + pi) < 1e-3) {
+            lin_r <- c(lin_r, paste0("-pi * ", src$r_str))
+            lin_tex <- c(lin_tex, paste0("-\\pi ", src$latex_str))
           } else {
             lin_r <- c(lin_r, paste0(round(w_eff, digits), " * ", src$r_str))
             lin_tex <- c(lin_tex, paste0(round(w_eff, digits), " ", src$latex_str))
@@ -353,12 +379,13 @@ extract_symbolic_mpm <- function(model,
     prev_nodes <- curr_nodes
   }
 
-  # Output Layer Aggregation & Simplification
+  # Output Layer Aggregation & Simplification (supports univariate & multivariate q >= 1)
   out_l <- model$out_layer
   act_out <- as.matrix(out_l$alpha_active_path$detach()$cpu())
   probs_out <- as.matrix(torch::torch_sigmoid(out_l$lambda_l$detach())$cpu())
   w_out <- as.matrix(out_l$weight_mean$detach()$cpu())
-  b_out <- as.numeric(out_l$bias_mean$detach()$cpu())[1]
+  b_out_vec <- as.numeric(out_l$bias_mean$detach()$cpu())
+  q_out <- nrow(w_out)
 
   out_in_nodes <- if (isTRUE(model$input_skip) && n_hid >= 1L) {
     c(prev_nodes, input_nodes)
@@ -366,99 +393,113 @@ extract_symbolic_mpm <- function(model,
     prev_nodes
   }
 
-  active_out_cols <- which(act_out[1, ] > 0.5)
-  basis_env <- list() # key = r_str -> list(coef, r_str, latex_str)
-  intercept <- b_out
+  eq_list <- vector("list", q_out)
+  formulas_vec <- character(q_out)
+  latex_vec <- character(q_out)
 
-  for (co in active_out_cols) {
-    from_lbl <- if (isTRUE(model$input_skip) && co > length(prev_nodes)) {
-      paste0("skip:", var_names[co - length(prev_nodes)])
-    } else {
-      paste0("L", n_hid, "_N", co)
-    }
-    snap_key <- paste0("1_", co)
-    rat_lbl <- if (!is.null(out_l$snapped_rationals) && !is.null(out_l$snapped_rationals[[snap_key]])) {
-      out_l$snapped_rationals[[snap_key]]$q_label
-    } else {
-      ""
-    }
-    edge_rows[[length(edge_rows) + 1L]] <- data.frame(
-      layer = "Output",
-      from_node = from_lbl,
-      to_node = "y",
-      operator = "linear",
-      alpha = probs_out[1, co],
-      weight_raw = get_w_raw(n_hid + 1L, 1L, co, TRUE),
-      weight_debiased = get_w_deb(n_hid + 1L, 1L, co, TRUE),
-      weight_snapped = w_out[1, co],
-      rational_str = rat_lbl,
-      stringsAsFactors = FALSE
-    )
+  for (r_out in seq_len(q_out)) {
+    active_out_cols <- which(act_out[r_out, ] > 0.5)
+    basis_env <- list()
+    intercept <- b_out_vec[r_out]
+    y_lbl <- if (q_out == 1L) "y" else paste0("y", r_out)
 
-    src <- out_in_nodes[[co]]
-    if (is.null(src) || identical(src$type, "zero")) next
-    sc <- if (!is.null(src$scale)) src$scale else 1.0
-    coef_val <- w_out[1, co] * sc
-    if (abs(coef_val) < zero_tol) next
-
-    if (identical(src$type, "const")) {
-      intercept <- intercept + coef_val
-    } else {
-      b_key <- src$r_str
-      if (is.null(basis_env[[b_key]])) {
-        basis_env[[b_key]] <- list(
-          coef = coef_val,
-          r_str = src$r_str,
-          latex_str = src$latex_str
-        )
+    for (co in active_out_cols) {
+      from_lbl <- if (isTRUE(model$input_skip) && co > length(prev_nodes)) {
+        paste0("skip:", var_names[co - length(prev_nodes)])
       } else {
-        basis_env[[b_key]]$coef <- basis_env[[b_key]]$coef + coef_val
+        paste0("L", n_hid, "_N", co)
+      }
+      snap_key <- paste0(r_out, "_", co)
+      rat_lbl <- if (!is.null(out_l$snapped_rationals) && !is.null(out_l$snapped_rationals[[snap_key]])) {
+        out_l$snapped_rationals[[snap_key]]$q_label
+      } else {
+        ""
+      }
+      edge_rows[[length(edge_rows) + 1L]] <- data.frame(
+        layer = "Output",
+        from_node = from_lbl,
+        to_node = y_lbl,
+        operator = "linear",
+        alpha = probs_out[r_out, co],
+        weight_raw = get_w_raw(n_hid + 1L, r_out, co, TRUE),
+        weight_debiased = get_w_deb(n_hid + 1L, r_out, co, TRUE),
+        weight_snapped = w_out[r_out, co],
+        rational_str = rat_lbl,
+        stringsAsFactors = FALSE
+      )
+
+      src <- out_in_nodes[[co]]
+      if (is.null(src) || identical(src$type, "zero")) next
+      sc <- if (!is.null(src$scale)) src$scale else 1.0
+      coef_val <- w_out[r_out, co] * sc
+      if (abs(coef_val) < zero_tol) next
+
+      if (identical(src$type, "const")) {
+        intercept <- intercept + coef_val
+      } else {
+        b_key <- src$r_str
+        if (is.null(basis_env[[b_key]])) {
+          basis_env[[b_key]] <- list(
+            coef = coef_val,
+            r_str = src$r_str,
+            latex_str = src$latex_str
+          )
+        } else {
+          basis_env[[b_key]]$coef <- basis_env[[b_key]]$coef + coef_val
+        }
       }
     }
-  }
 
-  # Assemble human-readable formula_str and LaTeX
-  terms_r <- character(0)
-  terms_tex <- character(0)
-  basis_vec <- numeric(0)
+    terms_r <- character(0)
+    terms_tex <- character(0)
+    basis_vec <- numeric(0)
 
-  if (abs(intercept) >= zero_tol) {
-    c0_str <- fmt_num(intercept, digits = digits)
-    terms_r <- c(terms_r, c0_str)
-    terms_tex <- c(terms_tex, c0_str)
-    basis_vec["(Intercept)"] <- intercept
-  }
-
-  for (b_key in names(basis_env)) {
-    item <- basis_env[[b_key]]
-    cf <- item$coef
-    if (abs(cf) < zero_tol) next
-    basis_vec[b_key] <- cf
-
-    if (isTRUE(simplify) && abs(cf - 1.0) < 1e-4) {
-      terms_r <- c(terms_r, item$r_str)
-      terms_tex <- c(terms_tex, item$latex_str)
-    } else if (isTRUE(simplify) && abs(cf + 1.0) < 1e-4) {
-      terms_r <- c(terms_r, paste0("-1 * ", item$r_str))
-      terms_tex <- c(terms_tex, paste0("-", item$latex_str))
-    } else {
-      cf_str <- fmt_num(cf, digits = digits)
-      terms_r <- c(terms_r, paste0(cf_str, " * ", item$r_str))
-      terms_tex <- c(terms_tex, paste0(cf_str, " ", item$latex_str))
+    if (abs(intercept) >= zero_tol) {
+      c0_str <- fmt_num(intercept, digits = digits)
+      terms_r <- c(terms_r, c0_str)
+      terms_tex <- c(terms_tex, c0_str)
+      basis_vec["(Intercept)"] <- intercept
     }
+
+    for (b_key in names(basis_env)) {
+      item <- basis_env[[b_key]]
+      cf <- item$coef
+      if (abs(cf) < zero_tol) next
+      basis_vec[b_key] <- cf
+
+      if (isTRUE(simplify) && abs(cf - 1.0) < 1e-4) {
+        terms_r <- c(terms_r, item$r_str)
+        terms_tex <- c(terms_tex, item$latex_str)
+      } else if (isTRUE(simplify) && abs(cf + 1.0) < 1e-4) {
+        terms_r <- c(terms_r, paste0("-1 * ", item$r_str))
+        terms_tex <- c(terms_tex, paste0("-", item$latex_str))
+      } else {
+        cf_str <- fmt_num(cf, digits = digits)
+        terms_r <- c(terms_r, paste0(cf_str, " * ", item$r_str))
+        terms_tex <- c(terms_tex, paste0(cf_str, " ", item$latex_str))
+      }
+    }
+
+    if (length(terms_r) == 0L) {
+      f_str <- "0"
+      l_str <- "0"
+    } else {
+      f_str <- paste(terms_r, collapse = " + ")
+      f_str <- gsub("\\+ -", "- ", f_str)
+      l_str <- paste(terms_tex, collapse = " + ")
+      l_str <- gsub("\\+ -", "- ", l_str)
+    }
+
+    formulas_vec[r_out] <- f_str
+    latex_vec[r_out] <- l_str
+    eq_list[[r_out]] <- list(
+      formula_str = f_str,
+      latex = l_str,
+      r_expr = parse(text = f_str),
+      basis_terms = basis_vec
+    )
   }
 
-  if (length(terms_r) == 0L) {
-    formula_str <- "0"
-    latex_str <- "0"
-  } else {
-    formula_str <- paste(terms_r, collapse = " + ")
-    formula_str <- gsub("\\+ -", "- ", formula_str)
-    latex_str <- paste(terms_tex, collapse = " + ")
-    latex_str <- gsub("\\+ -", "- ", latex_str)
-  }
-
-  r_expr <- parse(text = formula_str)
   active_paths_df <- if (length(edge_rows) > 0L) {
     do.call(rbind, edge_rows)
   } else {
@@ -470,14 +511,31 @@ extract_symbolic_mpm <- function(model,
     )
   }
 
-  res <- list(
-    formula_str = formula_str,
-    latex = latex_str,
-    r_expr = r_expr,
-    active_paths_df = active_paths_df,
-    basis_terms = basis_vec,
-    var_names = var_names
-  )
+  if (q_out == 1L) {
+    res <- list(
+      formula_str = formulas_vec[1],
+      latex = latex_vec[1],
+      r_expr = eq_list[[1]]$r_expr,
+      active_paths_df = active_paths_df,
+      basis_terms = eq_list[[1]]$basis_terms,
+      var_names = var_names,
+      readout_posterior = model$readout_posterior
+    )
+  } else {
+    names(formulas_vec) <- paste0("y", seq_len(q_out))
+    names(latex_vec) <- paste0("y", seq_len(q_out))
+    names(eq_list) <- paste0("y", seq_len(q_out))
+    res <- list(
+      formula_str = formulas_vec,
+      latex = latex_vec,
+      equations = eq_list,
+      r_expr = lapply(eq_list, function(eq) eq$r_expr),
+      active_paths_df = active_paths_df,
+      basis_terms = lapply(eq_list, function(eq) eq$basis_terms),
+      var_names = var_names,
+      readout_posterior = model$readout_posterior
+    )
+  }
   class(res) <- "lbbnn_symbolic"
   res
 }
@@ -489,8 +547,14 @@ extract_symbolic_mpm <- function(model,
 print.lbbnn_symbolic <- function(x, ...) {
   cat("Neuro-Symbolic LBBNN Median Probability Model (MPM)\n")
   cat("===================================================\n")
-  cat("Formula: ", x$formula_str, "\n")
-  cat("LaTeX:   $", x$latex, "$\n", sep = "")
+  if (length(x$formula_str) == 1L) {
+    cat("Formula: ", x$formula_str, "\n")
+    cat("LaTeX:   $", x$latex, "$\n", sep = "")
+  } else {
+    for (k in seq_along(x$formula_str)) {
+      cat(sprintf("Eq %d (%s): %s\n", k, names(x$formula_str)[k], x$formula_str[k]))
+    }
+  }
   cat("Active Edges:", nrow(x$active_paths_df), "\n")
   invisible(x)
 }

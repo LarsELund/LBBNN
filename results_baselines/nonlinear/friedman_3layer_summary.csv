@@ -1,0 +1,4 @@
+"variant","n_seeds","tpr_mean","fpr_mean","exact_var_mean","exact_eq_mean","n_edges_mean","test_rmse_mean","test_r2_mean"
+"Symbolic-LBBNN (2-Layer, Unpruned MPM baseline)",100,NA,NA,NA,0,58.99,1.1612,NA
+"Symbolic-LBBNN (2-Layer + Readout Pruning)",100,1,0.992,0,0,106.5,1.32016396583095,0.920951352032796
+"Symbolic-LBBNN (3-Layer clog->exp->sin)",100,1,0.004,0.98,0.82,12.14,1.00865921972588,0.954134671523808

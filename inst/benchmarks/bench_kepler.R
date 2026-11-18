@@ -159,6 +159,7 @@ polish_kepler_mpm <- function(model, x_mat, y_vec, snap_tol = 0.08) {
     model$out_layer$lambda_l[1, r_exp]$fill_(4.0)
     model$out_layer$weight_mean[1, r_exp]$fill_(best_par[1])
     model$out_layer$bias_mean[1]$fill_(0.0)
+    model$out_layer$bias_active <- FALSE
   })
 
   # Update debiased_state before Stage 2B rational snapping
@@ -273,7 +274,25 @@ run_single_kepler_seed <- function(seed = 1,
     pred_sym <- as.numeric(model(x_te, MPM = TRUE)$squeeze()$cpu())
   })
   rmse_sym <- sqrt(mean((pred_sym - dat$y_test)^2))
+  r2_sym <- max(1e-6, min(1 - 1e-6, as.numeric(stats::cor(dat$y_test, pred_sym)^2)))
   edges_sym <- nrow(sym$active_paths_df)
+
+  # Extract Bayesian Laplace readout posterior for c_G on active clog -> exp monomial
+  c_g_hat <- NA_real_; c_g_se <- NA_real_; c_g_ci_low <- NA_real_; c_g_ci_high <- NA_real_
+  g_si_hat <- NA_real_; cg_cov_1 <- NA_integer_
+  if (!is.null(model$readout_posterior) && !is.null(model$readout_posterior$summary_df)) {
+    sdf <- model$readout_posterior$summary_df
+    idx_cg <- which(sdf$term != "(Intercept)")
+    if (length(idx_cg) > 0L) {
+      row_cg <- sdf[idx_cg[which.max(abs(sdf$estimate[idx_cg]))], ]
+      c_g_hat <- row_cg$estimate
+      c_g_se <- row_cg$se
+      c_g_ci_low <- row_cg$ci_low
+      c_g_ci_high <- row_cg$ci_high
+      g_si_hat <- 6.67430e-11 * (c_g_hat^3)
+      cg_cov_1 <- as.integer(c_g_ci_low <= 1.0 && 1.0 <= c_g_ci_high)
+    }
+  }
 
   # Standard ReLU Input-Skip LBBNN comparison
   rmse_relu <- NA_real_
@@ -313,6 +332,13 @@ run_single_kepler_seed <- function(seed = 1,
     exp_err_debiased = err_debiased,
     exp_err_snapped = err_snapped,
     test_rmse_symbolic = rmse_sym,
+    test_r2_symbolic = r2_sym,
+    c_g_hat = c_g_hat,
+    c_g_se = c_g_se,
+    c_g_ci_low = c_g_ci_low,
+    c_g_ci_high = c_g_ci_high,
+    g_si_hat = g_si_hat,
+    cg_cov_1 = cg_cov_1,
     test_rmse_relu = rmse_relu,
     active_edges_symbolic = edges_sym,
     active_edges_relu = edges_relu,

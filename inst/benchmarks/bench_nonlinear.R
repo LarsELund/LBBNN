@@ -34,8 +34,10 @@ run_single_nonlinear_seed <- function(seed = 1,
                                       epochs = 300,
                                       debias_epochs = 150,
                                       lr = 0.02,
+                                      arch = c("2layer", "2layer_pruned", "3layer"),
                                       device = get_compute_device(),
                                       verbose = FALSE) {
+  arch <- match.arg(arch)
   set.seed(seed)
   torch::torch_manual_seed(seed)
 
@@ -47,23 +49,38 @@ run_single_nonlinear_seed <- function(seed = 1,
   train_ds <- torch::tensor_dataset(x_tr, y_tr)
   train_dl <- torch::dataloader(train_ds, batch_size = 128L, shuffle = TRUE)
 
-  sizes <- c(p, p + 6L, 12L, 1L)
-  layer_acts <- list(
-    list(clog = p, id = 4L, sin = 2L),
-    list(exp = 4L, sin = 4L, square = 2L, id = 2L)
-  )
-  priors <- compute_symbolic_priors(
-    sizes = sizes,
-    layer_activations_list = layer_acts,
-    base_prior = 0.3,
-    depth_decay = 0.3,
-    complexity_weight = 0.25,
-    input_skip = TRUE
-  )
-  stds <- c(1.0, 1.0, 1.0)
-  inclusion_inits <- matrix(rep(c(0.0, 2.0), 3), nrow = 2, ncol = 3)
+  if (arch == "3layer") {
+    sizes <- c(p, 12L, 8L, 8L, 1L)
+    layer_acts <- list(
+      list(clog = p, id = 2L),
+      list(exp = 3L, square = 2L, id = 3L),
+      list(sin = 3L, id = 5L)
+    )
+    priors <- compute_symbolic_priors(
+      sizes = sizes, layer_activations_list = layer_acts,
+      base_prior = 0.25, depth_decay = 0.3, complexity_weight = 0.25, input_skip = TRUE
+    )
+    stds <- c(1.0, 1.0, 1.0, 1.0)
+    inclusion_inits <- matrix(rep(c(-0.5, 1.5), 4), nrow = 2, ncol = 4)
+    do_prune_bic <- TRUE
+    do_prune_readout <- TRUE
+  } else {
+    sizes <- c(p, p + 6L, 12L, 1L)
+    layer_acts <- list(
+      list(clog = p, id = 4L, sin = 2L),
+      list(exp = 4L, sin = 4L, square = 2L, id = 2L)
+    )
+    priors <- compute_symbolic_priors(
+      sizes = sizes, layer_activations_list = layer_acts,
+      base_prior = 0.3, depth_decay = 0.3, complexity_weight = 0.25, input_skip = TRUE
+    )
+    stds <- c(1.0, 1.0, 1.0)
+    inclusion_inits <- matrix(rep(c(0.0, 2.0), 3), nrow = 2, ncol = 3)
+    do_prune_bic <- (arch == "2layer_pruned")
+    do_prune_readout <- (arch == "2layer_pruned")
+  }
 
-  model <- lbbnn_net(
+  model <- lbbnn_symbolic_net(
     problem_type = "regression",
     sizes = sizes,
     prior = priors,
@@ -83,7 +100,8 @@ run_single_nonlinear_seed <- function(seed = 1,
     device = device,
     debias_epochs = debias_epochs,
     snap_rationals = TRUE,
-    prune_bic = FALSE,
+    prune_bic = do_prune_bic,
+    prune_readout = do_prune_readout,
     verbose = verbose
   )
 
@@ -92,6 +110,7 @@ run_single_nonlinear_seed <- function(seed = 1,
     pred_test <- as.numeric(model(x_te, MPM = TRUE)$squeeze()$cpu())
   })
   test_rmse <- sqrt(mean((pred_test - dat$y_test)^2))
+  test_r2 <- max(1e-6, min(1 - 1e-6, as.numeric(stats::cor(dat$y_test, pred_test)^2)))
 
   # Check variable inclusion across active paths
   f_str <- sym$formula_str
@@ -100,13 +119,21 @@ run_single_nonlinear_seed <- function(seed = 1,
   }, logical(1))
   tpr <- mean(inc_vars[1:5])
   fpr <- mean(inc_vars[6:p])
+  exact_eq <- as.integer(
+    tpr == 1.0 && fpr == 0.0 &&
+    grepl("sin\\((pi|3\\.14[0-9]*) \\* x1 \\* x2", f_str) &&
+    grepl("\\(x3 - 0\\.5\\)\\^2|\\(\\(x3 - 0\\.5\\)\\)\\^2", f_str)
+  )
 
   data.frame(
     seed = seed,
-    benchmark = "friedman1",
+    benchmark = paste0("friedman1_", arch),
     tpr = tpr,
     fpr = fpr,
+    exact_var_recovery = as.integer(tpr == 1.0 && fpr == 0.0),
+    exact_eq_recovery = exact_eq,
     test_rmse = test_rmse,
+    test_r2 = test_r2,
     active_density = model$density_active_path(),
     active_edges = nrow(sym$active_paths_df),
     formula = sym$formula_str,

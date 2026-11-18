@@ -532,11 +532,14 @@ run_fbms_jcs_parallel <- function(df_tr, X_tr, X_te, y_tr, y_te, var_names,
     stats::predict(fbms_fit, x = as.data.frame(X_te), link = function(x) x),
     error = function(e) NULL
   )
-  rmse_bma <- if (!is.null(pred_bma)) {
+  yhat_out <- rep(mean(y_tr), length(y_te))
+  rmse_bma <- NA_real_
+  if (!is.null(pred_bma)) {
     yhat <- as.numeric(FBMS::predmean(pred_bma))
-    if (length(yhat) == length(y_te) && all(is.finite(yhat))) sqrt(mean((yhat - y_te)^2)) else NA_real_
-  } else {
-    NA_real_
+    if (length(yhat) == length(y_te) && all(is.finite(yhat))) {
+      yhat_out <- yhat
+      rmse_bma <- sqrt(mean((yhat - y_te)^2))
+    }
   }
 
   s_fbms <- tryCatch(
@@ -561,6 +564,7 @@ run_fbms_jcs_parallel <- function(df_tr, X_tr, X_te, y_tr, y_te, var_names,
   }
   list(
     rmse = rmse_bma,
+    pred = yhat_out,
     F_tr = F_tr,
     f_strs = f_strs,
     v_used = v_used,

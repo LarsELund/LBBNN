@@ -406,6 +406,38 @@ lbbnn_net <- torch::nn_module(
     self$out_layer$alpha_active_path <- alp_out$detach()
     return(alpha_mats_out)
   },
+  propagate_active_paths = function() {
+    torch::with_no_grad({
+      n_hid <- length(self$layers$children)
+      if (n_hid == 0L) return(invisible(NULL))
+      out_act <- as.matrix(self$out_layer$alpha_active_path$detach()$cpu())
+      # Any hidden neuron r in layer n_hid must connect to at least one output unit
+      l_last <- self$layers$children[[n_hid]]
+      n_last <- as.integer(l_last$out_features)
+      active_last <- colSums(out_act[, seq_len(n_last), drop = FALSE] > 0.5) > 0
+      for (r in seq_len(n_last)) {
+        if (!active_last[r]) {
+          l_last$alpha_active_path[r, ]$fill_(0.0)
+        }
+      }
+      # Propagate backwards from hidden layer n_hid - 1 down to 1
+      if (n_hid >= 2L) {
+        for (l_idx in rev(seq_len(n_hid - 1L))) {
+          l_curr <- self$layers$children[[l_idx]]
+          l_next <- self$layers$children[[l_idx + 1L]]
+          n_curr <- as.integer(l_curr$out_features)
+          next_act <- as.matrix(l_next$alpha_active_path$detach()$cpu())
+          used_in_next <- colSums(next_act[, seq_len(n_curr), drop = FALSE] > 0.5) > 0
+          for (r in seq_len(n_curr)) {
+            if (!used_in_next[r]) {
+              l_curr$alpha_active_path[r, ]$fill_(0.0)
+            }
+          }
+        }
+      }
+    })
+    invisible(self$out_layer$alpha_active_path)
+  },
 
   density = function() { #the standard density, without active paths
     alphas <- NULL
@@ -452,3 +484,52 @@ lbbnn_net <- torch::nn_module(
   }
 
 )
+
+#' @title Neuro-Symbolic Input-Skip Latent Binary Bayesian Neural Network
+#' @description
+#' Convenience constructor wrapping \code{\link{lbbnn_net}} with heterogeneous
+#' symbolic operator banks (\code{activations}), Input-Skip connections enabled by
+#' default, Concrete gate relaxations, and multi-output support
+#' \eqn{\bm{y}_i \in \mathbb{R}^q} (\code{sizes[length(sizes)] = q >= 1}).
+#' @inheritParams lbbnn_net
+#' @export
+lbbnn_symbolic_net <- function(problem_type = "regression",
+                               sizes,
+                               prior,
+                               std,
+                               inclusion_inits,
+                               activations,
+                               input_skip = TRUE,
+                               flow = FALSE,
+                               num_transforms = 2,
+                               dims = c(200, 200),
+                               device = "cpu",
+                               raw_output = FALSE,
+                               bias_inclusion_prob = FALSE,
+                               sigma_logic = 0.28,
+                               tau_logic = 10.0,
+                               logic_mode = "product_tnorm",
+                               use_concrete = TRUE) {
+  if (missing(activations) || is.null(activations)) {
+    stop("activations must be supplied for lbbnn_symbolic_net().")
+  }
+  lbbnn_net(
+    problem_type = problem_type,
+    sizes = sizes,
+    prior = prior,
+    std = std,
+    inclusion_inits = inclusion_inits,
+    input_skip = input_skip,
+    flow = flow,
+    num_transforms = num_transforms,
+    dims = dims,
+    device = device,
+    raw_output = raw_output,
+    bias_inclusion_prob = bias_inclusion_prob,
+    activations = activations,
+    sigma_logic = sigma_logic,
+    tau_logic = tau_logic,
+    logic_mode = logic_mode,
+    use_concrete = use_concrete
+  )
+}

@@ -60,8 +60,40 @@ get_prop_trials <- function(bench, metric, method_vec) {
     if (metric %in% c("var_tpr", "var_fpr")) {
       return(ifelse(method_vec == "ReLU-LBBNN", 10L, 5L))
     }
+  } else if (bench == "sindy_3d") {
+    if (metric == "var_tpr") return(rep(7L, length(method_vec)))
+    if (metric == "var_fpr") return(rep(11L, length(method_vec)))
   }
   rep(100L, length(method_vec))
+}
+
+# Compute/augment exact out-of-sample R^2 in (0, 1) using matched test-set variances
+if (!exists("generate_logic_data", mode = "function")) source("inst/benchmarks/bench_logic.R")
+if (!exists("generate_kepler_data", mode = "function")) source("inst/benchmarks/bench_kepler.R")
+if (!exists("generate_friedman1_data", mode = "function")) source("inst/benchmarks/bench_nonlinear.R")
+
+add_test_r2_column <- function(df_bench, bench) {
+  if ("test_r2" %in% names(df_bench) && all(is.finite(df_bench$test_r2))) {
+    return(df_bench)
+  }
+  seeds_u <- sort(unique(df_bench$seed))
+  var_y_map <- stats::setNames(numeric(length(seeds_u)), as.character(seeds_u))
+  for (s in seeds_u) {
+    yt <- switch(
+      bench,
+      logic       = generate_logic_data(n = 1000, n_test = 500, p = 20, sigma = 0.5, seed = s)$y_test,
+      kepler      = generate_kepler_data(n = 400, n_test = 200, p = 10, sigma = 0.005, seed = s)$y_test,
+      kepler_real = load_exoplanet_benchmark(seed = s)$y_test,
+      nonlinear   = generate_friedman1_data(n = 500, n_test = 300, p = 10, sigma = 1.0, seed = s)$y_test
+    )
+    var_y_map[as.character(s)] <- mean((yt - mean(yt))^2)
+  }
+  vy <- var_y_map[as.character(df_bench$seed)]
+  r2_raw <- pmin(pmax(1.0 - (df_bench$test_rmse^2) / vy, 0.0), 1.0)
+  n_obs <- nrow(df_bench)
+  # Smithson-Verkuilen transformation mapping [0, 1] -> (0, 1)
+  df_bench$test_r2 <- (r2_raw * (n_obs - 1.0) + 0.5) / n_obs
+  df_bench
 }
 
 # Strict glmmTMB convergence check
@@ -316,6 +348,40 @@ fit_single_metric_glmm <- function(df_bench, bench, m_col, ref_method = "Symboli
       return(extract_fixef_treatment(fit, bench, m_col, "NegBinom", "log", ref_method))
     }
   }
+
+  # 5. Out-of-sample R^2 in (0, 1) -> Beta GLMM with logit link
+  if (m_col == "test_r2") {
+    n_obs <- nrow(sub_df)
+    r2_v <- pmin(pmax(sub_df$test_r2, 0.0), 1.0)
+    if (any(r2_v <= 1e-6 | r2_v >= (1.0 - 1e-6))) {
+      r2_v <- (r2_v * (n_obs - 1.0) + 0.5) / n_obs
+    }
+    sub_df$r2_val <- pmin(pmax(r2_v, 1e-5), 1.0 - 1e-5)
+
+    fit <- try_tmb(glmmTMB::glmmTMB(
+      r2_val ~ method + (1 | seed_f),
+      dispformula = ~ method,
+      family = glmmTMB::beta_family(link = "logit"),
+      data = sub_df
+    ))
+    if (!is_valid_tmb(fit)) {
+      fit <- try_tmb(glmmTMB::glmmTMB(
+        r2_val ~ method + (1 | seed_f),
+        family = glmmTMB::beta_family(link = "logit"),
+        data = sub_df
+      ))
+    }
+    if (!is_valid_tmb(fit)) {
+      fit <- try_tmb(glmmTMB::glmmTMB(
+        r2_val ~ method,
+        family = glmmTMB::beta_family(link = "logit"),
+        data = sub_df
+      ))
+    }
+    if (is_valid_tmb(fit)) {
+      return(extract_fixef_treatment(fit, bench, m_col, "Beta", "logit", ref_method))
+    }
+  }
   NULL
 }
 
@@ -382,21 +448,28 @@ summarize_with_ci <- function(df_bench, bench) {
 }
 
 # ==============================================================================
-# Run Per-Benchmark GLMMs & Summaries
+# Run Per-Benchmark GLMMs & Summaries (All 5 Benchmarks)
 # ==============================================================================
-benchmarks <- c("logic", "kepler", "kepler_real", "nonlinear")
+benchmarks <- c("logic", "kepler", "kepler_real", "nonlinear", "sindy_3d")
 bench_metrics <- list(
-  logic       = c("clause_tpr", "clause_fpr", "exact_recovery", "var_tpr", "var_fpr", "test_rmse", "n_terms"),
-  kepler      = c("structural_recovery", "exact_law", "exp_err", "var_tpr", "var_fpr", "test_rmse", "n_terms"),
-  kepler_real = c("structural_recovery", "exact_law", "exp_err", "var_tpr", "var_fpr", "test_rmse", "n_terms"),
-  nonlinear   = c("var_tpr", "var_fpr", "exact_var_recovery", "test_rmse", "n_terms")
+  logic       = c("clause_tpr", "clause_fpr", "exact_recovery", "var_tpr", "var_fpr", "test_rmse", "test_r2", "n_terms"),
+  kepler      = c("structural_recovery", "exact_law", "exp_err", "var_tpr", "var_fpr", "n_terms", "test_rmse", "test_r2"),
+  kepler_real = c("structural_recovery", "exact_law", "exp_err", "var_tpr", "var_fpr", "n_terms", "test_rmse", "test_r2"),
+  nonlinear   = c("var_tpr", "var_fpr", "exact_var_recovery", "n_terms", "test_rmse", "test_r2"),
+  sindy_3d    = c("structural_recovery", "exact_recovery", "var_tpr", "var_fpr", "n_terms", "test_rmse", "test_r2")
 )
 
 all_raw_list <- list()
+all_glmm_list <- list()
 for (b in benchmarks) {
   raw_path <- file.path("results_baselines", b, sprintf("raw_%s_baselines.csv", b))
+  if (!file.exists(raw_path)) {
+    stop("Missing benchmark CSV: ", raw_path)
+  }
   df_b <- utils::read.csv(raw_path, stringsAsFactors = FALSE)
   stopifnot(nrow(df_b) > 0L)
+  df_b <- add_test_r2_column(df_b, b)
+  utils::write.csv(df_b, raw_path, row.names = FALSE)
   all_raw_list[[b]] <- df_b
 
   df_ci <- summarize_with_ci(df_b, b)
@@ -416,11 +489,12 @@ for (b in benchmarks) {
   df_glmm$sig_star <- ifelse(df_glmm$is_ref, "Ref", format_sig_star(df_glmm$p_value))
   df_glmm$sig_star_adj <- ifelse(df_glmm$is_ref, "Ref", format_sig_star(df_glmm$p_adj))
   utils::write.csv(df_glmm, file.path("results_baselines", b, sprintf("glmm_%s_contrasts.csv", b)), row.names = FALSE)
+  all_glmm_list[[b]] <- df_glmm
   message(sprintf("[GLMM] Completed '%s' (%d contrast rows).", b, nrow(df_glmm)))
 }
 
 # ==============================================================================
-# Joint Cross-Benchmark Hierarchical GLMM
+# Balanced Joint Cross-Benchmark Hierarchical GLMM (Panels A & B)
 # ==============================================================================
 map_method_family <- function(m_vec) {
   m_vec <- ifelse(m_vec %in% c("FBMS-BLR", "FBMS-BGNLM"), "FBMS", m_vec)
@@ -429,117 +503,78 @@ map_method_family <- function(m_vec) {
 }
 
 sym_real_rmse <- mean(all_raw_list[["kepler_real"]]$test_rmse[all_raw_list[["kepler_real"]]$method == "Symbolic-LBBNN"])
-oracle_scales <- c(logic = 0.500, kepler = 0.005, kepler_real = sym_real_rmse, nonlinear = 1.000)
+oracle_scales <- c(logic = 0.500, kepler = 0.005, kepler_real = sym_real_rmse, nonlinear = 1.000, sindy_3d = 0.050)
 
-joint_rows <- list()
-for (b in benchmarks) {
-  d <- all_raw_list[[b]]
-  exact_goal <- switch(
-    b,
-    logic       = as.integer(d$exact_recovery),
-    kepler      = as.integer(d$exact_law),
-    kepler_real = as.integer(d$exact_law),
-    nonlinear   = as.integer(d$exact_var_recovery)
-  )
-  exact_sup <- switch(
-    b,
-    logic       = as.integer(d$exact_recovery),
-    kepler      = as.integer(d$structural_recovery),
-    kepler_real = as.integer(d$structural_recovery),
-    nonlinear   = as.integer(d$exact_var_recovery)
-  )
-  n_tpr <- get_prop_trials(b, "var_tpr", d$method)
-  k_tpr <- pmin(n_tpr, pmax(0L, as.integer(round(d$var_tpr * n_tpr))))
-  n_fpr <- get_prop_trials(b, "var_fpr", d$method)
-  k_spec <- pmin(n_fpr, pmax(0L, as.integer(round((1.0 - d$var_fpr) * n_fpr))))
+build_joint_df <- function(bench_sub, allowed_methods = NULL) {
+  joint_rows <- list()
+  for (b in bench_sub) {
+    d <- all_raw_list[[b]]
+    exact_goal <- switch(
+      b,
+      logic       = as.integer(d$exact_recovery),
+      kepler      = as.integer(d$exact_law),
+      kepler_real = as.integer(d$exact_law),
+      nonlinear   = as.integer(d$exact_var_recovery),
+      sindy_3d    = as.integer(d$exact_recovery)
+    )
+    exact_sup <- switch(
+      b,
+      logic       = as.integer(d$exact_recovery),
+      kepler      = as.integer(d$structural_recovery),
+      kepler_real = as.integer(d$structural_recovery),
+      nonlinear   = as.integer(d$exact_var_recovery),
+      sindy_3d    = as.integer(d$structural_recovery)
+    )
+    n_tpr <- get_prop_trials(b, "var_tpr", d$method)
+    k_tpr <- pmin(n_tpr, pmax(0L, as.integer(round(d$var_tpr * n_tpr))))
+    n_fpr <- get_prop_trials(b, "var_fpr", d$method)
+    k_spec <- pmin(n_fpr, pmax(0L, as.integer(round((1.0 - d$var_fpr) * n_fpr))))
 
-  joint_rows[[b]] <- data.frame(
-    dataset       = b,
-    seed          = d$seed,
-    method        = map_method_family(d$method),
-    test_rmse     = pmax(d$test_rmse, 1e-8),
-    rel_rmse      = pmax(d$test_rmse / oracle_scales[[b]], 1e-6),
-    exact_goal    = exact_goal,
-    exact_support = exact_sup,
-    k_tpr         = k_tpr,
-    n_tpr         = n_tpr,
-    k_spec        = k_spec,
-    n_spec        = n_fpr,
-    n_terms       = pmax(1L, as.integer(round(d$n_terms))),
-    stringsAsFactors = FALSE
-  )
+    m_fam <- map_method_family(d$method)
+    keep <- if (is.null(allowed_methods)) rep(TRUE, length(m_fam)) else (m_fam %in% allowed_methods)
+
+    joint_rows[[b]] <- data.frame(
+      dataset       = b,
+      seed          = d$seed[keep],
+      method        = m_fam[keep],
+      test_rmse     = pmax(d$test_rmse[keep], 1e-8),
+      rel_rmse      = pmax(d$test_rmse[keep] / oracle_scales[[b]], 1e-6),
+      test_r2       = d$test_r2[keep],
+      exact_goal    = exact_goal[keep],
+      exact_support = exact_sup[keep],
+      k_tpr         = k_tpr[keep],
+      n_tpr         = n_tpr[keep],
+      k_spec        = k_spec[keep],
+      n_spec        = n_fpr[keep],
+      n_terms       = pmax(1L, as.integer(round(d$n_terms[keep]))),
+      stringsAsFactors = FALSE
+    )
+  }
+  df_j <- do.call(rbind, joint_rows)
+  df_j$dataset   <- factor(df_j$dataset, levels = bench_sub)
+  df_j$method    <- stats::relevel(factor(df_j$method), ref = "Symbolic-LBBNN")
+  df_j$ds_method <- interaction(df_j$dataset, df_j$method, drop = TRUE)
+  df_j$ds_seed   <- interaction(df_j$dataset, df_j$seed, drop = TRUE)
+  n_j <- nrow(df_j)
+  r2_j <- pmin(pmax(df_j$test_r2, 0.0), 1.0)
+  df_j$r2_sv <- (r2_j * (n_j - 1.0) + 0.5) / n_j
+  df_j
 }
-df_joint <- do.call(rbind, joint_rows)
-df_joint$dataset   <- factor(df_joint$dataset, levels = benchmarks)
-df_joint$method    <- stats::relevel(factor(df_joint$method), ref = "Symbolic-LBBNN")
-df_joint$ds_method <- interaction(df_joint$dataset, df_joint$method, drop = TRUE)
-df_joint$ds_seed   <- interaction(df_joint$dataset, df_joint$seed, drop = TRUE)
 
-# 1. Joint Relative RMSE: Gamma GLMM with dataset-level dispersion
-fit_j_rmse <- glmmTMB::glmmTMB(
-  rel_rmse ~ method + (1 | dataset) + (1 | ds_method) + (1 | ds_seed),
-  dispformula = ~ dataset,
-  family = stats::Gamma(link = "log"),
-  data = df_joint
-)
-stopifnot(is_valid_tmb(fit_j_rmse))
-
-# 2. Joint Exact Target Discovery (exact_law / exact_recovery / exact_var_recovery)
-fit_j_goal <- glmmTMB::glmmTMB(
-  exact_goal ~ 0 + method + (1 | dataset) + (1 | ds_method) + (1 | ds_seed),
-  family = stats::binomial(link = "logit"),
-  priors = p_sym_binom,
-  data = df_joint
-)
-stopifnot(is_valid_tmb(fit_j_goal))
-
-# 3. Joint Variable Sensitivity (TPR) & Noise Specificity (1 - FPR)
-fit_j_tpr <- glmmTMB::glmmTMB(
-  cbind(k_tpr, n_tpr - k_tpr) ~ 0 + method + (1 | dataset) + (1 | ds_method) + (1 | ds_seed),
-  family = stats::binomial(link = "logit"),
-  priors = p_sym_binom,
-  data = df_joint
-)
-stopifnot(is_valid_tmb(fit_j_tpr))
-
-fit_j_spec <- glmmTMB::glmmTMB(
-  cbind(k_spec, n_spec - k_spec) ~ 0 + method + (1 | dataset) + (1 | ds_method) + (1 | ds_seed),
-  family = stats::binomial(link = "logit"),
-  priors = p_sym_binom,
-  data = df_joint
-)
-stopifnot(is_valid_tmb(fit_j_spec))
-
-joint_fe <- rbind(
-  extract_fixef_treatment(fit_j_rmse, "joint", "rel_rmse",   "Gamma",    "log"),
-  extract_fixef_cellmeans(fit_j_goal, "joint", "exact_goal", "Binomial", "logit"),
-  extract_fixef_cellmeans(fit_j_tpr,  "joint", "var_tpr",    "Binomial", "logit"),
-  extract_fixef_cellmeans(fit_j_spec, "joint", "var_spec",   "Binomial", "logit")
-)
-joint_fe$p_adj <- NA_real_
-for (mc in unique(joint_fe$metric)) {
-  idx_nr <- which(joint_fe$metric == mc & !joint_fe$is_ref)
-  joint_fe$p_adj[idx_nr] <- stats::p.adjust(joint_fe$p_value[idx_nr], method = "bonferroni")
-}
-joint_fe$sig_star <- ifelse(joint_fe$is_ref, "Ref", format_sig_star(joint_fe$p_value))
-joint_fe$sig_star_adj <- ifelse(joint_fe$is_ref, "Ref", format_sig_star(joint_fe$p_adj))
-utils::write.csv(joint_fe, "results_baselines/joint_glmm_contrasts.csv", row.names = FALSE)
-
-# Extract Variance Components & ICCs (Nakagawa observation-level link variance)
 extract_var_comp <- function(fit, metric_name, fam_type) {
   vc <- glmmTMB::VarCorr(fit)$cond
   v_ds   <- as.numeric(attr(vc[["dataset"]],   "stddev"))[1]^2
   v_dsm  <- as.numeric(attr(vc[["ds_method"]], "stddev"))[1]^2
   v_seed <- as.numeric(attr(vc[["ds_seed"]],   "stddev"))[1]^2
-
   if (fam_type == "binomial") {
     v_obs <- (pi^2) / 3.0
+  } else if (fam_type == "beta") {
+    v_obs <- 1.0
   } else {
     phi_avg <- mean(stats::predict(fit, type = "disp"))
     shape_avg <- 1.0 / max(phi_avg, 1e-6)
     v_obs <- trigamma(shape_avg)
   }
-
   v_tot <- v_ds + v_dsm + v_seed + v_obs
   data.frame(
     metric = metric_name,
@@ -558,28 +593,200 @@ extract_var_comp <- function(fit, metric_name, fam_type) {
   )
 }
 
-df_vc <- rbind(
-  extract_var_comp(fit_j_rmse, "rel_rmse",   "gamma"),
-  extract_var_comp(fit_j_goal, "exact_goal", "binomial"),
-  extract_var_comp(fit_j_tpr,  "var_tpr",    "binomial"),
-  extract_var_comp(fit_j_spec, "var_spec",   "binomial")
-)
-utils::write.csv(df_vc, "results_baselines/joint_glmm_variance_components.csv", row.names = FALSE)
+fit_balanced_joint_suite <- function(df_joint, label_prefix) {
+  fit_j_rmse <- glmmTMB::glmmTMB(
+    rel_rmse ~ method + (1 | dataset) + (1 | ds_method) + (1 | ds_seed),
+    dispformula = ~ dataset,
+    family = stats::Gamma(link = "log"),
+    data = df_joint
+  )
+  stopifnot(is_valid_tmb(fit_j_rmse))
 
-message("\n=== JOINT GLMM FIXED EFFECTS (Relative RMSE & Exact Discovery) ===")
-print(joint_fe[joint_fe$metric %in% c("rel_rmse", "exact_goal"),
-               c("metric", "term", "estimate", "std_error", "ci_lo", "ci_hi", "ratio_or", "p_value", "sig_star")],
-      digits = 4)
+  fit_j_r2 <- try_tmb(glmmTMB::glmmTMB(
+    r2_sv ~ method + (1 | dataset) + (1 | ds_method) + (1 | ds_seed),
+    dispformula = ~ dataset,
+    family = glmmTMB::beta_family(link = "logit"),
+    data = df_joint
+  ))
+  if (!is_valid_tmb(fit_j_r2)) {
+    fit_j_r2 <- glmmTMB::glmmTMB(
+      r2_sv ~ method + (1 | dataset) + (1 | ds_method) + (1 | ds_seed),
+      family = glmmTMB::beta_family(link = "logit"),
+      data = df_joint
+    )
+  }
+  stopifnot(is_valid_tmb(fit_j_r2))
 
-message("\n=== BINOMIAL GLMM STRUCTURAL SIGNIFICANCE MARKERS (Tables 1-4) ===")
-struct_map <- c(logic = "exact_recovery", kepler = "exact_law", kepler_real = "structural_recovery", nonlinear = "exact_var_recovery")
-for (b_nm in names(struct_map)) {
-  g_tmp <- utils::read.csv(file.path("results_baselines", b_nm, sprintf("glmm_%s_contrasts.csv", b_nm)), stringsAsFactors = FALSE)
-  sub_g <- g_tmp[g_tmp$metric == struct_map[[b_nm]], c("benchmark", "metric", "term", "resp_est", "p_value", "sig_star")]
-  print(sub_g, digits = 4, row.names = FALSE)
+  fit_j_goal <- glmmTMB::glmmTMB(
+    exact_goal ~ 0 + method + (1 | dataset) + (1 | ds_method) + (1 | ds_seed),
+    family = stats::binomial(link = "logit"),
+    priors = p_sym_binom,
+    data = df_joint
+  )
+  stopifnot(is_valid_tmb(fit_j_goal))
+
+  fit_j_tpr <- glmmTMB::glmmTMB(
+    cbind(k_tpr, n_tpr - k_tpr) ~ 0 + method + (1 | dataset) + (1 | ds_method) + (1 | ds_seed),
+    family = stats::binomial(link = "logit"),
+    priors = p_sym_binom,
+    data = df_joint
+  )
+  stopifnot(is_valid_tmb(fit_j_tpr))
+
+  fit_j_spec <- glmmTMB::glmmTMB(
+    cbind(k_spec, n_spec - k_spec) ~ 0 + method + (1 | dataset) + (1 | ds_method) + (1 | ds_seed),
+    family = stats::binomial(link = "logit"),
+    priors = p_sym_binom,
+    data = df_joint
+  )
+  stopifnot(is_valid_tmb(fit_j_spec))
+
+  fe <- rbind(
+    extract_fixef_treatment(fit_j_rmse, label_prefix, "rel_rmse",   "Gamma",    "log"),
+    extract_fixef_treatment(fit_j_r2,   label_prefix, "test_r2",    "Beta",     "logit"),
+    extract_fixef_cellmeans(fit_j_goal, label_prefix, "exact_goal", "Binomial", "logit"),
+    extract_fixef_cellmeans(fit_j_tpr,  label_prefix, "var_tpr",    "Binomial", "logit"),
+    extract_fixef_cellmeans(fit_j_spec, label_prefix, "var_spec",   "Binomial", "logit")
+  )
+  fe$p_adj <- NA_real_
+  for (mc in unique(fe$metric)) {
+    idx_nr <- which(fe$metric == mc & !fe$is_ref)
+    fe$p_adj[idx_nr] <- stats::p.adjust(fe$p_value[idx_nr], method = "bonferroni")
+  }
+  fe$sig_star <- ifelse(fe$is_ref, "Ref", format_sig_star(fe$p_value))
+  fe$sig_star_adj <- ifelse(fe$is_ref, "Ref", format_sig_star(fe$p_adj))
+
+  vc <- rbind(
+    extract_var_comp(fit_j_rmse, "rel_rmse",   "gamma"),
+    extract_var_comp(fit_j_r2,   "test_r2",    "beta"),
+    extract_var_comp(fit_j_goal, "exact_goal", "binomial"),
+    extract_var_comp(fit_j_tpr,  "var_tpr",    "binomial"),
+    extract_var_comp(fit_j_spec, "var_spec",   "binomial")
+  )
+  list(fe = fe, vc = vc)
 }
 
-message("\n=== JOINT GLMM VARIANCE COMPONENTS & ICCs ===")
-print(df_vc, digits = 4)
+# Panel A: Strictly balanced 5 core methods across ALL 5 benchmarks (Tasks 1-5 x 100 seeds)
+CORE_ALL_METHODS <- c("Symbolic-LBBNN", "FBMS", "Lasso", "ReLU-LBBNN", "RandomForest")
+df_joint_all <- build_joint_df(benchmarks, allowed_methods = CORE_ALL_METHODS)
+res_joint_all <- fit_balanced_joint_suite(df_joint_all, "joint_balanced_all5")
+utils::write.csv(res_joint_all$fe, "results_baselines/joint_glmm_contrasts.csv", row.names = FALSE)
+utils::write.csv(res_joint_all$vc, "results_baselines/joint_glmm_variance_components.csv", row.names = FALSE)
 
-message("\n[OK] All per-benchmark and joint GLMM analyses converged cleanly and saved to results_baselines/.")
+# Panel B: Strictly balanced 9 continuous methods across ALL 4 continuous benchmarks (Tasks 2-5 x 100 seeds)
+CONT_BENCHMARKS <- c("kepler", "kepler_real", "nonlinear", "sindy_3d")
+CONT_METHODS <- c("Symbolic-LBBNN", "FBMS", "MARS", "SR-Operon", "SR-PySR", "GAM", "Lasso", "ReLU-LBBNN", "RandomForest")
+df_joint_cont <- build_joint_df(CONT_BENCHMARKS, allowed_methods = CONT_METHODS)
+res_joint_cont <- fit_balanced_joint_suite(df_joint_cont, "joint_balanced_cont4")
+utils::write.csv(res_joint_cont$fe, "results_baselines/joint_glmm_continuous_contrasts.csv", row.names = FALSE)
+utils::write.csv(res_joint_cont$vc, "results_baselines/joint_glmm_continuous_variance_components.csv", row.names = FALSE)
+
+# ==============================================================================
+# Programmatic Appendix D: Full GLMM Regression Tables for ALL Metrics (Tables D.1-D.5)
+# ==============================================================================
+write_appendix_d_tex <- function(glmm_list, out_tex = "paper/appendix_d_glmm_tables.tex") {
+  tex_esc <- function(s) {
+    s <- gsub("_", "\\_", s, fixed = TRUE)
+    s
+  }
+  fmt_p <- function(p) {
+    ifelse(is.na(p), "---",
+           ifelse(p < 0.001, "$<.001^{***}$",
+                  ifelse(p < 0.01, sprintf("$%.3f^{**}$", p),
+                         ifelse(p < 0.05, sprintf("$%.3f^{*}$", p), sprintf("$%.3f^{\\text{ns}}$", p)))))
+  }
+  fmt_ratio <- function(r, fam) {
+    if (is.na(r)) return("---")
+    if (r > 999) return("$>999$")
+    if (r < 0.001) return("$<.001$")
+    if (fam %in% c("Binomial", "Beta")) return(sprintf("%.3f", r))
+    sprintf("$%.3f\\times$", r)
+  }
+
+  bench_titles <- list(
+    logic       = c("D.1", "Benchmark 1 (Bayesian Logic Regression, $M = 100$ seeds)", "tab:glmm_app_logic"),
+    kepler      = c("D.2", "Benchmark 2 (Synthetic Kepler's Third Law, $M = 100$ seeds)", "tab:glmm_app_kepler"),
+    kepler_real = c("D.3", "Benchmark 3 (NASA Exoplanet Archive, $n = 939$, $M = 100$ splits)", "tab:glmm_app_exoplanet"),
+    nonlinear   = c("D.4", "Benchmark 4 (Friedman \\#1 Nonlinear Benchmark, $M = 100$ seeds)", "tab:glmm_app_friedman"),
+    sindy_3d    = c("D.5", "Benchmark 5 (Multivariate 3D R\\\"ossler--Lorenz SINDy, $M = 100$ seeds)", "tab:glmm_app_sindy")
+  )
+
+  metric_labels <- c(
+    clause_tpr          = "Clause TPR (\\texttt{Binomial}, logit)",
+    clause_fpr          = "Clause FPR (\\texttt{Binomial}, logit)",
+    exact_recovery      = "Exact System Match (\\texttt{Binomial}, logit)",
+    structural_recovery = "Support Recovery (\\texttt{Binomial}, logit)",
+    exact_law           = "Exact Rational Law (\\texttt{Binomial}, logit)",
+    exact_var_recovery  = "Exact Variable Recovery (\\texttt{Binomial}, logit)",
+    var_tpr             = "Variable TPR (\\texttt{Binomial}, logit)",
+    var_fpr             = "Variable FPR (\\texttt{Binomial}, logit)",
+    exp_err             = "$L_1$ Exponent Error (\\texttt{Gamma}, log)",
+    n_terms             = "Active Terms (\\texttt{NegBinom}, log)",
+    test_rmse           = "Test RMSE (\\texttt{Gamma}, log)",
+    test_r2             = "Out-of-Sample $R^2$ (\\texttt{Beta}, logit)"
+  )
+
+  lines <- c(
+    "\\section{Complete Generalized Linear Mixed-Effects Regression Tables}",
+    "\\label{app:glmm_full}",
+    "",
+    "This appendix reports the complete \\texttt{glmmTMB} fixed-effect estimates ($\\hat{\\beta}_0$ for \\texttt{Symbolic-LBBNN} as reference, contrast $\\hat{\\beta}_m$ with $95\\%$ Wald confidence intervals), exponentiated effect multipliers ($e^{\\hat{\\beta}_m}$ representing multiplicative mean ratios for \\texttt{Gamma}/\\texttt{NegBinom} and odds ratios for \\texttt{Binomial}/\\texttt{Beta}), Wald $z$-statistics, two-sided $p$-values, and matched seed random-effect standard deviations ($\\hat{\\sigma}_{\\text{seed}}$) across every metric and all five benchmarks in Tables~\\ref{tab:glmm_app_logic}--\\ref{tab:glmm_app_sindy}. Out-of-sample $R^2$ is modeled via Beta GLMM with logit link after Smithson--Verkuilen boundary regularization.",
+    ""
+  )
+
+  for (b in names(glmm_list)) {
+    df_g <- glmm_list[[b]]
+    info <- bench_titles[[b]]
+    lines <- c(
+      lines,
+      "\\begin{table}[htbp]",
+      "\\centering",
+      sprintf("\\caption{Full GLMM regression contrasts on %s.}", info[2]),
+      sprintf("\\label{%s}", info[3]),
+      "\\resizebox{\\textwidth}{!}{%",
+      "\\begin{tabular}{llcccccc}",
+      "\\toprule",
+      "Metric (Family, Link) & Method & $\\hat{\\beta}_0$ / $\\hat{\\beta}_m$ [95\\% CI] & $e^{\\hat{\\beta}_m}$ & Wald $z$ & $p$-value & $\\hat{\\sigma}_{\\text{seed}}$ \\\\",
+      "\\midrule"
+    )
+    mets <- unique(df_g$metric)
+    for (mi in seq_along(mets)) {
+      mc <- mets[mi]
+      sub_m <- df_g[df_g$metric == mc, , drop = FALSE]
+      m_lbl <- if (mc %in% names(metric_labels)) metric_labels[[mc]] else tex_esc(mc)
+      if (mi > 1L) lines <- c(lines, "\\midrule")
+      for (r_i in seq_len(nrow(sub_m))) {
+        row <- sub_m[r_i, ]
+        col1 <- if (r_i == 1L) m_lbl else ""
+        meth_s <- sprintf("\\texttt{%s}%s", tex_esc(row$term), ifelse(row$is_ref, " (Ref)", ""))
+        beta_s <- sprintf("$%+.3f$ [$%+.3f, %+.3f$]", row$estimate, row$ci_lo, row$ci_hi)
+        rat_s  <- if (row$is_ref) "Ref" else fmt_ratio(row$ratio_or, row$family)
+        z_s    <- ifelse(is.na(row$z_value), "---", sprintf("$%+.2f$", row$z_value))
+        p_s    <- ifelse(row$is_ref, "---", fmt_p(row$p_value))
+        sd_s   <- if (r_i == 1L) ifelse(is.na(row$seed_sd), "$<0.001$", sprintf("%.3f", row$seed_sd)) else ""
+        lines <- c(lines, sprintf("%s & %s & %s & %s & %s & %s & %s \\\\", col1, meth_s, beta_s, rat_s, z_s, p_s, sd_s))
+      }
+    }
+    lines <- c(
+      lines,
+      "\\bottomrule",
+      "\\end{tabular}%",
+      "}",
+      "\\end{table}",
+      ""
+    )
+  }
+  writeLines(lines, out_tex)
+  message(sprintf("[GLMM] Wrote Appendix D LaTeX tables (%d lines) to %s.", length(lines), out_tex))
+}
+write_appendix_d_tex(all_glmm_list)
+
+message("\n=== BALANCED PANEL A: JOINT GLMM (ALL 5 BENCHMARKS x 100 SEEDS, 5 CORE METHODS) ===")
+print(res_joint_all$fe[res_joint_all$fe$metric %in% c("rel_rmse", "test_r2", "exact_goal"),
+                       c("metric", "term", "estimate", "ci_lo", "ci_hi", "ratio_or", "p_value", "sig_star")], digits = 4)
+
+message("\n=== BALANCED PANEL B: JOINT GLMM (CONTINUOUS TASKS 2-5 x 100 SEEDS, 9 METHODS) ===")
+print(res_joint_cont$fe[res_joint_cont$fe$metric %in% c("rel_rmse", "test_r2", "exact_goal"),
+                        c("metric", "term", "estimate", "ci_lo", "ci_hi", "ratio_or", "p_value", "sig_star")], digits = 4)
+
+message("\n[OK] All per-benchmark GLMMs (including Beta R2 & 3D SINDy), Balanced Panels A/B, and Appendix D tables complete!")
