@@ -568,6 +568,86 @@ run_fbms_jcs_parallel <- function(df_tr, X_tr, X_te, y_tr, y_te, var_names,
   )
 }
 
+#' Extract sorted integer variable indices from character feature strings
+#' @keywords internal
+extract_logic_term_vars <- function(term_strs, var_names = paste0("x", seq_len(20L))) {
+  lapply(term_strs, function(ts) {
+    if (is.na(ts) || !nzchar(trimws(ts))) return(integer(0))
+    idx <- which(vapply(var_names, function(vn) grepl(paste0("\\b", vn, "\\b"), ts), logical(1)))
+    sort(unique(as.integer(idx)))
+  })
+}
+
+#' Score Boolean clause discovery up to algebraic equivalence
+#'
+#' Checks whether each true clause lies in the affine linear span of discovered
+#' basis terms supported on variables within that clause (e.g. \eqn{x_4 - x_4 x_5}
+#' spans \eqn{x_4(1 - x_5)}), marking minimal spanning columns as true discoveries
+#' and remaining basis columns as false positives.
+#' @keywords internal
+score_clause_algebraic <- function(F_mat,
+                                   feat_vars_list,
+                                   X_tr,
+                                   active_var_indices,
+                                   true_vars_idx = c(1L, 2L, 4L, 5L, 7L, 8L, 11L),
+                                   n_cand_denom = 29L) {
+  p_eff <- ncol(X_tr)
+  noise_vars_idx <- setdiff(seq_len(p_eff), true_vars_idx)
+  v_tpr <- mean(true_vars_idx %in% active_var_indices)
+  v_fpr <- mean(noise_vars_idx %in% active_var_indices)
+  if (is.null(F_mat) || ncol(F_mat) == 0L) {
+    return(list(
+      clause_tpr = 0.0, clause_fpr = 0.0, exact_recovery = 0L,
+      var_tpr = v_tpr, var_fpr = v_fpr, n_terms = 0L
+    ))
+  }
+  C_true <- list(
+    list(vec = X_tr[, 1] * X_tr[, 2], vars = c(1L, 2L)),
+    list(vec = X_tr[, 4] * (1.0 - X_tr[, 5]), vars = c(4L, 5L)),
+    list(vec = X_tr[, 7] * X_tr[, 8] * X_tr[, 11], vars = c(7L, 8L, 11L))
+  )
+  k_t <- ncol(F_mat)
+  used_in_minimal_span <- rep(FALSE, k_t)
+  tp_c <- 0L
+  for (cm in C_true) {
+    cand_j <- which(vapply(feat_vars_list, function(vv) {
+      length(vv) > 0L && all(vv %in% cm$vars)
+    }, logical(1)))
+    if (length(cand_j) == 0L) next
+    # Quick necessary condition: full candidate subset must span cm$vec
+    tss <- sum((cm$vec - mean(cm$vec))^2)
+    fit_all <- stats::lm.fit(cbind(1.0, F_mat[, cand_j, drop = FALSE]), cm$vec)
+    if (tss <= 0 || sum(fit_all$residuals^2) / tss >= 1e-6) next
+
+    found_sub <- NULL
+    max_sz <- min(length(cand_j), 4L)
+    for (sz in seq_len(max_sz)) {
+      combos <- utils::combn(cand_j, sz, simplify = FALSE)
+      for (sub_j in combos) {
+        fit_sub <- stats::lm.fit(cbind(1.0, F_mat[, sub_j, drop = FALSE]), cm$vec)
+        if (sum(fit_sub$residuals^2) / tss < 1e-6) {
+          found_sub <- sub_j
+          break
+        }
+      }
+      if (!is.null(found_sub)) break
+    }
+    if (!is.null(found_sub)) {
+      tp_c <- tp_c + 1L
+      used_in_minimal_span[found_sub] <- TRUE
+    }
+  }
+  fp_c <- sum(!used_in_minimal_span)
+  list(
+    clause_tpr = tp_c / 3.0,
+    clause_fpr = fp_c / n_cand_denom,
+    exact_recovery = as.integer(tp_c == 3L && fp_c == 0L),
+    var_tpr = v_tpr,
+    var_fpr = v_fpr,
+    n_terms = k_t
+  )
+}
+
 run_fbms_task_on_data <- function(benchmark = c("logic", "kepler", "kepler_real", "nonlinear"),
                                   dat,
                                   seed = 1L,
@@ -588,7 +668,10 @@ run_fbms_task_on_data <- function(benchmark = c("logic", "kepler", "kepler_real"
   if (benchmark == "logic") {
     params_fbms <- FBMS::gen.params.gmjmcmc(p_eff)
     probs_fbms <- FBMS::gen.probs.gmjmcmc(c("not"))
-    if (!is.null(beta_prior) && identical(beta_prior$family, "custom")) {
+    if (is.null(beta_prior)) {
+      beta_prior <- list(family = "custom", custom_type = "logic_tcch")
+    }
+    if (identical(beta_prior$family, "custom")) {
       # Exact Ex7_Sec5_2.R (arXiv:2509.00753) BLR specification
       probs_fbms$gen <- c(1, 1, 0, 1)
       params_fbms$feat$pop.max <- 50L
@@ -631,30 +714,13 @@ run_fbms_task_on_data <- function(benchmark = c("logic", "kepler", "kepler_real"
       )
     }
     if (is.null(fbms_res)) return(NULL)
-    true_vars_idx <- c(1L, 2L, 4L, 5L, 7L, 8L, 11L)
-    noise_vars_idx <- setdiff(seq_len(p_eff), true_vars_idx)
-    if (is.null(fbms_res$F_tr) || ncol(fbms_res$F_tr) == 0L) {
-      sc <- list(clause_tpr = 0.0, clause_fpr = 0.0, exact_recovery = 0L,
-                 var_tpr = 0.0, var_fpr = 0.0, n_terms = 0L)
-    } else {
-      C_true <- cbind(
-        c1 = X_tr[, 1] * X_tr[, 2],
-        c2 = X_tr[, 4] * (1.0 - X_tr[, 5]),
-        c3 = X_tr[, 7] * X_tr[, 8] * X_tr[, 11]
-      )
-      cors <- suppressWarnings(abs(cor(fbms_res$F_tr, C_true)))
-      cors[is.na(cors)] <- 0.0
-      tp_c <- sum(apply(cors > 0.999, 2, any))
-      fp_c <- sum(!apply(cors > 0.999, 1, any))
-      sc <- list(
-        clause_tpr = tp_c / 3.0,
-        clause_fpr = fp_c / 29.0,
-        exact_recovery = as.integer(tp_c == 3L && fp_c == 0L && ncol(fbms_res$F_tr) == 3L),
-        var_tpr = mean(true_vars_idx %in% fbms_res$v_used),
-        var_fpr = mean(noise_vars_idx %in% fbms_res$v_used),
-        n_terms = ncol(fbms_res$F_tr)
-      )
-    }
+    f_vars <- extract_logic_term_vars(fbms_res$f_strs, var_names = var_names)
+    sc <- score_clause_algebraic(
+      F_mat = fbms_res$F_tr,
+      feat_vars_list = f_vars,
+      X_tr = X_tr,
+      active_var_indices = fbms_res$v_used
+    )
     return(data.frame(
       seed = seed, benchmark = "logic", method = "FBMS-BLR",
       clause_tpr = sc$clause_tpr, clause_fpr = sc$clause_fpr, exact_recovery = sc$exact_recovery,
@@ -835,39 +901,18 @@ run_baselines_logic_seed <- function(seed = 1L,
   true_vars_idx <- c(1L, 2L, 4L, 5L, 7L, 8L, 11L)
   noise_vars_idx <- setdiff(seq_len(p), true_vars_idx)
 
-  # True clause vectors on X_tr for functional equivalence check (|cor| > 0.999)
-  C_true <- cbind(
-    c1 = X_tr[, 1] * X_tr[, 2],
-    c2 = X_tr[, 4] * (1.0 - X_tr[, 5]),
-    c3 = X_tr[, 7] * X_tr[, 8] * X_tr[, 11]
-  )
-
-  score_clause_matrix <- function(F_mat, active_var_indices, n_cand_denom = 29L) {
-    if (is.null(F_mat) || ncol(F_mat) == 0L) {
-      return(list(clause_tpr = 0.0, clause_fpr = 0.0, exact_recovery = 0L,
-                  var_tpr = 0.0, var_fpr = 0.0, n_terms = 0L))
-    }
-    # Match each column of F_mat against C_true (up to De Morgan complement |cor| > 0.999)
-    cors <- suppressWarnings(abs(cor(F_mat, C_true)))
-    cors[is.na(cors)] <- 0.0
-    matched_true <- apply(cors > 0.999, 2, any)
-    matched_feat <- apply(cors > 0.999, 1, any)
-    tp_c <- sum(matched_true)
-    fp_c <- sum(!matched_feat)
-    c_tpr <- tp_c / 3.0
-    c_fpr <- fp_c / n_cand_denom
-    exact_rec <- as.integer(tp_c == 3L && fp_c == 0L && ncol(F_mat) == 3L)
-
-    v_tpr <- mean(true_vars_idx %in% active_var_indices)
-    v_fpr <- mean(noise_vars_idx %in% active_var_indices)
-    list(
-      clause_tpr = c_tpr,
-      clause_fpr = c_fpr,
-      exact_recovery = exact_rec,
-      var_tpr = v_tpr,
-      var_fpr = v_fpr,
-      n_terms = ncol(F_mat)
-    )
+  eval_logic_term_strs <- function(term_strs, X_mat, var_names) {
+    if (length(term_strs) == 0L) return(NULL)
+    df_ev <- as.data.frame(X_mat)
+    cols <- lapply(term_strs, function(ts) {
+      s <- tolower(ts)
+      for (vi in rev(seq_len(ncol(X_mat)))) {
+        s <- gsub(paste0("!", var_names[vi]), paste0("(1 - ", var_names[vi], ")"), s, fixed = TRUE)
+      }
+      s <- gsub("&", "*", s, fixed = TRUE)
+      tryCatch(as.numeric(eval(parse(text = s), envir = df_ev)), error = function(e) rep(0.0, nrow(X_mat)))
+    })
+    do.call(cbind, cols)
   }
 
   rows <- list()
@@ -875,11 +920,23 @@ run_baselines_logic_seed <- function(seed = 1L,
   # --- Method 1: Symbolic-LBBNN (load from results_overnight if available, else run) ---
   s_df <- load_overnight_seed(overnight_dir, "logic", seed)
   if (!is.null(s_df)) {
+    s_rem <- gsub("[(][^)]+[)]", " ", s_df$formula)
+    bare_x <- regmatches(s_rem, gregexpr("x[0-9]+", s_rem))[[1]]
+    paren_c <- regmatches(s_df$formula, gregexpr("[(][^)]+[)]", s_df$formula))[[1]]
+    sym_terms <- c(paren_c, bare_x)
+    sym_vars <- extract_logic_term_vars(sym_terms, var_names = var_names)
+    F_sym <- eval_logic_term_strs(sym_terms, X_tr, var_names = var_names)
+    sc_sym <- score_clause_algebraic(
+      F_mat = F_sym,
+      feat_vars_list = sym_vars,
+      X_tr = X_tr,
+      active_var_indices = sort(unique(unlist(sym_vars)))
+    )
     rows[[length(rows) + 1L]] <- data.frame(
       seed = seed, benchmark = "logic", method = "Symbolic-LBBNN",
-      clause_tpr = s_df$tpr, clause_fpr = s_df$fpr, exact_recovery = s_df$exact_match,
-      var_tpr = s_df$tpr, var_fpr = min(1.0, s_df$fpr * 2.0),
-      test_rmse = s_df$test_rmse, n_terms = round(s_df$active_edges / 3.33),
+      clause_tpr = sc_sym$clause_tpr, clause_fpr = sc_sym$clause_fpr, exact_recovery = sc_sym$exact_recovery,
+      var_tpr = sc_sym$var_tpr, var_fpr = sc_sym$var_fpr,
+      test_rmse = s_df$test_rmse, n_terms = length(sym_terms),
       formula = s_df$formula, stringsAsFactors = FALSE
     )
   }
@@ -918,17 +975,20 @@ run_baselines_logic_seed <- function(seed = 1L,
     # Evaluate individual logic trees of best_lr on X_tr
     nt_sel <- best_lr$ntrees[1]
     tree_mat <- list()
+    tree_vars <- list()
     v_used_lr <- integer(0)
     for (k in seq_len(nt_sel)) {
       tr_k <- best_lr$model$trees[[k]]$trees
       used_rows <- tr_k[tr_k[, 3] != 0, , drop = FALSE]
       if (nrow(used_rows) > 0L) {
-        v_used_lr <- c(v_used_lr, used_rows[, 3])
+        vk <- sort(unique(as.integer(used_rows[, 3])))
+        v_used_lr <- c(v_used_lr, vk)
+        tree_vars[[length(tree_vars) + 1L]] <- vk
         tree_mat[[length(tree_mat) + 1L]] <- LogicReg::eval.logreg(best_lr$model$trees[[k]], X_tr)
       }
     }
     F_lr <- if (length(tree_mat) > 0L) do.call(cbind, tree_mat) else NULL
-    sc_lr <- score_clause_matrix(F_lr, unique(v_used_lr))
+    sc_lr <- score_clause_algebraic(F_lr, tree_vars, X_tr, unique(v_used_lr))
     rows[[length(rows) + 1L]] <- data.frame(
       seed = seed, benchmark = "logic", method = "LogicReg",
       clause_tpr = sc_lr$clause_tpr, clause_fpr = sc_lr$clause_fpr, exact_recovery = sc_lr$exact_recovery,
@@ -972,7 +1032,7 @@ run_baselines_logic_seed <- function(seed = 1L,
   act_las <- which(abs(coefs_las) > 0.05)
   F_las <- if (length(act_las) > 0L) pw_tr$M[, act_las, drop = FALSE] else NULL
   v_las <- unique(unlist(pw_tr$v_map[act_las]))
-  sc_las <- score_clause_matrix(F_las, v_las)
+  sc_las <- score_clause_algebraic(F_las, pw_tr$v_map[act_las], X_tr, v_las)
   rows[[length(rows) + 1L]] <- data.frame(
     seed = seed, benchmark = "logic", method = "Lasso-Interactions",
     clause_tpr = sc_las$clause_tpr, clause_fpr = sc_las$clause_fpr, exact_recovery = sc_las$exact_recovery,

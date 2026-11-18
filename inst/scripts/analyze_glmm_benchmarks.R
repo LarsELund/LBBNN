@@ -46,10 +46,9 @@ get_prop_trials <- function(bench, metric, method_vec) {
   if (bench == "logic") {
     if (metric == "clause_tpr") return(rep(3L, length(method_vec)))
     if (metric == "clause_fpr") return(rep(29L, length(method_vec)))
-    if (metric == "var_tpr") return(ifelse(method_vec == "Symbolic-LBBNN", 3L, 7L))
+    if (metric == "var_tpr") return(rep(7L, length(method_vec)))
     if (metric == "var_fpr") {
-      return(ifelse(method_vec == "Symbolic-LBBNN", 29L,
-             ifelse(method_vec == "ReLU-LBBNN", 50L, 13L)))
+      return(ifelse(method_vec == "ReLU-LBBNN", 50L, 13L))
     }
   } else if (bench == "kepler") {
     if (metric == "var_tpr") return(rep(2L, length(method_vec)))

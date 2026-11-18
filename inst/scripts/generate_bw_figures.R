@@ -1,27 +1,30 @@
 #!/usr/bin/env Rscript
 # ==============================================================================
 # inst/scripts/generate_bw_figures.R
-# Publication-Grade Monochrome Figures with High-Contrast 4-Tier Palette,
-# Cairo Typography, Background Gridlines, and 95% Uncertainty Bounds
+# Publication-Grade Figures with Limited Preserved Color Palette (Navy, Brick,
+# Teal), Point-and-Whisker 95% CIs, Clean Post-Training Framing, and Sparse
+# High-Legibility Data Presentations.
 #
 # Produces matching PDF + 300-DPI PNG files in paper/figures/:
-#   fig1_priors_and_dynamics    (Fig 1: Priors, Schedules & Bimodal Slab)
+#   fig1_priors_and_dynamics    (Fig 1: Priors, VI Schedules & Bimodal Slab)
 #   fig2_logic_regression       (Fig 2: Bayesian Logic Regression w/ 95% CIs)
-#   fig3_kepler_3stage          (Fig 3: Kepler 3-Stage Recovery w/ 95% CIs)
+#   fig3_kepler_3stage          (Fig 3: Kepler Post-Training Recovery w/ 95% CIs)
 #   fig4_exoplanet_discovery    (Fig 4: NASA Exoplanets Law, Inset & CIs)
 #   fig5_friedman_nonlinear     (Fig 5: Friedman #1 Multiplicity & 95% Ellipse)
-#   fig6_baseline_comparisons   (Fig 6: Cross-Task Baselines w/ 95% CIs)
+#   fig6_baseline_comparisons   (Fig 6: Cross-Task Baselines Point-and-Whisker CIs)
 #   fig7_glmm_contrasts         (Fig 7: GLMM Fixed-Effect Contrast Forest Plots)
 # ==============================================================================
 
 out_dir <- "paper/figures"
 dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
 
-# Standardized 4-Tier High-Contrast Monochrome Palette
-COL_FOCAL  <- "#525252"   # Medium-dark slate for focal method (always pair w/ white-haloed error bars)
-COL_SECOND <- "#969696"   # Medium silver gray
-COL_THIRD  <- "#D9D9D9"   # Light pearl gray
-COL_HATCH  <- "#FFFFFF"   # Crisp white base for 45-degree diagonal hatching (#404040)
+# Limited Preserved Accent Palette + Neutral Slates
+COL_NAVY   <- "#1B4F72"   # Primary focal accent (Symbolic-LBBNN / TPR / Depth 1)
+COL_TEAL   <- "#117864"   # Secondary accent (Specificity / Synthetic / Oracle)
+COL_BRICK  <- "#B03A2E"   # Tertiary / Contrast accent (Exact Match / ReLU / High Mass)
+COL_CHAR   <- "#2B2B2B"   # Charcoal for primary frames / centroids
+COL_GRAY   <- "#7F8C8D"   # Neutral muted slate for noise / secondary elements
+COL_LIGHT  <- "#E5E8E8"   # Soft neutral gray fill
 
 # Load raw & summary datasets
 df_logic <- read.csv("results_overnight/logic/summary_logic.csv", stringsAsFactors = FALSE)
@@ -69,11 +72,11 @@ save_dual <- function(filename_base, width, height, plot_fn) {
 }
 
 # Clean background horizontal/vertical gridlines (drawn BEFORE data)
-draw_grid_h <- function(ys) abline(h = ys, col = "#E0E0E0", lty = 1, lwd = 0.7)
-draw_grid_v <- function(xs) abline(v = xs, col = "#E0E0E0", lty = 1, lwd = 0.7)
+draw_grid_h <- function(ys) abline(h = ys, col = "#E6E8EB", lty = 1, lwd = 0.7)
+draw_grid_v <- function(xs) abline(v = xs, col = "#E6E8EB", lty = 1, lwd = 0.7)
 
-# Vertical error whiskers with optional white backing halo (for focal dark-slate bars)
-draw_whiskers <- function(x, lo, hi, lwd = 1.6, length = 0.035, col = "#000000", halo = FALSE) {
+# Vertical error whiskers with optional white backing halo
+draw_whiskers <- function(x, lo, hi, lwd = 1.7, length = 0.038, col = COL_CHAR, halo = FALSE) {
   valid <- is.finite(x) & is.finite(lo) & is.finite(hi)
   if (!any(valid)) return(invisible(NULL))
   xv <- x[valid]; lov <- lo[valid]; hiv <- hi[valid]
@@ -93,36 +96,14 @@ draw_padded_text <- function(x, y, labels, cex = 0.85, font = 1, col = "#000000"
                              pad_x = 0.02, pad_y = 0.02, border = NA, ...) {
   sw <- max(strwidth(labels, cex = cex, font = font))
   sh <- max(strheight(labels, cex = cex, font = font))
-  # Approximate multi-line height accurately
   rect(x - 0.5 * sw - pad_x, y - 0.5 * sh - pad_y,
        x + 0.5 * sw + pad_x, y + 0.5 * sh + pad_y,
        col = "#FFFFFF", border = border)
   text(x, y, labels = labels, cex = cex, font = font, col = col, ...)
 }
 
-# Custom legend helper that reliably draws diagonal hatching in mixed swatch legends
-draw_bw_legend <- function(pos, labels, fills, hatched = rep(FALSE, length(labels)),
-                           horiz = FALSE, cex = 0.74) {
-  lg <- legend(pos, legend = labels, fill = fills, border = "#000000",
-               horiz = horiz, bty = "o", bg = "white", box.col = "#CCCCCC", cex = cex)
-  if (any(hatched)) {
-    sw_h <- strheight("M", cex = cex) * 0.90
-    sw_w <- strwidth("MM", cex = cex) * 0.65
-    gap  <- strwidth(" ", cex = cex) * 0.90
-    for (idx in which(hatched)) {
-      rx2 <- lg$text$x[idx] - gap
-      rx1 <- rx2 - sw_w
-      ry1 <- lg$text$y[idx] - 0.52 * sw_h
-      ry2 <- lg$text$y[idx] + 0.48 * sw_h
-      rect(rx1, ry1, rx2, ry2, col = "#FFFFFF", border = "#000000")
-      rect(rx1, ry1, rx2, ry2, col = "#404040", density = 24, angle = 45, border = "#000000")
-    }
-  }
-  invisible(lg)
-}
-
 # ==============================================================================
-# FIGURE 1: BGNLM Complexity Prior Surface & Two-Stage Training Dynamics
+# FIGURE 1: BGNLM Complexity Prior Surface, VI Schedules & Bimodal Slab Prior
 # ==============================================================================
 save_dual("fig1_priors_and_dynamics", width = 11.8, height = 4.6, plot_fn = function() {
   par(mfrow = c(1, 3), mar = c(4.6, 5.2, 3.2, 1.4), cex.lab = 1.08, cex.main = 1.12)
@@ -136,23 +117,23 @@ save_dual("fig1_priors_and_dynamics", width = 11.8, height = 4.6, plot_fn = func
   plot(c_grid, calc_pi(1, c_grid), type = "n",
        ylim = c(0.05, 0.55), xlim = c(0.38, 2.25),
        xlab = expression(paste("Operator Complexity Cost ", c(sigma))),
-       ylab = expression(paste("Prior Inclusion Probability ", pi[ji]^{(l)})),
+       ylab = expression(paste("Prior Inclusion Probability ", pi[jk]^{(l)})),
        main = "(a) BGNLM Depth & Complexity Prior", las = 1)
   draw_grid_h(seq(0.1, 0.5, by = 0.1))
   draw_grid_v(seq(0.5, 2.0, by = 0.5))
 
-  lines(c_grid, calc_pi(1, c_grid), lwd = 2.6, col = "#000000", lty = 1)
-  lines(c_grid, calc_pi(2, c_grid), lwd = 2.4, col = "#404040", lty = 2)
-  lines(c_grid, calc_pi(3, c_grid), lwd = 2.2, col = "#666666", lty = 3)
+  lines(c_grid, calc_pi(1, c_grid), lwd = 2.6, col = COL_NAVY,  lty = 1)
+  lines(c_grid, calc_pi(2, c_grid), lwd = 2.4, col = COL_TEAL,  lty = 2)
+  lines(c_grid, calc_pi(3, c_grid), lwd = 2.2, col = COL_BRICK, lty = 3)
 
   ops_c <- c(0.5, 1.0, 1.5, 2.0)
-  points(ops_c, calc_pi(1, ops_c), pch = 16, cex = 1.35, col = "#000000")
-  points(ops_c, calc_pi(2, ops_c), pch = 17, cex = 1.25, col = "#404040")
-  points(ops_c, calc_pi(3, ops_c), pch = 0,  cex = 1.15, col = "#666666")
+  points(ops_c, calc_pi(1, ops_c), pch = 16, cex = 1.35, col = COL_NAVY)
+  points(ops_c, calc_pi(2, ops_c), pch = 17, cex = 1.25, col = COL_TEAL)
+  points(ops_c, calc_pi(3, ops_c), pch = 0,  cex = 1.15, col = COL_BRICK)
 
   y_base <- calc_pi(1, ops_c)
   y_lbls <- y_base + c(0.054, 0.062, 0.062, 0.054)
-  segments(ops_c, y_base + 0.010, ops_c, y_lbls - 0.020, col = "#555555", lty = 3, lwd = 1.1)
+  segments(ops_c, y_base + 0.010, ops_c, y_lbls - 0.020, col = COL_NAVY, lty = 3, lwd = 1.1)
 
   lbl_exprs <- c(
     expression(paste(sigma[id], " (0.5)")),
@@ -161,46 +142,45 @@ save_dual("fig1_priors_and_dynamics", width = 11.8, height = 4.6, plot_fn = func
     expression(paste(sigma[inv], " (2.0)"))
   )
   x_lbls <- c(0.58, 1.00, 1.50, 1.98)
-  for (i in seq_along(ops_c)) {
-    draw_padded_text(x_lbls[i], y_lbls[i], labels = lbl_exprs[i],
-                     cex = 0.88, col = "#000000", pad_x = 0.03, pad_y = 0.012)
+  for (idx in seq_along(ops_c)) {
+    draw_padded_text(x_lbls[idx], y_lbls[idx], labels = lbl_exprs[idx],
+                     cex = 0.88, col = COL_CHAR, pad_x = 0.03, pad_y = 0.012)
   }
 
   legend("topright",
          legend = c("Layer l = 1 (Shallow)", "Layer l = 2 (Composition)", "Layer l = 3 (Deep)"),
-         col = c("#000000", "#404040", "#666666"),
+         col = c(COL_NAVY, COL_TEAL, COL_BRICK),
          lty = c(1, 2, 3), pch = c(16, 17, 0),
          lwd = 2.2, bty = "o", bg = "white", box.col = "#CCCCCC", cex = 0.82)
 
-  # Panel B: Two-Stage Optimization Schedules (Clean soft gray Stage 2 + white callout box)
-  t_norm  <- seq(0, 1.25, length.out = 300)
-  beta_kl <- ifelse(t_norm <= 1.0, pmin(1.0, t_norm / 0.30), 0.0)
-  tau_t   <- ifelse(t_norm <= 1.0, 0.5 * (0.05 / 0.5)^t_norm, 0.0)
+  # Panel B: Variational Structure Learning Schedules
+  t_norm  <- seq(0, 1.0, length.out = 250)
+  beta_kl <- pmin(1.0, t_norm / 0.30)
+  tau_t   <- 0.5 * (0.05 / 0.5)^t_norm
 
   plot(t_norm * 100, beta_kl, type = "n",
-       ylim = c(0, 1.18), xlab = "Training Progress (% of Stage 1 + Stage 2)",
+       xlim = c(0, 102), ylim = c(0, 1.18),
+       xlab = "Variational Training Progress (% of Epochs)",
        ylab = "Schedule Magnitude",
-       main = "(b) Two-Stage Optimization Protocol", las = 1, xaxt = "n")
-  axis(1, at = c(0, 30, 60, 100, 125), labels = c("0%", "30%", "60%", "100%", "Stage 2"))
+       main = "(b) Variational Annealing Schedules", las = 1, xaxt = "n")
+  axis(1, at = c(0, 30, 60, 100), labels = c("0%", "30%", "60%", "100%"))
   draw_grid_h(seq(0, 1.0, by = 0.2))
   draw_grid_v(c(0, 30, 60, 100))
 
-  rect(100, -0.05, 129, 1.22, col = "#EAEAEA", border = NA)
-  abline(v = 30, lty = 3, col = "#555555", lwd = 1.2)
-  abline(v = 100, lty = 2, col = "#000000", lwd = 1.8)
-  lines(t_norm * 100, beta_kl, lwd = 2.6, col = "#000000", lty = 1)
-  lines(t_norm * 100, tau_t,   lwd = 2.2, col = "#404040", lty = 2)
-  text(15, 1.09, "KL Warmup", cex = 0.84, col = "#000000", font = 2)
-  text(65, 1.09, "Sparse Pruning", cex = 0.84, col = "#000000", font = 2)
+  abline(v = 30, lty = 3, col = "#666666", lwd = 1.3)
+  lines(t_norm * 100, beta_kl, lwd = 2.6, col = COL_NAVY,  lty = 1)
+  lines(t_norm * 100, tau_t,   lwd = 2.3, col = COL_BRICK, lty = 2)
+  text(15, 1.09, "KL Warmup", cex = 0.86, col = COL_NAVY, font = 2)
+  text(65, 1.09, "Full KL + Concrete Cooling", cex = 0.86, col = COL_CHAR, font = 2)
 
-  rect(102.5, 0.44, 124.5, 0.84, col = "white", border = "#666666", lwd = 1.0)
-  text(113.5, 0.64, "MPM Freeze\n+ Debias\n+ BIC Snap", cex = 0.84, col = "#000000", font = 2)
+  points(100, 1.0,  pch = 16, cex = 1.25, col = COL_NAVY)
+  points(100, 0.05, pch = 17, cex = 1.20, col = COL_BRICK)
 
-  legend("left",
+  legend("center",
          legend = c(expression(paste("KL Weight ", beta[KL](t))),
                     expression(paste("Concrete Temp ", tau(t)))),
-         col = c("#000000", "#404040"), lty = c(1, 2), lwd = c(2.6, 2.2),
-         bty = "o", bg = "white", box.col = "#CCCCCC", cex = 0.84)
+         col = c(COL_NAVY, COL_BRICK), lty = c(1, 2), lwd = c(2.6, 2.3),
+         bty = "o", bg = "white", box.col = "#CCCCCC", cex = 0.85)
 
   # Panel C: Symmetric Bimodal Slab Prior for Logic Gates
   w_grid <- seq(-2.5, 2.5, length.out = 400)
@@ -210,35 +190,35 @@ save_dual("fig1_priors_and_dynamics", width = 11.8, height = 4.6, plot_fn = func
 
   plot(w_grid, bimodal_dens, type = "n",
        ylim = c(0, max(bimodal_dens) * 1.24),
-       xlab = expression(paste("Logic Gate Weight ", w[list(j, i)]^{(l)})),
+       xlab = expression(paste("Logic Gate Weight ", w[list(j, k)]^{(l)})),
        ylab = expression(paste("Prior Density ", p(w))),
        main = "(c) Bimodal Logic Literal Slab Prior", las = 1)
   draw_grid_h(seq(0, 0.8, by = 0.2))
   draw_grid_v(-2:2)
 
   polygon(c(w_grid, rev(w_grid)), c(bimodal_dens, rep(0, length(w_grid))),
-          col = COL_THIRD, border = NA)
-  lines(w_grid, bimodal_dens, lwd = 2.6, col = "#000000", lty = 1)
-  lines(w_grid, unimodal_dens, lwd = 2.2, col = "#444444", lty = 2)
-  abline(v = c(-1, 1), lty = 3, col = "#000000", lwd = 1.3)
+          col = adjustcolor(COL_NAVY, alpha.f = 0.16), border = NA)
+  lines(w_grid, bimodal_dens,  lwd = 2.6, col = COL_NAVY,  lty = 1)
+  lines(w_grid, unimodal_dens, lwd = 2.2, col = COL_BRICK, lty = 2)
+  abline(v = c(-1, 1), lty = 3, col = COL_TEAL, lwd = 1.4)
 
-  text(-1, max(bimodal_dens) * 1.08, expression(paste("Negated (", "\u00ac", X[i], ")")),
-       cex = 0.88, col = "#000000", font = 2)
-  text( 1, max(bimodal_dens) * 1.08, expression(paste("Positive (", X[i], ")")),
-        cex = 0.88, col = "#000000", font = 2)
+  text(-1, max(bimodal_dens) * 1.08, expression(paste("Negated (", symbol("\330"), X[k], ")")),
+       cex = 0.88, col = COL_NAVY, font = 2)
+  text( 1, max(bimodal_dens) * 1.08, expression(paste("Positive (", X[k], ")")),
+        cex = 0.88, col = COL_NAVY, font = 2)
   legend("topright",
          legend = c(expression(p["logic-slab"](w)), expression(N(0, 1) ~ plain("Slab"))),
-         col = c("#000000", "#444444"), lty = c(1, 2), lwd = c(2.6, 2.2),
+         col = c(COL_NAVY, COL_BRICK), lty = c(1, 2), lwd = c(2.6, 2.2),
          bty = "o", bg = "white", box.col = "#CCCCCC", cex = 0.82)
 })
 
 # ==============================================================================
-# FIGURE 2: Bayesian Logic Regression (High-Contrast Palette & 95% CIs)
+# FIGURE 2: Bayesian Logic Regression (Point-and-Whisker 95% CIs + Accent Palette)
 # ==============================================================================
 save_dual("fig2_logic_regression", width = 11.4, height = 4.9, plot_fn = function() {
   par(mfrow = c(1, 2), mar = c(5.6, 4.8, 3.2, 1.5), cex.lab = 1.04, cex.main = 1.08)
 
-  # Panel A: Clause-by-Clause Recovery Rate + 95% Clopper-Pearson CIs
+  # Panel A: Clause-by-Clause Recovery Rate (Point-and-Whisker 95% Clopper-Pearson CIs)
   k_vec <- c(
     sum(grepl("x1 & x2", df_logic$formula, fixed = TRUE) | grepl("x2 & x1", df_logic$formula, fixed = TRUE)),
     sum(grepl("x4 & !x5", df_logic$formula, fixed = TRUE) | grepl("!x5 & x4", df_logic$formula, fixed = TRUE)),
@@ -249,32 +229,33 @@ save_dual("fig2_logic_regression", width = 11.4, height = 4.9, plot_fn = functio
   n_s <- nrow(df_logic)
   rates <- (k_vec / n_s) * 100
   cis   <- cp_ci(k_vec, n_s) * 100
+  x_pos <- 1:5
+  pt_cols <- c(COL_NAVY, COL_NAVY, COL_NAVY, COL_TEAL, COL_TEAL)
 
-  fills_a <- c("#8C8C8C", "#8C8C8C", "#8C8C8C", "#4D4D4D", "#4D4D4D")
+  plot(NA, xlim = c(0.3, 5.7), ylim = c(40, 114), xaxt = "n",
+       xlab = "", ylab = "Recovery Rate Across 100 Seeds (%)",
+       main = "(a) Boolean Conjunction & Negation Recovery", las = 1)
+  draw_grid_h(seq(40, 100, by = 10))
+  draw_grid_v(x_pos)
+  abline(v = 3.5, lty = 2, col = "#666666", lwd = 1.4)
 
-  # Draw empty canvas & gridlines strictly behind bars
-  bp <- barplot(rates, names.arg = FALSE, ylim = c(0, 128), col = NA, border = NA,
-                ylab = "Recovery Rate Across 100 Seeds (%)",
-                main = "(a) Boolean Conjunction & Negation Recovery", las = 1)
-  draw_grid_h(seq(0, 120, by = 20))
-  barplot(rates, names.arg = FALSE, col = fills_a, border = "#000000", add = TRUE, axes = FALSE)
-  abline(v = (bp[3] + bp[4]) / 2, lty = 2, col = "#666666", lwd = 1.5)
-
-  draw_whiskers(bp[1:3], cis[1:3, "lo"], cis[1:3, "hi"], lwd = 1.6, length = 0.04, halo = FALSE)
-  draw_whiskers(bp[4:5], cis[4:5, "lo"], cis[4:5, "hi"], lwd = 1.6, length = 0.04, halo = TRUE)
+  for (idx in x_pos) {
+    draw_whiskers(idx, cis[idx, "lo"], cis[idx, "hi"], lwd = 2.0, length = 0.05, col = pt_cols[idx])
+  }
+  points(x_pos, rates, pch = c(16, 16, 16, 18, 18), cex = c(1.5, 1.5, 1.5, 1.8, 1.8), col = pt_cols)
 
   lbl_exprs <- expression(
     atop(C[1] * ":" ~ X[1] * symbol("\331") * X[2], "(Order-2)"),
     atop(C[2] * ":" ~ X[4] * symbol("\331") * symbol("\330") * X[5], "(Negated)"),
-    atop(C[3] * ":" ~ X[7] * symbol("\331") * X[8] * symbol("\331") * X[11], "(Order-3)"),
+    atop(C[3] * ":" ~ X[7] * symbol("\331") * X[8], symbol("\331") * X[11] ~ "(Order-3)"),
     atop("Exact 3-Clause", "Match"),
     atop("Zero False", "Positives")
   )
-  axis(1, at = bp, labels = lbl_exprs, tick = FALSE, line = 1.0, cex.axis = 0.74)
+  axis(1, at = x_pos, labels = lbl_exprs, tick = FALSE, line = 1.0, cex.axis = 0.66)
 
-  y_txt <- pmin(119, cis[, "hi"] + 6.5)
+  y_txt <- cis[, "hi"] + 5.2
   lbl_txt <- sprintf("%.0f%%\n[%.0f, %.0f]", rates, cis[, "lo"], cis[, "hi"])
-  text(bp, y_txt, labels = lbl_txt, font = 2, cex = 0.74, col = "#000000")
+  text(x_pos, y_txt, labels = lbl_txt, font = 2, cex = 0.76, col = pt_cols)
 
   # Panel B: Test RMSE Distribution vs Oracle Noise Floor (sigma = 0.500)
   d_exact   <- df_logic$test_rmse[df_logic$exact_match == 1]
@@ -289,41 +270,38 @@ save_dual("fig2_logic_regression", width = 11.4, height = 4.9, plot_fn = functio
        main = "(b) Predictive Accuracy vs. Oracle Noise Floor", las = 1)
   draw_grid_h(seq(0, 35, by = 5))
 
-  hist(d_exact, breaks = brks, col = "#737373", border = "#000000", add = TRUE)
+  hist(d_exact, breaks = brks, col = adjustcolor(COL_NAVY, alpha.f = 0.55), border = COL_NAVY, add = TRUE)
   if (length(d_partial) > 0) {
-    hist(d_partial, breaks = brks, col = "#E0E0E0", border = "#000000", add = TRUE)
-    hist(d_partial, breaks = brks, col = "#404040", density = 18, angle = 45, border = "#000000", add = TRUE)
+    hist(d_partial, breaks = brks, col = adjustcolor(COL_BRICK, alpha.f = 0.35), border = COL_BRICK, add = TRUE)
   }
 
-  abline(v = 0.50, col = "#000000", lwd = 2.4, lty = 2)
-  text(0.495, 32.5, expression(paste("Oracle ", sigma == 0.500)), col = "#000000", font = 2, adj = c(1.0, 0.5), cex = 0.80)
+  abline(v = 0.50, col = COL_TEAL, lwd = 2.4, lty = 2)
+  text(0.495, 32.5, expression(paste("Oracle ", sigma == 0.500)), col = COL_TEAL, font = 2, adj = c(1.0, 0.5), cex = 0.80)
 
-  # Clean horizontal mean +/- 95% CI intervals at y = 27.5 and y = 25.5 with direct callouts
   arrows(ci_e[1], 27.5, ci_e[2], 27.5, angle = 90, code = 3, length = 0.03, lwd = 3.2, col = "#FFFFFF")
-  arrows(ci_e[1], 27.5, ci_e[2], 27.5, angle = 90, code = 3, length = 0.03, lwd = 1.8, col = "#000000")
-  points(mean(d_exact), 27.5, pch = 18, cex = 1.35, col = "#000000")
-  text(ci_e[2] + 0.004, 27.5, sprintf("%.3f", mean(d_exact)), adj = c(0, 0.5), cex = 0.78, font = 2)
+  arrows(ci_e[1], 27.5, ci_e[2], 27.5, angle = 90, code = 3, length = 0.03, lwd = 1.9, col = COL_NAVY)
+  points(mean(d_exact), 27.5, pch = 18, cex = 1.35, col = COL_NAVY)
+  text(ci_e[2] + 0.004, 27.5, sprintf("%.3f", mean(d_exact)), adj = c(0, 0.5), cex = 0.78, font = 2, col = COL_NAVY)
 
   arrows(ci_p[1], 25.5, ci_p[2], 25.5, angle = 90, code = 3, length = 0.03, lwd = 3.2, col = "#FFFFFF")
-  arrows(ci_p[1], 25.5, ci_p[2], 25.5, angle = 90, code = 3, length = 0.03, lwd = 1.8, col = "#000000")
-  points(mean(d_partial), 25.5, pch = 5, cex = 1.15, col = "#000000")
-  text(ci_p[2] + 0.004, 25.5, sprintf("%.3f", mean(d_partial)), adj = c(0, 0.5), cex = 0.78, font = 2)
+  arrows(ci_p[1], 25.5, ci_p[2], 25.5, angle = 90, code = 3, length = 0.03, lwd = 1.9, col = COL_BRICK)
+  points(mean(d_partial), 25.5, pch = 17, cex = 1.15, col = COL_BRICK)
+  text(ci_p[2] + 0.004, 25.5, sprintf("%.3f", mean(d_partial)), adj = c(0, 0.5), cex = 0.78, font = 2, col = COL_BRICK)
 
-  draw_bw_legend(
-    "topright",
-    labels = c(sprintf("Exact 3-Clause (67%%, RMSE = %.3f [%.3f, %.3f])", mean(d_exact), ci_e[1], ci_e[2]),
-               sprintf("2-Clause + Sub (33%%, RMSE = %.3f [%.3f, %.3f])", mean(d_partial), ci_p[1], ci_p[2])),
-    fills = c("#737373", "#E0E0E0"), hatched = c(FALSE, TRUE), cex = 0.71
-  )
+  legend("topright",
+         legend = c(sprintf("Exact 3-Clause (67%%, RMSE = %.3f [%.3f, %.3f])", mean(d_exact), ci_e[1], ci_e[2]),
+                    sprintf("2-Clause + Sub (33%%, RMSE = %.3f [%.3f, %.3f])", mean(d_partial), ci_p[1], ci_p[2])),
+         fill = c(adjustcolor(COL_NAVY, alpha.f = 0.55), adjustcolor(COL_BRICK, alpha.f = 0.35)),
+         border = c(COL_NAVY, COL_BRICK), bty = "o", bg = "white", box.col = "#CCCCCC", cex = 0.70)
 })
 
 # ==============================================================================
-# FIGURE 3: Kepler's Third Law 3-Stage Recovery & Parsimony Comparison
+# FIGURE 3: Kepler's Third Law Post-Training Recovery & Parsimony Comparison
 # ==============================================================================
 save_dual("fig3_kepler_3stage", width = 11.8, height = 4.8, plot_fn = function() {
   par(mfrow = c(1, 3), mar = c(4.6, 5.5, 3.2, 1.2), cex.lab = 1.04, cex.main = 1.10)
 
-  # Panel A: Exponent L1 Error across 3 Stages (Log10 scale) + Offset Means w/ Halo
+  # Panel A: Exponent L1 Error across Variational & Post-Training Phases
   eps_floor <- 1e-6
   syn_mat <- cbind(
     log10(pmax(df_kep$exp_err_raw, eps_floor)),
@@ -338,36 +316,40 @@ save_dual("fig3_kepler_3stage", width = 11.8, height = 4.8, plot_fn = function()
 
   at_pos <- c(1, 2, 3.5, 4.5, 6, 7)
   series_list <- list(syn_mat[,1], real_mat[,1], syn_mat[,2], real_mat[,2], syn_mat[,3], real_mat[,3])
+  fill_a <- rep(c(adjustcolor(COL_TEAL, alpha.f = 0.30), adjustcolor(COL_NAVY, alpha.f = 0.40)), 3)
+  bord_a <- rep(c(COL_TEAL, COL_NAVY), 3)
 
   plot(NA, xlim = c(0.4, 7.6), ylim = c(-6.4, 0.8), xaxt = "n", yaxt = "n",
        xlab = "", ylab = expression(paste(L[1], " Exponent Error ", "|", w[M["*"]] - 1/3, "| + |", w[T] - 2/3, "|")),
-       main = "(a) 3-Stage Exponent Recovery (M = 100)")
+       main = "(a) Post-Training Exponent Recovery (M = 100)")
   draw_grid_h(c(-6, -4, -3, -2, -1, 0))
   boxplot(series_list, at = at_pos, boxwex = 0.55,
-          col = rep(c(COL_THIRD, "#888888"), 3),
-          border = "#000000", xaxt = "n", yaxt = "n", outline = FALSE, add = TRUE)
+          col = fill_a, border = bord_a, xaxt = "n", yaxt = "n", outline = FALSE, add = TRUE)
 
   set.seed(42)
   for (k in seq_along(series_list)) {
     yk <- series_list[[k]]
     xk <- jitter(rep(at_pos[k], length(yk)), amount = 0.11)
+    pt_c <- ifelse(k %% 2 == 1, COL_TEAL, COL_NAVY)
     points(xk, yk, pch = ifelse(k %% 2 == 1, 16, 2), cex = 0.42,
-           col = adjustcolor(ifelse(k %% 2 == 1, "#333333", "#111111"), alpha.f = 0.40))
+           col = adjustcolor(pt_c, alpha.f = 0.45))
     mu_k <- mean(yk)
     se_k <- sd(yk) / sqrt(length(yk))
     ci_k <- mu_k + c(-1, 1) * qt(0.975, length(yk) - 1) * se_k
-    draw_whiskers(at_pos[k] + 0.14, ci_k[1], ci_k[2], lwd = 1.6, length = 0.025, halo = TRUE)
+    draw_whiskers(at_pos[k] + 0.14, ci_k[1], ci_k[2], lwd = 1.6, length = 0.025, col = COL_CHAR, halo = TRUE)
     points(at_pos[k] + 0.14, mu_k, pch = 18, cex = 1.45, col = "#FFFFFF")
-    points(at_pos[k] + 0.14, mu_k, pch = 18, cex = 1.05, col = "#000000")
+    points(at_pos[k] + 0.14, mu_k, pch = 18, cex = 1.05, col = COL_CHAR)
   }
-  axis(1, at = c(1.5, 4.0, 6.5), labels = c("Stage 1:\nRaw VI", "Stage 2A:\nMPM Debias", "Stage 2B:\nBIC Snap"), tick = FALSE, line = 0.6)
+  axis(1, at = c(1.5, 4.0, 6.5),
+       labels = c("Variational:\nRaw MPM", "Post-Training:\nLaplace MAP", "Post-Training:\nBF Rational"),
+       tick = FALSE, line = 0.6)
   axis(2, at = c(-6, -4, -3, -2, -1, 0), labels = c("Exact (0)", "1e-4", "1e-3", "1e-2", "1e-1", "1.0"), las = 1, cex.axis = 0.88)
   legend("topright",
          legend = c("Synthetic Kepler (p = 10)", "NASA Exoplanets (p = 8)"),
-         fill = c(COL_THIRD, "#888888"), border = "#000000",
-         bty = "o", bg = "white", box.col = "#CCCCCC", cex = 0.80)
+         fill = c(adjustcolor(COL_TEAL, alpha.f = 0.30), adjustcolor(COL_NAVY, alpha.f = 0.40)),
+         border = c(COL_TEAL, COL_NAVY), bty = "o", bg = "white", box.col = "#CCCCCC", cex = 0.80)
 
-  # Panel B: Test RMSE Comparison (Symbolic focal dark slate vs ReLU hatched light)
+  # Panel B: Test RMSE Comparison (Symbolic Navy vs ReLU Brick)
   rmse_list <- list(
     log10(df_kep$test_rmse_symbolic),
     log10(df_kep$test_rmse_relu),
@@ -380,38 +362,32 @@ save_dual("fig3_kepler_3stage", width = 11.8, height = 4.8, plot_fn = function()
        main = "(b) Out-of-Sample Generalization")
   draw_grid_h(c(-2.3, -2, -1, 0, 0.6))
 
-  # Draw hatched IQR overlay for ReLU boxes (k = 2, 4) before full box outlines
-  bx_info <- boxplot(rmse_list, plot = FALSE)
+  fill_b <- c(adjustcolor(COL_NAVY, alpha.f = 0.45), adjustcolor(COL_BRICK, alpha.f = 0.30),
+              adjustcolor(COL_NAVY, alpha.f = 0.45), adjustcolor(COL_BRICK, alpha.f = 0.30))
+  bord_b <- c(COL_NAVY, COL_BRICK, COL_NAVY, COL_BRICK)
   boxplot(rmse_list, at = at_b, boxwex = 0.56,
-          col = c("#595959", "#E0E0E0", "#595959", "#E0E0E0"),
-          medcol = c("#FFFFFF", "#000000", "#FFFFFF", "#000000"),
-          boxlwd = c(1.6, 1.0, 1.6, 1.0),
-          border = "#000000", xaxt = "n", yaxt = "n", outline = FALSE, add = TRUE)
-  for (idx in c(2, 4)) {
-    q25 <- bx_info$stats[2, idx]; q75 <- bx_info$stats[4, idx]; q50 <- bx_info$stats[3, idx]
-    rect(at_b[idx] - 0.28, q25, at_b[idx] + 0.28, q75,
-         col = "#404040", density = 18, angle = 45, border = "#000000")
-    segments(at_b[idx] - 0.28, q50, at_b[idx] + 0.28, q50, lwd = 2.5, col = "#000000")
-  }
+          col = fill_b, border = bord_b, medcol = bord_b,
+          boxlwd = c(1.6, 1.3, 1.6, 1.3), xaxt = "n", yaxt = "n", outline = FALSE, add = TRUE)
 
   for (k in seq_along(rmse_list)) {
     yk <- rmse_list[[k]]
     xk <- jitter(rep(at_b[k], length(yk)), amount = 0.11)
+    pt_c <- ifelse(k %% 2 == 1, COL_NAVY, COL_BRICK)
     points(xk, yk, pch = ifelse(k %% 2 == 1, 16, 1), cex = 0.42,
-           col = adjustcolor("#222222", alpha.f = 0.38))
+           col = adjustcolor(pt_c, alpha.f = 0.45))
     mu_k <- mean(yk)
     se_k <- sd(yk) / sqrt(length(yk))
     ci_k <- mu_k + c(-1, 1) * qt(0.975, length(yk) - 1) * se_k
-    draw_whiskers(at_b[k] + 0.14, ci_k[1], ci_k[2], lwd = 1.6, length = 0.025, halo = TRUE)
+    draw_whiskers(at_b[k] + 0.14, ci_k[1], ci_k[2], lwd = 1.6, length = 0.025, col = COL_CHAR, halo = TRUE)
     points(at_b[k] + 0.14, mu_k, pch = 18, cex = 1.45, col = "#FFFFFF")
-    points(at_b[k] + 0.14, mu_k, pch = 18, cex = 1.05, col = "#000000")
+    points(at_b[k] + 0.14, mu_k, pch = 18, cex = 1.05, col = COL_CHAR)
   }
-  axis(1, at = c(1.5, 4.0), labels = c("Synthetic Kepler\n(22.6x reduction)", "NASA Exoplanets\n(67.1x reduction)"), tick = FALSE, line = 0.6, cex.axis = 0.9)
+  axis(1, at = c(1.5, 4.0), labels = c("Synthetic Kepler\n(22.6x reduction)", "NASA Exoplanets\n(65.6x reduction)"), tick = FALSE, line = 0.6, cex.axis = 0.9)
   axis(2, at = c(-2.3, -2, -1, 0, 0.6), labels = c("0.005", "0.01", "0.10", "1.00", "4.00"), las = 1)
-  abline(h = log10(0.005), lty = 3, col = "#000000", lwd = 1.5)
-  text(1.45, log10(0.005) - 0.17, expression(paste("Oracle ", sigma == 0.005)), cex = 0.80, col = "#000000")
-  draw_bw_legend("topleft", labels = c("Symbolic-LBBNN (Ours)", "ReLU-LBBNN"),
-                 fills = c("#595959", "#E0E0E0"), hatched = c(FALSE, TRUE), cex = 0.80)
+  abline(h = log10(0.005), lty = 3, col = COL_TEAL, lwd = 1.7)
+  text(1.45, log10(0.005) - 0.17, expression(paste("Oracle ", sigma == 0.005)), cex = 0.80, col = COL_TEAL, font = 2)
+  legend("topleft", legend = c("Symbolic-LBBNN (Ours)", "ReLU-LBBNN"),
+         fill = fill_b[1:2], border = bord_b[1:2], bty = "o", bg = "white", box.col = "#CCCCCC", cex = 0.80)
 
   # Panel C: Active Edges Comparison on Real NASA Exoplanets
   edges_relu <- df_real$active_edges_relu
@@ -422,27 +398,26 @@ save_dual("fig3_kepler_3stage", width = 11.8, height = 4.8, plot_fn = function()
        xlab = "Number of Active MPM Edges", ylab = "Frequency (out of 100 seeds)",
        main = "(c) Structural Parsimony (NASA Data)", las = 1)
   draw_grid_h(seq(0, 35, by = 5))
-  hist(edges_relu, breaks = 15, col = COL_THIRD, border = "#000000", add = TRUE)
+  hist(edges_relu, breaks = 15, col = adjustcolor(COL_BRICK, alpha.f = 0.30), border = COL_BRICK, add = TRUE)
 
-  abline(v = 5, col = "#000000", lwd = 3.2)
-  points(5, 33, pch = 18, col = "#000000", cex = 1.8)
+  abline(v = 5, col = COL_NAVY, lwd = 3.2)
+  points(5, 33, pch = 18, col = COL_NAVY, cex = 1.8)
 
-  # Vertical dashed dark-gray line at ReLU mean connecting up to 95% CI whisker
-  segments(mu_er, 0, mu_er, 31, col = "#404040", lty = 2, lwd = 1.6)
-  arrows(ci_er[1], 31, ci_er[2], 31, angle = 90, code = 3, length = 0.03, lwd = 1.8, col = "#000000")
-  points(mu_er, 31, pch = 16, col = "#000000", cex = 1.25)
+  segments(mu_er, 0, mu_er, 31, col = COL_BRICK, lty = 2, lwd = 1.6)
+  arrows(ci_er[1], 31, ci_er[2], 31, angle = 90, code = 3, length = 0.03, lwd = 1.9, col = COL_BRICK)
+  points(mu_er, 31, pch = 16, col = COL_BRICK, cex = 1.25)
 
-  rect(15, 22.5, 45, 31.5, col = "white", border = "#666666", lwd = 0.9)
-  text(30, 27.0, "Symbolic-LBBNN:\nExact 5.00 edges\n(SD = 0.00, 100%)", col = "#000000", font = 2, cex = 0.78)
-  arrows(15, 27.0, 6.5, 29.0, length = 0.07, lwd = 1.5, col = "#000000")
+  rect(15, 22.5, 45, 31.5, col = "white", border = COL_NAVY, lwd = 1.0)
+  text(30, 27.0, "Symbolic-LBBNN:\nExact 5.00 edges\n(SD = 0.00, 100%)", col = COL_NAVY, font = 2, cex = 0.78)
+  arrows(15, 27.0, 6.5, 29.0, length = 0.07, lwd = 1.5, col = COL_NAVY)
 
-  rect(50, 19.5, 86, 28.0, col = "white", border = "#666666", lwd = 0.9)
+  rect(50, 19.5, 86, 28.0, col = "white", border = COL_BRICK, lwd = 1.0)
   text(68, 23.75, sprintf("ReLU-LBBNN:\n%.1f edges\n95%% CI [%.1f, %.1f]", mu_er, ci_er[1], ci_er[2]),
-       col = "#000000", font = 2, cex = 0.78)
+       col = COL_BRICK, font = 2, cex = 0.78)
 })
 
 # ==============================================================================
-# FIGURE 4: Real NASA Exoplanet Catalogue Fit, Inset & Covariate Selection
+# FIGURE 4: Real NASA Exoplanet Catalogue (Sparse Accent Plot & Point-Whisker CIs)
 # ==============================================================================
 parse_kepler_formulas <- function(f_vec) {
   n <- length(f_vec)
@@ -470,19 +445,30 @@ parse_kepler_formulas <- function(f_vec) {
 save_dual("fig4_exoplanet_discovery", width = 11.4, height = 4.9, plot_fn = function() {
   par(mfrow = c(1, 2), mar = c(5.0, 5.2, 3.2, 1.5), cex.lab = 1.04, cex.main = 1.08)
 
-  # Panel A: Observed Semi-Major Axis vs Kepler Law + 95% Empirical Band Across 100 Splits
+  # Panel A: Sparse Stratified Exoplanet Scatter + Preserved Accent Contours
   M_star <- pmax(as.numeric(exoplanet$hoststar_mass), 1e-3)
   T_norm <- pmax(as.numeric(exoplanet$period) / 365.25, 1e-4)
   a_obs  <- as.numeric(exoplanet$semimajoraxis)
   valid  <- is.finite(M_star) & is.finite(T_norm) & is.finite(a_obs) & (a_obs > 0)
   M_star <- M_star[valid]; T_norm <- T_norm[valid]; a_obs <- a_obs[valid]
 
-  is_solar <- (M_star >= 0.7 & M_star <= 1.3)
+  set.seed(123)
+  thin_by_period <- function(idx_vec, n_bins = 24L, max_per_bin = 2L) {
+    if (length(idx_vec) <= n_bins) return(idx_vec)
+    bins <- cut(log10(T_norm[idx_vec]), breaks = n_bins, labels = FALSE)
+    unlist(lapply(split(idx_vec, bins), function(v) {
+      if (length(v) <= max_per_bin) v else sample(v, max_per_bin)
+    }))
+  }
+  idx_low_thin   <- thin_by_period(which(M_star < 0.7), n_bins = 22L, max_per_bin = 2L)
+  idx_high_thin  <- thin_by_period(which(M_star > 1.3), n_bins = 22L, max_per_bin = 2L)
+  idx_solar_thin <- thin_by_period(which(M_star >= 0.7 & M_star <= 1.3), n_bins = 24L, max_per_bin = 2L)
+
   plot(T_norm, a_obs, log = "xy", type = "n",
        xlab = "Normalized Orbital Period T (Earth Years, log scale)",
        ylab = "Semi-Major Axis a (AU, log scale)",
        main = "(a) NASA Exoplanets (n = 939): Discovered Law", las = 1)
-  grid(col = "#E0E0E0", lty = 1, lwd = 0.7)
+  grid(col = "#E8E8E8", lty = 1, lwd = 0.7)
 
   t_seq <- 10^seq(log10(min(T_norm)), log10(max(T_norm)), length.out = 200)
   pars <- parse_kepler_formulas(df_real$formula)
@@ -490,54 +476,57 @@ save_dual("fig4_exoplanet_discovery", width = 11.4, height = 4.9, plot_fn = func
   band_lo <- apply(pred_mat, 1, quantile, probs = 0.025)
   band_hi <- apply(pred_mat, 1, quantile, probs = 0.975)
 
-  polygon(c(t_seq, rev(t_seq)), c(band_lo, rev(band_hi)), col = "#D8D8D8", border = NA)
-  points(T_norm[is_solar],  a_obs[is_solar],  pch = 1,  cex = 0.75, col = "#777777")
-  points(T_norm[!is_solar], a_obs[!is_solar], pch = 17, cex = 0.75, col = adjustcolor("#222222", alpha.f = 0.80))
+  polygon(c(t_seq, rev(t_seq)), c(band_lo, rev(band_hi)),
+          col = adjustcolor(COL_NAVY, alpha.f = 0.16), border = NA)
 
-  lines(t_seq, (0.3^(1/3)) * (t_seq^(2/3)), col = "#444444", lwd = 1.6, lty = 2)
-  lines(t_seq, (2.0^(1/3)) * (t_seq^(2/3)), col = "#444444", lwd = 1.6, lty = 3)
-  lines(t_seq, (1.0^(1/3)) * (t_seq^(2/3)), col = "#000000", lwd = 2.6, lty = 1)
+  points(T_norm[idx_solar_thin], a_obs[idx_solar_thin],
+         pch = 1, cex = 0.78, col = adjustcolor("#555555", alpha.f = 0.75))
+  points(T_norm[idx_low_thin], a_obs[idx_low_thin],
+         pch = 6, cex = 0.80, col = adjustcolor(COL_TEAL, alpha.f = 0.90))
+  points(T_norm[idx_high_thin], a_obs[idx_high_thin],
+         pch = 2, cex = 0.80, col = adjustcolor(COL_BRICK, alpha.f = 0.90))
+
+  lines(t_seq, (0.3^(1/3)) * (t_seq^(2/3)), col = COL_TEAL,  lwd = 2.0, lty = 2)
+  lines(t_seq, (2.0^(1/3)) * (t_seq^(2/3)), col = COL_BRICK, lwd = 2.0, lty = 4)
+  lines(t_seq, (1.0^(1/3)) * (t_seq^(2/3)), col = COL_NAVY,  lwd = 2.7, lty = 1)
 
   legend("topleft",
          legend = expression(
-           paste("Solar-like Stars (", 0.7 <= M["*"], " " <= 1.3 * M["\u2299"], ")"),
-           paste("Extreme Mass (", M["*"] < 0.7, " or ", M["*"] > 1.3 * M["\u2299"], ")"),
-           paste("Symbolic MPM: ", a == M["*"]^{1/3} * T^{2/3}, " (with 95% split band)"),
-           paste("Iso-Mass Contours (", M["*"] == 0.3, ", ", 2.0 * M["\u2299"], ")")
+           paste("Solar-like (", 0.7 <= M["*"], " " <= 1.3 * M[sun], ")"),
+           paste("High Mass (", M["*"] > 1.3 * M[sun], ") & 2.0", M[sun], " Law"),
+           paste("Low Mass (", M["*"] < 0.7 * M[sun], ") & 0.3", M[sun], " Law"),
+           paste("Discovered MPM: ", a == M["*"]^{1/3} * T^{2/3}, " (1.0", M[sun], ")")
          ),
-         pch = c(1, 17, NA, NA),
-         col = c("#777777", "#222222", "#000000", "#444444"),
-         lty = c(NA, NA, 1, 2), lwd = c(NA, NA, 2.6, 1.6),
-         bty = "o", bg = "white", box.col = "#CCCCCC", cex = 0.74)
+         pch = c(1, 2, 6, NA),
+         col = c("#555555", COL_BRICK, COL_TEAL, COL_NAVY),
+         lty = c(NA, 4, 2, 1), lwd = c(NA, 2.0, 2.0, 2.7),
+         bty = "o", bg = "white", box.col = "#CCCCCC", cex = 0.70)
 
-  # Bottom-right inset subplot: Log-residual distribution across 100 splits
+  # Compact bottom-right inset: Log-residual distribution across all n = 939 exoplanets
   op_plt <- par("plt")
   ins_plt <- c(
-    op_plt[1] + 0.50 * (op_plt[2] - op_plt[1]),
+    op_plt[1] + 0.56 * (op_plt[2] - op_plt[1]),
     op_plt[2] - 0.03 * (op_plt[2] - op_plt[1]),
-    op_plt[3] + 0.09 * (op_plt[4] - op_plt[3]),
-    op_plt[3] + 0.42 * (op_plt[4] - op_plt[3])
+    op_plt[3] + 0.08 * (op_plt[4] - op_plt[3]),
+    op_plt[3] + 0.38 * (op_plt[4] - op_plt[3])
   )
   par(plt = ins_plt, new = TRUE)
   res_log10 <- log10(a_obs) - log10((M_star^(1/3)) * (T_norm^(2/3)))
-  res_clip  <- res_log10[abs(res_log10) <= 0.16]
-  split_pref_band <- quantile(log10(pars$c), probs = c(0.025, 0.975))
+  res_clip  <- res_log10[abs(res_log10) <= 0.14]
 
-  # Draw inset frame & clean white background
-  plot(NA, xlim = c(-0.15, 0.15), ylim = c(0, 320), xaxt = "n", yaxt = "n", xlab = "", ylab = "")
-  rect(-0.20, -20, 0.20, 360, col = "#FFFFFF", border = NA)
-  rect(split_pref_band[1], 0, split_pref_band[2], 315, col = "#DCDCDC", border = NA)
-  hist(res_clip, breaks = seq(-0.15, 0.15, by = 0.02), col = "#888888", border = "#000000", add = TRUE)
-  abline(v = 0, lty = 2, col = "#000000", lwd = 1.2)
-  box(col = "#555555")
-  axis(1, at = c(-0.1, 0, 0.1), labels = c("-0.1", "0", "0.1"), cex.axis = 0.65, mgp = c(1.2, 0.25, 0), tck = -0.04)
-  mtext(expression(paste(log[10], "(a / ", M["*"]^{1/3} * T^{2/3}, ")")), side = 3, line = 0.15, cex = 0.66, font = 2)
+  plot(NA, xlim = c(-0.14, 0.14), ylim = c(0, 820), xaxt = "n", yaxt = "n", xlab = "", ylab = "")
+  rect(-0.20, -20, 0.20, 900, col = "#FFFFFF", border = NA)
+  hist(res_clip, breaks = seq(-0.14, 0.14, by = 0.02),
+       col = adjustcolor(COL_NAVY, alpha.f = 0.35), border = COL_NAVY, add = TRUE)
+  abline(v = 0, lty = 2, col = COL_BRICK, lwd = 1.4)
+  box(col = "#666666")
+  axis(1, at = c(-0.1, 0, 0.1), labels = c("-0.1", "0", "0.1"), cex.axis = 0.64, mgp = c(1.2, 0.22, 0), tck = -0.04)
+  mtext(expression(paste(log[10], "(a / ", M["*"]^{1/3} * T^{2/3}, ")")), side = 3, line = 0.12, cex = 0.64, font = 2)
 
-  # Restore Panel A plt and move explicitly to Panel B
   par(plt = op_plt)
   par(mfg = c(1, 2))
 
-  # Panel B: Empirical Selection Frequency across 8 NASA Covariates + 95% Clopper-Pearson CIs
+  # Panel B: Covariate Selection Frequency (Point-and-Whisker 95% Clopper-Pearson CIs)
   k_sel <- c(
     sum(grepl("M_star", df_real$formula, fixed = TRUE)),
     sum(grepl("T", df_real$formula, fixed = TRUE)),
@@ -550,23 +539,29 @@ save_dual("fig4_exoplanet_discovery", width = 11.4, height = 4.9, plot_fn = func
   )
   sel_freq <- (k_sel / nrow(df_real)) * 100
   cis_sel  <- cp_ci(k_sel, nrow(df_real)) * 100
+  x_cov    <- 1:8
 
-  bp <- barplot(sel_freq, names.arg = FALSE, ylim = c(0, 124), col = NA, border = NA,
-                ylab = "MPM Active Path Selection Frequency (%)",
-                main = "(b) Covariate Selection Across 100 Splits", las = 1)
-  draw_grid_h(seq(0, 120, by = 20))
-  barplot(sel_freq, names.arg = FALSE, col = c("#595959", "#595959", rep(COL_THIRD, 6)),
-          border = "#000000", add = TRUE, axes = FALSE)
+  plot(NA, xlim = c(0.3, 8.7), ylim = c(-6, 118), xaxt = "n",
+       xlab = "Candidate Astrophysical Covariates (p = 8)",
+       ylab = "MPM Active Path Selection Frequency (%)",
+       main = "(b) Covariate Selection Across 100 Splits", las = 1)
+  draw_grid_h(seq(0, 100, by = 20))
+  draw_grid_v(x_cov)
+  abline(h = 50, lty = 2, col = "#555555", lwd = 1.5)
+  draw_padded_text(5.5, 50, "MPM Threshold (50%)", cex = 0.76, font = 2, col = "#333333")
 
-  draw_whiskers(bp[1:2], cis_sel[1:2, "lo"], cis_sel[1:2, "hi"], lwd = 1.6, length = 0.035, halo = TRUE)
-  draw_whiskers(bp[3:8], cis_sel[3:8, "lo"], cis_sel[3:8, "hi"], lwd = 1.6, length = 0.035, halo = FALSE)
+  pt_cols <- c(COL_NAVY, COL_NAVY, rep("#555555", 6))
+  for (j in x_cov) {
+    draw_whiskers(j, cis_sel[j, "lo"], cis_sel[j, "hi"], lwd = 2.0, length = 0.045, col = pt_cols[j], halo = FALSE)
+  }
+  points(x_cov, sel_freq, pch = c(16, 16, rep(1, 6)), cex = c(1.6, 1.6, rep(1.3, 6)), col = pt_cols, lwd = 1.6)
 
   cov_exprs <- expression(M["*"], T, M[p], R[p], e, R["*"], Z[metal], T[eff])
-  axis(1, at = bp, labels = cov_exprs, las = 1, cex.axis = 0.92, tick = FALSE, line = 0.4)
-  abline(h = 50, lty = 2, col = "#444444", lwd = 1.5)
-  text(bp, pmin(118, cis_sel[, "hi"] + 7),
-       labels = sprintf("%.0f%%\n[%.0f, %.0f]", sel_freq, cis_sel[, "lo"], cis_sel[, "hi"]),
-       cex = 0.72, font = 2, col = "#000000")
+  axis(1, at = x_cov, labels = cov_exprs, las = 1, cex.axis = 0.92)
+  y_lbl_b <- cis_sel[, "hi"] + 9.2
+  text(x_cov, y_lbl_b,
+       labels = sprintf("%.0f%%\n[%.0f,%.0f]", sel_freq, cis_sel[, "lo"], cis_sel[, "hi"]),
+       cex = 0.66, font = 2, col = pt_cols)
 })
 
 # ==============================================================================
@@ -575,7 +570,7 @@ save_dual("fig4_exoplanet_discovery", width = 11.4, height = 4.9, plot_fn = func
 save_dual("fig5_friedman_nonlinear", width = 11.4, height = 4.8, plot_fn = function() {
   par(mfrow = c(1, 2), mar = c(4.8, 4.8, 3.2, 1.5), cex.lab = 1.02, cex.main = 1.08)
 
-  # Panel A: Active Sub-Expression Occurrences per Variable X1..X10 + Mean +/- 95% CI
+  # Panel A: Active Sub-Expression Occurrences per Variable X1..X10
   occ_mat <- sapply(1:10, function(j) {
     pat <- paste0("x", j, "([^0-9]|$)")
     sapply(regmatches(df_nl$formula, gregexpr(pat, df_nl$formula)), length)
@@ -585,31 +580,34 @@ save_dual("fig5_friedman_nonlinear", width = 11.4, height = 4.8, plot_fn = funct
        ylab = "Active Symbolic Terms per MPM Formula",
        main = "(a) Friedman #1: Active Term Multiplicity (M = 100)", las = 1)
   draw_grid_h(seq(0, 35, by = 5))
-  boxplot(occ_mat, boxwex = 0.56, col = c(rep("#7A7A7A", 5), rep("#E6E6E6", 5)),
-          medcol = c(rep("#FFFFFF", 5), rep("#000000", 5)),
-          border = "#000000", xaxt = "n", yaxt = "n", outline = FALSE, add = TRUE)
+
+  fill_nl <- c(rep(adjustcolor(COL_NAVY, alpha.f = 0.40), 5), rep(COL_LIGHT, 5))
+  bord_nl <- c(rep(COL_NAVY, 5), rep("#555555", 5))
+  boxplot(occ_mat, boxwex = 0.56, col = fill_nl, border = bord_nl,
+          medcol = bord_nl, xaxt = "n", yaxt = "n", outline = FALSE, add = TRUE)
 
   for (j in 1:10) {
     yj <- occ_mat[, j]
     mu_j <- mean(yj)
     ci_j <- mu_j + c(-1, 1) * qt(0.975, length(yj) - 1) * sd(yj) / sqrt(length(yj))
-    draw_whiskers(j + 0.18, ci_j[1], ci_j[2], lwd = 1.5, length = 0.025, halo = (j <= 5))
+    draw_whiskers(j + 0.18, ci_j[1], ci_j[2], lwd = 1.5, length = 0.025, col = COL_CHAR, halo = TRUE)
     points(j + 0.18, mu_j, pch = 18, cex = 1.40, col = "#FFFFFF")
-    points(j + 0.18, mu_j, pch = 18, cex = 1.00, col = "#000000")
+    points(j + 0.18, mu_j, pch = 18, cex = 1.00, col = COL_CHAR)
   }
   axis(1, at = 1:10, labels = parse(text = paste0("X[", 1:10, "]")), cex.axis = 0.90)
-  abline(v = 5.5, lty = 2, col = "#000000", lwd = 1.8)
-  abline(h = 6.0, lty = 3, col = "#333333", lwd = 1.5)
-  draw_padded_text(8.5, 7.5, "Salience Threshold (6 terms)", cex = 0.78, font = 2,
-                   col = "#000000", pad_x = 0.12, pad_y = 0.35, border = "#CCCCCC")
+  abline(v = 5.5, lty = 2, col = COL_CHAR, lwd = 1.8)
+  abline(h = 6.0, lty = 3, col = COL_BRICK, lwd = 1.7)
+  draw_padded_text(8.4, 7.6, "Salience Threshold (6 terms)", cex = 0.78, font = 2,
+                   col = COL_BRICK, pad_x = 0.12, pad_y = 0.35, border = COL_BRICK)
 
   legend("topright",
          legend = c(expression(paste("True Signals ", X[1] * ".." * X[5], " (Mean = 11.7)")),
                     expression(paste("Noise Distractors ", X[6] * ".." * X[10], " (Mean = 2.5)"))),
-         fill = c("#7A7A7A", "#E6E6E6"), border = "#000000",
+         fill = c(adjustcolor(COL_NAVY, alpha.f = 0.40), COL_LIGHT),
+         border = c(COL_NAVY, "#555555"),
          bty = "o", bg = "white", box.col = "#CCCCCC", cex = 0.78)
 
-  # Panel B: Joint Distribution (n_test = 300) + 95% Bivariate Ellipse + White-Haloed Centroid
+  # Panel B: Joint Distribution + 95% Bivariate Ellipse + Accented Centroid & Floor
   dens_pct <- df_nl$active_density * 100
   rmse_v   <- df_nl$test_rmse
   mu_d <- mean(dens_pct); se_d <- sd(dens_pct) / sqrt(length(dens_pct))
@@ -624,23 +622,22 @@ save_dual("fig5_friedman_nonlinear", width = 11.4, height = 4.8, plot_fn = funct
   draw_grid_h(seq(0.9, 1.6, by = 0.1))
   draw_grid_v(seq(12, 26, by = 2))
 
-  points(dens_pct, rmse_v, pch = 1, col = "#666666", cex = 0.92)
+  points(dens_pct, rmse_v, pch = 1, col = adjustcolor(COL_NAVY, alpha.f = 0.65), cex = 0.92)
 
   S_cov <- cov(cbind(dens_pct, rmse_v))
   eig   <- eigen(S_cov)
   rad   <- sqrt(qchisq(0.95, df = 2))
   th    <- seq(0, 2 * pi, length.out = 200)
   ell_pts <- t(c(mu_d, mu_r) + rad * (eig$vectors %*% diag(sqrt(pmax(eig$values, 0))) %*% rbind(cos(th), sin(th))))
-  lines(ell_pts[, 1], ell_pts[, 2], col = "#000000", lty = 2, lwd = 1.7)
-  abline(h = 1.00, lty = 3, col = "#000000", lwd = 2.0)
+  lines(ell_pts[, 1], ell_pts[, 2], col = COL_NAVY, lty = 2, lwd = 1.9)
+  abline(h = 1.00, lty = 3, col = COL_TEAL, lwd = 2.1)
 
-  # Centroid with thick white halo behind 95% CI crosshairs and large diamond
   arrows(mu_d - t_cr * se_d, mu_r, mu_d + t_cr * se_d, mu_r, angle = 90, code = 3, length = 0.04, lwd = 3.2, col = "#FFFFFF")
   arrows(mu_d, mu_r - t_cr * se_r, mu_d, mu_r + t_cr * se_r, angle = 90, code = 3, length = 0.04, lwd = 3.2, col = "#FFFFFF")
-  arrows(mu_d - t_cr * se_d, mu_r, mu_d + t_cr * se_d, mu_r, angle = 90, code = 3, length = 0.04, lwd = 1.9, col = "#000000")
-  arrows(mu_d, mu_r - t_cr * se_r, mu_d, mu_r + t_cr * se_r, angle = 90, code = 3, length = 0.04, lwd = 1.9, col = "#000000")
+  arrows(mu_d - t_cr * se_d, mu_r, mu_d + t_cr * se_d, mu_r, angle = 90, code = 3, length = 0.04, lwd = 2.0, col = COL_BRICK)
+  arrows(mu_d, mu_r - t_cr * se_r, mu_d, mu_r + t_cr * se_r, angle = 90, code = 3, length = 0.04, lwd = 2.0, col = COL_BRICK)
   points(mu_d, mu_r, pch = 18, col = "#FFFFFF", cex = 2.4)
-  points(mu_d, mu_r, pch = 18, col = "#000000", cex = 2.0)
+  points(mu_d, mu_r, pch = 18, col = COL_BRICK, cex = 2.0)
 
   legend("topright",
          legend = expression(
@@ -651,13 +648,13 @@ save_dual("fig5_friedman_nonlinear", width = 11.4, height = 4.8, plot_fn = funct
          ),
          pch = c(18, NA, NA, NA),
          lty = c(NA, NA, 2, 3),
-         lwd = c(NA, NA, 1.7, 2.0),
-         col = "#000000",
+         lwd = c(NA, NA, 1.9, 2.1),
+         col = c(COL_BRICK, COL_BRICK, COL_NAVY, COL_TEAL),
          bty = "o", bg = "white", box.col = "#CCCCCC", cex = 0.73)
 })
 
 # ==============================================================================
-# FIGURE 6: Multi-Task Baseline Comparison (Monochrome + Hatching + Angled Labels)
+# FIGURE 6: Multi-Task Baseline Comparison (Dodged Point-and-Whisker 95% CIs)
 # ==============================================================================
 extract_mat_ci <- function(ci_df, methods, metrics) {
   m_est <- matrix(NA_real_, nrow = length(metrics), ncol = length(methods), dimnames = list(metrics, methods))
@@ -680,55 +677,57 @@ draw_angled_x_labels <- function(x_centers, labels, y_offset_frac = 0.045, cex =
   y_pos <- usr[3] - y_offset_frac * (usr[4] - usr[3])
   for (j in seq_along(x_centers)) {
     fnt <- ifelse(labels[j] == "Symbolic-LBBNN", 2, 1)
-    text(x_centers[j], y_pos, labels = labels[j], srt = 35, adj = 1, xpd = TRUE, cex = cex, font = fnt)
+    col_lbl <- ifelse(labels[j] == "Symbolic-LBBNN", COL_NAVY, "#000000")
+    text(x_centers[j], y_pos, labels = labels[j], srt = 35, adj = 1, xpd = TRUE, cex = cex, font = fnt, col = col_lbl)
   }
 }
 
-draw_grouped_bw_bars <- function(mat_ci, methods, scale_mult = 100, ylim = c(0, 128),
-                                 ylab = "Percentage (%)", main_title = "",
-                                 legend_labels = NULL, legend_pos = "topright",
-                                 horiz_leg = FALSE, cex_names = 0.78) {
+draw_grouped_ci_points <- function(mat_ci, methods, scale_mult = 100, ylim = c(-4, 126),
+                                   ylab = "Percentage (%)", main_title = "",
+                                   legend_labels = NULL, legend_pos = "topright",
+                                   horiz_leg = FALSE, cex_names = 0.78) {
   est <- mat_ci$est * scale_mult
   lo  <- mat_ci$lo  * scale_mult
   hi  <- mat_ci$hi  * scale_mult
   n_r <- nrow(est)
+  n_c <- ncol(est)
 
-  base_fills <- if (n_r == 2L) c("#525252", "#FFFFFF") else c("#525252", "#A6A6A6", "#FFFFFF")
-  hatched    <- if (n_r == 2L) c(FALSE, TRUE) else c(FALSE, FALSE, TRUE)
+  x_centers <- seq_len(n_c)
+  offs <- if (n_r == 2L) c(-0.16, 0.16) else c(-0.22, 0.0, 0.22)
+  pchs <- if (n_r == 2L) c(16, 17) else c(16, 17, 15)
+  cols <- if (n_r == 2L) c(COL_NAVY, COL_BRICK) else c(COL_NAVY, COL_TEAL, COL_BRICK)
+  ltys <- if (n_r == 2L) c(1, 2) else c(1, 2, 1)
 
-  # Empty plot -> background gridlines -> solid bars -> hatched overlay -> haloed whiskers
-  bp <- barplot(est, beside = TRUE, names.arg = rep("", ncol(est)), ylim = ylim,
-                col = NA, border = NA, ylab = ylab, main = main_title, las = 1)
-  draw_grid_h(seq(0, ylim[2], by = 20))
-  barplot(est, beside = TRUE, names.arg = rep("", ncol(est)),
-          col = base_fills, border = "#000000", add = TRUE, axes = FALSE)
+  plot(NA, xlim = c(0.4, n_c + 0.6), ylim = ylim, xaxt = "n",
+       xlab = "", ylab = ylab, main = main_title, las = 1)
+  draw_grid_h(seq(0, 100, by = 20))
+  draw_grid_v(x_centers)
 
-  for (r in which(hatched)) {
-    for (c_idx in seq_len(ncol(est))) {
-      w_half <- if (ncol(est) > 1L) 0.42 else 0.42
-      rect(bp[r, c_idx] - w_half, 0, bp[r, c_idx] + w_half, est[r, c_idx],
-           col = "#404040", density = 20, angle = 45, border = "#000000")
+  for (r in seq_len(n_r)) {
+    xr <- x_centers + offs[r]
+    for (c_idx in seq_len(n_c)) {
+      if (is.finite(lo[r, c_idx]) && is.finite(hi[r, c_idx]) && (hi[r, c_idx] - lo[r, c_idx] > 1e-6)) {
+        arrows(xr[c_idx], lo[r, c_idx], xr[c_idx], hi[r, c_idx],
+               angle = 90, code = 3, length = 0.026, lwd = 1.7, lty = ltys[r], col = cols[r])
+      }
+      points(xr[c_idx], est[r, c_idx], pch = pchs[r], cex = 1.25, col = cols[r], bg = "white", lwd = 1.5)
     }
   }
 
-  for (r in seq_len(n_r)) {
-    draw_whiskers(bp[r, ], lo[r, ], hi[r, ], lwd = 1.4, length = 0.022, halo = (r == 1L))
-  }
-
-  draw_angled_x_labels(colMeans(bp), methods, y_offset_frac = 0.045, cex = cex_names)
+  draw_angled_x_labels(x_centers, methods, y_offset_frac = 0.045, cex = cex_names)
 
   if (!is.null(legend_labels)) {
-    draw_bw_legend(legend_pos, legend_labels, base_fills, hatched = hatched,
-                   horiz = horiz_leg, cex = 0.72)
+    legend(legend_pos, legend = legend_labels, pch = pchs, col = cols, lty = ltys, lwd = 1.7,
+           pt.bg = "white", horiz = horiz_leg, bty = "o", bg = "white", box.col = "#CCCCCC", cex = 0.72)
   }
-  bp
+  invisible(x_centers)
 }
 
 save_dual("fig6_baseline_comparisons", width = 12.2, height = 9.0, plot_fn = function() {
   par(mfrow = c(2, 2), mar = c(6.4, 4.8, 3.2, 1.4), cex.lab = 1.02, cex.main = 1.08)
 
   # Panel A: Logic Regression
-  m_log <- c("Symbolic-LBBNN", "LogicReg", "FBMS-BLR", "Lasso-Interactions", "ReLU-LBBNN", "RandomForest")
+  m_log <- c("Symbolic-LBBNN", "FBMS-BLR", "LogicReg", "Lasso-Interactions", "ReLU-LBBNN", "RandomForest")
   ci_a <- extract_mat_ci(ci_log, m_log, c("clause_tpr", "clause_spec", "exact_recovery"))
   for (j in seq_along(m_log)) {
     r <- ci_log[ci_log$metric == "clause_fpr" & ci_log$method == m_log[j], ]
@@ -736,8 +735,8 @@ save_dual("fig6_baseline_comparisons", width = 12.2, height = 9.0, plot_fn = fun
     ci_a$lo[2, j]  <- 1.0 - r$ci_hi
     ci_a$hi[2, j]  <- 1.0 - r$ci_lo
   }
-  draw_grouped_bw_bars(
-    ci_a, methods = m_log, ylim = c(0, 128), main_title = "(a) Task 1: Bayesian Logic Regression Baselines",
+  draw_grouped_ci_points(
+    ci_a, methods = m_log, ylim = c(-4, 128), main_title = "(a) Task 1: Bayesian Logic Regression Baselines",
     legend_labels = c("Clause TPR (%)", "Clause 1 - FPR (%)", "Exact 3-Clause Match (%)"),
     legend_pos = "topright", cex_names = 0.80
   )
@@ -745,17 +744,17 @@ save_dual("fig6_baseline_comparisons", width = 12.2, height = 9.0, plot_fn = fun
   # Panel B: Synthetic Kepler Law
   m_kep <- c("Symbolic-LBBNN", "FBMS-BGNLM", "SR-Operon", "SR-PySR", "MARS", "GAM", "Lasso", "RandomForest", "ReLU-LBBNN")
   ci_b <- extract_mat_ci(ci_kep, m_kep, c("structural_recovery", "exact_law"))
-  draw_grouped_bw_bars(
-    ci_b, methods = m_kep, ylim = c(0, 128), ylab = "Recovery Rate (%)",
+  draw_grouped_ci_points(
+    ci_b, methods = m_kep, ylim = c(-4, 128), ylab = "Recovery Rate (%)",
     main_title = "(b) Task 2: Synthetic Kepler Law (p = 10)",
     legend_labels = c(expression(paste("Exact Support {", M["*"], ", T} (%)")),
                       expression(paste("Exact Rational Law ", a == M["*"]^{1/3} * T^{2/3}, " (%)"))),
     legend_pos = "topright", cex_names = 0.76
   )
 
-  # Panel C: NASA Exoplanet Archive (n = 939) Test RMSE — ordered identically to Table 3
+  # Panel C: NASA Exoplanet Archive (n = 939) Test RMSE (Point-and-Whisker 95% CIs + Arithmetic Mean Diamonds)
   m_real <- c("Symbolic-LBBNN", "FBMS-BGNLM", "MARS", "ReLU-LBBNN", "Lasso",
-              "RandomForest", "SR-PySR", "SR-Operon", "GAM")
+              "RandomForest", "GAM", "SR-PySR", "SR-Operon")
   gm_est <- numeric(length(m_real)); gm_lo <- gm_est; gm_hi <- gm_est; am_est <- gm_est
   for (j in seq_along(m_real)) {
     v <- raw_real_b$test_rmse[raw_real_b$method == m_real[j]]
@@ -767,29 +766,24 @@ save_dual("fig6_baseline_comparisons", width = 12.2, height = 9.0, plot_fn = fun
     gm_hi[j]  <- exp(mean(lv) + tc * se_l)
     am_est[j] <- mean(v)
   }
-  shift <- 2.5
-  bar_cols <- ifelse(m_real == "Symbolic-LBBNN", "#404040", "#D0D0D0")
-  bp_c <- barplot(log10(gm_est) + shift, names.arg = rep("", length(m_real)), ylim = c(0, 4.45),
-                  col = NA, border = NA, yaxt = "n",
-                  ylab = "Held-Out Test RMSE (AU, log10 scale)",
-                  main = "(c) Task 3: NASA Exoplanets (n = 939) Test Error", las = 1)
-  axis(2, at = c(0.5, 1.5, 2.5, 3.5), labels = c("0.01", "0.10", "1.00", "10.0"), las = 1)
-  draw_grid_h(c(0.5, 1.5, 2.5, 3.5))
-  barplot(log10(gm_est) + shift, names.arg = rep("", length(m_real)),
-          col = bar_cols, border = "#000000", add = TRUE, axes = FALSE)
+  x_c <- seq_along(m_real)
+  plot(NA, xlim = c(0.4, length(m_real) + 0.6), ylim = c(-2.2, 1.3), xaxt = "n", yaxt = "n",
+       xlab = "", ylab = "Held-Out Test RMSE (AU, log10 scale)",
+       main = "(c) Task 3: NASA Exoplanets (n = 939) Test Error", las = 1)
+  axis(2, at = c(-2, -1, 0, 1), labels = c("0.01", "0.10", "1.00", "10.0"), las = 1)
+  draw_grid_h(c(-2, -1, 0, 1))
+  draw_grid_v(x_c)
 
-  draw_whiskers(bp_c[1], log10(gm_lo[1]) + shift, log10(gm_hi[1]) + shift, lwd = 1.5, length = 0.03, halo = TRUE)
-  draw_whiskers(bp_c[-1], log10(gm_lo[-1]) + shift, log10(gm_hi[-1]) + shift, lwd = 1.5, length = 0.03, halo = FALSE)
+  draw_whiskers(x_c, log10(gm_lo), log10(gm_hi), lwd = 1.9, length = 0.035, col = COL_NAVY)
+  segments(x_c, log10(gm_est), x_c, log10(am_est), lty = 3, col = COL_BRICK, lwd = 1.4)
+  points(x_c, log10(gm_est), pch = 16, cex = 1.35, col = COL_NAVY)
+  points(x_c, log10(am_est), pch = 18, cex = 1.30, col = COL_BRICK)
+  text(x_c, pmax(log10(am_est), log10(gm_hi)) + 0.14, labels = sprintf("%.3f", am_est), cex = 0.70, font = 2, col = COL_BRICK)
 
-  # Dotted stems from geometric-mean bar top to arithmetic-mean diamond
-  segments(bp_c, log10(gm_est) + shift, bp_c, log10(am_est) + shift, lty = 3, col = "#444444", lwd = 1.2)
-  points(bp_c, log10(am_est) + shift, pch = 18, cex = 1.35, col = "#000000")
-  text(bp_c, log10(am_est) + shift, labels = sprintf("%.3f", am_est), pos = 3, offset = 0.45, cex = 0.70, font = 2)
-
-  draw_angled_x_labels(bp_c, m_real, y_offset_frac = 0.045, cex = 0.76)
+  draw_angled_x_labels(x_c, m_real, y_offset_frac = 0.045, cex = 0.76)
   legend("topleft",
-         legend = c("Geometric Mean (bars + 95% CI)", "Arithmetic Mean (outliers shown)"),
-         pch = c(15, 18), col = c("#D0D0D0", "#000000"),
+         legend = c("Geometric Mean (circles + 95% CI)", "Arithmetic Mean (diamonds, outliers shown)"),
+         pch = c(16, 18), lty = c(1, 3), col = c(COL_NAVY, COL_BRICK), lwd = 1.7,
          bty = "o", bg = "white", box.col = "#CCCCCC", cex = 0.73)
 
   # Panel D: Friedman #1 Nonlinear Benchmark
@@ -801,8 +795,8 @@ save_dual("fig6_baseline_comparisons", width = 12.2, height = 9.0, plot_fn = fun
     ci_d$lo[2, j]  <- 1.0 - r$ci_hi
     ci_d$hi[2, j]  <- 1.0 - r$ci_lo
   }
-  draw_grouped_bw_bars(
-    ci_d, methods = m_nl, ylim = c(0, 128),
+  draw_grouped_ci_points(
+    ci_d, methods = m_nl, ylim = c(-4, 128),
     main_title = "(d) Task 4: Friedman #1 Variable Selection Baselines",
     legend_labels = c("Signal TPR (%)", "Specificity 1-FPR (%)", "Exact Support (%)"),
     legend_pos = "top", horiz_leg = TRUE, cex_names = 0.76
@@ -813,8 +807,8 @@ save_dual("fig6_baseline_comparisons", width = 12.2, height = 9.0, plot_fn = fun
 # FIGURE 7: GLMM Fixed-Effect Contrast Forest Plots (Symbolic-LBBNN Ref = 0)
 # ==============================================================================
 draw_forest_panel <- function(df_list, lbls, xlab, main_title, xlim,
-                              pch_vec = c(16, 2), lty_vec = c(1, 2),
-                              col_vec = c("#000000", "#333333"),
+                              pch_vec = c(16, 17), lty_vec = c(1, 2),
+                              col_vec = c(COL_NAVY, COL_TEAL),
                               leg_labels = NULL) {
   k <- length(lbls)
   y_pos <- rev(seq_len(k))
@@ -822,8 +816,8 @@ draw_forest_panel <- function(df_list, lbls, xlab, main_title, xlim,
   plot(NA, xlim = xlim, ylim = c(0.4, y_top), yaxt = "n",
        xlab = xlab, ylab = "", main = main_title, las = 1)
   draw_grid_v(pretty(xlim))
-  abline(h = y_pos, col = "#E0E0E0", lty = 3)
-  abline(v = 0, lty = 2, col = "#000000", lwd = 1.8)
+  abline(h = y_pos, col = "#EAECEE", lty = 3)
+  abline(v = 0, lty = 2, col = COL_BRICK, lwd = 1.9)
   axis(2, at = y_pos, labels = lbls, las = 1, cex.axis = 0.85)
 
   n_ser <- length(df_list)
@@ -834,8 +828,10 @@ draw_forest_panel <- function(df_list, lbls, xlab, main_title, xlim,
       row_j <- d_s[d_s$term == lbls[j], , drop = FALSE]
       if (nrow(row_j) == 1L && is.finite(row_j$estimate)) {
         yy <- y_pos[j] + offs[s]
-        arrows(row_j$ci_lo, yy, row_j$ci_hi, yy,
-               angle = 90, code = 3, length = 0.03, lwd = 1.6, lty = lty_vec[s], col = col_vec[s])
+        if (abs(row_j$ci_hi - row_j$ci_lo) > 1e-6) {
+          arrows(row_j$ci_lo, yy, row_j$ci_hi, yy,
+                 angle = 90, code = 3, length = 0.03, lwd = 1.7, lty = lty_vec[s], col = col_vec[s])
+        }
         points(row_j$estimate, yy, pch = pch_vec[s], cex = 1.25, col = col_vec[s], bg = "white")
       }
     }
@@ -857,10 +853,10 @@ save_dual("fig7_glmm_contrasts", width = 12.2, height = 8.6, plot_fn = function(
     list(d1), lbls = d1$term,
     xlab = expression(paste("GLMM Log-RMSE Contrast ", hat(beta)[m], " (95% CI vs. Symbolic-LBBNN)")),
     main_title = "(a) Task 1 (Logic): Test RMSE Log-Ratio (Gamma GLMM)",
-    xlim = c(-0.20, 0.50)
+    xlim = c(-0.20, 0.50), col_vec = COL_NAVY
   )
 
-  # Panel B: Tasks 2 & 3 (Kepler) Vertically Dodged w/ Distinct Lines & Markers
+  # Panel B: Tasks 2 & 3 (Kepler) Vertically Dodged w/ Distinct Navy & Teal Series
   d2 <- gl_kep[gl_kep$metric == "test_rmse" & !gl_kep$is_ref, ]
   d3 <- gl_real[gl_real$metric == "test_rmse" & !gl_real$is_ref, ]
   ord_b <- d3$term[order(d3$estimate)]
@@ -869,7 +865,7 @@ save_dual("fig7_glmm_contrasts", width = 12.2, height = 8.6, plot_fn = function(
     xlab = expression(paste("GLMM Log-RMSE Contrast ", hat(beta)[m], " (95% CI vs. Symbolic-LBBNN)")),
     main_title = "(b) Tasks 2 & 3 (Kepler): Test RMSE Log-Ratio (Gamma GLMM)",
     xlim = c(-0.3, 6.2),
-    pch_vec = c(16, 2), lty_vec = c(1, 2), col_vec = c("#000000", "#333333"),
+    pch_vec = c(16, 17), lty_vec = c(1, 2), col_vec = c(COL_TEAL, COL_NAVY),
     leg_labels = c("Synthetic Kepler (p = 10)", "NASA Exoplanets (n = 939)")
   )
 
@@ -880,7 +876,7 @@ save_dual("fig7_glmm_contrasts", width = 12.2, height = 8.6, plot_fn = function(
     list(d4), lbls = d4$term,
     xlab = expression(paste("GLMM Log-RMSE Contrast ", hat(beta)[m], " (95% CI vs. Symbolic-LBBNN)")),
     main_title = "(c) Task 4 (Friedman #1): Test RMSE Log-Ratio (Gamma GLMM)",
-    xlim = c(-0.20, 1.00)
+    xlim = c(-0.20, 1.00), col_vec = COL_NAVY
   )
 
   # Panel D: Joint Cross-Benchmark Hierarchical GLMM (Dodged Dual-Axis Summary of Table 5)
@@ -891,42 +887,39 @@ save_dual("fig7_glmm_contrasts", width = 12.2, height = 8.6, plot_fn = function(
   lbl_d   <- dj_rmse$term
   k_d     <- length(lbl_d)
   y_d     <- rev(seq_len(k_d))
-  lo_scale <- 3.2   # aligns 0 vertically while giving full resolution to [-4, 15] log-odds & [-1.5, 4.6] log-RMSE
+  lo_scale <- 3.2
 
-  plot(NA, xlim = c(-1.6, 4.7), ylim = c(0.4, k_d + 1.45), yaxt = "n",
-       xlab = expression(paste("Joint Log Relative-RMSE ", hat(beta)[m], " (95% CI, filled circles)")),
+  plot(NA, xlim = c(-2.2, 4.7), ylim = c(0.4, k_d + 1.45), yaxt = "n",
+       xlab = expression(paste("Joint Log Relative-RMSE ", hat(beta)[m], " (95% CI, navy circles)")),
        ylab = "", main = "", las = 1)
-  draw_grid_v(c(-1, 0, 1, 2, 3, 4))
-  abline(h = y_d, col = "#E0E0E0", lty = 3)
-  abline(v = 0, lty = 2, col = "#000000", lwd = 1.8)
+  draw_grid_v(c(-2, -1, 0, 1, 2, 3, 4))
+  abline(h = y_d, col = "#EAECEE", lty = 3)
+  abline(v = 0, lty = 2, col = COL_BRICK, lwd = 1.9)
   axis(2, at = y_d, labels = lbl_d, las = 1, cex.axis = 0.85)
-  # Top axis for Exact Goal Loss Log-Odds (-beta_m > 0 indicates worse goal recovery than Symbolic-LBBNN)
-  top_ticks <- c(-4, 0, 4, 8, 12)
-  axis(3, at = top_ticks / lo_scale, labels = top_ticks, cex.axis = 0.82, mgp = c(1.6, 0.38, 0))
-  mtext(expression(paste("Exact Goal Deficit Log-Odds ", -hat(beta)[m], " (open squares, top axis)")),
-        side = 3, line = 1.35, cex = 0.72)
+  top_ticks <- c(-6, -3, 0, 3, 6, 9, 12, 14)
+  axis(3, at = top_ticks / lo_scale, labels = top_ticks, cex.axis = 0.80, mgp = c(1.6, 0.38, 0))
+  mtext(expression(paste("Exact Goal Deficit Log-Odds ", -hat(beta)[m], " (teal squares, top axis)")),
+        side = 3, line = 1.35, cex = 0.72, col = COL_TEAL)
   title(main = "(d) Joint Cross-Benchmark GLMM (4 Tasks x 100 Seeds)", line = 2.90, cex.main = 1.04)
 
   for (j in seq_len(k_d)) {
     r1 <- dj_rmse[dj_rmse$term == lbl_d[j], ]
     r2 <- dj_goal[dj_goal$term == lbl_d[j], ]
-    # Series 1 (top offset): Log Relative-RMSE Contrast
     arrows(r1$ci_lo, y_d[j] + 0.16, r1$ci_hi, y_d[j] + 0.16,
-           angle = 90, code = 3, length = 0.025, lwd = 1.6, lty = 1, col = "#000000")
-    points(r1$estimate, y_d[j] + 0.16, pch = 16, cex = 1.15, col = "#000000")
+           angle = 90, code = 3, length = 0.025, lwd = 1.7, lty = 1, col = COL_NAVY)
+    points(r1$estimate, y_d[j] + 0.16, pch = 16, cex = 1.15, col = COL_NAVY)
 
-    # Series 2 (bottom offset): -Estimate (Exact Goal Recovery Deficit Log-Odds) scaled onto shared 0
     est2 <- -r2$estimate / lo_scale
     lo2  <- -r2$ci_hi / lo_scale
     hi2  <- -r2$ci_lo / lo_scale
     arrows(lo2, y_d[j] - 0.16, hi2, y_d[j] - 0.16,
-           angle = 90, code = 3, length = 0.025, lwd = 1.5, lty = 2, col = "#333333")
-    points(est2, y_d[j] - 0.16, pch = 0, cex = 1.10, col = "#333333", bg = "white")
+           angle = 90, code = 3, length = 0.025, lwd = 1.6, lty = 2, col = COL_TEAL)
+    points(est2, y_d[j] - 0.16, pch = 15, cex = 1.10, col = COL_TEAL)
   }
   legend("top",
          legend = c("Log Relative-RMSE (bottom axis)", "Exact Goal Deficit Log-Odds (top axis)"),
-         pch = c(16, 0), lty = c(1, 2), col = c("#000000", "#333333"), pt.bg = "white",
+         pch = c(16, 15), lty = c(1, 2), col = c(COL_NAVY, COL_TEAL), pt.bg = "white",
          horiz = TRUE, bty = "o", bg = "white", box.col = "#CCCCCC", cex = 0.74)
 })
 
-cat("All 7 publication-grade monochrome figures generated successfully!\n")
+cat("All 7 publication-grade preserved-color figures generated successfully!\n")
