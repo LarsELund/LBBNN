@@ -1,15 +1,59 @@
-#' @title Candidate Rational Exponents Table
-#' @description Returns the candidate rational numbers used for exponent snapping
-#' in Stage 2B of \code{\link{train_symbolic_lbbnn}}.
+#' @title Euclidean Greatest Common Divisor for Integers
+#' @keywords internal
+gcd_int <- function(a, b) {
+  a <- abs(as.integer(a))
+  b <- abs(as.integer(b))
+  if (b == 0L) return(a)
+  Recall(b, a %% b)
+}
+
+#' @title General Irreducible Rational Candidates (Farey Sequence / Continued Fractions)
+#' @description Programmatically enumerates all irreducible rational fractions
+#' \eqn{p/q \in \mathbb{Q}} with \eqn{1 \le q \le q_{\max}} and
+#' \eqn{|p/q| \le \text{max\_abs}} (optionally multiplied by \eqn{\pi} for phase
+#' constants in trigonometric operators), without any benchmark-specific
+#' hardcoding.
+#' @param q_max Integer maximum denominator, default \code{6L}.
+#' @param max_abs Numeric maximum absolute multiplier, default \code{3.0}.
+#' @param pi_mult Logical, if \code{TRUE} returns rational multiples of \eqn{\pi}.
 #' @return A \code{data.frame} with columns \code{val} and \code{label}.
 #' @keywords internal
-get_rational_candidates <- function() {
-  data.frame(
-    val = c(-3, -2, -1.5, -1, -2/3, -0.5, -1/3, 0, 1/3, 0.5, 2/3, 1, 1.5, 2, 3),
-    label = c("-3", "-2", "-3/2", "-1", "-2/3", "-1/2", "-1/3", "0",
-              "1/3", "1/2", "2/3", "1", "3/2", "2", "3"),
-    stringsAsFactors = FALSE
-  )
+get_rational_candidates <- function(q_max = 6L, max_abs = 3.0, pi_mult = FALSE) {
+  vals <- c(0.0)
+  lbls <- c("0")
+  q_max <- max(1L, as.integer(q_max))
+  for (q in seq_len(q_max)) {
+    p_lim <- as.integer(floor(max_abs * q + 1e-9))
+    for (p in seq.int(-p_lim, p_lim)) {
+      if (p == 0L) next
+      if (gcd_int(p, q) == 1L) {
+        frac <- p / q
+        if (isTRUE(pi_mult)) {
+          val <- frac * pi
+          if (q == 1L && p == 1L) {
+            lbl <- "pi"
+          } else if (q == 1L && p == -1L) {
+            lbl <- "-pi"
+          } else if (q == 1L) {
+            lbl <- sprintf("%d*pi", p)
+          } else if (p == 1L) {
+            lbl <- sprintf("pi/%d", q)
+          } else if (p == -1L) {
+            lbl <- sprintf("-pi/%d", q)
+          } else {
+            lbl <- sprintf("(%d/%d)*pi", p, q)
+          }
+        } else {
+          val <- frac
+          lbl <- if (q == 1L) as.character(p) else sprintf("%d/%d", p, q)
+        }
+        vals <- c(vals, val)
+        lbls <- c(lbls, lbl)
+      }
+    }
+  }
+  df <- data.frame(val = vals, label = lbls, stringsAsFactors = FALSE)
+  df[order(df$val), , drop = FALSE]
 }
 
 #' @title Extract Full Dataset Tensors from a Dataloader
@@ -136,6 +180,25 @@ compute_mpm_bic <- function(LBBNN, x_ten, y_ten, k_eff, out_row = NULL) {
 #'   Laplace post-training (default \code{FALSE}).
 #' @param prior_sd_post Numeric prior standard deviation \eqn{\sigma_{\text{post}}}
 #'   for weakly informative Bayesian Laplace readout post-training (default \code{10.0}).
+#' @param var_mode Character Stage-1 noise variance mode for regression:
+#'   \code{"fixed"} (baseline unit-scale SSE), \code{"oracle"} (true known
+#'   \code{oracle_sigma}), or \code{"jeffreys_ema"} (online EMA variance
+#'   estimator under Jeffreys prior).
+#' @param oracle_sigma Optional numeric vector/scalar noise SD for
+#'   \code{var_mode = "oracle"}.
+#' @param rho_sigma Numeric EMA decay rate for \code{var_mode = "jeffreys_ema"}
+#'   (default \code{0.10}).
+#' @param post_mode Character Stage-2 post-training mode conditional on the
+#'   Stage-1 MPM subspace \eqn{\mathcal{M}_{\text{MPM}}}:
+#'   \code{"laplace_nig_subspace"} (symbolic duplicate-path consolidation +
+#'   exact conjugate NIG / Laplace marginal-likelihood selection strictly on
+#'   \eqn{\bm{\Phi}_{\text{MPM}}(\bm{X})}), \code{"variational_only"} (freeze
+#'   \eqn{\mathcal{M}_{\text{MPM}}} with zero pruning), or
+#'   \code{"variational_readout_prune"} (zero-temperature variational readout
+#'   pruning on \eqn{\bm{\gamma}^{(L)}}).
+#' @param use_bgnlm_screen Logical legacy flag (default \code{FALSE}); must
+#'   remain \code{FALSE} so Stage 2 operates strictly inside
+#'   \eqn{\bm{\Phi}_{\text{MPM}}(\bm{X})}.
 #' @param verbose Logical, whether to print progress messages (default \code{FALSE}).
 #' @return Invisibly returns a list with Stage 1 & Stage 2 loss histories,
 #'   active path densities, rational snapping summary, and readout posteriors.
@@ -160,11 +223,38 @@ train_symbolic_lbbnn <- function(epochs,
                                  prune_bic = TRUE,
                                  prune_readout = FALSE,
                                  prior_sd_post = 10.0,
+                                 var_mode = c("fixed", "oracle", "jeffreys_ema"),
+                                 oracle_sigma = NULL,
+                                 rho_sigma = 0.10,
+                                 post_mode = c("laplace_nig_subspace", "variational_only", "variational_readout_prune"),
+                                 use_bgnlm_screen = FALSE,
                                  verbose = FALSE) {
   debias_optimizer <- match.arg(debias_optimizer)
+  var_mode <- match.arg(var_mode)
+  post_mode <- match.arg(post_mode)
   q_out <- as.integer(LBBNN$sizes[length(LBBNN$sizes)])
   LBBNN$set_debias_mode(FALSE, deterministic_mpm = FALSE)
   LBBNN$enforce_constraints()
+
+  train_full <- extract_dl_tensors(train_dl, device = device)
+  val_full <- if (is.null(val_dl)) train_full else extract_dl_tensors(val_dl, device = device)
+  n_tr_full <- as.numeric(train_full$n)
+
+  # Initialize Stage-1 regression variance vector sigma2_hat (per output r = 1..q)
+  y_tr_mat <- if (q_out == 1L) {
+    matrix(as.numeric(train_full$y$cpu()), ncol = 1L)
+  } else {
+    as.matrix(train_full$y$cpu())
+  }
+  y_var_vec <- pmax(apply(y_tr_mat, 2L, stats::var), 1e-6)
+  if (var_mode == "oracle") {
+    if (is.null(oracle_sigma)) oracle_sigma <- rep(1.0, q_out)
+    sigma2_hat <- pmax(rep(as.numeric(oracle_sigma)^2, length.out = q_out), 1e-10)
+  } else if (var_mode == "jeffreys_ema") {
+    sigma2_hat <- y_var_vec
+  } else {
+    sigma2_hat <- rep(0.5, q_out)
+  }
 
   opt <- torch::optim_adam(LBBNN$parameters, lr = lr)
   losses <- numeric(epochs)
@@ -173,16 +263,35 @@ train_symbolic_lbbnn <- function(epochs,
   n_batches <- length(train_dl)
   start_time <- base::proc.time()
 
+  burnin_steps <- if (var_mode == "jeffreys_ema") as.integer(floor(0.5 * warmup_steps)) else 0L
+
   # =========================================================================
   # Stage 1: Variational Structure Search
   # =========================================================================
   for (epoch in seq_len(epochs)) {
-    beta_kl <- min(1.0, epoch / warmup_steps)
+    beta_kl <- if (epoch <= burnin_steps) {
+      0.0
+    } else {
+      min(1.0, (epoch - burnin_steps) / max(1L, warmup_steps - burnin_steps))
+    }
     tau_t <- tau_start * ((tau_end / tau_start)^(epoch / max(1L, epochs)))
     LBBNN$set_temperature(tau_t)
     LBBNN$train()
 
     batch_losses <- c()
+    sse_epoch_vec <- numeric(q_out)
+    sigma2_eff <- if (var_mode == "jeffreys_ema") {
+      sigma2_hat + 0.002 * tau_t * y_var_vec
+    } else {
+      sigma2_hat
+    }
+    inv_2s2 <- torch::torch_tensor(1.0 / (2.0 * sigma2_eff), dtype = torch::torch_float32(), device = device)
+    eff_grad_cap <- if (var_mode == "fixed") {
+      max_grad_norm
+    } else {
+      max_grad_norm * max(1.0, 0.5 / min(sigma2_eff))
+    }
+
     coro::loop(for (b in train_dl) {
       opt$zero_grad()
       data <- b[[1]]$to(device = device)
@@ -192,36 +301,79 @@ train_symbolic_lbbnn <- function(epochs,
       if (LBBNN$problem_type == "multiclass classification" ||
           LBBNN$problem_type == "MNIST") {
         target <- target$to(dtype = torch::torch_long())
-      } else if (q_out == 1L) {
-        output <- output$squeeze(dim = 2L)
-        if (length(dim(target)) > 1L && dim(target)[2] == 1L) {
-          target <- target$squeeze(dim = 2L)
+        nll_loss <- LBBNN$loss_fn(output, target)
+      } else {
+        if (q_out == 1L) {
+          output <- output$squeeze(dim = 2L)
+          if (length(dim(target)) > 1L && dim(target)[2] == 1L) {
+            target <- target$squeeze(dim = 2L)
+          }
+          diff2 <- (output - target)^2
+          sse_b <- torch::torch_sum(diff2)
+          sse_epoch_vec[1] <- sse_epoch_vec[1] + as.numeric(sse_b$detach()$cpu())
+          nll_loss <- if (var_mode == "fixed") {
+            LBBNN$loss_fn(output, target)
+          } else {
+            sse_b / (2.0 * sigma2_eff[1])
+          }
+        } else {
+          diff2 <- (output - target)^2
+          sse_cols <- torch::torch_sum(diff2, dim = 1L)
+          sse_epoch_vec <- sse_epoch_vec + as.numeric(sse_cols$detach()$cpu())
+          nll_loss <- if (var_mode == "fixed") {
+            LBBNN$loss_fn(output, target)
+          } else {
+            torch::torch_sum(sse_cols * inv_2s2)
+          }
         }
       }
 
-      nll_loss <- LBBNN$loss_fn(output, target)
       kl_term <- beta_kl * (LBBNN$kl_div() / n_batches)
       dom_term <- lambda_domain * LBBNN$domain_loss()
       loss <- nll_loss + kl_term + dom_term
 
       loss$backward()
       LBBNN$mask_frozen_grads()
-      torch::nn_utils_clip_grad_norm_(LBBNN$parameters, max_norm = max_grad_norm)
+      torch::nn_utils_clip_grad_norm_(LBBNN$parameters, max_norm = eff_grad_cap)
       opt$step()
       LBBNN$enforce_constraints()
 
       batch_losses <- c(batch_losses, as.numeric(loss$item()))
     })
 
+    # Update Jeffreys prior EMA noise variance using deterministic posterior-mean MSE after early burn-in
+    if (var_mode == "jeffreys_ema" && LBBNN$problem_type == "regression" && epoch >= 5L) {
+      torch::with_no_grad({
+        LBBNN$eval()
+        pred_det <- LBBNN(train_full$x, MPM = FALSE)
+        if (q_out == 1L) {
+          pred_det <- pred_det$squeeze(dim = 2L)
+          y_det <- if (length(dim(train_full$y)) > 1L && dim(train_full$y)[2] == 1L) {
+            train_full$y$squeeze(dim = 2L)
+          } else {
+            train_full$y
+          }
+          mse_det <- as.numeric(torch::torch_mean((pred_det - y_det)^2)$cpu())
+        } else {
+          mse_det <- as.numeric(torch::torch_mean((pred_det - train_full$y)^2, dim = 1L)$cpu())
+        }
+        LBBNN$train()
+      })
+      mse_det[!is.finite(mse_det)] <- y_var_vec[!is.finite(mse_det)]
+      rho_cur <- if (epoch <= warmup_steps) 0.40 else rho_sigma
+      sigma2_hat <- pmin(y_var_vec, (1.0 - rho_cur) * sigma2_hat + rho_cur * pmax(mse_det, 1e-6 * y_var_vec))
+    }
+
     losses[epoch] <- mean(batch_losses)
     densities[epoch] <- LBBNN$density()
     if (isTRUE(verbose) && (epoch %% max(1L, floor(epochs / 5)) == 0L || epoch == epochs)) {
       message(sprintf(
-        "[Stage 1] Epoch %d/%d | loss = %.4f | beta_KL = %.2f | tau = %.3f | density = %.3f",
-        epoch, epochs, losses[epoch], beta_kl, tau_t, densities[epoch]
+        "[Stage 1] Epoch %d/%d | loss = %.4f | beta_KL = %.2f | tau = %.3f | density = %.3f | sigma_hat = %.4f",
+        epoch, epochs, losses[epoch], beta_kl, tau_t, densities[epoch], sqrt(mean(sigma2_hat))
       ))
     }
   }
+  LBBNN$stage1_sigma_hat <- sqrt(sigma2_hat)
 
   # Save raw Stage 1 variational weights before Stage 2 debiasing
   LBBNN$raw_state <- list(
@@ -280,12 +432,14 @@ train_symbolic_lbbnn <- function(epochs,
   torch::with_no_grad({
     for (l in LBBNN$layers$children) {
       if (!is.null(l$logic_rows) && length(l$logic_rows) > 0L) {
-        w_log <- as.matrix(l$weight_mean[l$logic_rows, , drop = FALSE]$cpu())
-        w_pol <- ifelse(w_log >= 0, 1.0, -1.0)
-        l$weight_mean[l$logic_rows, ]$copy_(
-          torch::torch_tensor(w_pol, dtype = torch::torch_float32(), device = device)
-        )
-        l$weight_grad_mask[l$logic_rows, ]$fill_(0.0)
+        for (r_log in l$logic_rows) {
+          w_row <- as.numeric(l$weight_mean[r_log, ]$cpu())
+          w_pol <- ifelse(w_row >= 0, 1.0, -1.0)
+          l$weight_mean[r_log, ]$copy_(
+            torch::torch_tensor(w_pol, dtype = torch::torch_float32(), device = device)
+          )
+          l$weight_grad_mask[r_log, ]$fill_(0.0)
+        }
       }
     }
   })
@@ -318,34 +472,64 @@ train_symbolic_lbbnn <- function(epochs,
     }
   })
 
+  # Helper: MAP optimization of active continuous weights on frozen MPM subnetwork
+  s2_scale_vec <- if (var_mode == "oracle" || var_mode == "jeffreys_ema") sigma2_hat else y_var_vec
+  inv_2s2_deb <- torch::torch_tensor(0.5 / pmax(s2_scale_vec, 1e-8), dtype = torch::torch_float32(), device = device)
   debias_losses <- numeric(max(0L, debias_epochs))
   if (debias_epochs > 0L) {
-    eval_debias_out <- function(x_t) {
-      o <- LBBNN(x_t, MPM = TRUE)
-      if (q_out == 1L) o <- o$squeeze(dim = 2L)
-      o
+    eval_debias_loss <- function() {
+      out <- LBBNN(train_full$x, MPM = TRUE)
+      if (LBBNN$problem_type == "multiclass classification" ||
+          LBBNN$problem_type == "MNIST") {
+        loss_fit <- LBBNN$loss_fn(out, train_full$y$to(dtype = torch::torch_long())) / max(1.0, n_tr_full)
+      } else if (q_out == 1L) {
+        out <- out$squeeze(dim = 2L)
+        y_t <- if (length(dim(train_full$y)) > 1L && dim(train_full$y)[2] == 1L) {
+          train_full$y$squeeze(dim = 2L)
+        } else {
+          train_full$y
+        }
+        loss_fit <- torch::torch_mean((out - y_t)^2) / max(s2_scale_vec[1], 1e-8) * 0.5
+      } else {
+        loss_fit <- torch::torch_sum(torch::torch_mean((out - train_full$y)^2, dim = 1L) * inv_2s2_deb)
+      }
+      # Weakly informative diffuse Gaussian MAP slab penalty: 0.5 / (n * sigma_post^2) * ||theta_active||^2
+      l2_pen <- torch::torch_tensor(0.0, device = device)
+      for (l in LBBNN$layers$children) {
+        w_m <- l$alpha_active_path * (if (!is.null(l$weight_grad_mask)) l$weight_grad_mask else 1.0)
+        l2_pen <- l2_pen + torch::torch_sum((l$weight_mean * w_m)^2)
+        if (!is.null(l$bias_grad_mask)) {
+          b_act <- (torch::torch_sum(l$alpha_active_path, dim = 2L) > 0)$to(dtype = torch::torch_float32()) * l$bias_grad_mask
+          l2_pen <- l2_pen + torch::torch_sum((l$bias_mean * b_act)^2)
+        }
+      }
+      l2_pen <- l2_pen + torch::torch_sum((LBBNN$out_layer$weight_mean * LBBNN$out_layer$alpha_active_path)^2)
+      loss_fit + (0.5 / (n_tr_full * (prior_sd_post^2))) * l2_pen
     }
+
     if (debias_optimizer == "lbfgs") {
       opt_debias <- torch::optim_lbfgs(LBBNN$parameters, lr = debias_lr, max_iter = 20)
       for (ep in seq_len(debias_epochs)) {
         closure <- function() {
           opt_debias$zero_grad()
-          out <- eval_debias_out(train_full$x)
-          loss_d <- LBBNN$loss_fn(out, train_full$y)
+          loss_d <- eval_debias_loss()
           loss_d$backward()
           LBBNN$mask_frozen_grads()
           loss_d
         }
-        loss_val <- opt_debias$step(closure)
+        loss_val <- tryCatch(opt_debias$step(closure), error = function(e) NULL)
         LBBNN$enforce_constraints()
-        debias_losses[ep] <- as.numeric(loss_val$item())
+        debias_losses[ep] <- if (!is.null(loss_val) && is.finite(as.numeric(loss_val$item()))) {
+          as.numeric(loss_val$item())
+        } else {
+          NA_real_
+        }
       }
     } else {
-      opt_debias <- torch::optim_adam(LBBNN$parameters, lr = debias_lr)
+      opt_debias <- torch::optim_adam(LBBNN$parameters, lr = max(debias_lr, 0.01))
       for (ep in seq_len(debias_epochs)) {
         opt_debias$zero_grad()
-        out <- eval_debias_out(train_full$x)
-        loss_d <- LBBNN$loss_fn(out, train_full$y)
+        loss_d <- eval_debias_loss()
         loss_d$backward()
         LBBNN$mask_frozen_grads()
         torch::nn_utils_clip_grad_norm_(LBBNN$parameters, max_norm = max_grad_norm)
@@ -353,10 +537,47 @@ train_symbolic_lbbnn <- function(epochs,
         LBBNN$enforce_constraints()
         debias_losses[ep] <- as.numeric(loss_d$item())
       }
+      # Guarded second-order L-BFGS finish inside frozen MPM continuous weights (regression only)
+      if (LBBNN$problem_type == "regression" && isTRUE(LBBNN$is_symbolic)) {
+        saved_params <- lapply(LBBNN$layers$children, function(l) {
+          list(w = l$weight_mean$detach()$clone(), b = l$bias_mean$detach()$clone())
+        })
+        saved_out_w <- LBBNN$out_layer$weight_mean$detach()$clone()
+        saved_out_b <- LBBNN$out_layer$bias_mean$detach()$clone()
+        loss_pre <- as.numeric(eval_debias_loss()$detach()$cpu())
+        opt_lbfgs <- tryCatch(torch::optim_lbfgs(LBBNN$parameters, lr = 0.8, max_iter = 25), error = function(e) NULL)
+        if (!is.null(opt_lbfgs)) {
+          ok_lbfgs <- tryCatch({
+            for (step_lb in 1:4) {
+              closure_lb <- function() {
+                opt_lbfgs$zero_grad()
+                ld <- eval_debias_loss()
+                ld$backward()
+                LBBNN$mask_frozen_grads()
+                ld
+              }
+              opt_lbfgs$step(closure_lb)
+              LBBNN$enforce_constraints()
+            }
+            loss_post <- as.numeric(eval_debias_loss()$detach()$cpu())
+            is.finite(loss_post) && loss_post <= loss_pre + 1e-6
+          }, error = function(e) FALSE)
+          if (!isTRUE(ok_lbfgs)) {
+            torch::with_no_grad({
+              for (li in seq_along(LBBNN$layers$children)) {
+                LBBNN$layers$children[[li]]$weight_mean$copy_(saved_params[[li]]$w)
+                LBBNN$layers$children[[li]]$bias_mean$copy_(saved_params[[li]]$b)
+              }
+              LBBNN$out_layer$weight_mean$copy_(saved_out_w)
+              LBBNN$out_layer$bias_mean$copy_(saved_out_b)
+            })
+          }
+        }
+      }
     }
   }
 
-  # Absorb exp neuron bias into outgoing output weights when exp receives only clog/log inputs
+  # Absorb exp neuron bias into outgoing downstream weights when exp receives only clog/log inputs
   torch::with_no_grad({
     n_hid <- length(LBBNN$layers$children)
     if (n_hid >= 2L && isTRUE(LBBNN$is_symbolic)) {
@@ -364,7 +585,7 @@ train_symbolic_lbbnn <- function(epochs,
         l_curr <- LBBNN$layers$children[[l_idx]]
         l_prev <- LBBNN$layers$children[[l_idx - 1L]]
         exp_rows <- which(l_curr$act_vec == "exp")
-        if (length(exp_rows) > 0L && l_idx == n_hid) {
+        if (length(exp_rows) > 0L) {
           act_curr <- as.matrix(l_curr$alpha_active_path$cpu())
           for (r_exp in exp_rows) {
             active_in <- which(act_curr[r_exp, ] > 0.5)
@@ -373,9 +594,22 @@ train_symbolic_lbbnn <- function(epochs,
                 b_val <- as.numeric(l_curr$bias_mean[r_exp]$cpu())
                 if (abs(b_val) > 1e-8) {
                   scale_f <- exp(min(max(b_val, -12.0), 12.0))
-                  LBBNN$out_layer$weight_mean[, r_exp]$mul_(scale_f)
-                  l_curr$bias_mean[r_exp]$fill_(0.0)
-                  l_curr$bias_grad_mask[r_exp]$fill_(0.0)
+                  can_absorb <- TRUE
+                  if (l_idx < n_hid) {
+                    l_next <- LBBNN$layers$children[[l_idx + 1L]]
+                    act_next <- as.matrix(l_next$alpha_active_path$cpu())
+                    used_rows <- which(act_next[, r_exp] > 0.5)
+                    if (any(used_rows %in% c(l_next$clog_rows, l_next$logic_rows))) {
+                      can_absorb <- FALSE
+                    }
+                    if (can_absorb) l_next$weight_mean[, r_exp]$mul_(scale_f)
+                  } else {
+                    LBBNN$out_layer$weight_mean[, r_exp]$mul_(scale_f)
+                  }
+                  if (can_absorb) {
+                    l_curr$bias_mean[r_exp]$fill_(0.0)
+                    l_curr$bias_grad_mask[r_exp]$fill_(0.0)
+                  }
                 }
               }
             }
@@ -385,55 +619,119 @@ train_symbolic_lbbnn <- function(epochs,
     }
   })
 
-  # Optional BIC backward pruning & BGNLM Stage 2 structural debiasing
-  if (isTRUE(prune_bic) && LBBNN$problem_type == "regression") {
-    stage2_bgnlm_debias(LBBNN, train_full, val_full)
-    prune_and_refit_mpm(LBBNN, train_full, val_full, debias_lr = debias_lr, device = device)
-  }
-
-  # Save debiased weights before rational snapping
-  LBBNN$debiased_state <- list(
-    layers = lapply(LBBNN$layers$children, function(l) {
-      list(
-        weight_mean = as.matrix(l$weight_mean$detach()$cpu()),
-        bias_mean = as.numeric(l$bias_mean$detach()$cpu())
-      )
-    }),
-    out_layer = list(
-      weight_mean = as.matrix(LBBNN$out_layer$weight_mean$detach()$cpu()),
-      bias_mean = as.numeric(LBBNN$out_layer$bias_mean$detach()$cpu())
-    )
-  )
-
   # =========================================================================
-  # Stage 2B: Rational Exponent Snapping (BIC-guided) & Laplace Readout Posteriors
+  # Stage 2 Post-Training Mode Dispatch conditional on M_MPM
   # =========================================================================
   snapped_records <- list()
-  if (isTRUE(snap_rationals) && isTRUE(LBBNN$is_symbolic) &&
-      LBBNN$problem_type == "regression") {
-    snapped_records <- snap_rational_exponents(
-      LBBNN = LBBNN,
-      train_full = train_full,
-      val_full = val_full,
-      snap_tol = snap_tol,
-      delta_bic_cutoff = delta_bic_cutoff,
-      verbose = verbose
+  if (post_mode == "variational_only") {
+    # Mode A/B: Strictly freeze Stage-1 M_MPM with zero backward BIC pruning
+    LBBNN$debiased_state <- list(
+      layers = lapply(LBBNN$layers$children, function(l) {
+        list(weight_mean = as.matrix(l$weight_mean$detach()$cpu()), bias_mean = as.numeric(l$bias_mean$detach()$cpu()))
+      }),
+      out_layer = list(
+        weight_mean = as.matrix(LBBNN$out_layer$weight_mean$detach()$cpu()),
+        bias_mean = as.numeric(LBBNN$out_layer$bias_mean$detach()$cpu())
+      )
     )
-  }
+    if (isTRUE(snap_rationals) && isTRUE(LBBNN$is_symbolic) && LBBNN$problem_type == "regression") {
+      snapped_records <- snap_rational_exponents(
+        LBBNN = LBBNN, train_full = train_full, val_full = val_full,
+        snap_tol = snap_tol, delta_bic_cutoff = delta_bic_cutoff, verbose = verbose
+      )
+    }
+    if (LBBNN$problem_type == "regression") {
+      post_train_laplace(
+        LBBNN = LBBNN, train_dl = train_full, val_dl = val_full,
+        prior_sd = prior_sd_post, prune_readout = FALSE, delta_bic_cutoff = 0.0,
+        snap_output_weights = isTRUE(snap_rationals) && q_out == 1L && isTRUE(LBBNN$is_symbolic),
+        snap_tol = snap_tol, device = device
+      )
+    }
+  } else if (post_mode == "variational_readout_prune") {
+    # Mode C1: Zero-temperature variational readout pruning on gamma^(L)
+    if (LBBNN$problem_type == "regression") {
+      variational_readout_prune(
+        LBBNN = LBBNN, train_full = train_full, sigma2_hat = sigma2_hat,
+        prior_sd_post = prior_sd_post, epochs = 150L, lr = 0.05, device = device
+      )
+    }
+    LBBNN$debiased_state <- list(
+      layers = lapply(LBBNN$layers$children, function(l) {
+        list(weight_mean = as.matrix(l$weight_mean$detach()$cpu()), bias_mean = as.numeric(l$bias_mean$detach()$cpu()))
+      }),
+      out_layer = list(
+        weight_mean = as.matrix(LBBNN$out_layer$weight_mean$detach()$cpu()),
+        bias_mean = as.numeric(LBBNN$out_layer$bias_mean$detach()$cpu())
+      )
+    )
+    if (isTRUE(snap_rationals) && isTRUE(LBBNN$is_symbolic) && LBBNN$problem_type == "regression") {
+      snapped_records <- snap_rational_exponents(
+        LBBNN = LBBNN, train_full = train_full, val_full = val_full,
+        snap_tol = snap_tol, delta_bic_cutoff = delta_bic_cutoff, verbose = verbose
+      )
+    }
+    if (LBBNN$problem_type == "regression") {
+      post_train_laplace(
+        LBBNN = LBBNN, train_dl = train_full, val_dl = val_full,
+        prior_sd = prior_sd_post, prune_readout = FALSE, delta_bic_cutoff = 0.0,
+        snap_output_weights = isTRUE(snap_rationals) && q_out == 1L && isTRUE(LBBNN$is_symbolic),
+        snap_tol = snap_tol, device = device
+      )
+    }
+  } else {
+    # Mode C2 ("laplace_nig_subspace"): Strictly within-MPM path consolidation +
+    # rational BF snapping + exact NIG/Laplace marginal-likelihood subspace selection
+    if (isTRUE(use_bgnlm_screen) && LBBNN$problem_type == "regression") {
+      stage2_bgnlm_debias(LBBNN, train_full, val_full)
+    }
+    if (isTRUE(prune_bic) && LBBNN$problem_type == "regression") {
+      prune_and_refit_mpm(LBBNN, train_full, val_full, debias_lr = debias_lr, device = device, prune_out = FALSE)
+      # Brief L-BFGS / Adam continuous polish inside pruned MPM subnetwork before rational snapping
+      if (isTRUE(LBBNN$is_symbolic) && debias_epochs > 0L) {
+        opt_p <- torch::optim_adam(LBBNN$parameters, lr = max(debias_lr, 0.01))
+        for (ep_p in seq_len(min(50L, as.integer(debias_epochs)))) {
+          opt_p$zero_grad()
+          ld_p <- eval_debias_loss()
+          ld_p$backward()
+          LBBNN$mask_frozen_grads()
+          torch::nn_utils_clip_grad_norm_(LBBNN$parameters, max_norm = max_grad_norm)
+          opt_p$step()
+          LBBNN$enforce_constraints()
+        }
+      }
+    }
 
-  # Bayesian Laplace / conjugate NIG readout post-training (optional backward readout pruning)
-  if (LBBNN$problem_type == "regression") {
-    post_train_laplace(
-      LBBNN = LBBNN,
-      train_dl = train_full,
-      val_dl = val_full,
-      prior_sd = prior_sd_post,
-      prune_readout = prune_readout,
-      delta_bic_cutoff = 0.0,
-      snap_output_weights = isTRUE(snap_rationals) && q_out == 1L && isTRUE(LBBNN$is_symbolic),
-      snap_tol = snap_tol,
-      device = device
+    LBBNN$debiased_state <- list(
+      layers = lapply(LBBNN$layers$children, function(l) {
+        list(weight_mean = as.matrix(l$weight_mean$detach()$cpu()), bias_mean = as.numeric(l$bias_mean$detach()$cpu()))
+      }),
+      out_layer = list(
+        weight_mean = as.matrix(LBBNN$out_layer$weight_mean$detach()$cpu()),
+        bias_mean = as.numeric(LBBNN$out_layer$bias_mean$detach()$cpu())
+      )
     )
+
+    if (isTRUE(snap_rationals) && isTRUE(LBBNN$is_symbolic) && LBBNN$problem_type == "regression") {
+      snapped_records <- snap_rational_exponents(
+        LBBNN = LBBNN, train_full = train_full, val_full = val_full,
+        snap_tol = snap_tol, delta_bic_cutoff = delta_bic_cutoff, verbose = verbose
+      )
+    }
+
+    if (LBBNN$problem_type == "regression") {
+      consolidate_and_select_nig_subspace(
+        LBBNN = LBBNN, train_full = train_full, val_full = val_full,
+        prior_sd = prior_sd_post,
+        prune_readout = isTRUE(prune_bic) || isTRUE(prune_readout)
+      )
+      post_train_laplace(
+        LBBNN = LBBNN, train_dl = train_full, val_dl = val_full,
+        prior_sd = prior_sd_post, prune_readout = FALSE, delta_bic_cutoff = 0.0,
+        snap_output_weights = isTRUE(snap_rationals) && q_out == 1L && isTRUE(LBBNN$is_symbolic),
+        snap_tol = snap_tol, device = device
+      )
+    }
   }
 
   # Store final fitted values & residuals for S3 methods
@@ -457,9 +755,251 @@ train_symbolic_lbbnn <- function(epochs,
     debias_loss = debias_losses,
     density = densities,
     density_active_path = LBBNN$density_active_path(),
+    stage1_sigma_hat = LBBNN$stage1_sigma_hat,
     snapped_rationals = snapped_records,
     readout_posterior = LBBNN$readout_posterior
   ))
+}
+
+#' @title Mode C1: Zero-Temperature Variational Readout Pruning on gamma^(L)
+#' @keywords internal
+variational_readout_prune <- function(LBBNN,
+                                      train_full,
+                                      sigma2_hat,
+                                      prior_sd_post = 10.0,
+                                      epochs = 150L,
+                                      lr = 0.05,
+                                      device = "cpu") {
+  q_out <- as.integer(LBBNN$sizes[length(LBBNN$sizes)])
+  F_ten <- NULL
+  torch::with_no_grad({
+    F_ten <- extract_mpm_features(LBBNN, train_full$x)$detach()
+  })
+  y_ten <- train_full$y
+  out_l <- LBBNN$out_layer
+  init_mask <- out_l$alpha_active_path$detach()$clone()
+  saved_sig_p <- out_l$weight_sigma_prior$detach()$clone()
+  saved_b_sig_p <- out_l$bias_sigma_prior$detach()$clone()
+
+  torch::with_no_grad({
+    out_l$weight_sigma_prior$fill_(prior_sd_post)
+    out_l$bias_sigma_prior$fill_(prior_sd_post)
+    out_l$debias_mode <- FALSE
+    out_l$deterministic_mpm <- FALSE
+  })
+
+  out_params <- list(out_l$weight_mean, out_l$weight_rho, out_l$bias_mean, out_l$bias_rho, out_l$lambda_l)
+  opt_ro <- torch::optim_adam(out_params, lr = lr)
+  inv_2s2 <- torch::torch_tensor(0.5 / pmax(sigma2_hat, 1e-8), dtype = torch::torch_float32(), device = device)
+
+  out_l$train()
+  for (ep in seq_len(epochs)) {
+    opt_ro$zero_grad()
+    # Zero-temperature LRT forward strictly over Stage-1 active readout mask init_mask
+    alpha_cur <- torch::torch_sigmoid(out_l$lambda_l) * init_mask
+    w_sig <- torch::torch_log1p(torch::torch_exp(out_l$weight_rho))
+    b_sig <- torch::torch_log1p(torch::torch_exp(out_l$bias_rho))
+    e_w <- out_l$weight_mean * alpha_cur
+    v_w <- alpha_cur * (w_sig^2 + (1.0 - alpha_cur) * out_l$weight_mean^2)
+    e_act <- torch::torch_matmul(F_ten, torch::torch_t(e_w)) + out_l$bias_mean
+    v_act <- torch::torch_matmul(F_ten^2, torch::torch_t(v_w)) + b_sig^2
+    pred <- e_act + torch::torch_sqrt(v_act + 1e-12) * torch::torch_randn_like(v_act)
+
+    if (q_out == 1L) {
+      pred <- pred$squeeze(dim = 2L)
+      y_t <- if (length(dim(y_ten)) > 1L && dim(y_ten)[2] == 1L) y_ten$squeeze(dim = 2L) else y_ten
+      nll <- torch::torch_sum((pred - y_t)^2) * inv_2s2[1]
+    } else {
+      nll <- torch::torch_sum(torch::torch_sum((pred - y_ten)^2, dim = 1L) * inv_2s2)
+    }
+
+    # KL solely over candidate MPM edges init_mask == 1
+    alp <- torch::torch_clamp(alpha_cur, min = 1e-7, max = 1.0 - 1e-7)
+    alp_p <- torch::torch_clamp(out_l$alpha_prior, min = 1e-7, max = 1.0 - 1e-7)
+    kl_b <- alp * torch::torch_log(alp / alp_p) + (1.0 - alp) * torch::torch_log((1.0 - alp) / (1.0 - alp_p))
+    kl_w <- alp * (torch::torch_log(out_l$weight_sigma_prior / w_sig) - 0.5 +
+                   (w_sig^2 + (out_l$weight_mean - out_l$weight_mean_prior)^2) / (2.0 * out_l$weight_sigma_prior^2))
+    kl_ro <- torch::torch_sum((kl_b + kl_w) * init_mask) +
+      torch::torch_sum(torch::torch_log(out_l$bias_sigma_prior / b_sig) - 0.5 +
+                       (b_sig^2 + (out_l$bias_mean - out_l$bias_mean_prior)^2) / (2.0 * out_l$bias_sigma_prior^2))
+
+    loss_ro <- nll + kl_ro
+    loss_ro$backward()
+    torch::with_no_grad({
+      out_l$lambda_l$grad$mul_(init_mask)
+      out_l$weight_mean$grad$mul_(init_mask)
+      out_l$weight_rho$grad$mul_(init_mask)
+    })
+    opt_ro$step()
+  }
+
+  torch::with_no_grad({
+    probs_f <- torch::torch_sigmoid(out_l$lambda_l) * init_mask
+    new_mask <- ((probs_f > 0.5) * 1.0)
+    for (r_out in seq_len(q_out)) {
+      if (as.numeric(torch::torch_sum(new_mask[r_out, ])$cpu()) == 0) {
+        best_c <- as.integer(which.max(as.numeric(probs_f[r_out, ]$cpu())))
+        new_mask[r_out, best_c]$fill_(1.0)
+      }
+    }
+    out_l$alpha_active_path$copy_(new_mask)
+    out_l$weight_sigma_prior$copy_(saved_sig_p)
+    out_l$bias_sigma_prior$copy_(saved_b_sig_p)
+    out_l$debias_mode <- TRUE
+    out_l$deterministic_mpm <- TRUE
+  })
+  LBBNN$propagate_active_paths()
+  refit_output_ols(LBBNN, train_full)
+  invisible(NULL)
+}
+
+#' @title Mode C2: Symbolic Path Consolidation & Exact Conjugate NIG Subspace Selection on Phi_MPM
+#' @keywords internal
+consolidate_and_select_nig_subspace <- function(LBBNN,
+                                                train_full,
+                                                val_full,
+                                                prior_sd = 10.0,
+                                                prune_readout = TRUE,
+                                                collin_thresh = 0.9999) {
+  q_out <- as.integer(LBBNN$sizes[length(LBBNN$sizes)])
+  n_hid <- length(LBBNN$layers$children)
+  n_prev <- if (n_hid >= 1L) as.integer(LBBNN$layers$children[[n_hid]]$out_features) else as.integer(LBBNN$sizes[1])
+  prior_prec <- 1.0 / (prior_sd^2)
+
+  # Compute upstream active continuous parameter count per column of out_layer
+  node_df <- rep(1.0, n_prev)
+  if (n_hid >= 1L) {
+    prev_df <- rep(0.0, as.integer(LBBNN$sizes[1]))
+    for (l_idx in seq_len(n_hid)) {
+      l <- LBBNN$layers$children[[l_idx]]
+      d_o <- as.integer(l$out_features)
+      act_m <- as.matrix(l$alpha_active_path$detach()$cpu()) > 0.5
+      wm_m <- if (!is.null(l$weight_grad_mask)) as.matrix(l$weight_grad_mask$detach()$cpu()) > 0.5 else matrix(TRUE, nrow(act_m), ncol(act_m))
+      bm_v <- if (!is.null(l$bias_grad_mask)) as.numeric(l$bias_grad_mask$detach()$cpu()) > 0.5 else rep(TRUE, d_o)
+      curr_df <- numeric(d_o)
+      in_df_vec <- if (l_idx == 1L || !isTRUE(LBBNN$input_skip)) prev_df else c(prev_df, rep(0.0, as.integer(LBBNN$sizes[1])))
+      for (r in seq_len(d_o)) {
+        a_cols <- which(act_m[r, ])
+        if (length(a_cols) == 0L) {
+          curr_df[r] <- 0.0
+        } else {
+          n_free_w <- sum(wm_m[r, a_cols]) + (if (bm_v[r] && !(l$act_vec[r] %in% c("clog", "logic_and", "logic_or"))) 0.5 else 0.0)
+          curr_df[r] <- 0.5 * n_free_w + sum(in_df_vec[a_cols])
+        }
+      }
+      prev_df <- curr_df
+    }
+    node_df <- prev_df
+  }
+  d_tot <- ncol(as.matrix(LBBNN$out_layer$alpha_active_path$cpu()))
+  col_df <- rep(1.0, d_tot)
+  if (n_hid >= 1L) {
+    col_df[seq_len(n_prev)] <- 1.0 + node_df[seq_len(n_prev)]
+  }
+
+  torch::with_no_grad({
+    F_tr <- as.matrix(extract_mpm_features(LBBNN, train_full$x)$cpu())
+    F_va <- as.matrix(extract_mpm_features(LBBNN, val_full$x)$cpu())
+    y_tr_all <- if (q_out == 1L) matrix(as.numeric(train_full$y$cpu()), ncol = 1L) else as.matrix(train_full$y$cpu())
+    y_va_all <- if (q_out == 1L) matrix(as.numeric(val_full$y$cpu()), ncol = 1L) else as.matrix(val_full$y$cpu())
+    n_tr <- nrow(F_tr)
+    n_va <- nrow(F_va)
+
+    if (is.null(LBBNN$out_layer$bias_active) || length(LBBNN$out_layer$bias_active) < q_out) {
+      LBBNN$out_layer$bias_active <- rep(TRUE, q_out)
+    }
+
+    eval_nig_bic <- function(cols, use_int, y_tr, y_va) {
+      if (length(cols) == 0L && !use_int) return(Inf)
+      X_tr <- if (length(cols) > 0L) F_tr[, cols, drop = FALSE] else matrix(nrow = n_tr, ncol = 0L)
+      X_va <- if (length(cols) > 0L) F_va[, cols, drop = FALSE] else matrix(nrow = n_va, ncol = 0L)
+      if (use_int) {
+        X_tr <- cbind(1.0, X_tr)
+        X_va <- cbind(1.0, X_va)
+      }
+      XtX <- crossprod(X_tr) + diag(prior_prec, ncol(X_tr))
+      beta <- tryCatch(solve(XtX, crossprod(X_tr, y_tr)), error = function(e) qr.solve(X_tr, y_tr))
+      beta[!is.finite(beta)] <- 0.0
+      mse_va <- max(mean((y_va - as.numeric(X_va %*% beta))^2), 1e-12)
+      k_eff <- (if (use_int) 1.0 else 0.0) + sum(col_df[cols])
+      n_va * log(mse_va) + k_eff * log(n_va)
+    }
+
+    for (r_out in seq_len(q_out)) {
+      act_cols <- which(as.numeric(LBBNN$out_layer$alpha_active_path[r_out, ]$cpu()) > 0.5)
+      if (length(act_cols) == 0L) next
+      y_tr <- y_tr_all[, r_out]
+      y_va <- y_va_all[, r_out]
+
+      # 1. Consolidate near-constant columns into intercept and deduplicate collinear active neurons in Phi_MPM
+      sds <- apply(F_tr[, act_cols, drop = FALSE], 2L, stats::sd)
+      act_cols <- act_cols[is.finite(sds) & sds > 1e-8]
+      if (length(act_cols) > 1L) {
+        # Prefer lower complexity / direct skip over duplicate higher-complexity wrappers
+        ord_c <- order(col_df[act_cols], act_cols)
+        act_sorted <- act_cols[ord_c]
+        kept <- integer(0)
+        for (c_i in act_sorted) {
+          is_dup <- FALSE
+          for (k_j in kept) {
+            r_cor <- suppressWarnings(abs(stats::cor(F_tr[, c_i], F_tr[, k_j])))
+            if (is.finite(r_cor) && r_cor > collin_thresh) {
+              is_dup <- TRUE
+              break
+            }
+          }
+          if (!is_dup) kept <- c(kept, c_i)
+        }
+        act_cols <- sort(kept)
+      }
+
+      # 2. Exact conjugate NIG / Laplace marginal-likelihood backward subspace selection strictly within act_cols
+      use_int <- isTRUE(LBBNN$out_layer$bias_active[r_out])
+      if (isTRUE(prune_readout) && length(act_cols) > 0L) {
+        repeat {
+          curr_bic <- eval_nig_bic(act_cols, use_int, y_tr, y_va)
+          best_bic <- curr_bic
+          best_act <- NULL
+          if (length(act_cols) > 1L) {
+            for (c_try in act_cols) {
+              b_try <- eval_nig_bic(setdiff(act_cols, c_try), use_int, y_tr, y_va)
+              if (b_try < best_bic) {
+                best_bic <- b_try
+                best_act <- list(type = "col", val = c_try)
+              }
+            }
+          }
+          if (isTRUE(use_int) && length(act_cols) >= 1L) {
+            b_int <- eval_nig_bic(act_cols, FALSE, y_tr, y_va)
+            if (b_int < best_bic) {
+              best_bic <- b_int
+              best_act <- list(type = "int")
+            }
+          }
+          if (is.null(best_act)) break
+          if (best_act$type == "col") {
+            act_cols <- setdiff(act_cols, best_act$val)
+          } else {
+            use_int <- FALSE
+          }
+        }
+      }
+
+      LBBNN$out_layer$alpha_active_path[r_out, ]$fill_(0.0)
+      if (length(act_cols) > 0L) {
+        for (ci in act_cols) {
+          LBBNN$out_layer$alpha_active_path[r_out, ci]$fill_(1.0)
+        }
+      }
+      LBBNN$out_layer$bias_active[r_out] <- use_int
+    }
+  })
+
+  if (!is.null(LBBNN$propagate_active_paths)) {
+    LBBNN$propagate_active_paths()
+  }
+  refit_output_ols(LBBNN, train_full)
+  invisible(NULL)
 }
 
 #' @title Stage 2A Hybrid BGNLM Debiasing for Monomial (clog -> exp) and Logic Paths
@@ -1411,7 +1951,7 @@ post_train_laplace <- function(LBBNN,
 
 #' @title BIC-Guided Pruning of Weak Active Paths and Output OLS Refit
 #' @keywords internal
-prune_and_refit_mpm <- function(LBBNN, train_full, val_full, debias_lr = 0.005, device = "cpu") {
+prune_and_refit_mpm <- function(LBBNN, train_full, val_full, debias_lr = 0.005, device = "cpu", prune_out = TRUE) {
   refit_output_ols(LBBNN, train_full)
   q_out <- as.integer(LBBNN$sizes[length(LBBNN$sizes)])
 
@@ -1427,11 +1967,11 @@ prune_and_refit_mpm <- function(LBBNN, train_full, val_full, debias_lr = 0.005, 
     k
   }
 
-  # 1. Prune weak incoming edges into exp or logic neurons if BIC improves
+  # 1. Prune weak incoming edges into active non-clog hidden neurons strictly within M_MPM if BIC improves
   for (l_idx in seq_along(LBBNN$layers$children)) {
     l <- LBBNN$layers$children[[l_idx]]
     if (is.null(l$act_vec)) next
-    target_rows <- which(l$act_vec %in% c("exp", "logic_and", "logic_or"))
+    target_rows <- which(!(l$act_vec %in% c("clog", "log")))
     for (r in target_rows) {
       act_row <- as.numeric(l$alpha_active_path[r, ]$cpu())
       active_cols <- which(act_row > 0.5)
@@ -1463,31 +2003,33 @@ prune_and_refit_mpm <- function(LBBNN, train_full, val_full, debias_lr = 0.005, 
   }
 
   # 2. Prune weak output-layer edges per output dimension r = 1, ..., q_out if BIC improves
-  for (r_out in seq_len(q_out)) {
-    act_out <- as.numeric(LBBNN$out_layer$alpha_active_path[r_out, ]$cpu())
-    active_cols <- which(act_out > 0.5)
-    if (length(active_cols) > 1L) {
-      w_out <- abs(as.numeric(LBBNN$out_layer$weight_mean[r_out, active_cols]$cpu()))
-      ord_out <- active_cols[order(w_out)]
-      for (c_try in ord_out) {
-        if (sum(as.numeric(LBBNN$out_layer$alpha_active_path[r_out, ]$cpu()) > 0.5) <= 1L) break
-        k_curr <- 1.0 + sum(as.numeric(LBBNN$out_layer$alpha_active_path[r_out, ]$cpu()) > 0.5)
-        bic_curr <- compute_mpm_bic(LBBNN, val_full$x, val_full$y, k_curr, out_row = r_out)$bic
-        saved_out_w <- LBBNN$out_layer$weight_mean$clone()
-        saved_out_b <- LBBNN$out_layer$bias_mean$clone()
+  if (isTRUE(prune_out)) {
+    for (r_out in seq_len(q_out)) {
+      act_out <- as.numeric(LBBNN$out_layer$alpha_active_path[r_out, ]$cpu())
+      active_cols <- which(act_out > 0.5)
+      if (length(active_cols) > 1L) {
+        w_out <- abs(as.numeric(LBBNN$out_layer$weight_mean[r_out, active_cols]$cpu()))
+        ord_out <- active_cols[order(w_out)]
+        for (c_try in ord_out) {
+          if (sum(as.numeric(LBBNN$out_layer$alpha_active_path[r_out, ]$cpu()) > 0.5) <= 1L) break
+          k_curr <- 1.0 + sum(as.numeric(LBBNN$out_layer$alpha_active_path[r_out, ]$cpu()) > 0.5)
+          bic_curr <- compute_mpm_bic(LBBNN, val_full$x, val_full$y, k_curr, out_row = r_out)$bic
+          saved_out_w <- LBBNN$out_layer$weight_mean$clone()
+          saved_out_b <- LBBNN$out_layer$bias_mean$clone()
 
-        torch::with_no_grad({
-          LBBNN$out_layer$alpha_active_path[r_out, c_try]$fill_(0.0)
-        })
-        refit_output_ols(LBBNN, train_full)
-        bic_new <- compute_mpm_bic(LBBNN, val_full$x, val_full$y, k_curr - 1.0, out_row = r_out)$bic
-
-        if (bic_new > bic_curr) {
           torch::with_no_grad({
-            LBBNN$out_layer$alpha_active_path[r_out, c_try]$fill_(1.0)
-            LBBNN$out_layer$weight_mean$copy_(saved_out_w)
-            LBBNN$out_layer$bias_mean$copy_(saved_out_b)
+            LBBNN$out_layer$alpha_active_path[r_out, c_try]$fill_(0.0)
           })
+          refit_output_ols(LBBNN, train_full)
+          bic_new <- compute_mpm_bic(LBBNN, val_full$x, val_full$y, k_curr - 1.0, out_row = r_out)$bic
+
+          if (bic_new > bic_curr) {
+            torch::with_no_grad({
+              LBBNN$out_layer$alpha_active_path[r_out, c_try]$fill_(1.0)
+              LBBNN$out_layer$weight_mean$copy_(saved_out_w)
+              LBBNN$out_layer$bias_mean$copy_(saved_out_b)
+            })
+          }
         }
       }
     }
@@ -1505,16 +2047,15 @@ snap_rational_exponents <- function(LBBNN,
                                     snap_tol = 0.08,
                                     delta_bic_cutoff = 2.0,
                                     verbose = FALSE) {
-  cands <- get_rational_candidates()
-  phase_cands <- data.frame(
-    val = c(-2 * pi, -pi, -pi / 2, -2, -1, 0, 1, 2, pi / 2, pi, 2 * pi),
-    label = c("-2*pi", "-pi", "-pi/2", "-2", "-1", "0", "1", "2", "pi/2", "pi", "2*pi"),
-    stringsAsFactors = FALSE
-  )
+  cands <- get_rational_candidates(q_max = 6L, max_abs = 3.0, pi_mult = FALSE)
+  phase_int <- get_rational_candidates(q_max = 2L, max_abs = 2.0, pi_mult = FALSE)
+  phase_pi  <- get_rational_candidates(q_max = 4L, max_abs = 2.0, pi_mult = TRUE)
+  phase_cands <- rbind(phase_int, phase_pi[phase_pi$val != 0.0, , drop = FALSE])
+  shift_cands <- get_rational_candidates(q_max = 4L, max_abs = 2.0, pi_mult = FALSE)
   records <- list()
   n_hid <- length(LBBNN$layers$children)
   q_out <- as.integer(LBBNN$sizes[length(LBBNN$sizes)])
-  if (n_hid < 2L) return(records)
+  if (n_hid < 1L) return(records)
 
   # Base active free parameter count
   k_free <- as.numeric(q_out) + sum(as.matrix(LBBNN$out_layer$alpha_active_path$cpu()) > 0.5)
@@ -1522,81 +2063,83 @@ snap_rational_exponents <- function(LBBNN,
     k_free <- k_free + sum(as.matrix((l$alpha_active_path * l$weight_grad_mask)$cpu()) > 0.5)
   }
 
-  for (l_idx in 2:n_hid) {
+  for (l_idx in seq_len(n_hid)) {
     l_curr <- LBBNN$layers$children[[l_idx]]
-    l_prev <- LBBNN$layers$children[[l_idx - 1L]]
     act_curr <- as.matrix(l_curr$alpha_active_path$cpu())
     w_curr <- as.matrix(l_curr$weight_mean$cpu())
 
-    # 1. Snap clog/log -> exp exponents
-    exp_rows <- which(l_curr$act_vec == "exp")
-    for (r_exp in exp_rows) {
-      active_cols <- which(act_curr[r_exp, ] > 0.5)
-      for (c_in in active_cols) {
-        if (c_in > l_prev$out_features) next
-        src_op <- l_prev$act_vec[c_in]
-        if (!src_op %in% c("clog", "log")) next
+    # 1. Snap clog/log -> exp exponents (requires l_idx >= 2)
+    if (l_idx >= 2L) {
+      l_prev <- LBBNN$layers$children[[l_idx - 1L]]
+      exp_rows <- which(l_curr$act_vec == "exp")
+      for (r_exp in exp_rows) {
+        active_cols <- which(act_curr[r_exp, ] > 0.5)
+        for (c_in in active_cols) {
+          if (c_in > l_prev$out_features) next
+          src_op <- l_prev$act_vec[c_in]
+          if (!src_op %in% c("clog", "log")) next
 
-        w_val <- w_curr[r_exp, c_in]
-        diffs <- abs(cands$val - w_val)
-        best_idx <- which.min(diffs)
-        q_val <- cands$val[best_idx]
-        q_label <- cands$label[best_idx]
-        dist_q <- diffs[best_idx]
+          w_val <- w_curr[r_exp, c_in]
+          diffs <- abs(cands$val - w_val)
+          best_idx <- which.min(diffs)
+          q_val <- cands$val[best_idx]
+          q_label <- cands$label[best_idx]
+          dist_q <- diffs[best_idx]
 
-        if (dist_q < snap_tol) {
-          bic_before <- compute_mpm_bic(LBBNN, val_full$x, val_full$y, k_free)$bic
-          saved_w <- l_curr$weight_mean[r_exp, c_in]$clone()
-          saved_act <- l_curr$alpha_active_path[r_exp, c_in]$clone()
-          saved_l1_act <- l_prev$alpha_active_path[c_in, ]$clone()
-          saved_out_w <- LBBNN$out_layer$weight_mean$clone()
-          saved_out_b <- LBBNN$out_layer$bias_mean$clone()
+          if (dist_q < snap_tol) {
+            bic_before <- compute_mpm_bic(LBBNN, val_full$x, val_full$y, k_free)$bic
+            saved_w <- l_curr$weight_mean[r_exp, c_in]$clone()
+            saved_act <- l_curr$alpha_active_path[r_exp, c_in]$clone()
+            saved_l1_act <- l_prev$alpha_active_path[c_in, ]$clone()
+            saved_out_w <- LBBNN$out_layer$weight_mean$clone()
+            saved_out_b <- LBBNN$out_layer$bias_mean$clone()
 
-          torch::with_no_grad({
-            l_curr$weight_mean[r_exp, c_in]$fill_(q_val)
-            if (q_val == 0) {
-              l_curr$alpha_active_path[r_exp, c_in]$fill_(0.0)
-              if (sum(as.numeric(l_curr$alpha_active_path[, c_in]$cpu()) > 0.5) == 0L) {
-                l_prev$alpha_active_path[c_in, ]$fill_(0.0)
-              }
-            }
-          })
-          refit_output_ols(LBBNN, train_full)
-          k_new <- if (q_val == 0) (k_free - 1.0) else (k_free - 0.5)
-          bic_after <- compute_mpm_bic(LBBNN, val_full$x, val_full$y, k_new)$bic
-          delta_bic <- bic_after - bic_before
-
-          if (delta_bic < delta_bic_cutoff) {
-            k_free <- k_new
-            if (q_val != 0) {
-              key <- paste0(r_exp, "_", c_in)
-              l_curr$snapped_rationals[[key]] <- list(
-                row = r_exp, col = c_in,
-                w_debiased = w_val, q_val = q_val, q_label = q_label,
-                delta_bic = delta_bic
-              )
-              records[[length(records) + 1L]] <- l_curr$snapped_rationals[[key]]
-            }
-            if (isTRUE(verbose)) {
-              message(sprintf(
-                "[Stage 2B] Snapped Layer %d exp[%d, %d] weight %.4f -> %s (dBIC = %.2f)",
-                l_idx, r_exp, c_in, w_val, q_label, delta_bic
-              ))
-            }
-          } else {
             torch::with_no_grad({
-              l_curr$weight_mean[r_exp, c_in]$copy_(saved_w)
-              l_curr$alpha_active_path[r_exp, c_in]$copy_(saved_act)
-              l_prev$alpha_active_path[c_in, ]$copy_(saved_l1_act)
-              LBBNN$out_layer$weight_mean$copy_(saved_out_w)
-              LBBNN$out_layer$bias_mean$copy_(saved_out_b)
+              l_curr$weight_mean[r_exp, c_in]$fill_(q_val)
+              if (q_val == 0) {
+                l_curr$alpha_active_path[r_exp, c_in]$fill_(0.0)
+                if (sum(as.numeric(l_curr$alpha_active_path[, c_in]$cpu()) > 0.5) == 0L) {
+                  l_prev$alpha_active_path[c_in, ]$fill_(0.0)
+                }
+              }
             })
+            refit_output_ols(LBBNN, train_full)
+            k_new <- if (q_val == 0) (k_free - 1.0) else (k_free - 0.5)
+            bic_after <- compute_mpm_bic(LBBNN, val_full$x, val_full$y, k_new)$bic
+            delta_bic <- bic_after - bic_before
+
+            if (delta_bic < delta_bic_cutoff) {
+              k_free <- k_new
+              if (q_val != 0) {
+                key <- paste0(r_exp, "_", c_in)
+                l_curr$snapped_rationals[[key]] <- list(
+                  row = r_exp, col = c_in,
+                  w_debiased = w_val, q_val = q_val, q_label = q_label,
+                  delta_bic = delta_bic
+                )
+                records[[length(records) + 1L]] <- l_curr$snapped_rationals[[key]]
+              }
+              if (isTRUE(verbose)) {
+                message(sprintf(
+                  "[Stage 2B] Snapped Layer %d exp[%d, %d] weight %.4f -> %s (dBIC = %.2f)",
+                  l_idx, r_exp, c_in, w_val, q_label, delta_bic
+                ))
+              }
+            } else {
+              torch::with_no_grad({
+                l_curr$weight_mean[r_exp, c_in]$copy_(saved_w)
+                l_curr$alpha_active_path[r_exp, c_in]$copy_(saved_act)
+                l_prev$alpha_active_path[c_in, ]$copy_(saved_l1_act)
+                LBBNN$out_layer$weight_mean$copy_(saved_out_w)
+                LBBNN$out_layer$bias_mean$copy_(saved_out_b)
+              })
+            }
           }
         }
       }
     }
 
-    # 2. Snap phase constants (e.g. pi) on incoming edges to sin/cos neurons in 3+ layer compositions
+    # 2. Snap phase constants (e.g. pi, 1, -1) on incoming edges to sin/cos neurons
     trig_rows <- which(l_curr$act_vec %in% c("sin", "cos"))
     for (r_tr in trig_rows) {
       active_cols <- which(act_curr[r_tr, ] > 0.5)
@@ -1631,6 +2174,35 @@ snap_rational_exponents <- function(LBBNN,
               LBBNN$out_layer$bias_mean$copy_(saved_out_b)
             })
           }
+        }
+      }
+    }
+
+    # 3. Snap hidden continuous neuron biases (e.g. square/sin/id shifts -> 0, +/-0.5, +/-1) via Laplace BF
+    cont_rows <- which(!(l_curr$act_vec %in% c("clog", "logic_and", "logic_or")))
+    for (r_c in cont_rows) {
+      if (sum(act_curr[r_c, ] > 0.5) == 0L) next
+      b_val <- as.numeric(l_curr$bias_mean[r_c]$cpu())
+      diffs_b <- abs(shift_cands$val - b_val)
+      bb <- which.min(diffs_b)
+      if (diffs_b[bb] < snap_tol && diffs_b[bb] > 1e-6) {
+        bic_before <- compute_mpm_bic(LBBNN, val_full$x, val_full$y, k_free)$bic
+        saved_b <- l_curr$bias_mean[r_c]$clone()
+        saved_out_w <- LBBNN$out_layer$weight_mean$clone()
+        saved_out_b <- LBBNN$out_layer$bias_mean$clone()
+        torch::with_no_grad({
+          l_curr$bias_mean[r_c]$fill_(shift_cands$val[bb])
+        })
+        refit_output_ols(LBBNN, train_full)
+        bic_after <- compute_mpm_bic(LBBNN, val_full$x, val_full$y, k_free - 0.5)$bic
+        if ((bic_after - bic_before) < delta_bic_cutoff) {
+          k_free <- k_free - 0.5
+        } else {
+          torch::with_no_grad({
+            l_curr$bias_mean[r_c]$copy_(saved_b)
+            LBBNN$out_layer$weight_mean$copy_(saved_out_w)
+            LBBNN$out_layer$bias_mean$copy_(saved_out_b)
+          })
         }
       }
     }

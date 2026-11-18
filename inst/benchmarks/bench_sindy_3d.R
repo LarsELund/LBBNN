@@ -333,7 +333,7 @@ run_single_sindy3d_seed <- function(seed = 1L,
   }
   rows[[length(rows) + 1L]] <- score_sindy3d_method(
     seed = seed, method = "RandomForest", S_hat = S_rf, pred_test = pred_rf,
-    dat = dat, n_terms = 900L, formula_str = rep("RandomForest(300x3)", 3), is_symbolic = FALSE
+    dat = dat, n_terms = NA_real_, formula_str = rep("RandomForest(300x3)", 3), is_symbolic = FALSE
   )
 
   do.call(rbind, rows)

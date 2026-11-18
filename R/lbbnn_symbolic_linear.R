@@ -190,27 +190,25 @@ lbbnn_symbolic_linear <- torch::nn_module(
 
       # Initialize logic neurons in the high-gradient region so literal signs can freely polarize to +/- 1
       if (length(self$logic_rows) > 0L) {
-        n_log <- length(self$logic_rows)
-        w_log <- matrix(
-          runif(n_log * self$in_features, min = -0.5, max = 0.5),
-          nrow = n_log, ncol = self$in_features
-        )
-        self$weight_mean[self$logic_rows, ]$copy_(
-          torch::torch_tensor(w_log, dtype = torch::torch_float32(), device = self$device)
-        )
-        self$bias_mean[self$logic_rows]$fill_(0.0)
-        self$bias_rho[self$logic_rows]$fill_(-10.0)
+        for (r_idx in self$logic_rows) {
+          w_row <- runif(self$in_features, min = -0.5, max = 0.5)
+          self$weight_mean[r_idx, ]$copy_(
+            torch::torch_tensor(w_row, dtype = torch::torch_float32(), device = self$device)
+          )
+          self$bias_mean[r_idx]$fill_(0.0)
+          self$bias_rho[r_idx]$fill_(-10.0)
+        }
       }
 
       # Enforce frozen canonical log (clog) parameters: w = 1 on dedicated input, b = 0
       if (length(self$clog_rows) > 0L) {
-        self$weight_mean[self$clog_rows, ]$fill_(0.0)
-        self$weight_rho[self$clog_rows, ]$fill_(-10.0)
-        self$bias_mean[self$clog_rows]$fill_(0.0)
-        self$bias_rho[self$clog_rows]$fill_(-10.0)
         for (m in seq_along(self$clog_rows)) {
           r_idx <- self$clog_rows[m]
           c_idx <- self$clog_input_cols[m]
+          self$weight_mean[r_idx, ]$fill_(0.0)
+          self$weight_rho[r_idx, ]$fill_(-10.0)
+          self$bias_mean[r_idx]$fill_(0.0)
+          self$bias_rho[r_idx]$fill_(-10.0)
           self$weight_mean[r_idx, c_idx]$fill_(1.0)
           # Non-dedicated incoming edges for clog are permanently off
           for (j in seq_len(self$in_features)) {
@@ -226,13 +224,13 @@ lbbnn_symbolic_linear <- torch::nn_module(
   enforce_constraints = function() {
     torch::with_no_grad({
       if (length(self$clog_rows) > 0L) {
-        self$weight_mean[self$clog_rows, ]$fill_(0.0)
-        self$weight_rho[self$clog_rows, ]$fill_(-10.0)
-        self$bias_mean[self$clog_rows]$fill_(0.0)
-        self$bias_rho[self$clog_rows]$fill_(-10.0)
         for (m in seq_along(self$clog_rows)) {
           r_idx <- self$clog_rows[m]
           c_idx <- self$clog_input_cols[m]
+          self$weight_mean[r_idx, ]$fill_(0.0)
+          self$weight_rho[r_idx, ]$fill_(-10.0)
+          self$bias_mean[r_idx]$fill_(0.0)
+          self$bias_rho[r_idx]$fill_(-10.0)
           self$weight_mean[r_idx, c_idx]$fill_(1.0)
           for (j in seq_len(self$in_features)) {
             if (j != c_idx) {
@@ -242,8 +240,10 @@ lbbnn_symbolic_linear <- torch::nn_module(
         }
       }
       if (length(self$logic_rows) > 0L) {
-        self$bias_mean[self$logic_rows]$fill_(0.0)
-        self$bias_rho[self$logic_rows]$fill_(-10.0)
+        for (r_idx in self$logic_rows) {
+          self$bias_mean[r_idx]$fill_(0.0)
+          self$bias_rho[r_idx]$fill_(-10.0)
+        }
       }
     })
   },

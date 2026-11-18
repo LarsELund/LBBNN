@@ -111,7 +111,7 @@ logic_and <- function(x, weight = NULL, gate = NULL, MPM = FALSE,
     return(torch::torch_prod(factors, dim = 3) * has_active)
   }
 
-  x_c <- torch::torch_clamp(x, min = -10.0, max = 10.0)$unsqueeze(2) # (B, 1, D)
+  x_c <- torch::torch_clamp(x, min = 0.0, max = 1.0)$unsqueeze(2) # (B, 1, D)
   w_e <- torch::torch_clamp(weight, min = -10.0, max = 10.0)$unsqueeze(1) # (1, O, D)
   g_e <- torch::torch_clamp(gate, min = 0.0, max = 1.0)$unsqueeze(1) # (1, O, D)
 
@@ -156,7 +156,7 @@ logic_or <- function(x, weight = NULL, gate = NULL, MPM = FALSE,
     return(1.0 - torch::torch_prod(factors, dim = 3))
   }
 
-  x_c <- torch::torch_clamp(x, min = -10.0, max = 10.0)$unsqueeze(2)
+  x_c <- torch::torch_clamp(x, min = 0.0, max = 1.0)$unsqueeze(2)
   w_e <- torch::torch_clamp(weight, min = -10.0, max = 10.0)$unsqueeze(1)
   g_e <- torch::torch_clamp(gate, min = 0.0, max = 1.0)$unsqueeze(1)
 

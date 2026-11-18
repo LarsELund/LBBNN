@@ -997,15 +997,16 @@ if (!is.null(ci_sindy) && !is.null(gl_sindy) && !is.null(raw_sindy_b)) {
       sig_stars = stars_s, star_row = 2L
     )
 
-    # Panel B: Gamma GLMM Log-RMSE Contrasts on 3D SINDy
-    par(mar = c(6.4, 8.2, 3.4, 2.2))
-    d5 <- gl_sindy[gl_sindy$metric == "test_rmse" & !gl_sindy$is_ref, ]
+    # Panel B: Beta GLMM Log-Odds Contrasts on Out-of-Sample R^2 (3D SINDy)
+    par(mar = c(6.4, 8.4, 3.4, 2.2))
+    d5 <- gl_sindy[gl_sindy$metric == "test_r2" & !gl_sindy$is_ref, ]
     d5 <- d5[order(d5$estimate), ]
     k5 <- nrow(d5); y5 <- rev(seq_len(k5))
     xr5 <- range(c(0, d5$ci_lo, d5$ci_hi), na.rm = TRUE)
-    plot(NA, xlim = c(xr5[1] - 0.15, xr5[2] + 0.25), ylim = c(0.4, k5 + 0.6), yaxt = "n",
-         xlab = expression(paste("GLMM Contrast ", hat(beta)[m], " (95% CI vs. Symbolic-LBBNN)")),
-         ylab = "", main = "(b) Task 5 (3D SINDy): Test RMSE Log-Ratio", las = 1)
+    pad5 <- max(0.15, 0.08 * diff(xr5))
+    plot(NA, xlim = c(xr5[1] - pad5, xr5[2] + pad5), ylim = c(0.4, k5 + 0.6), yaxt = "n",
+         xlab = expression(paste("Beta GLMM ", italic(R)^2, " Log-Odds ", Delta*hat(eta)[m], " (95% CI vs. Ref.)")),
+         ylab = "", main = expression(paste("(b) Task 5 (3D SINDy): Out-of-Sample ", italic(R)^2, " Log-Odds")), las = 1)
     draw_grid_v(pretty(xr5))
     abline(h = y5, col = COL_PALE, lty = 3)
     abline(v = 0, lty = 2, col = COL_DARK, lwd = 1.9)
@@ -1020,7 +1021,7 @@ if (!is.null(ci_sindy) && !is.null(gl_sindy) && !is.null(raw_sindy_b)) {
 }
 
 # ==============================================================================
-# FIGURE 9 (file fig7): GLMM Fixed-Effect Contrast Forest Plots (Pure B&W)
+# FIGURE 9 (file fig7): Beta GLMM Out-of-Sample R^2 & Joint Contrast Forest Plots (Pure B&W)
 # ==============================================================================
 draw_forest_panel <- function(df_list, lbls, xlab, main_title, xlim,
                               pch_vec = c(16, 17), lty_vec = c(1, 2),
@@ -1059,57 +1060,70 @@ draw_forest_panel <- function(df_list, lbls, xlab, main_title, xlim,
   }
 }
 
-save_dual("fig7_glmm_contrasts", width = 12.2, height = 8.6, plot_fn = function() {
-  par(mfrow = c(2, 2), mar = c(4.6, 10.2, 3.6, 1.5), cex.lab = 1.00, cex.main = 1.05)
+save_dual("fig7_glmm_contrasts", width = 12.6, height = 8.6, plot_fn = function() {
+  par(mfrow = c(2, 2), cex.lab = 0.98, cex.main = 1.03)
 
-  # Panel A: Task 1 (Logic) Gamma GLMM Log-Ratio Test RMSE (wider left margin -> no clipping!)
-  d1 <- gl_log[gl_log$metric == "test_rmse" & !gl_log$is_ref, ]
+  # Panel A: Task 1 (Logic) Beta GLMM Out-of-Sample R^2 Log-Odds (explicit wide left mar -> no clipping!)
+  par(mar = c(4.5, 10.6, 3.4, 1.4))
+  d1 <- gl_log[gl_log$metric == "test_r2" & !gl_log$is_ref, ]
   d1 <- d1[order(d1$estimate), ]
+  xr1 <- range(c(0, d1$ci_lo, d1$ci_hi), na.rm = TRUE)
+  pad1 <- max(0.08, 0.08 * diff(xr1))
   draw_forest_panel(
     list(d1), lbls = d1$term,
-    xlab = expression(paste("GLMM Log-RMSE Contrast ", hat(beta)[m], " (95% CI vs. Symbolic-LBBNN)")),
-    main_title = "(a) Task 1 (Logic): Test RMSE Log-Ratio (Gamma GLMM)",
-    xlim = c(-0.20, 0.50), col_vec = COL_BLACK
+    xlab = expression(paste("Beta GLMM ", italic(R)^2, " Log-Odds ", Delta*hat(eta)[m], " (95% CI vs. Ref.)")),
+    main_title = expression(paste("(a) Task 1 (Logic): Out-of-Sample ", italic(R)^2, " (Beta GLMM)")),
+    xlim = c(xr1[1] - pad1, xr1[2] + pad1), col_vec = COL_BLACK
   )
 
-  # Panel B: Tasks 2 & 3 (Kepler) Vertically Dodged in Pure B&W
-  d2 <- gl_kep[gl_kep$metric == "test_rmse" & !gl_kep$is_ref, ]
-  d3 <- gl_real[gl_real$metric == "test_rmse" & !gl_real$is_ref, ]
+  # Panel B: Tasks 2 & 3 (Kepler) Vertically Dodged Beta GLMM R^2 Log-Odds
+  par(mar = c(4.5, 8.8, 3.4, 1.4))
+  d2 <- gl_kep[gl_kep$metric == "test_r2" & !gl_kep$is_ref, ]
+  d3 <- gl_real[gl_real$metric == "test_r2" & !gl_real$is_ref, ]
   ord_b <- d3$term[order(d3$estimate)]
+  xr23 <- range(c(0, d2$ci_lo, d2$ci_hi, d3$ci_lo, d3$ci_hi), na.rm = TRUE)
+  pad23 <- max(0.15, 0.08 * diff(xr23))
   draw_forest_panel(
     list(d2, d3), lbls = ord_b,
-    xlab = expression(paste("GLMM Log-RMSE Contrast ", hat(beta)[m], " (95% CI vs. Symbolic-LBBNN)")),
-    main_title = "(b) Tasks 2 & 3 (Kepler): Test RMSE Log-Ratio (Gamma GLMM)",
-    xlim = c(-0.3, 6.2),
+    xlab = expression(paste("Beta GLMM ", italic(R)^2, " Log-Odds ", Delta*hat(eta)[m], " (95% CI vs. Ref.)")),
+    main_title = expression(paste("(b) Tasks 2 & 3 (Kepler): Out-of-Sample ", italic(R)^2, " (Beta GLMM)")),
+    xlim = c(xr23[1] - pad23, xr23[2] + pad23),
     pch_vec = c(16, 17), lty_vec = c(1, 2), col_vec = c(COL_MID, COL_BLACK),
     leg_labels = c("Synthetic Kepler (p = 10)", "NASA Exoplanets (n = 939)")
   )
 
-  # Panel C: Task 4 (Friedman #1) Gamma GLMM Log-Ratio Test RMSE
-  d4 <- gl_nl[gl_nl$metric == "test_rmse" & !gl_nl$is_ref & gl_nl$term != "Symbolic-LBBNN (3-Layer)", ]
+  # Panel C: Task 4 (Friedman #1) Beta GLMM R^2 Log-Odds
+  par(mar = c(4.5, 8.8, 3.4, 1.4))
+  d4 <- gl_nl[gl_nl$metric == "test_r2" & !gl_nl$is_ref & gl_nl$term != "Symbolic-LBBNN (3-Layer)", ]
   d4 <- d4[order(d4$estimate), ]
+  xr4 <- range(c(0, d4$ci_lo, d4$ci_hi), na.rm = TRUE)
+  pad4 <- max(0.10, 0.08 * diff(xr4))
   draw_forest_panel(
     list(d4), lbls = d4$term,
-    xlab = expression(paste("GLMM Log-RMSE Contrast ", hat(beta)[m], " (95% CI vs. Symbolic-LBBNN)")),
-    main_title = "(c) Task 4 (Friedman #1): Test RMSE Log-Ratio (Gamma GLMM)",
-    xlim = c(-0.20, 1.00), col_vec = COL_BLACK
+    xlab = expression(paste("Beta GLMM ", italic(R)^2, " Log-Odds ", Delta*hat(eta)[m], " (95% CI vs. Ref.)")),
+    main_title = expression(paste("(c) Task 4 (Friedman #1): Out-of-Sample ", italic(R)^2, " (Beta GLMM)")),
+    xlim = c(xr4[1] - pad4, xr4[2] + pad4), col_vec = COL_BLACK
   )
 
-  # Panel D: Balanced Joint Cross-Benchmark Hierarchical GLMM (Pure B&W!)
-  par(mar = c(4.6, 10.2, 4.3, 1.5))
+  # Panel D: Balanced Joint Cross-Benchmark Hierarchical GLMM (Beta R^2 + Binomial Exact Goal)
+  par(mar = c(4.5, 8.8, 4.3, 1.4))
   dj_src <- if (!is.null(gl_joint_cont)) gl_joint else gl_joint
-  dj_rmse <- dj_src[dj_src$metric == "rel_rmse" & !dj_src$is_ref, ]
+  dj_r2   <- dj_src[dj_src$metric == "test_r2" & !dj_src$is_ref, ]
   dj_goal <- dj_src[dj_src$metric == "exact_goal" & !dj_src$is_ref, ]
-  dj_rmse <- dj_rmse[order(dj_rmse$estimate), ]
-  lbl_d   <- dj_rmse$term
+  dj_r2   <- dj_r2[order(dj_r2$estimate), ]
+  lbl_d   <- dj_r2$term
   k_d     <- length(lbl_d)
   y_d     <- rev(seq_len(k_d))
-  lo_scale <- 3.2
+  max_r2  <- max(abs(c(1.0, dj_r2$ci_lo, dj_r2$ci_hi)), na.rm = TRUE)
+  max_gl  <- max(abs(c(1.0, dj_goal$ci_lo, dj_goal$ci_hi)), na.rm = TRUE)
+  lo_scale <- max(1.0, max_gl / max_r2)
 
-  xr_bot <- range(c(-1.8, 4.2, dj_rmse$ci_lo, dj_rmse$ci_hi,
-                    -dj_goal$ci_hi / lo_scale, -dj_goal$ci_lo / lo_scale), na.rm = TRUE)
+  xr_bot <- range(c(-0.5, 0.25, dj_r2$ci_lo, dj_r2$ci_hi,
+                    dj_goal$ci_lo / lo_scale, dj_goal$ci_hi / lo_scale), na.rm = TRUE)
+  pad_d <- 0.08 * diff(xr_bot)
+  xr_bot <- c(xr_bot[1] - pad_d, xr_bot[2] + pad_d)
   plot(NA, xlim = xr_bot, ylim = c(0.4, k_d + 1.45), yaxt = "n",
-       xlab = expression(paste("Joint Log Relative-RMSE ", hat(beta)[m], " (95% CI, filled circles)")),
+       xlab = expression(paste("Joint Beta ", italic(R)^2, " Log-Odds ", Delta*hat(eta)[m], " (95% CI, filled circles)")),
        ylab = "", main = "", las = 1)
   draw_grid_v(pretty(xr_bot))
   abline(h = y_d, col = COL_PALE, lty = 3)
@@ -1117,27 +1131,27 @@ save_dual("fig7_glmm_contrasts", width = 12.2, height = 8.6, plot_fn = function(
   axis(2, at = y_d, labels = lbl_d, las = 1, cex.axis = 0.80)
   top_ticks <- pretty(xr_bot * lo_scale)
   axis(3, at = top_ticks / lo_scale, labels = top_ticks, cex.axis = 0.80, mgp = c(1.6, 0.38, 0))
-  mtext(expression(paste("Exact Goal Deficit Log-Odds ", -hat(beta)[m], " (open squares, top axis)")),
+  mtext(expression(paste("Exact Goal Discovery Log-Odds ", Delta*hat(eta)[m], " (open squares, top axis)")),
         side = 3, line = 1.35, cex = 0.72, col = COL_DARK)
   n_tasks_lbl <- ifelse(is.null(gl_joint_cont), "4 Tasks", "5 Tasks")
-  title(main = sprintf("(d) Balanced Joint GLMM (%s x 100 Seeds)", n_tasks_lbl), line = 2.90, cex.main = 1.04)
+  title(main = sprintf("(d) Balanced Joint GLMM (%s x 100 Seeds)", n_tasks_lbl), line = 2.90, cex.main = 1.03)
 
   for (j in seq_len(k_d)) {
-    r1 <- dj_rmse[dj_rmse$term == lbl_d[j], ]
+    r1 <- dj_r2[dj_r2$term == lbl_d[j], ]
     r2 <- dj_goal[dj_goal$term == lbl_d[j], ]
     arrows(r1$ci_lo, y_d[j] + 0.16, r1$ci_hi, y_d[j] + 0.16,
            angle = 90, code = 3, length = 0.025, lwd = 1.8, lty = 1, col = COL_BLACK)
     points(r1$estimate, y_d[j] + 0.16, pch = 16, cex = 1.20, col = COL_BLACK)
 
-    est2 <- -r2$estimate / lo_scale
-    lo2  <- -r2$ci_hi / lo_scale
-    hi2  <- -r2$ci_lo / lo_scale
+    est2 <- r2$estimate / lo_scale
+    lo2  <- r2$ci_lo / lo_scale
+    hi2  <- r2$ci_hi / lo_scale
     arrows(lo2, y_d[j] - 0.16, hi2, y_d[j] - 0.16,
            angle = 90, code = 3, length = 0.025, lwd = 1.6, lty = 2, col = COL_MID)
     points(est2, y_d[j] - 0.16, pch = 22, cex = 1.15, col = COL_BLACK, bg = COL_WHITE, lwd = 1.3)
   }
   legend("top",
-         legend = c("Log Relative-RMSE (bottom axis)", "Exact Goal Deficit Log-Odds (top axis)"),
+         legend = expression(paste("Beta ", italic(R)^2, " Log-Odds (bottom axis)"), "Exact Goal Log-Odds (top axis)"),
          pch = c(16, 22), lty = c(1, 2), col = c(COL_BLACK, COL_MID), pt.bg = COL_WHITE,
          horiz = TRUE, bty = "o", bg = COL_WHITE, box.col = COL_LIGHT, cex = 0.74)
 })

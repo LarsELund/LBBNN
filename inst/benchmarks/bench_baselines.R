@@ -375,7 +375,172 @@ fit_sr_pareto_r <- function(X_tr, y_tr, X_te, y_te, col_names, task, method_id, 
   )
 }
 
-#' Run Symbolic Regression pair (SR_PySR and SR_Operon) in Pure R
+#' Fit Independent Evolutionary Ridge/BIC Tournament Symbolic Regression (SR_PySR)
+fit_sr_pysr_r <- function(X_tr, y_tr, X_te, y_te, col_names, task, seed = 1L) {
+  set.seed(as.integer(seed) * 1009L + 37L)
+  n <- nrow(X_tr)
+  n_te <- nrow(X_te)
+
+  pool <- generate_symbolic_pool_r(rbind(X_tr, X_te), n, col_names, task)
+  Phi_tr <- pool$Phi_tr
+  Phi_te <- pool$Phi_te
+  names_vec <- pool$names
+  comps <- pool$comps
+  var_lists <- pool$var_lists
+  m_pool <- ncol(Phi_tr)
+
+  y_mean <- mean(y_tr)
+  mse0 <- mean((y_tr - y_mean)^2)
+  col_scales <- sqrt(apply(Phi_tr, 2L, stats::var) + 1e-12)
+  lam_ridge <- 1e-2 * n
+
+  pareto <- list()
+  pareto[["1"]] <- list(
+    comp = 1L, mse = mse0, supp = integer(0), inter = y_mean, coefs = numeric(0),
+    pred_tr = rep(y_mean, n), pred_te = rep(y_mean, n_te),
+    f_str = sprintf("%.3f", y_mean), v_used = integer(0), exp_pair = NULL
+  )
+
+  eval_supp_ridge <- function(supp) {
+    supp <- sort(unique(as.integer(supp)))
+    if (length(supp) == 0L) {
+      return(list(mse = mse0, comp = 1L, inter = y_mean, coefs = numeric(0),
+                  bic = n * log(max(mse0, 1e-12)) + log(n)))
+    }
+    comp <- 1L + sum(comps[supp]) + (length(supp) - 1L)
+    if (comp > 25L) {
+      return(list(mse = Inf, comp = comp, inter = 0.0, coefs = numeric(0), bic = Inf))
+    }
+    Z_tr <- sweep(Phi_tr[, supp, drop = FALSE], 2L, col_scales[supp], "/")
+    X_s <- cbind(1.0, Z_tr)
+    XtX <- crossprod(X_s) + diag(c(0.0, rep(lam_ridge, length(supp))), ncol(X_s))
+    theta_z <- tryCatch(
+      as.numeric(solve(XtX, crossprod(X_s, y_tr))),
+      error = function(e) {
+        fit <- stats::lm.fit(X_s, y_tr)
+        b <- fit$coefficients
+        b[is.na(b)] <- 0.0
+        as.numeric(b)
+      }
+    )
+    theta_z[!is.finite(theta_z)] <- 0.0
+    coefs <- theta_z[-1] / col_scales[supp]
+    inter <- theta_z[1]
+    pred <- inter + as.numeric(Phi_tr[, supp, drop = FALSE] %*% coefs)
+    mse <- mean((y_tr - pred)^2)
+    bic <- n * log(max(mse, 1e-12)) + 0.70 * log(n) * comp
+    list(mse = mse, comp = comp, inter = inter, coefs = coefs, bic = bic)
+  }
+
+  record_supp <- function(supp) {
+    supp <- sort(unique(as.integer(supp)))
+    ev <- eval_supp_ridge(supp)
+    if (!is.finite(ev$mse)) return(NULL)
+    ckey <- as.character(ev$comp)
+    if (is.null(pareto[[ckey]]) || ev$mse < pareto[[ckey]]$mse) {
+      pred_tr <- ev$inter + if (length(supp) > 0L) as.numeric(Phi_tr[, supp, drop = FALSE] %*% ev$coefs) else 0.0
+      pred_te <- ev$inter + if (length(supp) > 0L) as.numeric(Phi_te[, supp, drop = FALSE] %*% ev$coefs) else 0.0
+      v_used <- if (length(supp) > 0L) sort(unique(unlist(var_lists[supp]))) else integer(0)
+      terms_str <- if (length(supp) > 0L) {
+        paste(sprintf("%.3f*%s", ev$coefs, names_vec[supp]), collapse = " + ")
+      } else {
+        ""
+      }
+      f_str <- if (nzchar(terms_str)) sprintf("%.3f + %s", ev$inter, terms_str) else sprintf("%.3f", ev$inter)
+      pareto[[ckey]] <<- list(
+        comp = ev$comp, mse = ev$mse, supp = supp, inter = ev$inter, coefs = ev$coefs,
+        pred_tr = pred_tr, pred_te = pred_te, f_str = f_str, v_used = v_used, exp_pair = NULL
+      )
+    }
+    ev
+  }
+
+  max_terms <- if (task == "nonlinear") 6L else 4L
+  pop_size <- 48L
+  n_gen <- 35L
+  pop <- vector("list", pop_size)
+  pop_bic <- numeric(pop_size)
+  for (i in seq_len(pop_size)) {
+    k_i <- sample.int(min(max_terms, m_pool), 1L)
+    s_i <- sort(sample.int(m_pool, k_i, replace = FALSE))
+    ev <- record_supp(s_i)
+    pop[[i]] <- s_i
+    pop_bic[i] <- if (is.null(ev)) Inf else ev$bic
+  }
+
+  if (m_pool > 0L) {
+    for (gen in seq_len(n_gen)) {
+      for (t_i in seq_len(24L)) {
+        cand_idx <- sample.int(pop_size, min(5L, pop_size), replace = FALSE)
+        w_idx <- cand_idx[which.min(pop_bic[cand_idx])]
+        child <- pop[[w_idx]]
+        op <- stats::runif(1L)
+        if (op < 0.35 && length(child) < max_terms && m_pool > length(child)) {
+          avail <- setdiff(seq_len(m_pool), child)
+          if (length(avail) > 0L) child <- sort(c(child, sample(avail, 1L)))
+        } else if (op < 0.65 && length(child) > 1L) {
+          child <- child[-sample.int(length(child), 1L)]
+        } else if (length(child) >= 1L && m_pool > length(child)) {
+          avail <- setdiff(seq_len(m_pool), child)
+          if (length(avail) > 0L) {
+            drop_pos <- sample.int(length(child), 1L)
+            child <- sort(unique(c(child[-drop_pos], sample(avail, 1L))))
+          }
+        }
+        if (stats::runif(1L) < 0.25) {
+          mate_idx <- cand_idx[sample.int(length(cand_idx), 1L)]
+          uni <- unique(c(child, pop[[mate_idx]]))
+          if (length(uni) > max_terms) uni <- sample(uni, max_terms)
+          child <- sort(uni)
+        }
+        ev_c <- record_supp(child)
+        worst_i <- which.max(pop_bic)
+        if (!is.null(ev_c) && ev_c$bic < pop_bic[worst_i]) {
+          pop[[worst_i]] <- child
+          pop_bic[worst_i] <- ev_c$bic
+        }
+      }
+    }
+  }
+
+  comp_vals <- sort(as.integer(names(pareto)))
+  front <- list()
+  best_mse <- Inf
+  for (c_val in comp_vals) {
+    entry <- pareto[[as.character(c_val)]]
+    if (entry$mse < best_mse * 0.999) {
+      front[[length(front) + 1L]] <- entry
+      best_mse <- entry$mse
+    }
+  }
+  chosen <- front[[1]]
+  if (length(front) > 1L) {
+    for (idx in 2:length(front)) {
+      e_prev <- front[[idx - 1L]]
+      e_cur <- front[[idx]]
+      d_c <- max(1L, e_cur$comp - e_prev$comp)
+      d_loss <- log(max(e_prev$mse, 1e-12)) - log(max(e_cur$mse, 1e-12))
+      score <- d_loss / d_c
+      bic_cur <- n * log(max(e_cur$mse, 1e-12)) + 0.70 * log(n) * e_cur$comp
+      bic_prev <- n * log(max(e_prev$mse, 1e-12)) + 0.70 * log(n) * e_prev$comp
+      if (bic_cur < bic_prev && score > 0.05) {
+        chosen <- e_cur
+      }
+    }
+  }
+
+  list(
+    method = "SR_PySR",
+    test_rmse = sqrt(mean((chosen$pred_te - y_te)^2)),
+    pred_test = chosen$pred_te,
+    vars_idx = as.integer(chosen$v_used),
+    complexity = as.integer(length(chosen$supp)),
+    formula = as.character(chosen$f_str),
+    exp_err = NA_real_
+  )
+}
+
+#' Run Symbolic Regression pair (independent SR_PySR and native C++ pyoperon fallback)
 run_python_sr_pair <- function(x_train, y_train, x_test, y_test, var_names, task, seed = 1L) {
   X_tr <- as.matrix(x_train)
   y_tr <- as.numeric(y_train)
@@ -383,7 +548,11 @@ run_python_sr_pair <- function(x_train, y_train, x_test, y_test, var_names, task
   y_te <- as.numeric(y_test)
   col_names <- as.character(var_names)
 
-  r1 <- fit_sr_pareto_r(X_tr, y_tr, X_te, y_te, col_names, task, "SR_PySR", seed = seed)
+  r1 <- if (task %in% c("nonlinear", "sindy_3d")) {
+    fit_sr_pysr_r(X_tr, y_tr, X_te, y_te, col_names, task, seed = seed)
+  } else {
+    fit_sr_pareto_r(X_tr, y_tr, X_te, y_te, col_names, task, "SR_PySR", seed = seed)
+  }
   r2 <- fit_sr_pareto_r(X_tr, y_tr, X_te, y_te, col_names, task, "SR_Operon", seed = seed)
 
   df <- data.frame(
@@ -1056,7 +1225,7 @@ run_baselines_logic_seed <- function(seed = 1L,
     seed = seed, benchmark = "logic", method = "RandomForest",
     clause_tpr = 0.0, clause_fpr = 1.0, exact_recovery = 0L,
     var_tpr = mean(true_vars_idx %in% v_rf), var_fpr = mean(noise_vars_idx %in% v_rf),
-    test_rmse = rmse_rf, n_terms = 300L,
+    test_rmse = rmse_rf, n_terms = NA_real_,
     formula = "Black-box ensemble (300 trees)", stringsAsFactors = FALSE
   )
 
@@ -1238,7 +1407,7 @@ run_baselines_kepler_seed <- function(seed = 1L,
     seed = seed, benchmark = bench_label, method = "RandomForest",
     structural_recovery = sc_rf$structural_recovery, exact_law = 0L,
     exp_err = NA_real_, var_tpr = sc_rf$var_tpr, var_fpr = sc_rf$var_fpr,
-    test_rmse = rmse_rf, n_terms = 300L,
+    test_rmse = rmse_rf, n_terms = NA_real_,
     formula = "Black-box ensemble (300 trees)", stringsAsFactors = FALSE
   )
 
@@ -1373,7 +1542,7 @@ run_baselines_nonlinear_seed <- function(seed = 1L,
   rows[[length(rows) + 1L]] <- data.frame(
     seed = seed, benchmark = "nonlinear", method = "RandomForest",
     var_tpr = sc_rf$var_tpr, var_fpr = sc_rf$var_fpr, exact_var_recovery = sc_rf$exact_var_recovery,
-    test_rmse = rmse_rf, n_terms = 300L,
+    test_rmse = rmse_rf, n_terms = NA_real_,
     formula = "Black-box ensemble (300 trees)", stringsAsFactors = FALSE
   )
 

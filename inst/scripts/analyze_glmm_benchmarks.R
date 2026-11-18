@@ -73,7 +73,8 @@ if (!exists("generate_kepler_data", mode = "function")) source("inst/benchmarks/
 if (!exists("generate_friedman1_data", mode = "function")) source("inst/benchmarks/bench_nonlinear.R")
 
 add_test_r2_column <- function(df_bench, bench) {
-  if ("test_r2" %in% names(df_bench) && all(is.finite(df_bench$test_r2))) {
+  if (bench == "sindy_3d" && "test_r2" %in% names(df_bench) && all(is.finite(df_bench$test_r2))) {
+    df_bench$test_r2 <- pmin(pmax(df_bench$test_r2, 1e-6), 1.0 - 1e-6)
     return(df_bench)
   }
   seeds_u <- sort(unique(df_bench$seed))
@@ -90,9 +91,8 @@ add_test_r2_column <- function(df_bench, bench) {
   }
   vy <- var_y_map[as.character(df_bench$seed)]
   r2_raw <- pmin(pmax(1.0 - (df_bench$test_rmse^2) / vy, 0.0), 1.0)
-  n_obs <- nrow(df_bench)
-  # Smithson-Verkuilen transformation mapping [0, 1] -> (0, 1)
-  df_bench$test_r2 <- (r2_raw * (n_obs - 1.0) + 0.5) / n_obs
+  # Clamp only exact [0, 1] boundary hits at eps = 1e-6 (no Smithson-Verkuilen interior squeeze)
+  df_bench$test_r2 <- pmin(pmax(r2_raw, 1e-6), 1.0 - 1e-6)
   df_bench
 }
 
@@ -331,6 +331,9 @@ fit_single_metric_glmm <- function(df_bench, bench, m_col, ref_method = "Symboli
 
   # 4. Count metrics (n_terms) -> Negative Binomial nbinom2(log), Poisson(log) limit fallback
   if (m_col == "n_terms") {
+    sub_df <- sub_df[!is.na(sub_df$n_terms) & is.finite(sub_df$n_terms) & sub_df$method != "RandomForest", , drop = FALSE]
+    if (nrow(sub_df) == 0L || !(ref_method %in% sub_df$method)) return(NULL)
+    sub_df$method <- stats::relevel(droplevels(factor(sub_df$method)), ref = ref_method)
     sub_df$y_cnt <- pmax(1L, as.integer(round(sub_df$n_terms)))
     fam_used <- "NegBinom"
     fit <- try_tmb(glmmTMB::glmmTMB(
@@ -366,14 +369,9 @@ fit_single_metric_glmm <- function(df_bench, bench, m_col, ref_method = "Symboli
     }
   }
 
-  # 5. Out-of-sample R^2 in (0, 1) -> Beta GLMM with logit link
+  # 5. Out-of-sample R^2 in (0, 1) -> Beta GLMM with logit link (boundary-only clamp at 1e-6)
   if (m_col == "test_r2") {
-    n_obs <- nrow(sub_df)
-    r2_v <- pmin(pmax(sub_df$test_r2, 0.0), 1.0)
-    if (any(r2_v <= 1e-6 | r2_v >= (1.0 - 1e-6))) {
-      r2_v <- (r2_v * (n_obs - 1.0) + 0.5) / n_obs
-    }
-    sub_df$r2_val <- pmin(pmax(r2_v, 1e-5), 1.0 - 1e-5)
+    sub_df$r2_val <- pmin(pmax(sub_df$test_r2, 1e-6), 1.0 - 1e-6)
 
     fit <- try_tmb(glmmTMB::glmmTMB(
       r2_val ~ method + (1 | seed_f),
@@ -384,6 +382,7 @@ fit_single_metric_glmm <- function(df_bench, bench, m_col, ref_method = "Symboli
     if (!is_valid_tmb(fit)) {
       fit <- try_tmb(glmmTMB::glmmTMB(
         r2_val ~ method + (1 | seed_f),
+        dispformula = ~ 1,
         family = glmmTMB::beta_family(link = "logit"),
         data = sub_df
       ))
@@ -391,6 +390,7 @@ fit_single_metric_glmm <- function(df_bench, bench, m_col, ref_method = "Symboli
     if (!is_valid_tmb(fit)) {
       fit <- try_tmb(glmmTMB::glmmTMB(
         r2_val ~ method,
+        dispformula = ~ 1,
         family = glmmTMB::beta_family(link = "logit"),
         data = sub_df
       ))
@@ -502,11 +502,12 @@ for (b in benchmarks) {
       var_fpr = d_3l$fpr,
       exact_var_recovery = d_3l$exact_var_recovery,
       test_rmse = d_3l$test_rmse,
-      n_terms = d_3l$active_edges,
+      n_terms = if ("n_terms" %in% names(d_3l)) d_3l$n_terms else d_3l$active_edges,
       formula = d_3l$formula,
       test_r2 = d_3l$test_r2,
       stringsAsFactors = FALSE
     )
+    d_3l_mapped <- add_test_r2_column(d_3l_mapped, "nonlinear")
     df_b_fit <- rbind(df_b, d_3l_mapped)
   }
 
@@ -584,7 +585,7 @@ build_joint_df <- function(bench_sub, allowed_methods = NULL) {
       n_tpr         = n_tpr[keep],
       k_spec        = k_spec[keep],
       n_spec        = n_fpr[keep],
-      n_terms       = pmax(1L, as.integer(round(d$n_terms[keep]))),
+      n_terms       = ifelse(is.na(d$n_terms[keep]), NA_integer_, pmax(1L, as.integer(round(d$n_terms[keep])))),
       stringsAsFactors = FALSE
     )
   }
@@ -593,9 +594,7 @@ build_joint_df <- function(bench_sub, allowed_methods = NULL) {
   df_j$method    <- stats::relevel(factor(df_j$method), ref = "Symbolic-LBBNN")
   df_j$ds_method <- interaction(df_j$dataset, df_j$method, drop = TRUE)
   df_j$ds_seed   <- interaction(df_j$dataset, df_j$seed, drop = TRUE)
-  n_j <- nrow(df_j)
-  r2_j <- pmin(pmax(df_j$test_r2, 0.0), 1.0)
-  df_j$r2_sv <- (r2_j * (n_j - 1.0) + 0.5) / n_j
+  df_j$r2_clean  <- pmin(pmax(df_j$test_r2, 1e-6), 1.0 - 1e-6)
   df_j
 }
 
@@ -641,14 +640,23 @@ fit_balanced_joint_suite <- function(df_joint, label_prefix) {
   stopifnot(is_valid_tmb(fit_j_rmse))
 
   fit_j_r2 <- try_tmb(glmmTMB::glmmTMB(
-    r2_sv ~ method + (1 | dataset) + (1 | ds_method) + (1 | ds_seed),
-    dispformula = ~ dataset,
+    r2_clean ~ method + (1 | dataset) + (1 | ds_method) + (1 | ds_seed),
+    dispformula = ~ method,
     family = glmmTMB::beta_family(link = "logit"),
     data = df_joint
   ))
   if (!is_valid_tmb(fit_j_r2)) {
+    fit_j_r2 <- try_tmb(glmmTMB::glmmTMB(
+      r2_clean ~ method + (1 | dataset) + (1 | ds_method) + (1 | ds_seed),
+      dispformula = ~ dataset,
+      family = glmmTMB::beta_family(link = "logit"),
+      data = df_joint
+    ))
+  }
+  if (!is_valid_tmb(fit_j_r2)) {
     fit_j_r2 <- glmmTMB::glmmTMB(
-      r2_sv ~ method + (1 | dataset) + (1 | ds_method) + (1 | ds_seed),
+      r2_clean ~ method + (1 | dataset) + (1 | ds_method) + (1 | ds_seed),
+      dispformula = ~ 1,
       family = glmmTMB::beta_family(link = "logit"),
       data = df_joint
     )
@@ -768,7 +776,7 @@ write_appendix_d_tex <- function(glmm_list, out_tex = "paper/appendix_d_glmm_tab
     "\\section{Complete Generalized Linear Mixed-Effects Regression Tables}",
     "\\label{app:glmm_full}",
     "",
-    "This appendix reports the complete \\texttt{glmmTMB} fixed-effect estimates ($\\hat{\\beta}_0$ for \\texttt{Symbolic-LBBNN} as reference, contrast $\\hat{\\beta}_m$ with $95\\%$ Wald confidence intervals), exponentiated effect multipliers ($e^{\\hat{\\beta}_m}$ representing multiplicative mean ratios for \\texttt{Gamma}/\\texttt{NegBinom}/\\texttt{Poisson} and odds ratios for \\texttt{Binomial}/\\texttt{Beta}), Wald $z$-statistics, two-sided $p$-values, and matched seed random-effect standard deviations ($\\hat{\\sigma}_{\\text{seed}}$) across every metric and all five benchmarks in Tables~\\ref{tab:glmm_app_logic}--\\ref{tab:glmm_app_sindy}. Out-of-sample $R^2$ is modeled via Beta GLMM with logit link after Smithson--Verkuilen boundary regularization.",
+    "This appendix reports the complete \\texttt{glmmTMB} fixed-effect estimates ($\\hat{\\beta}_0$ for \\texttt{Symbolic-LBBNN} as reference, contrast $\\hat{\\beta}_m$ with $95\\%$ Wald confidence intervals), exponentiated effect multipliers ($e^{\\hat{\\beta}_m}$ representing multiplicative mean ratios for \\texttt{Gamma}/\\texttt{NegBinom}/\\texttt{Poisson} and odds ratios for \\texttt{Binomial}/\\texttt{Beta}), Wald $z$-statistics, two-sided $p$-values, and matched seed random-effect standard deviations ($\\hat{\\sigma}_{\\text{seed}}$) across every metric and all five benchmarks in Tables~\\ref{tab:glmm_app_logic}--\\ref{tab:glmm_app_sindy}. Out-of-sample $R^2$ is modeled via Beta GLMM with logit link (and method-specific dispersion where supported), clamping only exact $[0,1]$ boundary hits at $\\varepsilon = 10^{-6}$ rather than applying interior Smithson--Verkuilen compression.",
     ""
   )
 
