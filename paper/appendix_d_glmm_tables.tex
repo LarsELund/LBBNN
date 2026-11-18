@@ -1,12 +1,13 @@
 \section{Complete Generalized Linear Mixed-Effects Regression Tables}
 \label{app:glmm_full}
 
-This appendix reports the complete \texttt{glmmTMB} fixed-effect estimates ($\hat{\beta}_0$ for \texttt{Symbolic-LBBNN} as reference, contrast $\hat{\beta}_m$ with $95\%$ Wald confidence intervals), exponentiated effect multipliers ($e^{\hat{\beta}_m}$ representing multiplicative mean ratios for \texttt{Gamma}/\texttt{NegBinom} and odds ratios for \texttt{Binomial}/\texttt{Beta}), Wald $z$-statistics, two-sided $p$-values, and matched seed random-effect standard deviations ($\hat{\sigma}_{\text{seed}}$) across every metric and all five benchmarks in Tables~\ref{tab:glmm_app_logic}--\ref{tab:glmm_app_sindy}. Out-of-sample $R^2$ is modeled via Beta GLMM with logit link after Smithson--Verkuilen boundary regularization.
+This appendix reports the complete \texttt{glmmTMB} fixed-effect estimates ($\hat{\beta}_0$ for \texttt{Symbolic-LBBNN} as reference, contrast $\hat{\beta}_m$ with $95\%$ Wald confidence intervals), exponentiated effect multipliers ($e^{\hat{\beta}_m}$ representing multiplicative mean ratios for \texttt{Gamma}/\texttt{NegBinom}/\texttt{Poisson} and odds ratios for \texttt{Binomial}/\texttt{Beta}), Wald $z$-statistics, two-sided $p$-values, and matched seed random-effect standard deviations ($\hat{\sigma}_{\text{seed}}$) across every metric and all five benchmarks in Tables~\ref{tab:glmm_app_logic}--\ref{tab:glmm_app_sindy}. Out-of-sample $R^2$ is modeled via Beta GLMM with logit link after Smithson--Verkuilen boundary regularization.
 
 \begin{table}[htbp]
 \centering
 \caption{Full GLMM regression contrasts on Benchmark 1 (Bayesian Logic Regression, $M = 100$ seeds).}
 \label{tab:glmm_app_logic}
+{
 \resizebox{\textwidth}{!}{%
 \begin{tabular}{llcccccc}
 \toprule
@@ -60,8 +61,16 @@ Out-of-Sample $R^2$ (\texttt{Beta}, logit) & \texttt{Symbolic-LBBNN} (Ref) & $+2
  & \texttt{LogicReg} & $+0.145$ [$+0.107, +0.183$] & 1.156 & $+7.42$ & $<.001^{***}$ &  \\
  & \texttt{RandomForest} & $-0.894$ [$-0.936, -0.851$] & 0.409 & $-41.17$ & $<.001^{***}$ &  \\
  & \texttt{ReLU-LBBNN} & $-0.424$ [$-0.466, -0.383$] & 0.654 & $-20.10$ & $<.001^{***}$ &  \\
+\midrule
+Active Terms (\texttt{Poisson}, log) & \texttt{Symbolic-LBBNN} (Ref) & $+1.292$ [$+1.189, +1.395$] & Ref & $+24.65$ & --- & 0.000 \\
+ & \texttt{FBMS-BLR} & $+0.043$ [$-0.101, +0.187$] & $1.044\times$ & $+0.59$ & $0.558^{\text{ns}}$ &  \\
+ & \texttt{Lasso-Interactions} & $+0.883$ [$+0.761, +1.005$] & $2.418\times$ & $+14.17$ & $<.001^{***}$ &  \\
+ & \texttt{LogicReg} & $-0.193$ [$-0.346, -0.041$] & $0.824\times$ & $-2.48$ & $0.013^{*}$ &  \\
+ & \texttt{RandomForest} & $+4.412$ [$+4.308, +4.515$] & $82.418\times$ & $+83.67$ & $<.001^{***}$ &  \\
+ & \texttt{ReLU-LBBNN} & $+3.978$ [$+3.874, +4.082$] & $53.415\times$ & $+75.20$ & $<.001^{***}$ &  \\
 \bottomrule
 \end{tabular}%
+}
 }
 \end{table}
 
@@ -69,7 +78,8 @@ Out-of-Sample $R^2$ (\texttt{Beta}, logit) & \texttt{Symbolic-LBBNN} (Ref) & $+2
 \centering
 \caption{Full GLMM regression contrasts on Benchmark 2 (Synthetic Kepler's Third Law, $M = 100$ seeds).}
 \label{tab:glmm_app_kepler}
-\resizebox{\textwidth}{!}{%
+{\renewcommand{\arraystretch}{0.80}
+\resizebox{0.88\textwidth}{!}{%
 \begin{tabular}{llcccccc}
 \toprule
 Metric (Family, Link) & Method & $\hat{\beta}_0$ / $\hat{\beta}_m$ [95\% CI] & $e^{\hat{\beta}_m}$ & Wald $z$ & $p$-value & $\hat{\sigma}_{\text{seed}}$ \\
@@ -119,6 +129,16 @@ Variable FPR (\texttt{Binomial}, logit) & \texttt{Symbolic-LBBNN} (Ref) & $-6.62
  & \texttt{SR-Operon} & $+0.000$ [$-2.511, +2.511$] & 1.000 & $+0.00$ & $1.000^{\text{ns}}$ &  \\
  & \texttt{SR-PySR} & $+4.046$ [$+2.250, +5.842$] & 57.181 & $+4.42$ & $<.001^{***}$ &  \\
 \midrule
+Active Terms (\texttt{Poisson}, log) & \texttt{Symbolic-LBBNN} (Ref) & $+1.609$ [$+1.522, +1.697$] & Ref & $+35.99$ & --- & 0.000 \\
+ & \texttt{FBMS-BGNLM} & $-1.609$ [$-1.824, -1.395$] & $0.200\times$ & $-14.69$ & $<.001^{***}$ &  \\
+ & \texttt{GAM} & $+0.646$ [$+0.538, +0.754$] & $1.908\times$ & $+11.70$ & $<.001^{***}$ &  \\
+ & \texttt{Lasso} & $-0.906$ [$-1.070, -0.743$] & $0.404\times$ & $-10.87$ & $<.001^{***}$ &  \\
+ & \texttt{MARS} & $+0.522$ [$+0.412, +0.633$] & $1.686\times$ & $+9.25$ & $<.001^{***}$ &  \\
+ & \texttt{RandomForest} & $+4.094$ [$+4.006, +4.183$] & $60.000\times$ & $+90.80$ & $<.001^{***}$ &  \\
+ & \texttt{ReLU-LBBNN} & $-0.936$ [$-1.102, -0.771$] & $0.392\times$ & $-11.11$ & $<.001^{***}$ &  \\
+ & \texttt{SR-Operon} & $+0.588$ [$+0.478, +0.697$] & $1.800\times$ & $+10.54$ & $<.001^{***}$ &  \\
+ & \texttt{SR-PySR} & $+1.122$ [$+1.021, +1.223$] & $3.070\times$ & $+21.78$ & $<.001^{***}$ &  \\
+\midrule
 Test RMSE (\texttt{Gamma}, log) & \texttt{Symbolic-LBBNN} (Ref) & $-5.298$ [$-5.308, -5.288$] & Ref & $-1040.98$ & --- & 0.051 \\
  & \texttt{FBMS-BGNLM} & $+0.001$ [$+0.000, +0.002$] & $1.001\times$ & $+2.08$ & $0.038^{*}$ &  \\
  & \texttt{GAM} & $+2.409$ [$+2.394, +2.424$] & $11.122\times$ & $+317.63$ & $<.001^{***}$ &  \\
@@ -141,13 +161,15 @@ Out-of-Sample $R^2$ (\texttt{Beta}, logit) & \texttt{Symbolic-LBBNN} (Ref) & $+6
 \bottomrule
 \end{tabular}%
 }
+}
 \end{table}
 
 \begin{table}[htbp]
 \centering
 \caption{Full GLMM regression contrasts on Benchmark 3 (NASA Exoplanet Archive, $n = 939$, $M = 100$ splits).}
 \label{tab:glmm_app_exoplanet}
-\resizebox{\textwidth}{!}{%
+{\renewcommand{\arraystretch}{0.80}
+\resizebox{0.88\textwidth}{!}{%
 \begin{tabular}{llcccccc}
 \toprule
 Metric (Family, Link) & Method & $\hat{\beta}_0$ / $\hat{\beta}_m$ [95\% CI] & $e^{\hat{\beta}_m}$ & Wald $z$ & $p$-value & $\hat{\sigma}_{\text{seed}}$ \\
@@ -197,6 +219,16 @@ Variable FPR (\texttt{Binomial}, logit) & \texttt{Symbolic-LBBNN} (Ref) & $-6.37
  & \texttt{SR-Operon} & $+5.750$ [$+3.936, +7.563$] & 314.106 & $+6.21$ & $<.001^{***}$ &  \\
  & \texttt{SR-PySR} & $+5.497$ [$+3.683, +7.311$] & 244.020 & $+5.94$ & $<.001^{***}$ &  \\
 \midrule
+Active Terms (\texttt{Poisson}, log) & \texttt{Symbolic-LBBNN} (Ref) & $+1.609$ [$+1.522, +1.697$] & Ref & $+35.99$ & --- & 0.000 \\
+ & \texttt{FBMS-BGNLM} & $-1.178$ [$-1.358, -0.997$] & $0.308\times$ & $-12.78$ & $<.001^{***}$ &  \\
+ & \texttt{GAM} & $+1.136$ [$+1.035, +1.237$] & $3.114\times$ & $+22.10$ & $<.001^{***}$ &  \\
+ & \texttt{Lasso} & $-1.496$ [$-1.701, -1.291$] & $0.224\times$ & $-14.31$ & $<.001^{***}$ &  \\
+ & \texttt{MARS} & $-0.269$ [$-0.402, -0.136$] & $0.764\times$ & $-3.96$ & $<.001^{***}$ &  \\
+ & \texttt{RandomForest} & $+4.094$ [$+4.006, +4.183$] & $60.000\times$ & $+90.80$ & $<.001^{***}$ &  \\
+ & \texttt{ReLU-LBBNN} & $+1.988$ [$+1.894, +2.081$] & $7.300\times$ & $+41.69$ & $<.001^{***}$ &  \\
+ & \texttt{SR-Operon} & $+1.457$ [$+1.359, +1.554$] & $4.292\times$ & $+29.34$ & $<.001^{***}$ &  \\
+ & \texttt{SR-PySR} & $+1.352$ [$+1.253, +1.450$] & $3.864\times$ & $+26.94$ & $<.001^{***}$ &  \\
+\midrule
 Test RMSE (\texttt{Gamma}, log) & \texttt{Symbolic-LBBNN} (Ref) & $-4.076$ [$-4.149, -4.004$] & Ref & $-110.30$ & --- & 0.141 \\
  & \texttt{FBMS-BGNLM} & $+1.252$ [$+1.044, +1.460$] & $3.497\times$ & $+11.80$ & $<.001^{***}$ &  \\
  & \texttt{GAM} & $+5.356$ [$+5.064, +5.648$] & $211.856\times$ & $+35.96$ & $<.001^{***}$ &  \\
@@ -219,13 +251,15 @@ Out-of-Sample $R^2$ (\texttt{Beta}, logit) & \texttt{Symbolic-LBBNN} (Ref) & $+7
 \bottomrule
 \end{tabular}%
 }
+}
 \end{table}
 
 \begin{table}[htbp]
 \centering
 \caption{Full GLMM regression contrasts on Benchmark 4 (Friedman \#1 Nonlinear Benchmark, $M = 100$ seeds).}
 \label{tab:glmm_app_friedman}
-\resizebox{\textwidth}{!}{%
+{\renewcommand{\arraystretch}{0.85}
+\resizebox{0.93\textwidth}{!}{%
 \begin{tabular}{llcccccc}
 \toprule
 Metric (Family, Link) & Method & $\hat{\beta}_0$ / $\hat{\beta}_m$ [95\% CI] & $e^{\hat{\beta}_m}$ & Wald $z$ & $p$-value & $\hat{\sigma}_{\text{seed}}$ \\
@@ -239,6 +273,7 @@ Variable TPR (\texttt{Binomial}, logit) & \texttt{Symbolic-LBBNN} (Ref) & $+4.16
  & \texttt{ReLU-LBBNN} & $-1.969$ [$-2.704, -1.234$] & 0.140 & $-5.25$ & $<.001^{***}$ &  \\
  & \texttt{SR-Operon} & $+0.486$ [$-0.649, +1.621$] & 1.626 & $+0.84$ & $0.402^{\text{ns}}$ &  \\
  & \texttt{SR-PySR} & $+0.486$ [$-0.649, +1.621$] & 1.626 & $+0.84$ & $0.402^{\text{ns}}$ &  \\
+ & \texttt{Symbolic-LBBNN (3-Layer)} & $+2.055$ [$+0.098, +4.013$] & 7.810 & $+2.06$ & $0.040^{*}$ &  \\
 \midrule
 Variable FPR (\texttt{Binomial}, logit) & \texttt{Symbolic-LBBNN} (Ref) & $-3.831$ [$-4.435, -3.228$] & Ref & $-12.44$ & --- & 0.000 \\
  & \texttt{FBMS-BGNLM} & $-2.387$ [$-4.309, -0.464$] & 0.092 & $-2.43$ & $0.015^{*}$ &  \\
@@ -249,38 +284,54 @@ Variable FPR (\texttt{Binomial}, logit) & \texttt{Symbolic-LBBNN} (Ref) & $-3.83
  & \texttt{ReLU-LBBNN} & $+2.984$ [$+2.366, +3.603$] & 19.775 & $+9.46$ & $<.001^{***}$ &  \\
  & \texttt{SR-Operon} & $+1.767$ [$+1.103, +2.431$] & 5.855 & $+5.22$ & $<.001^{***}$ &  \\
  & \texttt{SR-PySR} & $+1.747$ [$+1.082, +2.412$] & 5.738 & $+5.15$ & $<.001^{***}$ &  \\
+ & \texttt{Symbolic-LBBNN (3-Layer)} & $-1.339$ [$-2.626, -0.051$] & 0.262 & $-2.04$ & $0.042^{*}$ &  \\
 \midrule
-Exact Variable Recovery (\texttt{Binomial}, logit) & \texttt{Symbolic-LBBNN} (Ref) & $+1.988$ [$+1.378, +2.598$] & Ref & $+6.39$ & --- & 0.768 \\
- & \texttt{FBMS-BGNLM} & $+3.093$ [$+1.014, +5.172$] & 22.047 & $+2.92$ & $0.004^{**}$ &  \\
- & \texttt{GAM} & $-3.532$ [$-4.341, -2.722$] & 0.029 & $-8.55$ & $<.001^{***}$ &  \\
- & \texttt{Lasso} & $-2.595$ [$-3.340, -1.851$] & 0.075 & $-6.83$ & $<.001^{***}$ &  \\
- & \texttt{MARS} & $+1.107$ [$+0.072, +2.141$] & 3.024 & $+2.10$ & $0.036^{*}$ &  \\
- & \texttt{RandomForest} & $-0.518$ [$-1.280, +0.244$] & 0.596 & $-1.33$ & $0.183^{\text{ns}}$ &  \\
- & \texttt{ReLU-LBBNN} & $-7.065$ [$-9.166, -4.964$] & $<.001$ & $-6.59$ & $<.001^{***}$ &  \\
- & \texttt{SR-Operon} & $-1.994$ [$-2.720, -1.268$] & 0.136 & $-5.39$ & $<.001^{***}$ &  \\
- & \texttt{SR-PySR} & $-1.994$ [$-2.720, -1.268$] & 0.136 & $-5.39$ & $<.001^{***}$ &  \\
+Exact Variable Recovery (\texttt{Binomial}, logit) & \texttt{Symbolic-LBBNN} (Ref) & $+1.974$ [$+1.368, +2.580$] & Ref & $+6.38$ & --- & 0.746 \\
+ & \texttt{FBMS-BGNLM} & $+3.092$ [$+1.011, +5.173$] & 22.022 & $+2.91$ & $0.004^{**}$ &  \\
+ & \texttt{GAM} & $-3.512$ [$-4.317, -2.708$] & 0.030 & $-8.55$ & $<.001^{***}$ &  \\
+ & \texttt{Lasso} & $-2.581$ [$-3.322, -1.840$] & 0.076 & $-6.83$ & $<.001^{***}$ &  \\
+ & \texttt{MARS} & $+1.104$ [$+0.071, +2.138$] & 3.017 & $+2.09$ & $0.036^{*}$ &  \\
+ & \texttt{RandomForest} & $-0.516$ [$-1.277, +0.244$] & 0.597 & $-1.33$ & $0.183^{\text{ns}}$ &  \\
+ & \texttt{ReLU-LBBNN} & $-7.042$ [$-9.142, -4.942$] & $<.001$ & $-6.57$ & $<.001^{***}$ &  \\
+ & \texttt{SR-Operon} & $-1.983$ [$-2.706, -1.261$] & 0.138 & $-5.38$ & $<.001^{***}$ &  \\
+ & \texttt{SR-PySR} & $-1.984$ [$-2.706, -1.261$] & 0.138 & $-5.38$ & $<.001^{***}$ &  \\
+ & \texttt{Symbolic-LBBNN (3-Layer)} & $+1.891$ [$+0.561, +3.221$] & 6.626 & $+2.79$ & $0.005^{**}$ &  \\
 \midrule
-Test RMSE (\texttt{Gamma}, log) & \texttt{Symbolic-LBBNN} (Ref) & $+0.149$ [$+0.136, +0.161$] & Ref & $+23.21$ & --- & 0.028 \\
- & \texttt{FBMS-BGNLM} & $-0.137$ [$-0.150, -0.125$] & $0.872\times$ & $-21.50$ & $<.001^{***}$ &  \\
- & \texttt{GAM} & $+0.347$ [$+0.333, +0.361$] & $1.415\times$ & $+48.96$ & $<.001^{***}$ &  \\
- & \texttt{Lasso} & $+0.803$ [$+0.788, +0.817$] & $2.231\times$ & $+109.67$ & $<.001^{***}$ &  \\
- & \texttt{MARS} & $-0.051$ [$-0.064, -0.039$] & $0.950\times$ & $-8.01$ & $<.001^{***}$ &  \\
- & \texttt{RandomForest} & $+0.628$ [$+0.614, +0.642$] & $1.874\times$ & $+87.91$ & $<.001^{***}$ &  \\
- & \texttt{ReLU-LBBNN} & $+0.103$ [$+0.087, +0.119$] & $1.109\times$ & $+12.66$ & $<.001^{***}$ &  \\
- & \texttt{SR-Operon} & $+0.205$ [$+0.143, +0.267$] & $1.228\times$ & $+6.52$ & $<.001^{***}$ &  \\
- & \texttt{SR-PySR} & $+0.223$ [$+0.160, +0.287$] & $1.250\times$ & $+6.88$ & $<.001^{***}$ &  \\
+Active Terms (\texttt{NegBinom}, log) & \texttt{Symbolic-LBBNN} (Ref) & $+4.077$ [$+4.052, +4.103$] & Ref & $+313.16$ & --- & 0.000 \\
+ & \texttt{FBMS-BGNLM} & $-2.578$ [$-2.674, -2.482$] & $0.076\times$ & $-52.60$ & $<.001^{***}$ &  \\
+ & \texttt{GAM} & $-1.328$ [$-1.384, -1.272$] & $0.265\times$ & $-46.69$ & $<.001^{***}$ &  \\
+ & \texttt{Lasso} & $-2.551$ [$-2.646, -2.456$] & $0.078\times$ & $-52.70$ & $<.001^{***}$ &  \\
+ & \texttt{MARS} & $-1.142$ [$-1.194, -1.091$] & $0.319\times$ & $-43.15$ & $<.001^{***}$ &  \\
+ & \texttt{RandomForest} & $+1.626$ [$+1.598, +1.654$] & $5.086\times$ & $+114.19$ & $<.001^{***}$ &  \\
+ & \texttt{ReLU-LBBNN} & $+0.734$ [$+0.703, +0.765$] & $2.084\times$ & $+46.37$ & $<.001^{***}$ &  \\
+ & \texttt{SR-Operon} & $-0.929$ [$-0.977, -0.881$] & $0.395\times$ & $-37.96$ & $<.001^{***}$ &  \\
+ & \texttt{SR-PySR} & $-0.971$ [$-1.020, -0.922$] & $0.379\times$ & $-39.09$ & $<.001^{***}$ &  \\
+ & \texttt{Symbolic-LBBNN (3-Layer)} & $-1.581$ [$-1.643, -1.519$] & $0.206\times$ & $-50.16$ & $<.001^{***}$ &  \\
 \midrule
-Out-of-Sample $R^2$ (\texttt{Beta}, logit) & \texttt{Symbolic-LBBNN} (Ref) & $+2.719$ [$+2.690, +2.747$] & Ref & $+185.85$ & --- & 0.082 \\
- & \texttt{FBMS-BGNLM} & $+0.292$ [$+0.266, +0.317$] & 1.339 & $+22.17$ & $<.001^{***}$ &  \\
- & \texttt{GAM} & $-0.754$ [$-0.784, -0.724$] & 0.470 & $-49.02$ & $<.001^{***}$ &  \\
- & \texttt{Lasso} & $-1.893$ [$-1.927, -1.859$] & 0.151 & $-110.44$ & $<.001^{***}$ &  \\
- & \texttt{MARS} & $+0.113$ [$+0.086, +0.139$] & 1.119 & $+8.43$ & $<.001^{***}$ &  \\
- & \texttt{RandomForest} & $-1.422$ [$-1.453, -1.391$] & 0.241 & $-90.21$ & $<.001^{***}$ &  \\
- & \texttt{ReLU-LBBNN} & $-0.220$ [$-0.254, -0.185$] & 0.803 & $-12.52$ & $<.001^{***}$ &  \\
- & \texttt{SR-Operon} & $-0.552$ [$-0.684, -0.420$] & 0.576 & $-8.20$ & $<.001^{***}$ &  \\
- & \texttt{SR-PySR} & $-0.601$ [$-0.738, -0.465$] & 0.548 & $-8.63$ & $<.001^{***}$ &  \\
+Test RMSE (\texttt{Gamma}, log) & \texttt{Symbolic-LBBNN} (Ref) & $+0.149$ [$+0.135, +0.162$] & Ref & $+21.68$ & --- & 0.038 \\
+ & \texttt{FBMS-BGNLM} & $-0.138$ [$-0.149, -0.126$] & $0.872\times$ & $-23.94$ & $<.001^{***}$ &  \\
+ & \texttt{GAM} & $+0.347$ [$+0.332, +0.362$] & $1.415\times$ & $+45.57$ & $<.001^{***}$ &  \\
+ & \texttt{Lasso} & $+0.803$ [$+0.787, +0.819$] & $2.233\times$ & $+98.68$ & $<.001^{***}$ &  \\
+ & \texttt{MARS} & $-0.051$ [$-0.064, -0.039$] & $0.950\times$ & $-8.09$ & $<.001^{***}$ &  \\
+ & \texttt{RandomForest} & $+0.629$ [$+0.614, +0.644$] & $1.876\times$ & $+79.82$ & $<.001^{***}$ &  \\
+ & \texttt{ReLU-LBBNN} & $+0.103$ [$+0.088, +0.119$] & $1.109\times$ & $+12.80$ & $<.001^{***}$ &  \\
+ & \texttt{SR-Operon} & $+0.206$ [$+0.144, +0.267$] & $1.228\times$ & $+6.51$ & $<.001^{***}$ &  \\
+ & \texttt{SR-PySR} & $+0.224$ [$+0.160, +0.288$] & $1.251\times$ & $+6.87$ & $<.001^{***}$ &  \\
+ & \texttt{Symbolic-LBBNN (3-Layer)} & $-0.141$ [$-0.152, -0.130$] & $0.869\times$ & $-24.49$ & $<.001^{***}$ &  \\
+\midrule
+Out-of-Sample $R^2$ (\texttt{Beta}, logit) & \texttt{Symbolic-LBBNN} (Ref) & $+2.720$ [$+2.689, +2.750$] & Ref & $+174.60$ & --- & 0.098 \\
+ & \texttt{FBMS-BGNLM} & $+0.292$ [$+0.268, +0.316$] & 1.339 & $+23.86$ & $<.001^{***}$ &  \\
+ & \texttt{GAM} & $-0.754$ [$-0.787, -0.722$] & 0.470 & $-45.63$ & $<.001^{***}$ &  \\
+ & \texttt{Lasso} & $-1.894$ [$-1.931, -1.857$] & 0.151 & $-100.62$ & $<.001^{***}$ &  \\
+ & \texttt{MARS} & $+0.113$ [$+0.086, +0.139$] & 1.119 & $+8.37$ & $<.001^{***}$ &  \\
+ & \texttt{RandomForest} & $-1.423$ [$-1.457, -1.389$] & 0.241 & $-82.08$ & $<.001^{***}$ &  \\
+ & \texttt{ReLU-LBBNN} & $-0.220$ [$-0.254, -0.185$] & 0.803 & $-12.54$ & $<.001^{***}$ &  \\
+ & \texttt{SR-Operon} & $-0.553$ [$-0.685, -0.420$] & 0.575 & $-8.18$ & $<.001^{***}$ &  \\
+ & \texttt{SR-PySR} & $-0.601$ [$-0.738, -0.464$] & 0.548 & $-8.61$ & $<.001^{***}$ &  \\
+ & \texttt{Symbolic-LBBNN (3-Layer)} & $+0.320$ [$+0.295, +0.344$] & 1.376 & $+26.08$ & $<.001^{***}$ &  \\
 \bottomrule
 \end{tabular}%
+}
 }
 \end{table}
 
@@ -288,7 +339,8 @@ Out-of-Sample $R^2$ (\texttt{Beta}, logit) & \texttt{Symbolic-LBBNN} (Ref) & $+2
 \centering
 \caption{Full GLMM regression contrasts on Benchmark 5 (Multivariate 3D R\"ossler--Lorenz SINDy, $M = 100$ seeds).}
 \label{tab:glmm_app_sindy}
-\resizebox{\textwidth}{!}{%
+{\renewcommand{\arraystretch}{0.85}
+\resizebox{0.93\textwidth}{!}{%
 \begin{tabular}{llcccccc}
 \toprule
 Metric (Family, Link) & Method & $\hat{\beta}_0$ / $\hat{\beta}_m$ [95\% CI] & $e^{\hat{\beta}_m}$ & Wald $z$ & $p$-value & $\hat{\sigma}_{\text{seed}}$ \\
@@ -333,6 +385,16 @@ Variable FPR (\texttt{Binomial}, logit) & \texttt{Symbolic-LBBNN} (Ref) & $-6.33
  & \texttt{SR-Operon} & $+3.311$ [$+1.951, +4.670$] & 27.411 & $+4.77$ & $<.001^{***}$ &  \\
  & \texttt{SR-PySR} & $+3.291$ [$+1.931, +4.651$] & 26.863 & $+4.74$ & $<.001^{***}$ &  \\
 \midrule
+Active Terms (\texttt{Poisson}, log) & \texttt{Symbolic-LBBNN} (Ref) & $+2.569$ [$+2.515, +2.623$] & Ref & $+92.80$ & --- & 0.000 \\
+ & \texttt{FBMS-BGNLM} & $-0.623$ [$-0.715, -0.531$] & $0.536\times$ & $-13.30$ & $<.001^{***}$ &  \\
+ & \texttt{GAM} & $+0.145$ [$+0.071, +0.219$] & $1.156\times$ & $+3.84$ & $<.001^{***}$ &  \\
+ & \texttt{Lasso} & $-0.754$ [$-0.850, -0.658$] & $0.470\times$ & $-15.41$ & $<.001^{***}$ &  \\
+ & \texttt{MARS} & $+0.531$ [$+0.463, +0.600$] & $1.701\times$ & $+15.23$ & $<.001^{***}$ &  \\
+ & \texttt{RandomForest} & $+4.234$ [$+4.179, +4.288$] & $68.966\times$ & $+151.84$ & $<.001^{***}$ &  \\
+ & \texttt{ReLU-LBBNN} & $+2.750$ [$+2.694, +2.806$] & $15.640\times$ & $+96.31$ & $<.001^{***}$ &  \\
+ & \texttt{SR-Operon} & $+0.508$ [$+0.439, +0.577$] & $1.662\times$ & $+14.50$ & $<.001^{***}$ &  \\
+ & \texttt{SR-PySR} & $+0.508$ [$+0.439, +0.576$] & $1.661\times$ & $+14.49$ & $<.001^{***}$ &  \\
+\midrule
 Test RMSE (\texttt{Gamma}, log) & \texttt{Symbolic-LBBNN} (Ref) & $-2.971$ [$-3.114, -2.829$] & Ref & $-40.82$ & --- & 0.214 \\
  & \texttt{FBMS-BGNLM} & $+0.000$ [$-0.191, +0.192$] & $1.000\times$ & $+0.00$ & $0.997^{\text{ns}}$ &  \\
  & \texttt{GAM} & $+3.646$ [$+3.454, +3.838$] & $38.312\times$ & $+37.23$ & $<.001^{***}$ &  \\
@@ -354,6 +416,7 @@ Out-of-Sample $R^2$ (\texttt{Beta}, logit) & \texttt{Symbolic-LBBNN} (Ref) & $+4
  & \texttt{SR-PySR} & $-0.672$ [$-0.940, -0.405$] & 0.511 & $-4.93$ & $<.001^{***}$ &  \\
 \bottomrule
 \end{tabular}%
+}
 }
 \end{table}
 

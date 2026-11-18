@@ -329,9 +329,10 @@ fit_single_metric_glmm <- function(df_bench, bench, m_col, ref_method = "Symboli
     return(NULL)
   }
 
-  # 4. Count metrics (n_terms) -> Negative Binomial nbinom2(log)
+  # 4. Count metrics (n_terms) -> Negative Binomial nbinom2(log), Poisson(log) limit fallback
   if (m_col == "n_terms") {
     sub_df$y_cnt <- pmax(1L, as.integer(round(sub_df$n_terms)))
+    fam_used <- "NegBinom"
     fit <- try_tmb(glmmTMB::glmmTMB(
       y_cnt ~ method + (1 | seed_f),
       family = glmmTMB::nbinom2(link = "log"),
@@ -344,8 +345,24 @@ fit_single_metric_glmm <- function(df_bench, bench, m_col, ref_method = "Symboli
         data = sub_df
       ))
     }
+    if (!is_valid_tmb(fit)) {
+      fam_used <- "Poisson"
+      fit <- try_tmb(glmmTMB::glmmTMB(
+        y_cnt ~ method + (1 | seed_f),
+        family = stats::poisson(link = "log"),
+        data = sub_df
+      ))
+    }
+    if (!is_valid_tmb(fit)) {
+      fam_used <- "Poisson"
+      fit <- try_tmb(glmmTMB::glmmTMB(
+        y_cnt ~ method,
+        family = stats::poisson(link = "log"),
+        data = sub_df
+      ))
+    }
     if (is_valid_tmb(fit)) {
-      return(extract_fixef_treatment(fit, bench, m_col, "NegBinom", "log", ref_method))
+      return(extract_fixef_treatment(fit, bench, m_col, fam_used, "log", ref_method))
     }
   }
 
@@ -468,14 +485,35 @@ for (b in benchmarks) {
   }
   df_b <- utils::read.csv(raw_path, stringsAsFactors = FALSE)
   stopifnot(nrow(df_b) > 0L)
+  df_b <- df_b[df_b$method != "Symbolic-LBBNN (3-Layer)", , drop = FALSE]
   df_b <- add_test_r2_column(df_b, b)
   utils::write.csv(df_b, raw_path, row.names = FALSE)
   all_raw_list[[b]] <- df_b
 
-  df_ci <- summarize_with_ci(df_b, b)
+  df_b_fit <- df_b
+  f3_path <- "results_baselines/nonlinear/raw_friedman_3layer.csv"
+  if (b == "nonlinear" && file.exists(f3_path)) {
+    d_3l <- utils::read.csv(f3_path, stringsAsFactors = FALSE)
+    d_3l_mapped <- data.frame(
+      seed = d_3l$seed,
+      benchmark = "nonlinear",
+      method = "Symbolic-LBBNN (3-Layer)",
+      var_tpr = d_3l$tpr,
+      var_fpr = d_3l$fpr,
+      exact_var_recovery = d_3l$exact_var_recovery,
+      test_rmse = d_3l$test_rmse,
+      n_terms = d_3l$active_edges,
+      formula = d_3l$formula,
+      test_r2 = d_3l$test_r2,
+      stringsAsFactors = FALSE
+    )
+    df_b_fit <- rbind(df_b, d_3l_mapped)
+  }
+
+  df_ci <- summarize_with_ci(df_b_fit, b)
   utils::write.csv(df_ci, file.path("results_baselines", b, sprintf("summary_%s_ci.csv", b)), row.names = FALSE)
 
-  m_res <- lapply(bench_metrics[[b]], function(mc) fit_single_metric_glmm(df_b, b, mc))
+  m_res <- lapply(bench_metrics[[b]], function(mc) fit_single_metric_glmm(df_b_fit, b, mc))
   m_res <- Filter(Negate(is.null), m_res)
   df_glmm <- do.call(rbind, m_res)
   stopifnot(!is.null(df_glmm), nrow(df_glmm) > 0L)
@@ -730,20 +768,25 @@ write_appendix_d_tex <- function(glmm_list, out_tex = "paper/appendix_d_glmm_tab
     "\\section{Complete Generalized Linear Mixed-Effects Regression Tables}",
     "\\label{app:glmm_full}",
     "",
-    "This appendix reports the complete \\texttt{glmmTMB} fixed-effect estimates ($\\hat{\\beta}_0$ for \\texttt{Symbolic-LBBNN} as reference, contrast $\\hat{\\beta}_m$ with $95\\%$ Wald confidence intervals), exponentiated effect multipliers ($e^{\\hat{\\beta}_m}$ representing multiplicative mean ratios for \\texttt{Gamma}/\\texttt{NegBinom} and odds ratios for \\texttt{Binomial}/\\texttt{Beta}), Wald $z$-statistics, two-sided $p$-values, and matched seed random-effect standard deviations ($\\hat{\\sigma}_{\\text{seed}}$) across every metric and all five benchmarks in Tables~\\ref{tab:glmm_app_logic}--\\ref{tab:glmm_app_sindy}. Out-of-sample $R^2$ is modeled via Beta GLMM with logit link after Smithson--Verkuilen boundary regularization.",
+    "This appendix reports the complete \\texttt{glmmTMB} fixed-effect estimates ($\\hat{\\beta}_0$ for \\texttt{Symbolic-LBBNN} as reference, contrast $\\hat{\\beta}_m$ with $95\\%$ Wald confidence intervals), exponentiated effect multipliers ($e^{\\hat{\\beta}_m}$ representing multiplicative mean ratios for \\texttt{Gamma}/\\texttt{NegBinom}/\\texttt{Poisson} and odds ratios for \\texttt{Binomial}/\\texttt{Beta}), Wald $z$-statistics, two-sided $p$-values, and matched seed random-effect standard deviations ($\\hat{\\sigma}_{\\text{seed}}$) across every metric and all five benchmarks in Tables~\\ref{tab:glmm_app_logic}--\\ref{tab:glmm_app_sindy}. Out-of-sample $R^2$ is modeled via Beta GLMM with logit link after Smithson--Verkuilen boundary regularization.",
     ""
   )
 
   for (b in names(glmm_list)) {
     df_g <- glmm_list[[b]]
     info <- bench_titles[[b]]
+    need_compact <- (nrow(df_g) > 55L)
+    very_tall <- (nrow(df_g) > 64L)
+    resize_w <- if (very_tall) "0.88\\textwidth" else if (need_compact) "0.93\\textwidth" else "\\textwidth"
+    arr_str  <- if (very_tall) "0.80" else if (need_compact) "0.85" else "1.0"
     lines <- c(
       lines,
       "\\begin{table}[htbp]",
       "\\centering",
       sprintf("\\caption{Full GLMM regression contrasts on %s.}", info[2]),
       sprintf("\\label{%s}", info[3]),
-      "\\resizebox{\\textwidth}{!}{%",
+      if (need_compact) sprintf("{\\renewcommand{\\arraystretch}{%s}", arr_str) else "{",
+      sprintf("\\resizebox{%s}{!}{%%", resize_w),
       "\\begin{tabular}{llcccccc}",
       "\\toprule",
       "Metric (Family, Link) & Method & $\\hat{\\beta}_0$ / $\\hat{\\beta}_m$ [95\\% CI] & $e^{\\hat{\\beta}_m}$ & Wald $z$ & $p$-value & $\\hat{\\sigma}_{\\text{seed}}$ \\\\",
@@ -753,7 +796,14 @@ write_appendix_d_tex <- function(glmm_list, out_tex = "paper/appendix_d_glmm_tab
     for (mi in seq_along(mets)) {
       mc <- mets[mi]
       sub_m <- df_g[df_g$metric == mc, , drop = FALSE]
-      m_lbl <- if (mc %in% names(metric_labels)) metric_labels[[mc]] else tex_esc(mc)
+      fam_tag <- as.character(sub_m$family[1])
+      m_lbl <- if (mc == "n_terms") {
+        sprintf("Active Terms (\\texttt{%s}, log)", fam_tag)
+      } else if (mc %in% names(metric_labels)) {
+        metric_labels[[mc]]
+      } else {
+        tex_esc(mc)
+      }
       if (mi > 1L) lines <- c(lines, "\\midrule")
       for (r_i in seq_len(nrow(sub_m))) {
         row <- sub_m[r_i, ]
@@ -771,6 +821,7 @@ write_appendix_d_tex <- function(glmm_list, out_tex = "paper/appendix_d_glmm_tab
       lines,
       "\\bottomrule",
       "\\end{tabular}%",
+      "}",
       "}",
       "\\end{table}",
       ""

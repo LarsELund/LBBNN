@@ -141,23 +141,23 @@ save_dual("fig0_architecture", width = 11.4, height = 5.6, plot_fn = function() 
   arrows(49.5, 53.5, 49.5, 46.2, length = 0.08, lwd = 1.5, lty = 2, col = COL_DARK)
   arrows(83.5, 53.5, 83.5, 43.2, length = 0.08, lwd = 1.5, lty = 2, col = COL_DARK)
   draw_padded_text(45.5, 53.5,
-    expression(paste("Direct Input-Skip Connections  ", tilde(bold(u))[i]^{(l-1)} == "[", bold(u)[i]^{(l-1)}, ", ", bold(x)[i], "]")),
-    cex = 0.88, font = 2, col = COL_BLACK, pad_x = 1.0, pad_y = 0.8, border = COL_GRAY)
+    expression(paste("Direct Input-Skip Connections:  ", tilde(bold(u))[i]^{(italic(l)-1)} == group("[", list(bold(u)[i]^{(italic(l)-1)}, bold(x)[i]), "]"))),
+    cex = 0.84, font = 2, col = COL_BLACK, pad_x = 1.2, pad_y = 0.85, border = COL_GRAY)
 
   # 1. Input Block x_i in R^p
   draw_arch_box(2, 12, 13, 43, fill = COL_PALE, border = COL_BLACK, lwd = 1.8)
   text(7.5, 40.2, expression(bold("Inputs") ~ bold(x)[i] %in% R^p), cex = 0.85, font = 2)
-  in_y <- c(34.5, 29.0, 23.5, 17.5)
+  in_y <- c(34.5, 29.0, 23.5, 17.0)
   in_lbl <- c(expression(x[list(i,1)]), expression(x[list(i,2)]), expression(x[list(i,3)]), expression(x[list(i,p)]))
   for (k in seq_along(in_y)) {
-    points(7.5, in_y[k], pch = 21, cex = 2.6, bg = COL_WHITE, col = COL_BLACK, lwd = 1.4)
-    text(7.5, in_y[k], labels = in_lbl[k], cex = 0.78)
+    points(7.5, in_y[k], pch = 21, cex = 4.2, bg = COL_WHITE, col = COL_BLACK, lwd = 1.4)
+    text(7.5, in_y[k], labels = in_lbl[k], cex = 0.70)
   }
-  text(7.5, 20.6, "...", cex = 1.1, font = 2)
+  text(7.5, 20.3, "...", cex = 1.1, font = 2)
 
   # 2. Hidden Layer l = 1 (Heterogeneous Operator Bank)
   draw_arch_box(20, 9, 38, 45, fill = COL_WHITE, border = COL_BLACK, lwd = 1.8)
-  text(29, 42.3, expression(bold("Layer") ~ l == 1 ~ "(Operators)"), cex = 0.84, font = 2)
+  text(29, 42.3, expression(bold("Layer") ~ italic(l) == 1 ~ "(Operators)"), cex = 0.84, font = 2)
   l1_y <- c(37.0, 31.2, 25.4, 19.6, 13.8)
   l1_lbl <- c(
     expression(sigma[clog](x[1]) == log(x[1])),
@@ -174,34 +174,34 @@ save_dual("fig0_architecture", width = 11.4, height = 5.6, plot_fn = function() 
 
   # 3. Concatenation node u_tilde^(1) + Layer l = 2..L-1 (Composition Bank)
   draw_arch_box(43, 12, 66, 46, fill = COL_WHITE, border = COL_BLACK, lwd = 1.8)
-  text(54.5, 43.3, expression(bold("Layers") ~ l == 2 * ".." * L - 1 ~ "(Composition)"), cex = 0.83, font = 2)
+  text(54.5, 43.3, expression(bold("Layers") ~ italic(l) == 2 * ".." * L - 1 ~ "(Composition)"), cex = 0.83, font = 2)
   l2_y <- c(37.5, 30.8, 24.0, 17.0)
   l2_lbl <- c(
-    expression(sigma[exp] * ":" ~ prod(x[k]^{w[k]}) ~ "(Fractional)"),
+    expression(paste(sigma[exp], ":  ", prod(x[k]^{w[k]}, k), "  (Fractional Power)")),
     expression(sigma[sq] * ":" ~ (z)^2 ~ "(Quad / Polariz.)"),
     expression(sigma[sin] * ":" ~ sin(pi * x[1] * x[2]) ~ "(3-Layer)"),
-    expression(sigma[id] * "/" * sigma[and] ~ "(Boolean Passage)")
+    expression(paste(sigma[id], "/", sigma[and], "  (Boolean / Linear Routing)"))
   )
   l2_fill <- c(COL_FILL, COL_WHITE, COL_PALE, COL_WHITE)
   for (k in seq_along(l2_y)) {
     draw_arch_box(44.2, l2_y[k] - 2.4, 64.8, l2_y[k] + 2.4, fill = l2_fill[k], border = COL_BLACK, lwd = 1.2)
-    text(54.5, l2_y[k], labels = l2_lbl[k], cex = 0.72)
+    text(54.5, l2_y[k], labels = l2_lbl[k], cex = 0.69)
   }
 
   # 4. Output Readout Layer l = L (Multivariate GLM Linear Predictor)
-  draw_arch_box(74, 11, 97, 44, fill = COL_PALE, border = COL_BLACK, lwd = 1.9)
-  text(85.5, 41.0, expression(bold("Readout") ~ l == L ~ (n^{(L)} == q)), cex = 0.83, font = 2)
-  out_y <- c(34.0, 26.5, 18.5)
+  draw_arch_box(73, 11, 98, 44, fill = COL_PALE, border = COL_BLACK, lwd = 1.9)
+  text(85.5, 41.0, expression(bold("Readout") ~ italic(l) == L ~ (n^{(L)} == q)), cex = 0.83, font = 2)
+  out_y <- c(34.0, 26.5, 19.0)
   out_lbl <- c(
     expression(hat(eta)[1](x[i]) == beta[01] + sum(w[1*k] * tilde(u)[ik])),
     expression(hat(eta)[r](x[i]) ~ "  (Bayes Laplace MAP)"),
     expression(hat(eta)[q](x[i]) ~ "  (NIG Posteriors, " * hat(sigma)[epsilon*","*q]^2 * ")")
   )
   for (k in seq_along(out_y)) {
-    draw_arch_box(75.2, out_y[k] - 2.5, 95.8, out_y[k] + 2.5, fill = COL_WHITE, border = COL_BLACK, lwd = 1.3)
+    draw_arch_box(74.2, out_y[k] - 2.5, 96.8, out_y[k] + 2.5, fill = COL_WHITE, border = COL_BLACK, lwd = 1.3)
     text(85.5, out_y[k], labels = out_lbl[k], cex = 0.70)
   }
-  text(85.5, 13.3, expression(paste("Outputs ", bold(y)[i] %in% R^q, " | Rational BF Snapping")), cex = 0.70, font = 3)
+  text(85.5, 13.3, expression(paste("Multivariate Outputs ", bold(y)[i] %in% R^q, " (Laplace BF)")), cex = 0.65, font = 3)
 
   # Connect Inputs -> Layer 1 (mix of bold active paths gamma_path=1 & dotted pruned gamma_path=0)
   for (yi in in_y) {
@@ -228,21 +228,21 @@ save_dual("fig0_architecture", width = 11.4, height = 5.6, plot_fn = function() 
   # Layer 2..L-1 -> Output Readout
   for (yi in l2_y) {
     for (yj in out_y) {
-      arrows(65.0, yi, 75.0, yj, length = 0.05, lwd = 0.75, lty = 3, col = COL_GRAY)
+      arrows(65.0, yi, 74.0, yj, length = 0.05, lwd = 0.75, lty = 3, col = COL_GRAY)
     }
   }
-  arrows(65.0, l2_y[1], 75.0, out_y[1], length = 0.08, lwd = 2.3, lty = 1, col = COL_BLACK)
-  arrows(65.0, l2_y[1], 75.0, out_y[2], length = 0.07, lwd = 1.9, lty = 1, col = COL_DARK)
-  arrows(65.0, l2_y[2], 75.0, out_y[3], length = 0.07, lwd = 1.9, lty = 1, col = COL_DARK)
-  arrows(65.0, l2_y[4], 75.0, out_y[1], length = 0.07, lwd = 1.9, lty = 1, col = COL_BLACK)
+  arrows(65.0, l2_y[1], 74.0, out_y[1], length = 0.08, lwd = 2.3, lty = 1, col = COL_BLACK)
+  arrows(65.0, l2_y[1], 74.0, out_y[2], length = 0.07, lwd = 1.9, lty = 1, col = COL_DARK)
+  arrows(65.0, l2_y[2], 74.0, out_y[3], length = 0.07, lwd = 1.9, lty = 1, col = COL_DARK)
+  arrows(65.0, l2_y[4], 74.0, out_y[1], length = 0.07, lwd = 1.9, lty = 1, col = COL_BLACK)
 
   # Bottom Legend Strip
   draw_arch_box(2, 1.0, 98, 6.2, fill = COL_WHITE, border = COL_GRAY, lwd = 1.0)
   segments(5, 3.6, 11, 3.6, lwd = 2.3, lty = 1, col = COL_BLACK)
-  text(12, 3.6, expression(paste("Active MPM Path (", hat(gamma)[jk]^{"path(l)"} == 1, ")")), adj = c(0, 0.5), cex = 0.77)
+  text(12, 3.6, expression(paste("Active MPM Path (", hat(gamma)[list(j, k)]^{(italic(l))} == 1, ")")), adj = c(0, 0.5), cex = 0.77)
 
   segments(35, 3.6, 41, 3.6, lwd = 1.1, lty = 3, col = COL_GRAY)
-  text(42, 3.6, expression(paste("Pruned Edge (", hat(gamma)[jk]^{"path(l)"} == 0, ")")), adj = c(0, 0.5), cex = 0.77)
+  text(42, 3.6, expression(paste("Pruned Edge (", hat(gamma)[list(j, k)]^{(italic(l))} == 0, ")")), adj = c(0, 0.5), cex = 0.77)
 
   segments(62, 3.6, 68, 3.6, lwd = 1.6, lty = 2, col = COL_DARK)
   text(69, 3.6, expression(paste("Input-Skip ", bold(x)[i], " & Post-Training MAP")), adj = c(0, 0.5), cex = 0.77)
@@ -294,7 +294,9 @@ save_dual("fig1_priors_and_dynamics", width = 11.8, height = 4.6, plot_fn = func
   }
 
   legend("topright",
-         legend = c("Layer l = 1 (Shallow)", "Layer l = 2 (Composition)", "Layer l = 3 (Deep)"),
+         legend = c(expression(paste("Layer ", italic(l) == 1, " (Shallow)")),
+                    expression(paste("Layer ", italic(l) == 2, " (Composition)")),
+                    expression(paste("Layer ", italic(l) == 3, " (Deep)"))),
          col = c(COL_BLACK, COL_MID, COL_SLATE),
          lty = c(1, 2, 3), pch = c(16, 17, 0),
          lwd = 2.2, bty = "o", bg = COL_WHITE, box.col = COL_LIGHT, cex = 0.82)
@@ -354,9 +356,10 @@ save_dual("fig1_priors_and_dynamics", width = 11.8, height = 4.6, plot_fn = func
   text( 1, max(bimodal_dens) * 1.08, expression(paste("Positive (", X[k], ")")),
         cex = 0.88, col = COL_BLACK, font = 2)
   legend("topright",
-         legend = c(expression(p["logic-slab"](w)), expression(N(0, 1) ~ plain("Slab"))),
+         legend = c(expression(p["logic-slab"](italic(w))),
+                    expression(paste(italic(N)(0, 1), " Slab"))),
          col = c(COL_BLACK, COL_MID), lty = c(1, 2), lwd = c(2.6, 2.2),
-         bty = "o", bg = COL_WHITE, box.col = COL_LIGHT, cex = 0.82)
+         bty = "o", bg = COL_WHITE, box.col = COL_LIGHT, cex = 0.85)
 })
 
 # ==============================================================================
@@ -635,10 +638,13 @@ save_dual("fig4_exoplanet_discovery", width = 11.4, height = 4.9, plot_fn = func
   lines(t_seq, (1.0^(1/3)) * (t_seq^(2/3)), col = COL_BLACK, lwd = 2.7, lty = 1)
 
   cg_lbl <- if (!is.null(cg_real_df)) {
-    sprintf("Grav. const. c_G = %.4f +/- %.4f (Laplace 95%% CI cov: %.0f%%)",
-            mean(cg_real_df$c_g_hat), sd(cg_real_df$c_g_hat), 100 * mean(cg_real_df$cov_1_joint))
+    as.expression(bquote(paste(
+      "Grav. const. ", hat(italic(c))[G] == .(sprintf("%.4f", mean(cg_real_df$c_g_hat))) %+-%
+      .(sprintf("%.4f", sd(cg_real_df$c_g_hat))),
+      .(sprintf(" (95%% CI cov: %.0f%%)", 100 * mean(cg_real_df$cov_1_joint)))
+    )))
   } else {
-    "Grav. const. c_G = 1.0005 +/- 0.0016 (Laplace 95% CI cov: 84%)"
+    expression(paste("Grav. const. ", hat(italic(c))[G] == 1.0005 %+-% 0.0016, " (95% CI cov: 84%)"))
   }
 
   legend("topleft",
@@ -852,13 +858,18 @@ draw_grouped_ci_points <- function(mat_ci, methods, scale_mult = 100, ylim = c(-
     }
   }
 
-  # Add GLMM Wald significance stars directly above primary metric marker
+  # Add GLMM Wald significance stars cleanly above marker / non-overlapping cluster
   if (!is.null(sig_stars) && !is.null(star_row)) {
     xr_s <- x_centers + offs[star_row]
     for (c_idx in seq_len(n_c)) {
       st <- sig_stars[c_idx]
       if (nzchar(st)) {
         y_top_m <- max(est[star_row, c_idx], hi[star_row, c_idx], na.rm = TRUE)
+        # If an adjacent series (< 0.25 x away) overlaps y_top_m + 4.8 vertically, clear the higher cap
+        if (n_r >= 2L && star_row == 2L && max(est[1, c_idx], hi[1, c_idx], na.rm = TRUE) > y_top_m - 2.0 &&
+            max(est[1, c_idx], hi[1, c_idx], na.rm = TRUE) < y_top_m + 22.0) {
+          y_top_m <- max(y_top_m, est[1, c_idx], hi[1, c_idx], na.rm = TRUE)
+        }
         text(xr_s[c_idx], y_top_m + 5.2, labels = st, cex = 0.78, font = 2, col = COL_BLACK)
       }
     }
@@ -868,7 +879,12 @@ draw_grouped_ci_points <- function(mat_ci, methods, scale_mult = 100, ylim = c(-
 
   if (!is.null(legend_labels)) {
     legend(legend_pos, legend = legend_labels, pch = pchs, col = cols, lty = ltys, lwd = 1.7,
-           pt.bg = COL_WHITE, horiz = horiz_leg, bty = "o", bg = COL_WHITE, box.col = COL_LIGHT, cex = 0.72)
+           pt.bg = COL_WHITE, horiz = horiz_leg,
+           x.intersp = if (horiz_leg) 0.55 else 1.0,
+           seg.len = if (horiz_leg) 1.3 else 2.0,
+           inset = c(0.01, 0.015),
+           bty = "o", bg = COL_WHITE, box.col = COL_LIGHT,
+           cex = if (horiz_leg) 0.64 else 0.70)
   }
   invisible(x_centers)
 }
@@ -922,7 +938,7 @@ save_dual("fig6_baseline_comparisons", width = 12.2, height = 9.0, plot_fn = fun
   }
   stars_c <- get_sig_stars(gl_real, m_real, "test_rmse")
   x_c <- seq_along(m_real)
-  plot(NA, xlim = c(0.4, length(m_real) + 0.6), ylim = c(-2.2, 1.55), xaxt = "n", yaxt = "n",
+  plot(NA, xlim = c(0.4, length(m_real) + 0.6), ylim = log10(c(0.007, 18.0)), xaxt = "n", yaxt = "n",
        xlab = "", ylab = "Held-Out Test RMSE (AU, log10 scale)",
        main = "(c) Task 3: NASA Exoplanets (n = 939) Test Error", las = 1)
   axis(2, at = c(-2, -1, 0, 1), labels = c("0.01", "0.10", "1.00", "10.0"), las = 1)
@@ -934,8 +950,8 @@ save_dual("fig6_baseline_comparisons", width = 12.2, height = 9.0, plot_fn = fun
   points(x_c, log10(gm_est), pch = 16, cex = 1.35, col = COL_BLACK)
   points(x_c, log10(am_est), pch = 5,  cex = 1.20, col = COL_DARK, lwd = 1.4)
 
-  lbl_c <- ifelse(nzchar(stars_c), sprintf("%.3f\n(%s)", am_est, stars_c), sprintf("%.3f", am_est))
-  text(x_c, pmax(log10(am_est), log10(gm_hi)) + 0.24, labels = lbl_c, cex = 0.68, font = 2, col = COL_BLACK)
+  lbl_c <- ifelse(nzchar(stars_c), sprintf("%.3f%s", am_est, stars_c), sprintf("%.3f", am_est))
+  text(x_c, pmax(log10(am_est), log10(gm_hi)), labels = lbl_c, pos = 3, offset = 0.45, cex = 0.76, font = 2, col = COL_BLACK)
 
   draw_angled_x_labels(x_c, m_real, y_offset_frac = 0.045, cex = 0.76)
   legend("topleft",
@@ -974,9 +990,9 @@ if (!is.null(ci_sindy) && !is.null(gl_sindy) && !is.null(raw_sindy_b)) {
     ci_s <- extract_mat_ci(ci_sindy, m_sin, c("structural_recovery", "exact_recovery", "test_r2"))
     stars_s <- get_sig_stars(gl_sindy, m_sin, "exact_recovery")
     draw_grouped_ci_points(
-      ci_s, methods = m_sin, ylim = c(-4, 134),
+      ci_s, methods = m_sin, ylim = c(-4, 140),
       main_title = "(a) Task 5: Multivariate 3D SINDy Discovery & Fit",
-      legend_labels = c("Joint Support (%)", "Exact 3-ODE System (%)", "Mean Test R2 (%)"),
+      legend_labels = expression("Joint Support (%)", "Exact 3-ODE System (%)", paste("Mean Test ", italic(R)^2, " (%)")),
       legend_pos = "top", horiz_leg = TRUE, cex_names = 0.74,
       sig_stars = stars_s, star_row = 2L
     )
@@ -1018,7 +1034,7 @@ draw_forest_panel <- function(df_list, lbls, xlab, main_title, xlim,
   draw_grid_v(pretty(xlim))
   abline(h = y_pos, col = COL_PALE, lty = 3)
   abline(v = 0, lty = 2, col = COL_DARK, lwd = 1.9)
-  axis(2, at = y_pos, labels = lbls, las = 1, cex.axis = 0.83)
+  axis(2, at = y_pos, labels = lbls, las = 1, cex.axis = 0.80)
 
   n_ser <- length(df_list)
   offs  <- if (n_ser == 1L) 0 else c(0.16, -0.16)
@@ -1044,7 +1060,7 @@ draw_forest_panel <- function(df_list, lbls, xlab, main_title, xlim,
 }
 
 save_dual("fig7_glmm_contrasts", width = 12.2, height = 8.6, plot_fn = function() {
-  par(mfrow = c(2, 2), mar = c(4.6, 9.2, 3.6, 1.5), cex.lab = 1.00, cex.main = 1.05)
+  par(mfrow = c(2, 2), mar = c(4.6, 10.2, 3.6, 1.5), cex.lab = 1.00, cex.main = 1.05)
 
   # Panel A: Task 1 (Logic) Gamma GLMM Log-Ratio Test RMSE (wider left margin -> no clipping!)
   d1 <- gl_log[gl_log$metric == "test_rmse" & !gl_log$is_ref, ]
@@ -1070,7 +1086,7 @@ save_dual("fig7_glmm_contrasts", width = 12.2, height = 8.6, plot_fn = function(
   )
 
   # Panel C: Task 4 (Friedman #1) Gamma GLMM Log-Ratio Test RMSE
-  d4 <- gl_nl[gl_nl$metric == "test_rmse" & !gl_nl$is_ref, ]
+  d4 <- gl_nl[gl_nl$metric == "test_rmse" & !gl_nl$is_ref & gl_nl$term != "Symbolic-LBBNN (3-Layer)", ]
   d4 <- d4[order(d4$estimate), ]
   draw_forest_panel(
     list(d4), lbls = d4$term,
@@ -1080,7 +1096,7 @@ save_dual("fig7_glmm_contrasts", width = 12.2, height = 8.6, plot_fn = function(
   )
 
   # Panel D: Balanced Joint Cross-Benchmark Hierarchical GLMM (Pure B&W!)
-  par(mar = c(4.6, 9.2, 4.3, 1.5))
+  par(mar = c(4.6, 10.2, 4.3, 1.5))
   dj_src <- if (!is.null(gl_joint_cont)) gl_joint else gl_joint
   dj_rmse <- dj_src[dj_src$metric == "rel_rmse" & !dj_src$is_ref, ]
   dj_goal <- dj_src[dj_src$metric == "exact_goal" & !dj_src$is_ref, ]
@@ -1098,7 +1114,7 @@ save_dual("fig7_glmm_contrasts", width = 12.2, height = 8.6, plot_fn = function(
   draw_grid_v(pretty(xr_bot))
   abline(h = y_d, col = COL_PALE, lty = 3)
   abline(v = 0, lty = 2, col = COL_DARK, lwd = 1.9)
-  axis(2, at = y_d, labels = lbl_d, las = 1, cex.axis = 0.85)
+  axis(2, at = y_d, labels = lbl_d, las = 1, cex.axis = 0.80)
   top_ticks <- pretty(xr_bot * lo_scale)
   axis(3, at = top_ticks / lo_scale, labels = top_ticks, cex.axis = 0.80, mgp = c(1.6, 0.38, 0))
   mtext(expression(paste("Exact Goal Deficit Log-Odds ", -hat(beta)[m], " (open squares, top axis)")),
